@@ -8,6 +8,7 @@ import type { ToastAction } from './toast.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, ref, watch } from 'vue'
+import { fireAndLog } from './fire-and-log.ts'
 import { logger } from './logger.ts'
 import { parsePositions, pictureHolding, positionFileId, positionOf, resumeIndex } from './logic/resume-position.ts'
 import { saveQueue } from './logic/save-queue.ts'
@@ -47,11 +48,11 @@ export function useResume(api: ResumeApi, cull: ResumeCull, toast: (message: str
 
 	/** Sends the position, or keeps it as the latest to send once the save in flight settles. */
 	function save(position: ResumePosition) {
-		void queue([position]).then((result) => {
+		fireAndLog(queue([position]).then((result) => {
 			if (!result.ok) {
 				logger.error('Could not save the resume position.', { error: result.error })
 			}
-		})
+		}), 'Could not save the resume position')
 	}
 
 	watch(() => {

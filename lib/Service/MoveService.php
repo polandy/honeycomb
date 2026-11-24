@@ -8,12 +8,16 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 use OCP\App\IAppManager;
+use OCP\DB\Exception as DbException;
 use OCP\Files\AlreadyExistsException;
 use OCP\Files\File;
 use OCP\Files\Folder;
+use OCP\Files\GenericFileException;
+use OCP\Files\InvalidPathException;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
+use OCP\Files\StorageNotAvailableException;
 use OCP\IUser;
 use OCP\Lock\LockedException;
 use Psr\Log\LoggerInterface;
@@ -90,7 +94,7 @@ final class MoveService {
 				$moved[$index] = $this->moveFile($userId, $userFolder, $move, $replaced);
 				$this->carryOver($userId, $move->source->getId(), $moved[$index]);
 				$outcomes[$index] = self::moved($move, $moved[$index], $replaced);
-			} catch (\Exception $e) {
+			} catch (GenericFileException|InvalidPathException|StorageNotAvailableException|AlreadyExistsException|DbException|NotPermittedException|LockedException|NotFoundException $e) {
 				$outcomes[$index] = ['result' => $this->failure($e, $move->source), 'replaced' => $replaced];
 				foreach (array_reverse($moved, true) as $back => $node) {
 					$outcomes[$back] = $this->moveBack($userId, $node, $moves[$back]) ? ['result' => MoveResult::MovedBack, 'replaced' => $outcomes[$back]['replaced']] : $outcomes[$back];
@@ -140,7 +144,7 @@ final class MoveService {
 		try {
 			$this->carryOver($userId, $node->getId(), $node->move($move->from));
 			return true;
-		} catch (\Exception $e) {
+		} catch (GenericFileException|InvalidPathException|StorageNotAvailableException|NotPermittedException|LockedException|NotFoundException|AlreadyExistsException $e) {
 			$this->logger->warning('A moved file could not be moved back', ['fileId' => $node->getId(), 'exception' => $e]);
 			return false;
 		}
@@ -155,7 +159,8 @@ final class MoveService {
 		foreach ($this->fileRows->stores() as $store) {
 			try {
 				$store->carryOver($userId, $fileId, $newFileId);
-			} catch (\Exception $e) {
+			} catch (DbException $e) {
+				// A move is not undone for a lost row.
 				$this->logger->error('A flag or a file row could not follow its file to a new file id', ['fileId' => $fileId, 'newFileId' => $newFileId, 'exception' => $e]);
 			}
 		}

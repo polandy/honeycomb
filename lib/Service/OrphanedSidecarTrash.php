@@ -9,8 +9,11 @@ namespace OCA\Honeycomb\Service;
 
 use OCP\App\IAppManager;
 use OCP\Files\File;
+use OCP\Files\GenericFileException;
+use OCP\Files\InvalidPathException;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
+use OCP\Files\StorageNotAvailableException;
 use OCP\IUser;
 use OCP\Lock\LockedException;
 use Psr\Log\LoggerInterface;
@@ -83,7 +86,7 @@ final class OrphanedSidecarTrash {
 			return TrashResult::Locked;
 		} catch (NotFoundException) {
 			return TrashResult::NotFound;
-		} catch (\Exception $e) {
+		} catch (GenericFileException|InvalidPathException|StorageNotAvailableException $e) {
 			$this->logger->warning('An orphaned sidecar could not be moved to the trash bin', ['fileId' => $fileId, 'exception' => $e]);
 			return TrashResult::Failed;
 		}

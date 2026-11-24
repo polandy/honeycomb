@@ -63,6 +63,8 @@ export default [
 		plugins: { honeycomb: { rules: { 'no-raw-error-text': noRawErrorText } } },
 		rules: {
 			'honeycomb/no-raw-error-text': 'error',
+			// `void` hides a rejection; name the work with fireAndLog.
+			'@typescript-eslint/no-floating-promises': ['error', { ignoreVoid: false }],
 		},
 	},
 	{

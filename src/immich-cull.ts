@@ -17,6 +17,7 @@ import { t } from '@nextcloud/l10n'
 import { computed, readonly, ref, shallowRef } from 'vue'
 import { useCullHistory } from './cull-history.ts'
 import { changeText } from './decision-text.ts'
+import { fireAndLog } from './fire-and-log.ts'
 import { logger } from './logger.ts'
 import { resolveChange } from './logic/decision-change.ts'
 import { decisionsByFileId } from './logic/decision.ts'
@@ -78,7 +79,7 @@ export function useImmichCull(context: ImmichCullContext) {
 	let generation = 0
 	let save: ((rows: readonly DecisionRow[]) => Promise<SaveResult<DecisionRow>>) | null = null
 	// Undo saves the rows a step replaced, redo the rows it wrote (IMMICH-003.19).
-	const history = useCullHistory<DecisionStep>((step, back) => void apply(back ? changesBetween(step.after, step.before) : changesBetween(step.before, step.after)))
+	const history = useCullHistory<DecisionStep>((step, back) => fireAndLog(apply(back ? changesBetween(step.after, step.before) : changesBetween(step.before, step.after)), 'Could not apply the Immich decision change'))
 	const { undo, redo } = useToastedUndo(history, context.toast.show)
 
 	const list = computed(() => shownList(loaded.value, settled.value, filters.value))
@@ -128,8 +129,8 @@ export function useImmichCull(context: ImmichCullContext) {
 		counts.value = null
 		decided.value = new Map()
 		settled.value = new Map()
-		void askCounts()
-		void askNext()
+		fireAndLog(askCounts(), 'Could not ask the Immich counts')
+		fireAndLog(askNext(), 'Could not ask the next Immich page')
 	}
 
 	/** Asks the counts of the filters and the time options (IMMICH-002.13). */
@@ -158,7 +159,7 @@ export function useImmichCull(context: ImmichCullContext) {
 			}
 			loaded.value = pageArrived(loaded.value, 'next', page)
 			if (list.value.entries.length === before && list.value.nextCursor !== null) {
-				void askNext()
+				fireAndLog(askNext(), 'Could not ask the next Immich page')
 			}
 		} catch (error) {
 			if (asked === generation) {
@@ -171,14 +172,14 @@ export function useImmichCull(context: ImmichCullContext) {
 	/** Asks the next page when the last shown entry is within `ahead` of the last loaded one (IMMICH-002.6, IMMICH-002.9). */
 	function loadNext(lastShown: number, ahead: number) {
 		if (wantsNext(list.value, lastShown, ahead)) {
-			void askNext()
+			fireAndLog(askNext(), 'Could not ask the next Immich page')
 		}
 	}
 
 	/** Asks the failed page again at its cursor (IMMICH-002.19). */
 	function retry() {
 		if (list.value.next === 'failed') {
-			void askNext()
+			fireAndLog(askNext(), 'Could not ask the next Immich page')
 		}
 	}
 

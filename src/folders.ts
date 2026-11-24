@@ -7,6 +7,7 @@ import type { FolderDone, FolderRow } from './logic/folder-row.ts'
 import { t } from '@nextcloud/l10n'
 import { ref, shallowRef, watch } from 'vue'
 import { isRecord } from './api/core.ts'
+import { fireAndLog } from './fire-and-log.ts'
 import { logger } from './logger.ts'
 
 /** The server seams of the list (FOLDERS-005). */
@@ -165,7 +166,7 @@ export function useFolders(api: LibraryApi, options: FoldersOptions) {
 		}
 	}
 
-	watch(() => JSON.stringify(options.roots()), () => void refresh(), { immediate: true })
+	watch(() => JSON.stringify(options.roots()), () => fireAndLog(refresh(), 'Could not refresh the folders'), { immediate: true })
 
 	return { rows, state, updating, shown, fromList, refresh, show, leave, check, setDone }
 }

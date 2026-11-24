@@ -9,6 +9,7 @@ import type { Picture } from './logic/pairing.ts'
 import type { PictureId } from './logic/picture-id.ts'
 import type { CountSign } from './logic/stats-counts.ts'
 
+import { fireAndLog } from './fire-and-log.ts'
 import { logger } from './logger.ts'
 import { changedFields, takenBack, withRows } from './logic/decision-change.ts'
 import { FLAG_FIELDS, pictureDecision } from './logic/decision.ts'
@@ -42,13 +43,13 @@ export function useCullWrites(flags: ReturnType<typeof useCullFlags>, sidecars: 
 		const sidecarFields = fields.filter((field) => !FLAG_FIELDS.includes(field))
 		const writtenFields = state.writeFlags() ? [...flagFields, ...sidecarFields] : sidecarFields
 		if (writtenRows.length > 0 && flagFields.length > 0) {
-			void flags.save(writtenRows, countsByRow(written, writtenRows, (picture) => flagCounts(pictureDecision(picture, before).flag, pictureDecision(picture, after).flag))).then((notSaved) => {
+			fireAndLog(flags.save(writtenRows, countsByRow(written, writtenRows, (picture) => flagCounts(pictureDecision(picture, before).flag, pictureDecision(picture, after).flag))).then((notSaved) => {
 				const back = written.filter((picture) => memberIds(picture).some((fileId) => notSaved.has(fileId)))
 				if (back.length > 0) {
 					takeBack(rowsOf(writtenRows, back), before, flagFields)
 					state.onFlagsNotSaved(back.length)
 				}
-			})
+			}), 'Could not save the flags')
 		}
 		if (written.length > 0 && writtenFields.length > 0) {
 			sidecars.write(written, decisionOf, writtenFields, undefined, (picture) => fieldCounts(pictureDecision(picture, before), pictureDecision(picture, after), sign)).then(({ failed }) => {

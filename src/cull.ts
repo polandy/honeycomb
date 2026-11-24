@@ -24,6 +24,7 @@ import { useCullFlags } from './cull-flags.ts'
 import { useCullHistory } from './cull-history.ts'
 import { useCullTags } from './cull-tags.ts'
 import { useCullWrites } from './cull-writes.ts'
+import { fireAndLog } from './fire-and-log.ts'
 import { nameComparer } from './l10n.ts'
 import { logger } from './logger.ts'
 import { prepareCull, warmMembers } from './logic/cull.ts'
@@ -76,7 +77,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		pickRest: (step, back) => store(back ? step.before : step.after, back ? -1 : 1),
 		reduction: (step, back) => store(back ? step.before : step.after, back ? -1 : 1),
 		tags: (step, back) => changeTags(step.pictures, back ? inverseChange(step.change) : step.change, back ? -1 : 1),
-		series: (step, back) => void storedSeries.store(back ? step.before : step.after),
+		series: (step, back) => fireAndLog(storedSeries.store(back ? step.before : step.after), 'Could not store the series'),
 	}
 	const history = useCullHistory<CullStep>((step, back) => applyStep(effects, step, back))
 	/** Whether a step on the picture is saved and written through (XMP-008.12). */

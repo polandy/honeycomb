@@ -11,6 +11,7 @@ import type { MoveFlowContext } from './move-flow-context.ts'
 import { t } from '@nextcloud/l10n'
 import { computed, ref, shallowRef, toRaw } from 'vue'
 import { TrashBinOffError } from './api.ts'
+import { fireAndLog } from './fire-and-log.ts'
 import { logger } from './logger.ts'
 import { browserOffset, inViewOrder, moveCounts, nameCandidates } from './logic/move-candidates.ts'
 import { mergeMoveReports, permanentPlan, unkeptReplaces } from './logic/move-permanent.ts'
@@ -228,7 +229,7 @@ export function useMoveFlow(context: MoveFlowContext) {
 			context.updateSettings({ moveRecent: addRecent(context.settings().moveRecent, to) })
 		}
 		report.value = done.failed.length > 0 ? done : null
-		context.toast(movedText(done, to), done.moved.length > 0 ? { label: t('honeycomb', 'Undo'), run: () => void undo(done, listing) } : null)
+		context.toast(movedText(done, to), done.moved.length > 0 ? { label: t('honeycomb', 'Undo'), run: () => fireAndLog(undo(done, listing), 'Could not undo the move') } : null)
 	}
 
 	/** Moves the files of the move back and shows them again, if the listing is still the one they left. */

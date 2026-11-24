@@ -6,6 +6,7 @@ import type { SeriesPlace, SeriesRow, SeriesWrite } from './logic/series-edit.ts
 import type { SeriesLookup } from './logic/stored-series.ts'
 
 import { computed, shallowRef } from 'vue'
+import { fireAndLog } from './fire-and-log.ts'
 import { logger } from './logger.ts'
 import { memberIds } from './logic/pairing.ts'
 import { byFileId, saveQueue } from './logic/save-queue.ts'
@@ -58,14 +59,14 @@ export function useStoredSeries({ lookupSeries, saveSeries }: SeriesEndpoints, c
 
 	/** Reads the rows of every member of the opened pictures; a failed read leaves every series automatic (SERIES-005.26). */
 	function load(opened: readonly Picture<ListingEntry>[]) {
-		void read(opened.flatMap(memberIds), 'Could not read the stored series; every series shows as automatic')
+		fireAndLog(read(opened.flatMap(memberIds), 'Could not read the stored series; every series shows as automatic'), 'Could not read the stored series')
 	}
 
 	/** Reads the rows of files put back that it holds none of. */
 	function restore(fileIds: readonly number[]) {
 		const unknown = fileIds.filter((fileId) => !rows.value.has(fileId))
 		if (unknown.length > 0) {
-			void read(unknown, 'Could not read the stored series of the photos moved back')
+			fireAndLog(read(unknown, 'Could not read the stored series of the photos moved back'), 'Could not read the stored series')
 		}
 	}
 

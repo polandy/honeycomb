@@ -10,6 +10,7 @@ import type { Picture } from './logic/pairing.ts'
 import type { useSelectionMode } from './selection-mode.ts'
 
 import { nextTick } from 'vue'
+import { fireAndLog } from './fire-and-log.ts'
 import { stepRating } from './logic/hotkeys.ts'
 
 type Pictures = readonly Picture<ListingEntry>[]
@@ -116,7 +117,7 @@ export function gridHotkeys(targets: GridHotkeyTargets): HotkeyHandlers {
 			filtersOpen.value = !filtersOpen.value
 		},
 		'filter-focus': () => {
-			void focusFilters()
+			fireAndLog(focusFilters(), 'Could not focus the filters')
 		},
 		'filters-off': targets.toggleFiltersOff,
 		'select-all': selection.selectAll,

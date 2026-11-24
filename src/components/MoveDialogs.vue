@@ -15,6 +15,7 @@ import FolderTree from './FolderTree.vue'
 import MoveSummary from './MoveSummary.vue'
 import TrashFileList from './TrashFileList.vue'
 import { listFolders as apiListFolders } from '../api.ts'
+import { fireAndLog } from '../fire-and-log.ts'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { folderName, parentName } from '../logic/move-targets.ts'
 import { moveFailureReason } from '../move-text.ts'
@@ -63,7 +64,7 @@ function onKey(event: KeyboardEvent) {
 		flow.chooseKey(Number(event.key))
 		event.preventDefault()
 	} else if (event.key === 'Enter' && !pressing) {
-		void flow.confirm()
+		fireAndLog(flow.confirm(), 'Could not confirm the move')
 		event.preventDefault()
 	}
 }

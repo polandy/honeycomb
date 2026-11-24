@@ -11,6 +11,7 @@ import type { XmpCacheRow, XmpCacheSource } from './logic/xmp-cache.ts'
 import type { XmpTime } from './logic/xmp/model.ts'
 
 import { shallowRef } from 'vue'
+import { fireAndLog } from './fire-and-log.ts'
 import { logger } from './logger.ts'
 import { DECISION_FIELDS, sameDecision, UNDECIDED } from './logic/decision.ts'
 import { embeddedXmpSource } from './logic/embedded-xmp.ts'
@@ -158,7 +159,7 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 			waiting.push({ step, resolve, reject })
 			if (!passing) {
 				passing = true
-				void passes()
+				fireAndLog(passes(), 'Could not run the sidecar passes')
 			}
 		})
 	}

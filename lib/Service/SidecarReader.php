@@ -8,7 +8,13 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 use OCP\Files\Folder;
+use OCP\Files\GenericFileException;
+use OCP\Files\InvalidPathException;
+use OCP\Files\NotFoundException;
+use OCP\Files\NotPermittedException;
+use OCP\Files\StorageNotAvailableException;
 use OCP\IUser;
+use OCP\Lock\LockedException;
 use Psr\Log\LoggerInterface;
 
 /** Hands the client the bytes of listed sidecars (ADR 0017). */
@@ -46,7 +52,7 @@ final class SidecarReader {
 		try {
 			[$etag, $size, $mtime] = [$node->getEtag(), $node->getSize(), $node->getMTime()];
 			$bytes = $node->getContent();
-		} catch (\Exception $e) {
+		} catch (GenericFileException|InvalidPathException|StorageNotAvailableException|NotPermittedException|LockedException|NotFoundException $e) {
 			return ['result' => $this->resultOf($e, $fileId)];
 		}
 		if (strlen($bytes) > SidecarLimits::MAX_BYTES) {

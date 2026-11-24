@@ -5,6 +5,7 @@ import type { ImmichCullApi, ImmichCullContext } from './immich-cull.ts'
 import type { ImmichApi } from './immich-source.ts'
 
 import { computed, watch } from 'vue'
+import { fireAndLog } from './fire-and-log.ts'
 import { useImmichCull } from './immich-cull.ts'
 import { useImmichSource } from './immich-source.ts'
 import { formatCaptureDay } from './l10n.ts'
@@ -34,17 +35,17 @@ export function useImmichApp(context: ImmichAppContext) {
 	/** Opens the connection and asks its status again. */
 	function openConnection(connectionId: string) {
 		immich.open(connectionId)
-		void immich.check(connectionId)
+		fireAndLog(immich.check(connectionId), 'Could not check the Immich connection')
 	}
 
 	/** Asks the opened connection's status again (IMMICH-001.19). */
 	function checkOpened() {
 		if (opened.value !== null) {
-			void immich.check(opened.value.id)
+			fireAndLog(immich.check(opened.value.id), 'Could not check the Immich connection')
 		}
 	}
 	// The folder picker offers *I only use Immich* by the status of the connection to open (IMMICH-001.21).
-	void immich.load().then(checkOpened)
+	fireAndLog(immich.load().then(checkOpened), 'Could not load the Immich connections')
 
 	return { immich, shown, opened, openedStatus, onlyOffer, cull, openConnection, checkOpened }
 }
