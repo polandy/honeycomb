@@ -3,10 +3,11 @@
 honeycomb acts with your Nextcloud permissions only: what you may not change in the Files app,
 honeycomb does not change either.
 
-A photo is *rateable* when you may change its folder (Nextcloud's *Edit* right, which brings
-*Create*), else *read only*: it shows a lock and its flag, stars, colour label, *Keep RAW* and tags
-cannot be changed. Flags and *Keep RAW* are one set per photo for everyone who reaches it: what one
-user picks or rejects, the others see, and whoever deletes the rejects deletes them for all.
+A photo is *rateable* when you may change the folder of every file it has (Nextcloud's *Edit*
+right, which brings *Create*), else *read only*: it shows a lock and its flag, stars, colour
+label, *Keep RAW* and tags cannot be changed. Flags and *Keep RAW* are one set per photo for
+everyone who reaches it: what one user picks or rejects, the others see, and whoever deletes the
+rejects deletes them for all.
 
 ## What counts as shared
 
