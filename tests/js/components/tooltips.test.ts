@@ -16,8 +16,8 @@ import PickRestButton from '../../../src/components/PickRestButton.vue'
 import StarRating from '../../../src/components/StarRating.vue'
 import { PopoverStub } from './stubs.ts'
 
-/** Each tooltip in the component as label and key cap, in document order. */
-const tips = (wrapper: VueWrapper) => wrapper.findAll('[data-tip]').map((found) => [found.attributes('data-tip'), found.attributes('data-tip-key') ?? null])
+/** Each tooltip of an icon-only control as label and key cap, in document order; the ⋯ menu's text entries are no such controls. */
+const tips = (wrapper: VueWrapper) => wrapper.findAll('[data-tip]').filter((found) => found.element.closest('.grid-more-menu') === null).map((found) => [found.attributes('data-tip'), found.attributes('data-tip-key') ?? null])
 
 /** Whether any element uses the native title. */
 const hasTitle = (wrapper: VueWrapper) => wrapper.find('[title]').exists()

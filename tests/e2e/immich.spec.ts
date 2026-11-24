@@ -53,7 +53,7 @@ test.describe('as a user with two Immich connections', () => {
 
 		await expect(connectionEntry(page, FAMILY.label)).toContainText('Connected as Alice')
 		await expect(connectionEntry(page, ANNA.label)).toContainText('The API key is refused')
-		await expect(page.getByRole('main')).toContainText('3,660 of 3,660 pictures')
+		await expect(page.getByRole('main')).toContainText('3,660 of 3,660 photos')
 	})
 
 	// spec: IMMICH-001.8
@@ -96,7 +96,7 @@ test.describe('as a user with two Immich connections', () => {
 		const asked = page.waitForResponse(`**/api/v1/immich/${FAMILY.id}/status`)
 		await dialog.getByRole('button', { name: 'Test connection' }).click()
 		expect((await (await asked).json()).state).toBe('ok')
-		await dialog.getByRole('button', { name: 'Done' }).click()
+		await dialog.getByText('Close', { exact: true }).click()
 		await expect(dialog).toBeHidden()
 	})
 

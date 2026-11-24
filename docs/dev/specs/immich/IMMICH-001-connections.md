@@ -59,7 +59,7 @@ never stores, shows or logs a key.
   status, the account and Immich's version, the scopes Phase 1 needs (`asset.read`,
   `asset.view`, `asset.statistics`, optional `user.read`) and the note that the admin defines
   connections. No field can be edited, no key is shown, masked or entered; *Test connection*
-  asks the status again; *Done* closes it.
+  asks the status again; *Close* closes it.
 - **Status per connection:** *Connected as <account>* (or the label without `user.read`), the
   version and the number of phone uploads (none without
   `asset.statistics`); *Immich unreachable*, *The API key is refused*, *The

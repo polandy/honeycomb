@@ -140,10 +140,10 @@ function pictureCount(folder: Folder, expanded: boolean) {
 	return {
 		shown: files.approximate ? `~${vars.count}` : vars.count,
 		spoken: files.approximate
-			? n('honeycomb', 'about {count} picture with subfolders', 'about {count} pictures with subfolders', files.count, vars, PLAIN_TEXT)
+			? n('honeycomb', 'about {count} photo with subfolders', 'about {count} photos with subfolders', files.count, vars, PLAIN_TEXT)
 			: files.below
-				? n('honeycomb', '{count} picture with subfolders', '{count} pictures with subfolders', files.count, vars, PLAIN_TEXT)
-				: n('honeycomb', '{count} picture', '{count} pictures', files.count, vars, PLAIN_TEXT),
+				? n('honeycomb', '{count} photo with subfolders', '{count} photos with subfolders', files.count, vars, PLAIN_TEXT)
+				: n('honeycomb', '{count} photo', '{count} photos', files.count, vars, PLAIN_TEXT),
 	}
 }
 

@@ -23,7 +23,7 @@ says the files go to the Nextcloud trash bin, that the trash bin empties itself 
 retention time or sooner when space runs short, and to keep a backup. Confirming sends every
 member and sidecar of each picture to the trash endpoint. The pictures that went leave the listing
 and the loupe; a toast says what was freed. Failed files end in the delete report, with a reason
-per file, *Close* and *Retry failed files*. Deleting is not undone by `Ctrl+Z`; the trash bin
+per file, *Close* and *Try failed files again*. Deleting is not undone by `Ctrl+Z`; the trash bin
 restores. A delete, a *Remove RAWs* and a retry send at most 50 pictures and 500 files per
 request, starting with 5 and doubling, one request after another; the held confirm button names
 the running step and the dialog shows how many photos were sent (ADR 0029).
@@ -119,10 +119,10 @@ honeycomb's write, keeps the listing's ETag and holds its picture as `changed`.
   as what is left of it (a pair becomes a single with its sidecars, a picture left with only
   sidecars goes), and a toast says how many moved and how many failed
 
-### DELETE-002.10 – Retry failed files
+### DELETE-002.10 – Try failed files again
 
 - **Given** the delete report
-- **When** the user taps *Retry failed files*
+- **When** the user taps *Try failed files again*
 - **Then** only the failed and skipped files are sent again, grouped by their picture
 
 ### DELETE-002.11 – A failed request changes nothing
@@ -152,7 +152,7 @@ honeycomb's write, keeps the listing's ETag and holds its picture as `changed`.
 - **Given** a delete whose first requests were answered
 - **When** a later request fails
 - **Then** what was trashed leaves the grid, the pictures not sent stay whole, the error is logged,
-  the delete report lists their files as failed for *Retry failed files*, and the toast counts
+  the delete report lists their files as failed for *Try failed files again*, and the toast counts
   moved and failed files
 
 ### DELETE-002.15 – Only what every sidecar rejects (removed)
@@ -163,7 +163,7 @@ Withdrawn by ADR 0040 (M8 PR 8); the server checks the flag (.26).
 
 - **Given** a delete by decision that skipped pictures
 - **When** it ends
-- **Then** the delete report lists each skipped photo with its reason, *Retry failed files* is held
+- **Then** the delete report lists each skipped photo with its reason, *Try failed files again* is held
   while no file failed, and the toast adds how many photos were skipped; when every picture was
   skipped, nothing is sent
 

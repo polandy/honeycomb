@@ -62,7 +62,7 @@ const countText = computed(() => {
 	}
 	const { position, total } = props.counter
 	return position === null
-		? n('honeycomb', '{count} picture', '{count} pictures', total, { count: formatNumber(total) }, PLAIN_TEXT)
+		? n('honeycomb', '{count} photo', '{count} photos', total, { count: formatNumber(total) }, PLAIN_TEXT)
 		: t('honeycomb', '{position} / {count}', { position: formatNumber(position), count: formatNumber(total) }, undefined, PLAIN_TEXT)
 })
 const row = useTemplateRef<HTMLElement>('row')

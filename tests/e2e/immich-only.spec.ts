@@ -9,7 +9,7 @@ const ALICE = { username: 'alice', password: 'honeycomb-e2e-alice-password' }
 /** The connection whose key the stub refuses with Immich's 401. */
 const ANNA_LABEL = 'Anna\'s phone'
 /** What the Immich source shows once Family phones, whose key the stub takes, lists its uploads. */
-const FAMILY_SHOWN = '3,660 of 3,660 pictures'
+const FAMILY_SHOWN = '3,660 of 3,660 photos'
 
 test.describe('as a user who only uses Immich', () => {
 	test.use({ storageState: { cookies: [], origins: [] } })

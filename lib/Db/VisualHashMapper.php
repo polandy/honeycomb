@@ -53,9 +53,9 @@ final class VisualHashMapper implements VisualHashStore {
 	public function replace(array $hashes): void {
 		usort($hashes, static fn (VisualHash $a, VisualHash $b): int => $a->fileId <=> $b->fileId);
 		$this->atomic(function () use ($hashes): void {
-			$this->deleteFileRows(null, array_map(static fn (VisualHash $hash): int => $hash->fileId, $hashes));
-			$this->insertRows(
-				new InsertStatements(self::TABLE, self::COLUMNS),
+			$this->upsertFileRows(
+				null,
+				self::COLUMNS,
 				array_map(static fn (VisualHash $hash): array => ['file_id' => $hash->fileId, 'etag' => $hash->etag, 'method' => $hash->method, 'hash' => $hash->hash], $hashes),
 			);
 		}, $this->db);

@@ -55,7 +55,7 @@ const countText = computed(() => {
 		return t('honeycomb', 'Counting…')
 	}
 	const { matching, total, decided } = counts.value
-	const shown = n('honeycomb', '{matching} of {total} picture', '{matching} of {total} pictures', total, { matching: formatNumber(matching), total: formatNumber(total) }, PLAIN_TEXT)
+	const shown = n('honeycomb', '{matching} of {total} photo', '{matching} of {total} photos', total, { matching: formatNumber(matching), total: formatNumber(total) }, PLAIN_TEXT)
 	return `${shown} · ${n('honeycomb', '{count} decided', '{count} decided', decided, { count: formatNumber(decided) }, PLAIN_TEXT)}`
 })
 // The counts say 0, or the listing ended without an entry before they arrived (IMMICH-002.18).
@@ -112,7 +112,7 @@ defineExpose({ loupe: photoLoupe })
 		<NcEmptyContent
 			v-if="empty"
 			class="immich-screen__empty"
-			:name="t('honeycomb', 'No pictures match. Change the time, device or flag filter.')">
+			:name="t('honeycomb', 'No photos match. Change the time, device or flag filter.')">
 			<template #icon>
 				<AppIcon name="server" />
 			</template>
@@ -139,12 +139,12 @@ defineExpose({ loupe: photoLoupe })
 				@shown="props.cull.loadNext($event, 1)" />
 			<div v-if="list.next !== 'idle'" class="immich-screen__footer">
 				<template v-if="list.next === 'failed'">
-					<span>{{ t('honeycomb', 'Could not load more pictures.') }}</span>
+					<span>{{ t('honeycomb', 'Could not load more photos.') }}</span>
 					<NcButton @click="props.cull.retry">
 						{{ t('honeycomb', 'Try again') }}
 					</NcButton>
 				</template>
-				<span v-else>{{ t('honeycomb', 'Loading pictures…') }}</span>
+				<span v-else>{{ t('honeycomb', 'Loading photos…') }}</span>
 			</div>
 		</template>
 		<Teleport to="body">

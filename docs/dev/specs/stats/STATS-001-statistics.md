@@ -61,7 +61,7 @@ the space freed; the sidecars created and updated, each once; before and after (
 of the folder set when the session started and now); active time and, from one active minute on,
 pictures a minute. A session starts when a folder set opens with pictures. Active time adds the time
 between two inputs (a pointer press, a key, a wheel turn), at most 2 minutes each. *Statistics*
-opens the statistics page and comes with it (metrics PR 6); *Done* closes the card.
+opens the statistics page and comes with it (metrics PR 6); *Close* closes the card.
 
 **The statistics page** is a navigation entry *Statistics* beside *Similarity*. A period chip row
 offers *7 days*, *30 days*, the current year and *All time*, 30 days preselected. Tiles show

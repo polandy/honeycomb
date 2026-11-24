@@ -166,7 +166,9 @@ a glance, at any size, without waiting for a sharp image of every tile.
 - **When** the user opens the ⋯ menu
 - **Then** the entry reads *Write picks/rejects to XMP · 214* and writes at once, without asking;
   with nothing to write it reads *Write picks/rejects to XMP* and reports that all are up to date;
-  the count also falls to none once the sidecars are written
+  the count also falls to none once the sidecars are written; the entry's tooltip says what XMP is
+  for: the picks, rejects and *Keep RAW* are saved in the `.xmp` files next to the photos, so
+  digiKam and darktable show them too
 
 ### GRID-001.22 – *Clear picks/rejects*
 
@@ -206,16 +208,17 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
   their counts and held while there is nothing to review or compare; no filter icon stands before
   the flag chips; and on a phone (390 px) the toolbar outside selection mode takes at most two rows
 
-### GRID-001.18 – The ⋯ menu sets view options apart from actions
+### GRID-001.18 – The ⋯ menu groups its entries under headings
 
 - **Given** the open ⋯ menu
 - **When** the user looks at it, changes a view option or chooses an action
-- **Then** one separator stands between the view options (thumbnail size, *Group by folder*, sort)
-  and the actions; a changed view option leaves the menu open, and an action (*Review rejects*,
-  *Compare series*, *Reduce series to the sharpest…* (SERIES-008), *Remove RAWs…*, *Move picks…*,
-  *Resume at*
-  *Clear picks/rejects* (.22), *Write picks/rejects to XMP* from M8 PR 7 (.21),
-  *Settings*) closes it, so no menu stays above the dialog or view it opens
+- **Then** its entries stand in groups, each with a heading and one separator between the groups:
+  *View* (thumbnail size, *Group by folder*, *Show file names*, sort), *Cull* (*Resume at*,
+  *Review rejects*, *Compare series*, *Reduce series to the sharpest…* (SERIES-008)), *Files*
+  (*Remove RAWs…*, *Move picks…*), *Picks and rejects* (*Clear picks/rejects* (.22), *Write
+  picks/rejects to XMP* (.21)), and *Settings* last, without a heading; a changed view option
+  leaves the menu open, and an action closes it, so no menu stays above the dialog or view it
+  opens; on a short viewport the menu scrolls, so every entry stays reachable
 
 ### GRID-001.19 – Every control is at least 44 × 44 px on an iPad
 

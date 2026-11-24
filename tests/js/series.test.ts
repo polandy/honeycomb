@@ -9,9 +9,11 @@ import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { shallowRef } from 'vue'
 import { UNDECIDED } from '../../src/logic/decision.ts'
+import { assetPicture } from '../../src/logic/immich-asset.ts'
 import { NO_STORED_ROWS } from '../../src/logic/stored-series.ts'
 import { useSeries } from '../../src/series.ts'
 import { fakeStorage } from './app-cull.ts'
+import { immichEntry } from './logic/immich-fixtures.ts'
 import { listingEntry, picturesOf } from './logic/listing-entries.ts'
 import { fakeHasher } from './visual-hash-fakes.ts'
 
@@ -90,5 +92,12 @@ describe('useSeries', () => {
 		expect(names()).toEqual([])
 		series.holdHashes(false)
 		expect(names()).toEqual([['A', 'B']])
+	})
+
+	// spec: SERIES-006.1
+	it('has no quality value for a picture that is not a file of the library', () => {
+		const { series } = setUp([listingEntry(1, '/Trip/A.JPG', { captureTime: 10 })])
+
+		expect(series.qualityOf(assetPicture(immichEntry('a1'), 90, 'Friday'))).toBeNull()
 	})
 })

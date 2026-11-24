@@ -898,7 +898,7 @@ const DE = {
   'failed': 'fehlgeschlagen',
   'File is locked (another process is writing to it)': 'Datei ist gesperrt (ein anderer Prozess schreibt darauf)',
   'The failed files stay in the grid (the item now shows as a single). Everything else is in the Nextcloud trash bin and can be restored from there.': 'Die fehlgeschlagenen Dateien bleiben im Raster (das Element erscheint nun als Einzeldatei). Alles andere liegt im Nextcloud-Papierkorb und lässt sich von dort wiederherstellen.',
-  'Retry failed files': 'Fehlgeschlagene Dateien wiederholen',
+  'Try failed files again': 'Fehlgeschlagene Dateien wiederholen',
   'Moved %n file to trash': ['%n Datei in den Papierkorb verschoben', '%n Dateien in den Papierkorb verschoben'],
   '%n failed': ['%n fehlgeschlagen', '%n fehlgeschlagen'],
   'Moved {photos} · {files} · {size} freed to the Nextcloud trash bin': '{photos} · {files} verschoben · {size} frei im Nextcloud-Papierkorb',
@@ -2231,7 +2231,7 @@ function dlgReport(d){
     `<div class="sumrow"><div class="stat"><b>${nf(r.done.length)}</b>${n('file moved to trash', 'files moved to trash', r.done.length)}</div><div class="stat" style="background:var(--danger-soft)"><b style="color:var(--danger)">${nf(r.failed.length)}</b>${t('failed')}</div></div>
     <div class="fl-list">${r.failed.map(f => `<div><span class="k">${f.kind}</span><span class="n"><i>${esc(f.dir.replace('/Photos/', '…/'))}</i>${esc(f.name)}<div class="bad">${esc(t(f.why))}</div></span><span>${fmtSize(f.size)}</span></div>`).join('')}</div>
     <p style="color:var(--muted);font-size:13px">${t('The failed files stay in the grid (the item now shows as a single). Everything else is in the Nextcloud trash bin and can be restored from there.')}</p>`,
-    {cancel:t('Close'), confirm:{act:'retryFailed', label:t('Retry failed files')}});
+    {cancel:t('Close'), confirm:{act:'retryFailed', label:t('Try failed files again')}});
 }
 function finishDelete(res, count){
   closeDlg();

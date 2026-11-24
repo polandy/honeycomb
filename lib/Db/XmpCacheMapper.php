@@ -86,9 +86,9 @@ final class XmpCacheMapper implements XmpCacheStore {
 	public function replace(string $userId, array $rows): void {
 		usort($rows, static fn (XmpCacheRow $a, XmpCacheRow $b): int => $a->fileId <=> $b->fileId);
 		$this->atomic(function () use ($userId, $rows): void {
-			$this->deleteFileRows($userId, array_map(static fn (XmpCacheRow $row): int => $row->fileId, $rows));
-			$this->insertRows(
-				new InsertStatements(self::TABLE, self::COLUMNS),
+			$this->upsertFileRows(
+				$userId,
+				self::COLUMNS,
 				array_map(static fn (XmpCacheRow $row): array => ['user_id' => $userId, ...self::columnsOf($row)], $rows),
 			);
 		}, $this->db);
