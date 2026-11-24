@@ -76,6 +76,7 @@ jobs:
       - run: scripts/test-ci-changes.sh
       - run: scripts/test-source-sizes.sh
       - run: scripts/test-pins.sh
+      - run: scripts/test-words.sh
       - run: scripts/test-specs.sh
       - run: scripts/test-spec-trailers.sh
       - run: scripts/test-nextcloud-versions.sh
@@ -83,6 +84,7 @@ jobs:
       - run: scripts/test-verify-steps.sh
       - run: scripts/source-sizes.sh
       - run: scripts/pins.sh
+      - run: scripts/words.sh
       - run: scripts/specs.sh
       - run: scripts/nextcloud-versions.sh
 

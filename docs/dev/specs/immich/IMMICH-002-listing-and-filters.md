@@ -63,7 +63,7 @@ what is on screen is loaded, and every number comes from the server.
   year under a URL that names the asset's `updatedAt`.
 - **Capabilities off:** no series, similarity, tags, delete, move, *Remove RAWs*, *Keep RAW* or
   XMP for an Immich source; their buttons, keys and menu entries do not show.
-- **Empty view:** "No pictures match. Change the time, device or flag filter." with *Clear filters*,
+- **Empty view:** "No photos match. Change the time, device or flag filter." with *Clear filters*,
   which shows the default filters again from the listing's start; on the default filters it does
   not show, since it would change nothing.
 - **A failed page** keeps the pages already shown and offers *Try again* at the end of the grid;
@@ -191,7 +191,7 @@ what is on screen is loaded, and every number comes from the server.
 
 - **Given** filters no upload passes
 - **When** the counts say 0
-- **Then** the grid says "No pictures match. Change the time, device or flag filter." and offers
+- **Then** the grid says "No photos match. Change the time, device or flag filter." and offers
   *Clear filters*, which shows the default filters again from the listing's start; on the default
   filters (the rating comparison aside) it offers no *Clear filters*
 

@@ -17,7 +17,7 @@ the decision is made:
 1. **Series chip in the title row:** "⧉ 2/5" (photo 2 of a series of 5). A tap on it, or `N`,
    opens *Compare series* on **this** series with the shown photo active, using the whole
    screen as a grid of the series' photos; closing returns to the loupe.
-2. **Group frame in the filmstrip** (series part 2): a honey frame around the series' photos
+2. **Group frame in the filmstrip** (series part 2): a primary frame around the series' photos
    with a "⧉ 5" tab, which does the same as the chip.
 3. ***Pick this, reject the rest*** joins the loupe's rating row while the photo is in a series,
    with `Shift+K`: the same button and key as in the compare and the series viewer, one undo
@@ -165,7 +165,7 @@ words, icon, key and components the app already has. No new screen, no gesture.
   toolbar alike: a title row (title, *Skip* from the grid, close), a **grid of cards** and a
   bottom bar with *Pick this, reject the rest* for the active card (`Shift+K` on a desktop).
   Each card shows the photo, its name and the flag buttons *Pick*, *Unflag*, *Reject*; the
-  active card has the honey frame.
+  active card has the primary frame.
 - **Sizing:** the compare picks the column count that gives the largest card while every card
   fits the screen; a phone shows a series of 5 in 2 columns, an iPad and a desktop in 3. Only
   when a card would drop below a minimum width (150 px on a phone, 220 px otherwise) does the
@@ -179,7 +179,7 @@ words, icon, key and components the app already has. No new screen, no gesture.
   reject the rest* in the compare closes it too and returns to the loupe **on the first photo
   after the series** (owner decision 1), rather than moving to the next series: the user came
   from the loupe and continues there.
-- **The filmstrip group frame** (series part 2) draws one honey frame around the members of a
+- **The filmstrip group frame** (series part 2) draws one primary frame around the members of a
   series in the strip, with a "⧉ 5" tab at its start. The frame shows where a burst starts and
   ends before you page into it; the tab is the same action as the chip. In the default sort by
   capture time the members are neighbours; when another sort splits them, each run gets its own
@@ -272,7 +272,7 @@ so a long burst whose grid scrolls down does not lose the user.
 
 ### Part 2: the group frame in the filmstrip — as in section 2
 
-One honey frame around each run of a series' pictures in the loupe's filmstrip, 2 px, 8 px
+One primary frame around each run of a series' pictures in the loupe's filmstrip, 2 px, 8 px
 corners, with a "⧉ N" tab at its top left whose hit area reaches 44 px (34 px with a fine
 pointer); the tab opens the compare on that series. N counts the pictures that are not rejected;
 fewer than two ends the frame. Rejected pictures shown under the *Rejected* flag filter stay

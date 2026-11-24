@@ -63,7 +63,7 @@ describe('ImmichScreen', () => {
 		counts[0]!(COUNTS)
 		await flushPromises()
 
-		expect(wrapper.find('.immich-screen__count').text()).toBe('3,412 of 3,660 pictures · 248 decided')
+		expect(wrapper.find('.immich-screen__count').text()).toBe('3,412 of 3,660 photos · 248 decided')
 	})
 
 	// spec: IMMICH-002.18
@@ -76,7 +76,7 @@ describe('ImmichScreen', () => {
 
 		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(false)
 		expect(wrapper.find('.immich-screen__empty').findComponent(AppIcon).props('name')).toBe('server')
-		expect(wrapper.text()).toContain('No pictures match. Change the time, device or flag filter.')
+		expect(wrapper.text()).toContain('No photos match. Change the time, device or flag filter.')
 		const clear = wrapper.find('.immich-screen__empty').findAll('button').find((each) => each.text() === 'Clear filters')
 		expect(clear).toBeDefined()
 
@@ -93,7 +93,7 @@ describe('ImmichScreen', () => {
 		counts[0]!({ ...COUNTS, matching: 0 })
 		await flushPromises()
 
-		expect(wrapper.text()).toContain('No pictures match. Change the time, device or flag filter.')
+		expect(wrapper.text()).toContain('No photos match. Change the time, device or flag filter.')
 		expect(wrapper.find('.immich-screen__empty').findAll('button')).toHaveLength(0)
 	})
 
@@ -124,7 +124,7 @@ describe('ImmichScreen', () => {
 
 		expect(wrapper.findComponent(PhotoGrid).props('pictures')).toHaveLength(100)
 		const footer = wrapper.find('.immich-screen__footer')
-		expect(footer.text()).toContain('Could not load more pictures.')
+		expect(footer.text()).toContain('Could not load more photos.')
 		await footer.find('button').trigger('click')
 		expect(assets[2]!.cursor).toBe('c2')
 	})
@@ -149,6 +149,29 @@ describe('ImmichScreen', () => {
 		expect(assets[1]!.cursor).toBe('c2')
 		expect(wrapper.findComponent(PhotoLoupe).props('counter')).toEqual({ position: 91, total: 3412 })
 	})
+
+	// spec: IMMICH-002.9
+	it('passes the loupe\'s decisions, toasts and settings on', async () => {
+		const { wrapper, assets, cull } = await mountScreen()
+		const decide = vi.spyOn(cull, 'decide')
+		assets[0]!.answer(page(1, 3, null))
+		await flushPromises()
+		wrapper.findComponent(PhotoGrid).vm.$emit('open', 1)
+		await flushPromises()
+		const loupe = wrapper.findComponent(PhotoLoupe)
+
+		loupe.vm.$emit('decide', { kind: 'flag', flag: 'picked' }, cull.pictures.value[1])
+		loupe.vm.$emit('toast', { text: 'Done' })
+		loupe.vm.$emit('updateSettings', { flagButtonsShown: true })
+		wrapper.findComponent(PhotoGrid).vm.$emit('update:tileSize', 200)
+		await flushPromises()
+
+		expect(decide).toHaveBeenCalledWith({ kind: 'flag', flag: 'picked' }, [cull.pictures.value[1]])
+		expect(wrapper.emitted('toast')).toEqual([[{ text: 'Done' }]])
+		expect(wrapper.emitted('updateSettings')).toEqual([[{ flagButtonsShown: true }]])
+		expect(wrapper.emitted('update:tileSize')).toEqual([[200]])
+	})
+
 	// spec: IMMICH-002.30, IMMICH-002.31
 	it('wires the filter bar to the cull: a choice starts over, Clear filters brings back the defaults', async () => {
 		const { wrapper, assets, counts, cull } = await mountScreen()

@@ -10,7 +10,7 @@ namespace OCA\Honeycomb\Service;
 use OCP\DB\Exception as DbException;
 
 /**
- * Two saves of one file at once both pass the delete and the second insert hits the unique key,
+ * Two saves of one file at once both find no row and the second insert hits the unique key,
  * or on MySQL deadlocks or times out on the other's locks; the save's transaction is rolled back,
  * so repeating it replaces the winner's row (last writer wins).
  */

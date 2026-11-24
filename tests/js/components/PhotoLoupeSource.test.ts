@@ -29,6 +29,6 @@ describe('PhotoLoupe on a source that only decides', () => {
 		expect(wrapper.find('.loupe-title-row__count').text()).toBe('91 / 1,000')
 
 		await wrapper.setProps({ counter: { position: null, total: 1000 } })
-		expect(wrapper.find('.loupe-title-row__count').text()).toBe('1,000 pictures')
+		expect(wrapper.find('.loupe-title-row__count').text()).toBe('1,000 photos')
 	})
 })

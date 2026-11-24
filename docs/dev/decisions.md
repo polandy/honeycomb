@@ -300,7 +300,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   `notFound` for others, so a client bug cannot trash an unrelated file and nothing is revealed.
 - 2026-11-10: With the trash bin app disabled the trash endpoint answers `409` and touches
   nothing, because `Node::delete()` would then delete for good (CLAUDE.md rule 2).
-- 2026-11-10: *Retry failed files* resends only the failed and skipped files with their listing
+- 2026-11-10: *Try failed files again* resends only the failed and skipped files with their listing
   ETags; a `changed` file needs a reload of the folder, and its reason in the delete report says so.
 - 2026-11-10: Decision rows of trashed files are kept (ADR 0013), so a file restored from the
   trash bin comes back with its decision.
@@ -328,7 +328,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-10: The *Remove RAWs* summary keeps the view as it was opened, so a Keep RAW toggle moves
   a photo between its groups even when a *Keep RAW* filter would hide it from the grid.
 - 2026-11-10: The reject review and the *Remove RAWs* summary share one thumbnail grid component
-  (`PictureThumbs`); red frames mark photos whose files go, honey frames photos that stay.
+  (`PictureThumbs`); red frames mark photos whose files go, primary frames photos that stay.
 - 2026-11-10: *Remove RAWs…* sits only in the grid's ⋯ menu, as in the mockup; the loupe has no ⋯
   menu, and like deleting it has no single-key shortcut.
 - 2026-11-10: The delete report's `removed` count is now per sent picture — every member it sent
@@ -1171,7 +1171,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-15: Move and trash requests go in chunks of at most 50 whole pictures and 500 files;
   the endpoints refuse more than 500 files (ADR 0029, risk review R4, R15). Chosen over a server
   job queue or a move journal, both a new table. A later failed chunk keeps what earlier ones did
-  and lists the unsent files as `failed`, so *Retry failed files* and *Undo* cover them; the
+  and lists the unsent files as `failed`, so *Try failed files again* and *Undo* cover them; the
   progress shows as "N of M photos sent" in the dialog's footer.
 - 2026-11-15: A file the trash bin would not keep (storage without the trash bin wrapper, or at
   least as large as `trashbin_size`, outside a Team folder) is refused as `noTrashBin` before its
@@ -1951,3 +1951,13 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-24: No index and no smaller transaction after measuring 60,000 `xmp_cache` rows and 50,000
   Immich decisions on SQLite, MariaDB and PostgreSQL; `xmp_cache` stays per user
   (`docs/dev/performance.md`, #187, autonomous).
+- 2026-11-24: Coverage gate for glue and Vue files is 70 % lines and branches per file instead of
+  80 % lines on the aggregate: the owner asked for a per-file branch gate, and a per-file floor
+  catches an untested file the aggregate hid (#187, autonomous).
+- 2026-11-24: The hash, quality and XMP-cache saves update first and insert only rows that matched
+  nothing, as `StatsMapper::add` does, because a read inside the transaction made SQLite answer
+  "database is locked"; `RetryOnConflict` repeats a save that meets a concurrent insert (#187,
+  autonomous).
+- 2026-11-24: `scripts/words.sh` fails the build on picture, Retry, Done (display only) and the
+  old name of the primary frame in UI text and docs; the ⋯ menu is grouped under View, Cull,
+  Files and Picks and rejects (#187, autonomous).

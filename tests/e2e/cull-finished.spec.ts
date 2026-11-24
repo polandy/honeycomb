@@ -51,7 +51,7 @@ test.describe('on a phone', () => {
 		await expectTouchTargets(card, 'Cull finished on a phone')
 		await page.screenshot({ path: testInfo.outputPath('cull-finished-phone.png'), animations: 'disabled' })
 
-		await card.getByRole('button', { name: 'Done' }).click()
+		await card.getByRole('button', { name: 'Close' }).click()
 		await expect(card).toBeHidden()
 	})
 })
@@ -63,6 +63,6 @@ test('opens Cull finished as a dialog on the desktop', async ({ page }, testInfo
 	await expect(card).toBeVisible()
 	await expect(card).toContainText('2 photos decided')
 	await page.screenshot({ path: testInfo.outputPath('cull-finished-desktop.png'), animations: 'disabled' })
-	await card.getByRole('button', { name: 'Done' }).click()
+	await card.getByRole('button', { name: 'Close' }).click()
 	await expect(card).toBeHidden()
 })

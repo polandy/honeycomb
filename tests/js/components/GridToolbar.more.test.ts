@@ -138,13 +138,26 @@ describe('GridToolbar More menu', () => {
 	})
 
 	// spec: GRID-001.18
-	it('sets the view options apart from the actions in the More menu by one separator', () => {
-		const menu = mountToolbar({ paths: ['/A', '/B'], subfolders: false }, 2).find('.grid-more-menu')
-		const separators = menu.findAll('hr, [role="separator"]')
+	it('groups the More menu under headings, one separator between the groups', () => {
+		const menu = mountToolbar({ paths: ['/A', '/B'], subfolders: false }, 2, { resumeName: 'IMG_9' }).find('.grid-more-menu')
+		const groups = menu.findAll('[role="group"]')
+		const itemsOf = (group: (typeof groups)[number]) => group.findAll('button').map((button) => button.text().replaceAll(MARK, '').replace(/\s\d.*$/, ''))
 
-		expect(separators).toHaveLength(1)
-		expect(separators[0]!.element.previousElementSibling).toBe(menu.find('fieldset').element)
-		expect(separators[0]!.element.nextElementSibling!.tagName).toBe('BUTTON')
+		expect(groups.map((group) => group.find('h3').text().replaceAll(MARK, ''))).toEqual(['View', 'Cull', 'Files', 'Picks and rejects'])
+		expect(itemsOf(groups[1]!)).toEqual(['Resume at IMG_9', 'Review rejects', 'Compare series', 'Reduce series to the sharpest…'])
+		expect(itemsOf(groups[2]!)).toEqual(['Remove RAWs…', 'Move picks…'])
+		expect(itemsOf(groups[3]!)).toEqual(['Clear picks/rejects', 'Write picks/rejects to XMP'])
+		expect(menu.findAll('hr')).toHaveLength(4)
+		expect(menu.findAll('hr').every((rule) => rule.element.previousElementSibling?.getAttribute('role') === 'group' && rule.element.nextElementSibling !== null)).toBe(true)
+		expect(menu.element.lastElementChild!.textContent!.replaceAll(MARK, '').trim()).toBe('Settings')
+	})
+
+	// spec: GRID-001.21
+	it('explains XMP in a tooltip on the entry that writes it', () => {
+		const menu = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { xmpToWrite: 3 }).find('.grid-more-menu')
+		const entry = menu.findAll('button').find((button) => button.text().includes('Write picks/rejects to XMP'))!
+
+		expect(entry.attributes('data-tip')!.replaceAll(MARK, '')).toBe('Saves your picks, rejects and Keep RAW in the .xmp files next to the photos, so digiKam and darktable show them too.')
 	})
 
 	// spec: GRID-001.18

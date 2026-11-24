@@ -59,6 +59,7 @@ for (const orientation of Object.keys(IPAD_MINI) as (keyof typeof IPAD_MINI)[]) 
 		await checkDialog(page, page.getByRole('dialog', { name: 'Choose folders' }), at('folder tree'), () => page.getByRole('button', { name: 'Change folders', exact: true }).click())
 		await expect(page.getByRole('gridcell')).toHaveCount(3)
 
+		// spec: GRID-001.18 (Settings sits below the fold of the scrolling ⋯ menu on an iPad in landscape)
 		await page.getByRole('button', { name: 'More' }).click()
 		await checkDialog(page, page.getByRole('dialog', { name: 'Settings' }), at('settings'), () => page.getByRole('button', { name: 'Settings', exact: true }).click())
 

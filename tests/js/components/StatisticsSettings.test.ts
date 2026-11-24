@@ -33,7 +33,7 @@ describe('StatisticsSettings', () => {
 
 		const text = plain(wrapper.find('.checkbox-radio-switch').text())
 		expect(text).toContain('Keep statistics')
-		expect(text).toContain('Counts what honeycomb does per day: pictures decided, moved to the trash bin, sidecars written. No file names, nothing leaves your Nextcloud.')
+		expect(text).toContain('Counts what honeycomb does per day: photos decided, moved to the trash bin, sidecars written. No file names, nothing leaves your Nextcloud.')
 		expect((keepSwitch(wrapper).element as HTMLInputElement).checked).toBe(true)
 		expect(untranslatedText(wrapper.element as Element)).toEqual([])
 	})

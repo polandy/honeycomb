@@ -97,7 +97,7 @@ function test() {
 				{{ t('honeycomb', 'Test connection') }}
 			</NcButton>
 			<NcButton variant="primary" @click="emit('close')">
-				{{ t('honeycomb', 'Done') }}
+				{{ t('honeycomb', 'Close') }}
 			</NcButton>
 		</template>
 	</NcDialog>

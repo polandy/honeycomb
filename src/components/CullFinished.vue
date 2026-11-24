@@ -67,7 +67,7 @@ const activeTime = computed(() => {
 <template>
 	<ConfirmDialog
 		:title="t('honeycomb', 'Cull finished')"
-		:confirmLabel="t('honeycomb', 'Done')"
+		:confirmLabel="t('honeycomb', 'Close')"
 		:secondary="props.markable"
 		@confirm="emit('close')">
 		<p class="cull-finished__decided">

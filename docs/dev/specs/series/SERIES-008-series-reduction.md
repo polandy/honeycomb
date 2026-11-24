@@ -26,7 +26,7 @@ series without a clear sharpest stays for the user to compare.
 - **The dialog** *Reduce series to the sharpest* shows three counts: series, to pick, to reject;
   the line *Each series keeps its sharpest photo as picked and rejects the rest. Nothing is
   deleted; one undo takes it all back. Tap a photo to leave its series out.*; the thumbnails of the
-  sharpest photos with the honey frame and the caption *Sharpest of 4*; and, when series are left
+  sharpest photos with the primary frame and the caption *Sharpest of 4*; and, when series are left
   out, *2 series are left out, for you to compare.* counting every series
   the plan or a tap leaves out. A tap on a thumbnail leaves its series out. *Cancel* closes it
   without a change; the primary *Pick 3, reject 9* takes the plan as it stands, disabled when no

@@ -24,4 +24,17 @@ abstract class DbTestCase extends TestCase {
 			$this->db->getQueryBuilder()->delete($table)->executeStatement();
 		}
 	}
+
+	/** The row ids of a table by file id, to see which rows a save kept. @return array<int, int> */
+	protected function rowIds(string $table): array {
+		$query = $this->db->getQueryBuilder();
+		$result = $query->select('id', 'file_id')->from($table)->executeQuery();
+		$ids = [];
+		while (($row = $result->fetch()) !== false) {
+			$ids[(int)$row['file_id']] = (int)$row['id'];
+		}
+		$result->closeCursor();
+		ksort($ids);
+		return $ids;
+	}
 }

@@ -65,12 +65,12 @@ Photos of one camera taken within a few seconds of each other, or up to 30 secon
 they look alike, form a series. A series ends a minute after its first photo; a later photo starts
 the next one. The series compare (`N`) shows a series as a grid that fills the screen; where a
 long series does not fit, it scrolls down. In the series compare and the series viewer the flag,
-rating and label keys act on the active photo (in the compare the one with the honey frame) and
+rating and label keys act on the active photo (in the compare the one with the primary frame) and
 the arrow keys switch it, as in Lightroom's Survey view: in the compare `←` `→` go in reading
 order and `↑` `↓` to the photo above or below. The bottom bar's *Pick this, reject the rest*
 acts on the active photo.
 
-In the loupe's filmstrip a honey frame surrounds the photos of a series, so you see where a burst
+In the loupe's filmstrip a primary frame surrounds the photos of a series, so you see where a burst
 starts and ends before you page into it. Rejected photos stay outside the frame; a series with
 fewer than two photos left that are not rejected loses it.
 

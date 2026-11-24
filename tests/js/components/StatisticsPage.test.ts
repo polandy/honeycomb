@@ -124,15 +124,15 @@ describe('StatisticsPage', () => {
 	})
 
 	// spec: STATS-001.45
-	it('shows the shares of the pictures read so far, nothing while none was read', async () => {
+	it('shows the shares of the photos read so far, nothing while none was read', async () => {
 		const wrapper = mountPage({ read: { pictures: 50, picked: 23, rejected: 10, rated: 30 } })
 		await flushPromises()
 
-		expect(wrapper.text()).toContain('Of the pictures read so far')
+		expect(wrapper.text()).toContain('Of the photos read so far')
 		expect(wrapper.text()).toMatch(/46\s?% picked · 20\s?% rejected · 34\s?% unflagged · 60\s?% rated/)
 		const none = mountPage()
 		await flushPromises()
-		expect(none.text()).not.toContain('Of the pictures read so far')
+		expect(none.text()).not.toContain('Of the photos read so far')
 	})
 
 	// spec: STATS-001.42
