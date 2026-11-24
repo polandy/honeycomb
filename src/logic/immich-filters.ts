@@ -32,12 +32,15 @@ export interface TimeRange {
 	readonly takenBefore: number | null
 }
 
+/** How a request compares a picture's stars with the chosen count. */
+export type RatingOp = 'atLeast' | 'atMost' | 'exactly'
+
 /** The `filters` of a listing or counts request (ADR 0044). */
 export interface RequestFilters extends TimeRange {
 	readonly devices: readonly (string | null)[]
 	readonly kinds: readonly ImmichKind[]
 	readonly flags: readonly Flag[]
-	readonly rating: { readonly op: 'atLeast' | 'atMost' | 'exactly', readonly value: number } | null
+	readonly rating: { readonly op: RatingOp, readonly value: number } | null
 	readonly colourLabels: readonly ColourLabel[]
 }
 
@@ -54,7 +57,8 @@ const MONTHS_PER_YEAR = 12
 /** The current month and the eleven before it: cheap to count on every change of filter (IMMICH-002.26). */
 const COUNTED_MONTHS = 12
 
-const RATING_OPS: Record<RatingComparison, 'atLeast' | 'atMost' | 'exactly'> = { 'at-least': 'atLeast', 'at-most': 'atMost', exactly: 'exactly' }
+/** The rating op a request sends for each comparison of the grid. */
+export const REQUEST_RATING_OPS: Readonly<Record<RatingComparison, RatingOp>> = { 'at-least': 'atLeast', 'at-most': 'atMost', exactly: 'exactly' }
 
 /** The browser's local calendar. */
 export const browserCalendar: Calendar = {
@@ -97,7 +101,7 @@ export function requestFilters(filters: ImmichFilters, now: number, calendar: Ca
 		devices: [...filters.devices],
 		kinds: [...filters.kinds],
 		flags: [...filters.flags],
-		rating: filters.rating === null ? null : { op: RATING_OPS[filters.comparison], value: filters.rating },
+		rating: filters.rating === null ? null : { op: REQUEST_RATING_OPS[filters.comparison], value: filters.rating },
 		colourLabels: [...filters.colourLabels],
 	}
 }

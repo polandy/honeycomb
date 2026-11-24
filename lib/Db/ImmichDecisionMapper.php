@@ -106,30 +106,9 @@ final class ImmichDecisionMapper implements ImmichDecisionStore {
 	#[\Override]
 	public function page(string $userId, string $connectionId, ListingFilters $filters, ?array $after, int $limit): array {
 		$query = $this->owned($userId, $connectionId);
-		$this->whereFacets($query, $filters);
-		$expr = $query->expr();
-		if ($filters->flags !== []) {
-			$query->andWhere($expr->in('d.flag', $query->createNamedParameter(array_map(static fn (Flag $flag): string => $flag->value, $filters->flags), IQueryBuilder::PARAM_STR_ARRAY)));
-		}
-		if ($filters->rating !== null) {
-			$stars = $query->createNamedParameter($filters->rating['value'], IQueryBuilder::PARAM_INT);
-			$query->andWhere(match ($filters->rating['op']) {
-				'atLeast' => $expr->gte('d.rating', $stars),
-				'atMost' => $expr->lte('d.rating', $stars),
-				default => $expr->eq('d.rating', $stars),
-			});
-		}
-		if ($filters->colourLabels !== []) {
-			$query->andWhere($expr->in('d.colour_label', $query->createNamedParameter(array_map(static fn (ColourLabel $label): string => $label->value, $filters->colourLabels), IQueryBuilder::PARAM_STR_ARRAY)));
-		}
-		if ($after !== null) {
-			$takenAt = $query->createNamedParameter($after['takenAt'], IQueryBuilder::PARAM_INT);
-			$query->andWhere($expr->orX(
-				$expr->lt('a.taken_at', $takenAt),
-				$expr->andX($expr->eq('a.taken_at', $takenAt), $expr->lt('d.asset_id', $query->createNamedParameter($after['assetId']))),
-			));
-		}
-		$query->orderBy('a.taken_at', 'DESC')->addOrderBy('d.asset_id', 'DESC')->setMaxResults($limit);
+		ImmichListingQuery::whereFacets($query, $filters);
+		ImmichListingQuery::whereDecisions($query, $filters->decisions);
+		ImmichListingQuery::pageAfter($query, $after, $limit);
 		return array_map(self::fromRow(...), $this->rows($query));
 	}
 
@@ -137,7 +116,7 @@ final class ImmichDecisionMapper implements ImmichDecisionStore {
 	public function groups(string $userId, string $connectionId, ListingFilters $filters): array {
 		$query = $this->joined($userId, $connectionId);
 		$query->select('d.flag', 'd.rating', 'd.colour_label')->selectAlias($query->func()->count('*'), 'count')->groupBy('d.flag', 'd.rating', 'd.colour_label');
-		$this->whereFacets($query, $filters);
+		ImmichListingQuery::whereFacets($query, $filters);
 		return array_map(static fn (array $row): array => [
 			'flag' => Flag::from((string)$row['flag']),
 			'rating' => (int)$row['rating'],
@@ -212,28 +191,6 @@ final class ImmichDecisionMapper implements ImmichDecisionStore {
 			->andWhere($expr->eq('d.connection_id', $query->createNamedParameter($connectionId)))
 			->andWhere($expr->eq('d.user_id', $query->createNamedParameter($userId)));
 		return $query;
-	}
-
-	/** The time, device and kind filters on the facets the asset row copied from the listing. */
-	private function whereFacets(IQueryBuilder $query, ListingFilters $filters): void {
-		$expr = $query->expr();
-		if ($filters->takenAfter !== null) {
-			$query->andWhere($expr->gte('a.taken_at', $query->createNamedParameter($filters->takenAfter, IQueryBuilder::PARAM_INT)));
-		}
-		if ($filters->takenBefore !== null) {
-			$query->andWhere($expr->lt('a.taken_at', $query->createNamedParameter($filters->takenBefore, IQueryBuilder::PARAM_INT)));
-		}
-		$models = array_values(array_filter($filters->devices, is_string(...)));
-		$devices = $models === [] ? [] : [$expr->in('a.camera_model', $query->createNamedParameter($models, IQueryBuilder::PARAM_STR_ARRAY))];
-		if (in_array(null, $filters->devices, true)) {
-			$devices[] = $expr->isNull('a.camera_model');
-		}
-		if ($devices !== []) {
-			$query->andWhere($expr->orX(...$devices));
-		}
-		if ($filters->kinds !== []) {
-			$query->andWhere($expr->in('a.kind', $query->createNamedParameter(array_map(static fn (AssetKind $kind): string => $kind->value, $filters->kinds), IQueryBuilder::PARAM_STR_ARRAY)));
-		}
 	}
 
 	/** @return list<array<string, mixed>> */

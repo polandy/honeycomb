@@ -14,10 +14,15 @@ use OCA\Honeycomb\Service\Flag;
 final class DecisionFilterVectors {
 	private const string FILE = __DIR__ . '/../../fixtures/decision-filter/vectors.json';
 
-	/** @return array<string, array{array<string, mixed>, Flag, int, ?ColourLabel, bool}> request filters, flag, rating, colour label, admits */
+	/**
+	 * @return array<string, array{array<string, mixed>, Flag, int, ?ColourLabel, bool}> request filters, flag, rating, colour label, admits
+	 * @psalm-suppress PossiblyUnusedMethod PHPUnit calls the data provider.
+	 */
 	public static function cases(): array {
+		/** @psalm-suppress ForbiddenCode Reads a test fixture, not a user file. */
+		$json = (string)file_get_contents(self::FILE);
 		/** @var array{cases: list<array{name: string, filters: array<string, mixed>, decision: array{flag: string, rating: int, colourLabel: ?string}, admits: bool}>} $vectors */
-		$vectors = json_decode((string)file_get_contents(self::FILE), true, flags: JSON_THROW_ON_ERROR);
+		$vectors = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
 		$cases = [];
 		foreach ($vectors['cases'] as $case) {
 			$label = $case['decision']['colourLabel'];
