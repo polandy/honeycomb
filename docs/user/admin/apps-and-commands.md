@@ -38,6 +38,7 @@ honeycomb has three commands:
 | `occ honeycomb:jobs` | Shows, for each background job (sweep, warm-up), its status, the time of its last run and its last error; changes nothing |
 | `occ honeycomb:cleanup` | Removes the picks and rejects of files that no longer exist or lie in a trash bin, for every user, and prints how many rows went |
 | `occ honeycomb:cleanup --all [--dry-run]` | Deletes every honeycomb row of every user and their honeycomb settings; with `--dry-run` only prints the row counts ([removing](removing.md#deleting-the-data-on-purpose)) |
+| `occ honeycomb:cleanup --all --drop [--dry-run]` | Drops the honeycomb tables and deletes its migrations, settings, background jobs and app config, so the app can be removed or installed fresh ([removing](removing.md#deleting-the-tables-too)) |
 
 Database migrations run with Nextcloud's own `occ app:update` or `occ upgrade`
 ([updating](updating.md)).

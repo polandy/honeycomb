@@ -80,7 +80,7 @@ they were.
 
 ## Deleting the data on purpose
 
-honeycomb has no uninstall step and never deletes this data on its own. To empty it, run
+honeycomb never deletes this data on its own, not on disable, removal or update. To empty it, run
 `occ honeycomb:cleanup --all` while honeycomb is installed. Back up the database first: this
 deletes the ratings, flags, tags, visual hashes, quality values, series, resume positions, XMP
 cache, statistics and Immich decisions of every user, and each user's honeycomb settings. It
@@ -97,25 +97,18 @@ database fails, nothing is deleted and the command exits non-zero. The tables, t
 `oc_migrations` rows and the app's state stay, so honeycomb keeps working, empty. Run it before
 `occ app:remove honeycomb`; the pictures and sidecars in the users' folders are not touched.
 
-## Deleting the data by hand
+## Deleting the tables too
 
-To remove everything, back up the database first, then, with honeycomb removed, drop the tables
-and delete the rows listed above, for example on MySQL or MariaDB. The table
-`oc_honeycomb_file_tags` only exists on installs from before
-[ADR 0040](../../dev/adr/0040-flags-per-picture-in-the-database.md), `oc_honeycomb_flags` on
-installs from before [ADR 0054](../../dev/adr/0054-one-decision-table-for-files-and-immich-assets.md);
-`IF EXISTS` skips them.
+To remove everything, back up the database first, then, while honeycomb is installed, run:
 
-```sql
-DROP TABLE IF EXISTS oc_honeycomb_flags, oc_honeycomb_decisions, oc_honeycomb_positions,
-  oc_honeycomb_file_tags, oc_honeycomb_tag_list, oc_honeycomb_hashes, oc_honeycomb_series,
-  oc_honeycomb_series_files, oc_honeycomb_xmp_cache, oc_honeycomb_quality, oc_honeycomb_stats,
-  oc_honeycomb_immich_assets, oc_honeycomb_folder_summary, oc_honeycomb_folder_done;
-DELETE FROM oc_migrations WHERE app = 'honeycomb';
-DELETE FROM oc_appconfig WHERE appid = 'honeycomb';
-DELETE FROM oc_preferences WHERE appid = 'honeycomb';
-DELETE FROM oc_jobs WHERE class LIKE 'OCA\\Honeycomb\\%';
+```sh
+sudo -u www-data php /var/www/nextcloud/occ honeycomb:cleanup --all --drop --dry-run
+sudo -u www-data php /var/www/nextcloud/occ honeycomb:cleanup --all --drop
+sudo -u www-data php /var/www/nextcloud/occ app:remove honeycomb
 ```
 
-Drop the tables and the `oc_migrations` rows together: without the rows a new install creates
-the tables again, without the tables it would skip creating them.
+The dry run names the tables it would drop. The drop removes them, also those of older releases,
+and honeycomb's rows in `oc_migrations`, `oc_preferences`, `oc_jobs` and `oc_appconfig`
+([ADR 0053](../../dev/adr/0053-app-data-on-removal.md)); `--drop` needs `--all`. It is not one
+transaction: if the database fails, it names the failure and exits non-zero, and running it again
+removes the rest. Instead of `app:remove`, `occ app:enable honeycomb` installs honeycomb fresh.

@@ -26,37 +26,28 @@ migration that creates all tables at once
 ([ADR 0055](../../dev/adr/0055-one-baseline-migration-before-the-first-deployment.md)). Such an
 instance cannot update: the migration stops before it creates a table, names the honeycomb tables
 that exist already and points to this section. Install honeycomb again instead. This deletes what
-the database holds: the flags and *Keep RAW*, the tag lists, series, resume positions, statistics,
+the tables hold: the flags and *Keep RAW*, the tag lists, series, resume positions, statistics,
 folder summaries, done statuses and Immich decisions. The photos, the XMP sidecars with their
-ratings, colour labels and tags, and the users' settings stay.
+ratings, colour labels and tags, the users' honeycomb settings and the app config, such as the
+Immich `connections_file` path, stay.
+
+Back up the database, put the new release into `custom_apps/honeycomb`, then allow the reinstall
+and update as usual, or run `occ upgrade` again after a failed one:
 
 ```sh
-sudo -u www-data php /var/www/nextcloud/occ app:disable honeycomb
+sudo -u www-data php /var/www/nextcloud/occ config:app:set honeycomb reinstall --value=yes
+sudo -u www-data php /var/www/nextcloud/occ upgrade
 ```
 
-Then drop the tables and forget the old migrations, for example with `mysql` or `psql` (default
-table prefix `oc_`; on SQLite drop one table per statement):
+Before the migrations, a repair step drops the honeycomb tables, also those of older releases,
+and honeycomb's rows in `oc_migrations`, so the update creates the tables empty
+([ADR 0053](../../dev/adr/0053-app-data-on-removal.md)). It then deletes the `reinstall` value; on
+0.2.0 or later the value drops nothing. After a failed update Nextcloud keeps the maintenance mode
+on; turn it off with `occ maintenance:mode --off`.
 
-```sql
-DROP TABLE IF EXISTS oc_honeycomb_flags, oc_honeycomb_decisions, oc_honeycomb_positions,
-  oc_honeycomb_file_tags, oc_honeycomb_tag_list, oc_honeycomb_hashes, oc_honeycomb_series,
-  oc_honeycomb_series_files, oc_honeycomb_xmp_cache, oc_honeycomb_quality, oc_honeycomb_stats,
-  oc_honeycomb_immich_assets, oc_honeycomb_folder_summary, oc_honeycomb_folder_done;
-DELETE FROM oc_migrations WHERE app = 'honeycomb';
-```
-
-Put the new release into `custom_apps/honeycomb`, run its migration (the `migrations:` commands
-exist only in debug mode) and enable the app again:
-
-```sh
-sudo -u www-data php /var/www/nextcloud/occ config:system:set debug --value=true --type=boolean
-sudo -u www-data php /var/www/nextcloud/occ migrations:migrate honeycomb
-sudo -u www-data php /var/www/nextcloud/occ config:system:set debug --value=false --type=boolean
-sudo -u www-data php /var/www/nextcloud/occ app:enable honeycomb
-```
-
-`oc_appconfig` keeps the app's settings, such as the Immich `connections_file` path, so they need
-no step.
+A test server that ran a later Git checkout with an older form of the baseline cannot use the
+value, since it is already at 0.2.0. Drop everything with
+`occ honeycomb:cleanup --all --drop` and install honeycomb fresh with `occ app:enable honeycomb`.
 
 ## Supported Nextcloud versions
 

@@ -289,6 +289,45 @@ Withdrawn by ADR 0040; `honeycomb_decisions` and its endpoints are gone (M8 PR 5
 - **Then** the save notes the first user in `updated_by`, the take-over the other; after the
   deletion the first row keeps its flag with an empty `updated_by`, and the other row is unchanged
 
+### DECISIONS-001.38 – Removing all data and the schema
+
+- **Given** honeycomb's tables, also a table of an older release such as `honeycomb_flags`, and
+  its rows in `oc_migrations`, `oc_preferences`, `oc_jobs` and `oc_appconfig`
+- **When** an admin runs `occ honeycomb:cleanup --all --drop`
+- **Then** every one of them is gone, the rows of other apps stay, and the command names each
+  dropped table and says to enable or remove the app next; run again, it drops nothing and
+  succeeds; this covers every `honeycomb_*` table the migrations create, which a test enumerates
+
+- **Given** the same data
+- **When** an admin runs `occ honeycomb:cleanup --all --drop --dry-run`
+- **Then** it names the tables it would drop and removes nothing
+
+- **Given** the database fails during the drop
+- **When** an admin runs `occ honeycomb:cleanup --all --drop`
+- **Then** the command names the failure, exits non-zero and prints no success line; what it
+  removed before stays removed, and running it again removes the rest
+
+- **Given** `--drop` without `--all`
+- **When** an admin runs `occ honeycomb:cleanup --drop`
+- **Then** the command refuses, exits non-zero and removes nothing
+
+### DECISIONS-001.39 – Installing again over an instance from before 0.2.0
+
+- **Given** an instance installed before 0.2.0, with honeycomb's tables, and the admin set
+  `occ config:app:set honeycomb reinstall --value=yes`
+- **When** honeycomb updates to 0.2.0
+- **Then** before the migrations a repair step drops the tables, also those of older releases,
+  and forgets the migrations, so the baseline creates them empty; it names the dropped tables,
+  deletes the value and keeps the users' settings and the app config
+
+- **Given** the same instance without that value
+- **When** honeycomb updates
+- **Then** the step changes nothing and the baseline stops, naming the tables and the value
+
+- **Given** an instance at 0.2.0 or later with that value set
+- **When** honeycomb updates
+- **Then** the step drops nothing, warns and deletes the value
+
 ## Out of scope
 
 Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XMP sidecars (M5).
@@ -313,3 +352,4 @@ Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XM
 | 2026-11-20 | `occ honeycomb:cleanup --all [--dry-run]` empties all honeycomb data (.35, E16/B17) |
 | 2026-11-23 | ADR 0054: the flags are the file rows of `honeycomb_decisions`; rows of another source stay apart (.36) |
 | 2026-11-24 | A row notes who decided last in `updated_by` (.37, ADR 0055) |
+| 2026-11-24 | `occ honeycomb:cleanup --all --drop` removes the tables and the app's rows (.38), an opt-in repair step reinstalls an instance from before 0.2.0 (.39, ADR 0053) |

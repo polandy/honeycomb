@@ -14,7 +14,7 @@ users and Nextcloud admins, [`dev/`](dev/README.md) for everyone who builds hone
 | [`dev/06-xmp-interop.md`](dev/06-xmp-interop.md) | XMP sidecars: digiKam, darktable and Lightroom fields, precedence, write rules, test vectors |
 | [`dev/07-tags.md`](dev/07-tags.md) | Tags like digiKam's (concept): XMP fields, tag entry, bulk tagging, tag filter, decisions |
 | [`user/`](user/) | Documentation for users, e.g. [culling a shoot](user/culling.md), [sidecars](user/sidecars.md), [shared folders](user/shared-folders.md), [ratings, flags and colours in other programs](user/ratings-flags-colours.md), [tags](user/tags.md), [keyboard shortcuts](user/keyboard-shortcuts.md), [settings](user/settings.md), [similarity](user/similarity.md) |
-| [`user/admin/`](user/admin/) | Documentation for Nextcloud admins: [apps and commands](user/admin/apps-and-commands.md), [updating](user/admin/updating.md), the one-time migration for early installs, file locking, [removing](user/admin/removing.md) |
+| [`user/admin/`](user/admin/) | Documentation for Nextcloud admins: [apps and commands](user/admin/apps-and-commands.md), [updating](user/admin/updating.md), the one-time reinstall for early installs, [release notes](user/admin/release-notes.md), file locking, [removing](user/admin/removing.md) |
 | [`dev/specs/`](dev/specs/) | What the merged code does, one spec per feature, coupled to the tests (ADR 0015) |
 | [`dev/calibration.md`](dev/calibration.md) | Checking the sharpness measure on series copied out of the Photos library |
 | [`dev/releasing.md`](dev/releasing.md) | The release tarball, its signatures and the App Store upload, with the owner's one-time steps |

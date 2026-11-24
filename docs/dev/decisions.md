@@ -1897,3 +1897,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-23: `honeycomb_tag_list` keeps `UNIQUE(user_id, tag)` against ADR 0022's collation
   concern, as Nextcloud creates MySQL tables as `utf8mb4_bin`; a folding `mysql.collation`
   override is accepted as unsupported (#187, autonomous).
+- 2026-11-24: ADR 0053 takes option B: no uninstall step; `occ honeycomb:cleanup --all --drop`
+  drops the tables and deletes the `oc_migrations`, `oc_preferences`, `oc_jobs` and `oc_appconfig`
+  rows; the reinstall before 0.2.0 is an opt-in pre-migration repair step (`reinstall = yes`),
+  as no app command runs before the update (#187, autonomous).
