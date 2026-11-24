@@ -28,7 +28,6 @@ final class Version000200Date20261125120000 extends SimpleMigrationStep {
 
 	#[\Override]
 	public function changeSchema(IOutput $output, \Closure $schemaClosure, array $options): ?ISchemaWrapper {
-		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
 		$changes = [
 			self::addColumn($schema, 'honeycomb_decisions', 'updated_by', Types::STRING, ['notnull' => false, 'length' => self::USER_ID_LENGTH]),
@@ -47,6 +46,8 @@ final class Version000200Date20261125120000 extends SimpleMigrationStep {
 
 	/**
 	 * Adds the column unless the table has it; answers whether it did.
+	 * @param non-empty-string $column
+	 * @param Types::* $type
 	 * @param array{default?: scalar, length?: int, notnull?: bool} $options
 	 */
 	private static function addColumn(ISchemaWrapper $schema, string $table, string $column, string $type, array $options): bool {
@@ -70,7 +71,10 @@ final class Version000200Date20261125120000 extends SimpleMigrationStep {
 		return true;
 	}
 
-	/** Lets the column hold null unless it does; every supported database makes that change in place. */
+	/**
+	 * Lets the column hold null unless it does; every supported database makes that change in place.
+	 * @param non-empty-string $column
+	 */
 	private static function allowNull(ISchemaWrapper $schema, string $table, string $column): bool {
 		$definition = $schema->getTable($table)->getColumn($column);
 		if (!$definition->getNotnull()) {

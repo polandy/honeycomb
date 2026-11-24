@@ -1971,5 +1971,5 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   photo row and the strip stays 56 px high (owner, iPad, lane c).
 - 2026-11-25: The flag and visual hash saves on nc-test failed because it kept the first form of
   the 0.2.0 baseline; a new idempotent migration adds what the baseline gained since, instead of a
-  reinstall, and `SchemaRepairTest` proves it on every database. `info.xml` goes to 0.1.1 so
-  Nextcloud runs it (owner, lane c).
+  reinstall, and `SchemaRepairTest` proves it on every database. `info.xml` and `package.json` go to
+  0.1.1 so Nextcloud runs it; release-please's next patch release is the same 0.1.1 (owner, lane c).

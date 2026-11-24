@@ -13,6 +13,7 @@ final class SchemaTest extends TestCase {
 	private const string FIXTURE = __DIR__ . '/../fixtures/schema/honeycomb.json';
 
 	public function testTheMigrationsCreateTheSchemaOfTheFixture(): void {
+		/** @var array<string, mixed> $expected */
 		$expected = json_decode($this->readFixture(), true, 512, JSON_THROW_ON_ERROR);
 
 		$this->assertSame(json_encode($expected, JSON_PRETTY_PRINT), json_encode(SchemaSnapshot::live(), JSON_PRETTY_PRINT));

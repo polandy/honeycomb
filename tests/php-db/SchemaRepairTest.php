@@ -19,7 +19,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * A test server that ran the first 0.2.0 baseline, before it gained columns, reaches today's schema by the migrations (ADR 0055).
- * @psalm-suppress UndefinedClass, InternalClass, InternalMethod, MixedMethodCall The migration runner and schema wrapper are not public API.
+ * @psalm-suppress UndefinedClass, InternalClass, InternalMethod, MixedAssignment, MixedMethodCall The migration runner and schema wrapper are not public API.
  */
 final class SchemaRepairTest extends TestCase {
 	private const string APP = 'honeycomb';
