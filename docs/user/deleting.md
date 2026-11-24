@@ -5,10 +5,10 @@ sidecars), where you can restore it until the trash bin empties itself. Keep a b
 honeycomb deletes a file for good only after you confirm a warning that names it (see
 [Files the trash bin would not keep](#files-the-trash-bin-would-not-keep)).
 
-A photo restored from the trash bin comes back without a decision of its own. With *Write picks,
-rejects and Keep RAW to XMP sidecars* on (the default), its restored sidecar still states its pick
-or reject, so honeycomb takes it over again the next time it sees the photo; with the setting off,
-or when the flag was never written to a sidecar, it comes back without its pick or reject.
+A photo restored from the trash bin comes back without a decision of its own. If a sidecar of its
+files states a pick or reject, honeycomb takes it over again the next time it sees the photo, so
+the pick or reject comes back; only when no sidecar of its files states one (it was never written,
+or is not readable) does it come back without its pick or reject.
 
 ## Delete every rejected photo
 
