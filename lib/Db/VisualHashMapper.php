@@ -19,7 +19,6 @@ final class VisualHashMapper implements VisualHashStore {
 	use TTransactional;
 
 	private const string TABLE = 'honeycomb_hashes';
-	/** @var non-empty-array<string, int|string> */
 	private const array COLUMNS = [
 		'file_id' => IQueryBuilder::PARAM_INT,
 		'etag' => IQueryBuilder::PARAM_STR,
