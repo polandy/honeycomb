@@ -47,6 +47,20 @@ describe('LibrarySetup', () => {
 		expect(untranslatedText(wrapper.element)).toEqual([])
 	})
 
+	// spec: FOLDERS-007.2
+	it('says what honeycomb does to the files, with an example path and a link to the privacy page', () => {
+		const wrapper = mountSetup()
+
+		expect(wrapper.text()).toContain('can be undone; deleting only moves files to the Nextcloud trash bin')
+		expect(wrapper.text()).toContain('XMP sidecar')
+		expect(wrapper.text()).toContain('/Photos/2026')
+		const link = wrapper.find('a')
+		expect(link.text()).toBe(`${MARK}Your files and privacy`)
+		expect(link.attributes('href')).toBe('https://github.com/polandy/honeycomb/blob/main/docs/user/your-files-and-privacy.md')
+		expect(link.attributes('target')).toBe('_blank')
+		expect(link.attributes('rel')).toBe('noopener noreferrer')
+	})
+
 	// spec: FOLDERS-007.3
 	it('adds the chosen folder as a root and removes it again', async () => {
 		const wrapper = mountSetup()

@@ -93,6 +93,19 @@ describe('useViewState', () => {
 		expect(saved).toEqual([{ series_hint_seen: true }])
 	})
 
+	// spec: LOUPE-003.5, LOUPE-003.9
+	it('counts the first-reject hint as seen until the answer, and dismissing it writes only its key', async () => {
+		const { rejectHintSeen, dismissRejectHint, saved } = viewStateOn(async () => ({ info_panel_open: true, gesture_guide_seen: true, reject_hint_seen: null }))
+		expect(rejectHintSeen.value).toBe(true)
+
+		await flushPromises()
+		expect(rejectHintSeen.value).toBe(false)
+		dismissRejectHint()
+
+		expect(rejectHintSeen.value).toBe(true)
+		expect(saved).toEqual([{ reject_hint_seen: true }])
+	})
+
 	// spec: LOUPE-003.6
 	it('keeps a change made before the answer over the stored value', async () => {
 		const { infoPanelOpen, setInfoPanelOpen, saved } = viewStateOn(async () => ({ info_panel_open: false, gesture_guide_seen: true }))

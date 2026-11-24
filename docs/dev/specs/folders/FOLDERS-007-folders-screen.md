@@ -16,7 +16,9 @@ roots worth culling and the library's progress, and opens a folder's cull and re
   by itself. While the user has no library root, *Folders* shows the library setup instead of the
   list. A stored *I only use Immich* with a working connection opens Immich instead
   (IMMICH-001.23).
-- **Library setup** (*Where is your library?*): a folder tree that chooses one folder, *Add as
+- **Library setup** (*Where is your library?*): the sentence of the folder picker (decisions save
+  as you go and can be undone; deleting only moves files to the trash bin; decisions go to XMP
+  sidecars next to the photos), an example path and a link to *Your files and privacy*; a folder tree that chooses one folder, *Add as
   root*, the chosen roots each with *Remove*, and *Show folders*, disabled without a root. A root is
   added only when FOLDERS-004 accepts it and `GET /library/folders` accepts it as `root` (the home
   storage, FOLDERS-005); a refusal is said in a line of its own. *Show folders* saves the roots as
@@ -60,8 +62,9 @@ roots worth culling and the library's progress, and opens a folder's cull and re
 
 - **Given** a user without a library root
 - **When** the app page opens
-- **Then** it shows *Where is your library?* with the folder tree and *Show folders* disabled; the
-  list is not read
+- **Then** it shows *Where is your library?* with the sentence about undo, the trash bin and
+  sidecars, an example path, a link to *Your files and privacy*, and the folder tree with *Show
+  folders* disabled; the list is not read
 
 ### FOLDERS-007.3 – Adding and removing roots
 

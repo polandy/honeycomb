@@ -52,7 +52,7 @@ final class ViewStateServiceTest extends TestCase {
 
 	// spec: LOUPE-003.1
 	public function testAKeyNeverStoredIsNull(): void {
-		$this->assertSame(['info_panel_open' => null, 'gesture_guide_seen' => null, 'series_hint_seen' => null, 'year_review_hint_closed' => null], $this->service()->get($this->user()));
+		$this->assertSame(['info_panel_open' => null, 'gesture_guide_seen' => null, 'series_hint_seen' => null, 'reject_hint_seen' => null, 'year_review_hint_closed' => null], $this->service()->get($this->user()));
 	}
 
 	// spec: LOUPE-003.1
@@ -60,7 +60,7 @@ final class ViewStateServiceTest extends TestCase {
 		$this->stored['alice/honeycomb/info_panel_open'] = false;
 		$this->stored['alice/honeycomb/gesture_guide_seen'] = true;
 
-		$this->assertSame(['info_panel_open' => false, 'gesture_guide_seen' => true, 'series_hint_seen' => null, 'year_review_hint_closed' => null], $this->service()->get($this->user()));
+		$this->assertSame(['info_panel_open' => false, 'gesture_guide_seen' => true, 'series_hint_seen' => null, 'reject_hint_seen' => null, 'year_review_hint_closed' => null], $this->service()->get($this->user()));
 	}
 
 	// spec: LOUPE-003.2
@@ -69,15 +69,15 @@ final class ViewStateServiceTest extends TestCase {
 
 		$answer = $this->service()->save($this->user(), ['gesture_guide_seen' => false]);
 
-		$this->assertSame(['info_panel_open' => true, 'gesture_guide_seen' => false, 'series_hint_seen' => null, 'year_review_hint_closed' => null], $answer);
+		$this->assertSame(['info_panel_open' => true, 'gesture_guide_seen' => false, 'series_hint_seen' => null, 'reject_hint_seen' => null, 'year_review_hint_closed' => null], $answer);
 		$this->assertSame(['alice/honeycomb/info_panel_open' => true, 'alice/honeycomb/gesture_guide_seen' => false], $this->stored);
 	}
 
 	// spec: LOUPE-003.2
 	public function testStoresEveryKey(): void {
-		$answer = $this->service()->save($this->user(), ['info_panel_open' => true, 'gesture_guide_seen' => true, 'series_hint_seen' => true, 'year_review_hint_closed' => 2026]);
+		$answer = $this->service()->save($this->user(), ['info_panel_open' => true, 'gesture_guide_seen' => true, 'series_hint_seen' => true, 'reject_hint_seen' => true, 'year_review_hint_closed' => 2026]);
 
-		$this->assertSame(['info_panel_open' => true, 'gesture_guide_seen' => true, 'series_hint_seen' => true, 'year_review_hint_closed' => 2026], $answer);
+		$this->assertSame(['info_panel_open' => true, 'gesture_guide_seen' => true, 'series_hint_seen' => true, 'reject_hint_seen' => true, 'year_review_hint_closed' => 2026], $answer);
 	}
 
 	// spec: LOUPE-003.1
