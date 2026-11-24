@@ -154,14 +154,29 @@ final class SettingsServiceTest extends TestCase {
 			'a string' => ['libraryRoots', '/A', Reason::NotAList],
 			'null' => ['moveFavourites', null, Reason::NotAList],
 			'over the size limit' => ['moveRecent', [str_repeat('x', SettingsService::MAX_BYTES)], Reason::TooLarge],
+			'a root twice' => ['libraryRoots', ['/Photos', '/Photos/'], Reason::Duplicate],
+			'a root inside another' => ['libraryRoots', ['/Photos', '/Photos/2019'], Reason::BadValue],
+			'a root holding another' => ['libraryRoots', ['/Photos/2019', '/Photos'], Reason::BadValue],
+			'the home folder' => ['libraryRoots', ['/'], Reason::BadValue],
 		];
 	}
 
-	// spec: SETTINGS-001.31
+	// spec: SETTINGS-001.31, SETTINGS-001.35
 	#[DataProvider('invalidLists')]
 	public function testRefusesAnythingButAKnownListOfStrings(string $name, mixed $items, Reason $reason): void {
 		$this->assertSame($reason, ReasonOf::call(fn () => $this->service()->saveList($this->user(), $name, $items)));
 		$this->assertSame([], $this->stored);
+	}
+
+	// spec: SETTINGS-001.35
+	public function testAcceptsRootsThatShareOnlyAPrefix(): void {
+		$this->assertSame(['/Photos', '/Photos2'], $this->service()->saveList($this->user(), 'libraryRoots', ['/Photos', '/Photos2']));
+		$this->assertSame([], $this->service()->saveList($this->user(), 'libraryRoots', []));
+	}
+
+	// spec: SETTINGS-001.35
+	public function testOtherListsMayRepeat(): void {
+		$this->assertSame(['/A', '/A/B', '/A'], $this->service()->saveList($this->user(), 'moveRecent', ['/A', '/A/B', '/A']));
 	}
 
 	// spec: SETTINGS-001.31
@@ -171,7 +186,7 @@ final class SettingsServiceTest extends TestCase {
 		$this->assertSame(SettingsService::MAX_BYTES, strlen($this->stored['alice/honeycomb/move_recent']));
 	}
 
-	// spec: SETTINGS-001.32
+	// spec: SETTINGS-001.35
 	public function testAListStillInTheObjectIsReadAndCarriedOverOnTheNextSave(): void {
 		$this->stored['alice/honeycomb/settings'] = '{"viKeys":true,"moveRecent":["/A"],"libraryRoots":["/Photos"]}';
 		$this->stored['alice/honeycomb/library_roots'] = '["/Phone"]';
