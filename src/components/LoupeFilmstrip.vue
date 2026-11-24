@@ -16,7 +16,7 @@ import AppIcon from './AppIcon.vue'
 import FlagMark from './FlagMark.vue'
 import SharpestMark from './SharpestMark.vue'
 import { isDecided, isRejected } from '../logic/decision.ts'
-import { FILMSTRIP_THUMB, filmstripFrames, filmstripLayout } from '../logic/filmstrip.ts'
+import { FILMSTRIP_TAB, FILMSTRIP_THUMB, filmstripFrames, filmstripLayout, filmstripLeft } from '../logic/filmstrip.ts'
 import { imageMember, smallSource } from '../logic/image-tiers.ts'
 import { keyCap } from '../shared/hotkeys.ts'
 import { formatNumber } from '../shared/l10n.ts'
@@ -44,16 +44,20 @@ const emit = defineEmits<{ select: [index: number], 'update:pinned': [pinned: bo
 const strip = useTemplateRef<HTMLElement>('strip')
 const viewport = ref(0)
 const offset = ref(0)
-const layout = computed(() => filmstripLayout({ index: props.index, count: props.pictures.length, viewport: viewport.value, offset: offset.value }))
+const allFrames = computed(() => filmstripFrames(props.pictures, props.seriesOf))
+// A tab column comes before each frame only while a listener opens the compare from it.
+const tabs = computed(() => props.onCompareSeries ? allFrames.value.map((frame) => frame.first) : [])
+const layout = computed(() => filmstripLayout({ index: props.index, count: props.pictures.length, viewport: viewport.value, offset: offset.value, tabs: tabs.value }))
 
 const shown = computed(() => props.pictures.slice(layout.value.first, layout.value.end).map((picture, at) => {
 	const index = layout.value.first + at
-	return { picture, index, left: index * FILMSTRIP_THUMB, member: imageMember(picture), flag: props.decisionOf(picture).flag, framed: props.seriesOf.has(picture) }
+	return { picture, index, left: filmstripLeft(index, tabs.value), member: imageMember(picture), flag: props.decisionOf(picture).flag, framed: props.seriesOf.has(picture) }
 }))
 
-const frames = computed(() => filmstripFrames(props.pictures, props.seriesOf)
+const tabWidth = computed(() => tabs.value.length > 0 ? FILMSTRIP_TAB : 0)
+const frames = computed(() => allFrames.value
 	.filter((frame) => frame.end > layout.value.first && frame.first < layout.value.end)
-	.map((frame) => ({ ...frame, badge: `⧉ ${formatNumber(frame.count)}`, label: n('honeycomb', 'Series of {count} – compare', 'Series of {count} – compare', frame.count, { count: formatNumber(frame.count) }) })))
+	.map((frame) => ({ ...frame, left: filmstripLeft(frame.first, tabs.value) - tabWidth.value, width: (frame.end - frame.first) * FILMSTRIP_THUMB + tabWidth.value, badge: `⧉ ${formatNumber(frame.count)}`, label: n('honeycomb', 'Series of {count} – compare', 'Series of {count} – compare', frame.count, { count: formatNumber(frame.count) }) })))
 
 /** Scrolls the shown picture towards the middle of the strip. */
 function centre() {
@@ -72,7 +76,7 @@ watch([() => props.index, viewport], centre, { flush: 'post' })
 </script>
 
 <template>
-	<div class="loupe-filmstrip" :style="{ '--loupe-filmstrip-thumb': `${FILMSTRIP_THUMB}px` }">
+	<div class="loupe-filmstrip" :style="{ '--loupe-filmstrip-thumb': `${FILMSTRIP_THUMB}px`, '--loupe-filmstrip-tab': `${FILMSTRIP_TAB}px` }">
 		<nav
 			ref="strip"
 			class="loupe-filmstrip__strip"
@@ -101,7 +105,7 @@ watch([() => props.index, viewport], centre, { flush: 'post' })
 					v-for="frame in frames"
 					:key="frame.first"
 					class="loupe-filmstrip__frame"
-					:style="{ left: `${frame.first * FILMSTRIP_THUMB}px`, width: `${(frame.end - frame.first) * FILMSTRIP_THUMB}px` }">
+					:style="{ left: `${frame.left}px`, width: `${frame.width}px` }">
 					<button
 						v-if="props.onCompareSeries"
 						type="button"
@@ -131,7 +135,7 @@ watch([() => props.index, viewport], centre, { flush: 'post' })
 	--loupe-filmstrip-frame: 2px;
 	display: flex;
 	flex: none;
-	height: calc(var(--loupe-filmstrip-thumb) + var(--photo-loupe-tab-band, 0px));
+	height: var(--loupe-filmstrip-thumb);
 	background-color: #111;
 }
 
@@ -154,9 +158,10 @@ watch([() => props.index, viewport], centre, { flush: 'post' })
 	height: 100%;
 }
 
-.loupe-filmstrip__photo {
+/* Nextcloud's own button margins outrank a single class. */
+.loupe-filmstrip .loupe-filmstrip__photo {
 	position: absolute;
-	top: var(--photo-loupe-tab-band, 0px);
+	top: 0;
 	width: var(--loupe-filmstrip-thumb);
 	height: var(--loupe-filmstrip-thumb);
 	min-width: 0;
@@ -198,45 +203,26 @@ watch([() => props.index, viewport], centre, { flush: 'post' })
 	pointer-events: none;
 }
 
-/* Nextcloud's own button sizes outrank a single class. */
+/* Nextcloud's own button sizes outrank a single class; the tab fills the frame's column, over its border. */
 .loupe-filmstrip .loupe-filmstrip__tab {
 	position: absolute;
-	top: 2px;
-	left: 2px;
-	min-width: 24px;
-	height: 24px;
+	top: calc(-1 * var(--loupe-filmstrip-frame));
+	bottom: calc(-1 * var(--loupe-filmstrip-frame));
+	left: calc(-1 * var(--loupe-filmstrip-frame));
+	width: var(--loupe-filmstrip-tab);
+	min-width: 0;
+	height: auto;
 	min-height: 0;
 	margin: 0;
-	padding: 0 7px;
+	padding: 0;
 	border: 0;
-	border-radius: 12px;
+	border-radius: 8px 0 0 8px;
 	background: var(--color-primary-element);
 	color: var(--color-primary-element-text);
 	font-size: 12px;
 	font-weight: bold;
-	line-height: 24px;
+	white-space: nowrap;
 	pointer-events: auto;
-}
-
-/* The hit area reaches 34 px with a fine pointer. */
-@media (pointer: fine) {
-	.loupe-filmstrip__tab::before {
-		content: '';
-		position: absolute;
-		inset: -7px -4px;
-	}
-}
-
-/* A finger gets the band above the photos, a 44 px square of the frame's corner. */
-@media (pointer: coarse) {
-	.loupe-filmstrip .loupe-filmstrip__tab {
-		top: 0;
-		left: 0;
-		min-width: 44px;
-		height: 44px;
-		border-radius: 8px 0 10px;
-		line-height: 44px;
-	}
 }
 
 .loupe-filmstrip__photo img {

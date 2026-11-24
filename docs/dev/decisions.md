@@ -1966,3 +1966,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-24: `scripts/words.sh` fails the build on picture, Retry, Done (display only) and the
   old name of the primary frame in UI text and docs; the ⋯ menu is grouped under View, Cull,
   Files and Picks and rejects (#187, autonomous).
+- 2026-11-25: The filmstrip's series tab is a 44 px column before the frame's first photo, the
+  same with every pointer, instead of a band above the photos with a finger: the frame hugs the
+  photo row and the strip stays 56 px high (owner, iPad, lane c).

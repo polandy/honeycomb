@@ -219,7 +219,7 @@ describe('PhotoLoupe', () => {
 		expect(wrapper.find('.action-bar').classes()).toContain('action-bar--pinned')
 		expect(wrapper.find('.action-bar').classes()).not.toContain('action-bar--idle')
 		expect(root.attributes('style')).toContain('--photo-loupe-strip: var(--photo-loupe-filmstrip-height)')
-		expect(root.attributes('style')).toContain(`--photo-loupe-filmstrip-height: calc(${FILMSTRIP_THUMB}px + var(--photo-loupe-tab-band, 0px))`)
+		expect(root.attributes('style')).toContain(`--photo-loupe-filmstrip-height: ${FILMSTRIP_THUMB}px;`)
 	})
 
 	// spec: LOUPE-001.20

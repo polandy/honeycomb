@@ -11,8 +11,11 @@ async function expectFrameHugsPhotos(loupe: Locator): Promise<void> {
 	const filmstrip = loupe.getByRole('navigation', { name: 'Filmstrip' })
 	const tab = filmstrip.getByRole('button', { name: 'Series of 2 – compare' })
 	await expect(tab).toBeVisible()
-	const box = async (locator: Locator) => (await locator.boundingBox())!
-	const [strip, frame, tabBox, photo] = [await box(filmstrip), await box(filmstrip.locator('.loupe-filmstrip__frame')), await box(tab), await box(filmstrip.getByRole('button', { name: 'IMG_0001' }))]
+	// One frame measures every box, so the loupe's reflow as the series forms cannot move one between two reads.
+	const { strip, frame, tabBox, photo } = await filmstrip.evaluate((element) => {
+		const box = (selector: string) => element.querySelector(selector)!.getBoundingClientRect().toJSON() as DOMRect
+		return { strip: element.getBoundingClientRect().toJSON() as DOMRect, frame: box('.loupe-filmstrip__frame'), tabBox: box('.loupe-filmstrip__tab'), photo: box('[aria-label="IMG_0001"]') }
+	})
 
 	expect(strip.height).toBe(photo.height)
 	expect([frame.y, frame.height]).toEqual([photo.y, photo.height])
