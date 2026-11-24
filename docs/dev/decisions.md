@@ -1908,3 +1908,14 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   the setup page links the privacy page on GitHub, as `appinfo/info.xml` does (#187, autonomous).
 - 2026-11-24: `SidecarWriter` and `SidecarReader` catch only the `OCP\Files\*` types, so an unlisted
   exception fails the request loudly instead of one file quietly (#187, autonomous, PR #386).
+- 2026-11-24: the gesture guide and the tag entry stay their own overlays and become modal through
+  one composable (`aria-modal`, inert page, focus wrap, `Esc`) instead of moving to `NcModal`, whose
+  teleport and fade would break the loupe's key handling and the entry's `Tab` cycling (#187,
+  autonomous).
+- 2026-11-24: with a coarse pointer the filmstrip grows a 46 px band above its photos while the
+  folder has a series, and the series tab is a 44 × 44 px button in it; the 56 px photos stay
+  square and uncovered (#187, autonomous).
+- 2026-11-24: the a11y gate counts *moderate* faults and any text under 12 px; the tile badges are
+  12 px (#187, autonomous).
+- 2026-11-24: viewport-fit=cover is added by script to Nextcloud's viewport meta, and only the page
+  root and the loupe pad their edges; photos do not yet run under the bars (#187, autonomous).

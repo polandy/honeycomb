@@ -26,15 +26,38 @@ async function settled(page: Page): Promise<void> {
 	})
 }
 
+/** The smallest text a user reads, in CSS pixels. */
+const MIN_FONT_PX = 12
+
+/** The visible text of the open screen set below the minimum size, one line each; Nextcloud's own header is left out. */
+async function smallTextFaults(page: Page, screen: string): Promise<string[]> {
+	return page.evaluate(({ minimum, outside, name }) => {
+		const faults = new Set<string>()
+		const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+		for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
+			const element = node.parentElement
+			if (element === null || !node.textContent?.trim() || element.closest(outside) || element.closest('script, style')) {
+				continue
+			}
+			const style = getComputedStyle(element)
+			if (style.visibility !== 'hidden' && style.display !== 'none' && parseFloat(style.fontSize) < minimum) {
+				faults.add(`${name}: text of ${style.fontSize} (under ${minimum}px) at ${element.tagName.toLowerCase()}.${[...element.classList].join('.')}`)
+			}
+		}
+		return [...faults]
+	}, { minimum: MIN_FONT_PX, outside: OUTSIDE_THE_APP, name: screen })
+}
+
 /** The moderate, serious or critical faults axe-core finds on the open screen, one line each. */
 export async function accessibilityFaults(page: Page, screen: string): Promise<string[]> {
 	await settled(page)
 	const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).exclude(OUTSIDE_THE_APP).analyze()
-	return results.violations
+	const small = await smallTextFaults(page, screen)
+	return [...small, ...results.violations
 		.filter((violation) => GATED_IMPACTS.has(violation.impact ?? ''))
 		.flatMap((violation) => violation.nodes
 			.filter((node) => !KNOWN.some((known) => known.rule === violation.id && node.target.join(' ') === known.selector))
-			.map((node) => `${screen}: ${violation.id} (${violation.impact}) at ${node.target.join(' ')} ${node.html}: ${node.failureSummary ?? violation.help}`))
+			.map((node) => `${screen}: ${violation.id} (${violation.impact}) at ${node.target.join(' ')} ${node.html}: ${node.failureSummary ?? violation.help}`))]
 }
 
 /** Fails the test, but goes on to the next screen, with every moderate, serious or critical fault on the open screen. */
