@@ -50,7 +50,11 @@ defineExpose({ focus })
 
 <template>
 	<article class="folder-row" :class="{ 'folder-row--done': !open }" :aria-labelledby="nameId">
-		<FolderCover class="folder-row__cover" :previews="props.row.previews" :done="!open" :image-url="imageUrl" />
+		<FolderCover
+			class="folder-row__cover"
+			:previews="props.row.previews"
+			:done="!open"
+			:imageUrl="imageUrl" />
 		<div class="folder-row__head">
 			<span :id="nameId" class="folder-row__name" translate="no">{{ name }}</span>
 			<span class="folder-row__parent" translate="no">{{ parent }}</span>

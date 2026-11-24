@@ -3,12 +3,12 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { ImageUrlFor } from '../logic/image-tiers.ts'
 import type { FolderPreview } from '../logic/folder-row.ts'
+import type { ImageUrlFor } from '../logic/image-tiers.ts'
 
 import { computed, ref } from 'vue'
-import { smallSource } from '../logic/image-tiers.ts'
 import AppIcon from './AppIcon.vue'
+import { smallSource } from '../logic/image-tiers.ts'
 
 const props = defineProps<{
 	previews: readonly FolderPreview[]
@@ -20,6 +20,10 @@ const props = defineProps<{
 const failed = ref<ReadonlySet<number>>(new Set())
 const shown = computed(() => props.previews.filter((preview) => !failed.value.has(preview.fileId)))
 
+/**
+ *
+ */
+/** Drops the preview whose image failed to load. */
 function fail(fileId: number) {
 	failed.value = new Set([...failed.value, fileId])
 }
