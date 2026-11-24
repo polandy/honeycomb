@@ -39,7 +39,15 @@ final class DatabaseBenchTest extends DbTestCase {
 
 	private static function cached(int $fileId): XmpCacheRow {
 		$read = $fileId % self::SPARSE !== 0;
-		return new XmpCacheRow($fileId, XmpSource::Sidecar, "etag-$fileId", 2, $read ? XmpReadState::Read : XmpReadState::None, null, $read ? $fileId % 6 : null, $read ? Flag::cases()[$fileId % 3] : null, $read ? ColourLabel::Red : null, null, $read ? ['Holiday', 'People/Anna'] : null);
+		return new XmpCacheRow($fileId, XmpSource::Sidecar, "etag-$fileId", 2, $read ? XmpReadState::Read : XmpReadState::None, null, $read ? $fileId % 6 : null, $read ? self::flag($fileId) : null, $read ? ColourLabel::Red : null, null, $read ? ['Holiday', 'People/Anna'] : null);
+	}
+
+	private static function flag(int $index): Flag {
+		return match ($index % 3) {
+			0 => Flag::Picked,
+			1 => Flag::Rejected,
+			default => Flag::Unflagged,
+		};
 	}
 
 	private static function assetId(int $index): string {
@@ -47,7 +55,7 @@ final class DatabaseBenchTest extends DbTestCase {
 	}
 
 	private static function decision(int $index): AssetDecision {
-		return new AssetDecision(self::assetId($index), $index % 6, null, Flag::cases()[$index % 3], false, self::FIRST_SECOND + intdiv($index, self::ASSETS_PER_SECOND), $index % 2 === 0 ? 'Pixel 8' : 'EOS R5', AssetKind::Photo, '2026-01-01T00:00:00.000Z');
+		return new AssetDecision(self::assetId($index), $index % 6, null, self::flag($index), false, self::FIRST_SECOND + intdiv($index, self::ASSETS_PER_SECOND), $index % 2 === 0 ? 'Pixel 8' : 'EOS R5', AssetKind::Photo, '2026-01-01T00:00:00.000Z');
 	}
 
 	/** @return list<XmpCacheRow> */
@@ -62,12 +70,15 @@ final class DatabaseBenchTest extends DbTestCase {
 	private static function seconds(callable $run): float {
 		$start = hrtime(true);
 		$run();
-		return (hrtime(true) - $start) / 1e9;
+		return (float)(hrtime(true) - $start) / 1e9;
 	}
 
 	/** @param callable(): mixed $run */
 	private static function median(callable $run): float {
-		$times = array_map(static fn (): float => self::seconds($run), range(1, self::RUNS));
+		$times = [];
+		for ($attempt = 0; $attempt < self::RUNS; $attempt++) {
+			$times[] = self::seconds($run);
+		}
 		sort($times);
 		return $times[intdiv(self::RUNS, 2)];
 	}
