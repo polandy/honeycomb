@@ -37,7 +37,7 @@ final readonly class SeriesItem {
 		if (!is_array($fileIds)) {
 			throw InvalidRequestException::because(Reason::NotAList, 'fileIds must be a list');
 		}
-		return new self($id, $status, FileIds::parse($fileIds, ListingService::ENTRY_LIMIT));
+		return new self($id, $status, FileIds::parse($fileIds, Limits::ENTRIES));
 	}
 
 	/**

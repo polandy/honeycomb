@@ -24,7 +24,7 @@ final class SeriesService {
 	 * @throws InvalidRequestException for anything but a list of positive file ids within the limit
 	 */
 	public function lookup(IUser $user, array $fileIds): SeriesLookup {
-		return $this->store->find($user->getUID(), FileIds::parse($fileIds, ListingService::ENTRY_LIMIT));
+		return $this->store->find($user->getUID(), FileIds::parse($fileIds, Limits::ENTRIES));
 	}
 
 	/**

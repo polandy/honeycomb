@@ -61,7 +61,7 @@ final class TrashTally {
 	}
 
 	private function addFile(File $file, StatsMetric $files, StatsMetric $bytes, int $size): void {
-		if ($this->rawsOnly && ListingService::isSidecar($file)) {
+		if ($this->rawsOnly && PhotoFiles::isSidecar($file)) {
 			return;
 		}
 		$this->plus($files, 1);

@@ -20,8 +20,8 @@ final class MoveRequest {
 		}
 		$parsed = array_map(self::picture(...), $pictures);
 		$files = array_merge(...$parsed);
-		if (count($files) > PictureRequestLimit::FILES) {
-			throw InvalidRequestException::because(Reason::TooMany, 'At most ' . PictureRequestLimit::FILES . ' files');
+		if (count($files) > Limits::REQUEST_FILES) {
+			throw InvalidRequestException::because(Reason::TooMany, 'At most ' . Limits::REQUEST_FILES . ' files');
 		}
 		FileIds::eachOnce(array_map(static fn (MoveFile $file): int => $file->fileId, $files));
 		self::refuseTwice(array_map(static fn (MoveFile $file): string => mb_strtolower($file->path), $files), 'target path');
@@ -40,8 +40,8 @@ final class MoveRequest {
 	 * @throws InvalidRequestException
 	 */
 	public static function folders(array $folders): array {
-		if (!array_is_list($folders) || count($folders) > ListingService::ENTRY_LIMIT) {
-			throw InvalidRequestException::because(Reason::NotAList, 'folders must be a list of at most ' . ListingService::ENTRY_LIMIT . ' paths');
+		if (!array_is_list($folders) || count($folders) > Limits::ENTRIES) {
+			throw InvalidRequestException::because(Reason::NotAList, 'folders must be a list of at most ' . Limits::ENTRIES . ' paths');
 		}
 		return array_map(static fn (mixed $path): string => $path === '/' ? '/' : self::path($path), $folders);
 	}

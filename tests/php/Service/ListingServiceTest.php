@@ -12,6 +12,7 @@ use OCA\Honeycomb\Service\FileFlag;
 use OCA\Honeycomb\Service\Flag;
 use OCA\Honeycomb\Service\FolderNotFoundException;
 use OCA\Honeycomb\Service\FolderNotReadableException;
+use OCA\Honeycomb\Service\Limits;
 use OCA\Honeycomb\Service\ListingService;
 use OCA\Honeycomb\Service\QualityValue;
 use OCA\Honeycomb\Service\UserFolderResolver;
@@ -26,7 +27,7 @@ use PHPUnit\Framework\TestCase;
 final class ListingServiceTest extends TestCase {
 	use FakeFiles;
 
-	private function service(IRootFolder $root, array $metadata = [], int $entryLimit = ListingService::ENTRY_LIMIT, FakeVisualHashStore $hashes = new FakeVisualHashStore(), FakeFlagStore $flags = new FakeFlagStore(), FakeQualityStore $quality = new FakeQualityStore()): ListingService {
+	private function service(IRootFolder $root, array $metadata = [], int $entryLimit = Limits::ENTRIES, FakeVisualHashStore $hashes = new FakeVisualHashStore(), FakeFlagStore $flags = new FakeFlagStore(), FakeQualityStore $quality = new FakeQualityStore()): ListingService {
 		$manager = $this->createStub(IFilesMetadataManager::class);
 		$manager->method('getMetadataForFiles')->willReturnCallback(
 			static fn (array $ids): array => array_intersect_key($metadata, array_flip($ids)),

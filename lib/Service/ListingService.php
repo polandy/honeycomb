@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-use OCA\Honeycomb\Preview\UntypedRaw;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\Node;
@@ -16,14 +15,12 @@ use OCP\IUser;
 
 /** Lists the files of one picked folder from the file cache: members and sidecars, unpaired. */
 final class ListingService {
-	/** 20,000 pictures of a RAW, a JPEG and a sidecar each (`docs/dev/plan.md` Multiple folders). */
-	public const ENTRY_LIMIT = 60_000;
 	public const METADATA_BATCH = 1_000;
 
 	public function __construct(
 		private UserFolderResolver $folders,
 		private EntryFactory $entryFactory,
-		private int $entryLimit = self::ENTRY_LIMIT,
+		private int $entryLimit = Limits::ENTRIES,
 	) {
 	}
 
@@ -85,21 +82,7 @@ final class ListingService {
 		if ($relative === null || preg_match('#/\.#', $relative) === 1) {
 			return false;
 		}
-		return self::isListedType($node);
-	}
-
-	/** Whether the listing lists a file of this type: a photo or an XMP sidecar. */
-	public static function isListedType(File $file): bool {
-		return self::isPhoto($file) || self::isSidecar($file);
-	}
-
-	/** Whether the file is an image, including RAW files Nextcloud does not type. */
-	public static function isPhoto(File $file): bool {
-		return str_starts_with($file->getMimetype(), 'image/') || UntypedRaw::isNamed($file->getName());
-	}
-
-	public static function isSidecar(File $file): bool {
-		return str_ends_with(strtolower($file->getName()), '.xmp');
+		return PhotoFiles::isListedType($node);
 	}
 
 	/**

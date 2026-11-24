@@ -88,7 +88,7 @@ final class MissingVisualHashes {
 				if ($this->isOwn($node) && !str_starts_with($name, '.') && $node->isReadable()) {
 					yield from $this->walk($node, $prefix . $name . '/', $name === $first ? array_slice($after, 1) : []);
 				}
-			} elseif ($node instanceof File && $name !== $first && ListingService::isPhoto($node)) {
+			} elseif ($node instanceof File && $name !== $first && PhotoFiles::isPhoto($node)) {
 				yield $prefix . $name => $node;
 			}
 		}

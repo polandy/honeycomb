@@ -67,9 +67,9 @@ final class FolderService {
 			if (!$node instanceof File || str_starts_with($node->getName(), '.')) {
 				continue;
 			}
-			if (ListingService::isSidecar($node)) {
+			if (PhotoFiles::isSidecar($node)) {
 				$sidecars[] = $node->getName();
-			} elseif (ListingService::isPhoto($node)) {
+			} elseif (PhotoFiles::isPhoto($node)) {
 				$photos[] = $node->getName();
 			} elseif (OrphanedSidecarRule::isVideo($node)) {
 				$videos[] = $node->getName();

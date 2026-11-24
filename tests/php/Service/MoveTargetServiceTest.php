@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\InvalidRequestException;
-use OCA\Honeycomb\Service\ListingService;
+use OCA\Honeycomb\Service\Limits;
 use OCA\Honeycomb\Service\MoveTargetService;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -63,7 +63,7 @@ final class MoveTargetServiceTest extends TestCase {
 			'a path that is no string' => [[7]],
 			'a relative path' => [['Out']],
 			'a dot-dot segment' => [['/Out/..']],
-			'more folders than the limit' => [array_fill(0, ListingService::ENTRY_LIMIT + 1, '/Out')],
+			'more folders than the limit' => [array_fill(0, Limits::ENTRIES + 1, '/Out')],
 		];
 	}
 

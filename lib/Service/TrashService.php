@@ -128,7 +128,7 @@ final class TrashService {
 	 * @return list<?FileFlag>
 	 */
 	private static function memberRows(array $files, array $picture, array $rows): array {
-		$members = array_filter($files, static fn (array $file): bool => !ListingService::isSidecar($file[0]));
+		$members = array_filter($files, static fn (array $file): bool => !PhotoFiles::isSidecar($file[0]));
 		return array_map(static fn (int $index): ?FileFlag => $rows[$picture[$index]['fileId']] ?? null, array_keys($members));
 	}
 
@@ -148,7 +148,7 @@ final class TrashService {
 	 * @return list<TrashResult> in the order of `$files`
 	 */
 	private function trashInOrder(IUser $user, array $files): array {
-		$sidecars = array_filter($files, static fn (array $file): bool => ListingService::isSidecar($file[0]));
+		$sidecars = array_filter($files, static fn (array $file): bool => PhotoFiles::isSidecar($file[0]));
 		$results = array_fill_keys(array_keys($files), TrashResult::Skipped);
 		foreach (array_diff_key($files, $sidecars) + $sidecars as $index => [$file, $done]) {
 			$results[$index] = $done === TrashResult::Trashed
@@ -246,8 +246,8 @@ final class TrashService {
 			$parsed[] = $files;
 		}
 		FileIds::eachOnce($fileIds);
-		if (count($fileIds) > PictureRequestLimit::FILES) {
-			throw InvalidRequestException::because(Reason::TooMany, 'At most ' . PictureRequestLimit::FILES . ' files');
+		if (count($fileIds) > Limits::REQUEST_FILES) {
+			throw InvalidRequestException::because(Reason::TooMany, 'At most ' . Limits::REQUEST_FILES . ' files');
 		}
 		/** @var list<non-empty-list<array{fileId: int, etag: string, permanent: bool}>> $parsed */
 		return $parsed;

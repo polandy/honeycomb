@@ -11,7 +11,7 @@ use OCA\Honeycomb\Service\FileFlag;
 use OCA\Honeycomb\Service\Flag;
 use OCA\Honeycomb\Service\FlagService;
 use OCA\Honeycomb\Service\InvalidRequestException;
-use OCA\Honeycomb\Service\ListingService;
+use OCA\Honeycomb\Service\Limits;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Constants;
 use OCP\IUser;
@@ -82,7 +82,7 @@ final class FlagServiceSidecarEtagTest extends TestCase {
 			'empty etag' => [[['fileId' => 7, 'sidecarEtag' => '']]],
 			'etag too long' => [[['fileId' => 7, 'sidecarEtag' => self::TOO_LONG]]],
 			'a file id twice' => [[['fileId' => 7, 'sidecarEtag' => 'e1'], ['fileId' => 7, 'sidecarEtag' => 'e2']]],
-			'too many' => [array_map(static fn (int $id): array => ['fileId' => $id, 'sidecarEtag' => 'e1'], range(1, ListingService::ENTRY_LIMIT + 1))],
+			'too many' => [array_map(static fn (int $id): array => ['fileId' => $id, 'sidecarEtag' => 'e1'], range(1, Limits::ENTRIES + 1))],
 		];
 	}
 

@@ -14,7 +14,7 @@ use OCA\Honeycomb\Immich\ImmichDecisions;
 use OCA\Honeycomb\Immich\ImmichError;
 use OCA\Honeycomb\Service\ColourLabel;
 use OCA\Honeycomb\Service\Flag;
-use OCA\Honeycomb\Service\ListingService;
+use OCA\Honeycomb\Service\Limits;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -96,7 +96,7 @@ final class ImmichDecisionsTest extends TestCase {
 
 	// spec: IMMICH-003.5
 	public function testMoreDecisionsThanTheLimitAreABadRequest(): void {
-		$this->assertFailsWith(ImmichError::Request, fn () => $this->decisions()->save($this->connection(), array_fill(0, ListingService::ENTRY_LIMIT + 1, self::DECISION)));
+		$this->assertFailsWith(ImmichError::Request, fn () => $this->decisions()->save($this->connection(), array_fill(0, Limits::ENTRIES + 1, self::DECISION)));
 		$this->assertSame([], $this->store->rows);
 	}
 

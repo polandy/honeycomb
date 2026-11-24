@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Immich;
 
-use OCA\Honeycomb\Service\ListingService;
+use OCA\Honeycomb\Service\Limits;
 use OCP\AppFramework\Utility\ITimeFactory;
 
 /** Saves the user's decisions on a connection's assets; Immich is not asked (IMMICH-003). */
@@ -24,7 +24,7 @@ final class ImmichDecisions {
 	 * @return array{saved: list<string>}
 	 */
 	public function save(Connection $connection, mixed $decisions): array {
-		if (!is_array($decisions) || !array_is_list($decisions) || count($decisions) > ListingService::ENTRY_LIMIT) {
+		if (!is_array($decisions) || !array_is_list($decisions) || count($decisions) > Limits::ENTRIES) {
 			throw new ImmichException(ImmichError::Request);
 		}
 		$byAsset = [];

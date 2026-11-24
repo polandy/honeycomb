@@ -9,6 +9,7 @@ namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\EntryFactory;
 use OCA\Honeycomb\Service\FolderNotReadableException;
+use OCA\Honeycomb\Service\Limits;
 use OCA\Honeycomb\Service\ListingService;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCP\Constants;
@@ -21,7 +22,7 @@ use PHPUnit\Framework\TestCase;
 final class ListingServiceSubfoldersTest extends TestCase {
 	use FakeFiles;
 
-	private function service(IRootFolder $root, int $entryLimit = ListingService::ENTRY_LIMIT): ListingService {
+	private function service(IRootFolder $root, int $entryLimit = Limits::ENTRIES): ListingService {
 		return new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class), new FakeVisualHashStore(), new FakeFlagStore(), new FakeQualityStore()), $entryLimit);
 	}
 

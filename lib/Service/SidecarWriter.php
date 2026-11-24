@@ -114,7 +114,7 @@ final class SidecarWriter {
 		} catch (NotFoundException) {
 			return SidecarResult::NotFound;
 		}
-		if (!$image instanceof File || !ListingService::isListedType($image) || ListingService::isSidecar($image)) {
+		if (!$image instanceof File || !PhotoFiles::isListedType($image) || PhotoFiles::isSidecar($image)) {
 			return SidecarResult::NotFound;
 		}
 		$folder = $image->getParent();

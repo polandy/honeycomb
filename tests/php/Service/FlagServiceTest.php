@@ -11,7 +11,7 @@ use OCA\Honeycomb\Service\FileFlag;
 use OCA\Honeycomb\Service\Flag;
 use OCA\Honeycomb\Service\FlagService;
 use OCA\Honeycomb\Service\InvalidRequestException;
-use OCA\Honeycomb\Service\ListingService;
+use OCA\Honeycomb\Service\Limits;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -165,7 +165,7 @@ final class FlagServiceTest extends TestCase {
 			'unknown flag' => [[self::item(7, 'maybe')]],
 			'keepRaw as number' => [[['fileId' => 7, 'flag' => 'picked', 'keepRaw' => 1]]],
 			'a file id twice' => [[self::item(7), self::item(7, 'rejected')]],
-			'too many' => [array_map(static fn (int $id): array => self::item($id), range(1, ListingService::ENTRY_LIMIT + 1))],
+			'too many' => [array_map(static fn (int $id): array => self::item($id), range(1, Limits::ENTRIES + 1))],
 		];
 	}
 

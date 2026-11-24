@@ -101,8 +101,8 @@ final class OrphanedSidecarTrash {
 		if (!array_is_list($sidecars)) {
 			throw InvalidRequestException::because(Reason::NotAList, 'sidecars must be a list');
 		}
-		if (count($sidecars) > PictureRequestLimit::FILES) {
-			throw InvalidRequestException::because(Reason::TooMany, 'At most ' . PictureRequestLimit::FILES . ' sidecars');
+		if (count($sidecars) > Limits::REQUEST_FILES) {
+			throw InvalidRequestException::because(Reason::TooMany, 'At most ' . Limits::REQUEST_FILES . ' sidecars');
 		}
 		$parsed = [];
 		/** @var mixed $sidecar */

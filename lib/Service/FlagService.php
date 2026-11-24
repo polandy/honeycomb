@@ -63,7 +63,7 @@ final class FlagService {
 	 * @throws \OCP\DB\Exception
 	 */
 	public function sidecarEtags(IUser $user, array $items): FlagAnswer {
-		$parsed = array_map(SidecarEtag::fromRequest(...), FileIds::items($items, ListingService::ENTRY_LIMIT));
+		$parsed = array_map(SidecarEtag::fromRequest(...), FileIds::items($items, Limits::ENTRIES));
 		$fileIds = FileIds::eachOnce(array_map(static fn (SidecarEtag $etag): int => $etag->fileId, $parsed));
 		$etags = array_combine($fileIds, array_map(static fn (SidecarEtag $etag): ?string => $etag->sidecarEtag, $parsed));
 		$rateable = $this->photos->rateable($user, $fileIds);
@@ -84,7 +84,7 @@ final class FlagService {
 	private function parse(IUser $user, array $items): array {
 		$now = $this->time->getTime();
 		$uid = $user->getUID();
-		$flags = array_map(static fn (mixed $item): FileFlag => FileFlag::fromRequest($item, $now, $uid), FileIds::items($items, ListingService::ENTRY_LIMIT));
+		$flags = array_map(static fn (mixed $item): FileFlag => FileFlag::fromRequest($item, $now, $uid), FileIds::items($items, Limits::ENTRIES));
 		$fileIds = FileIds::eachOnce(array_map(static fn (FileFlag $flag): int => $flag->fileId, $flags));
 		return array_combine($fileIds, $flags);
 	}

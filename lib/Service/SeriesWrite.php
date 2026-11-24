@@ -34,11 +34,11 @@ final readonly class SeriesWrite {
 	public static function fromRequest(array $series, array $keptOut, array $released): self {
 		$write = new self(
 			array_map(SeriesItem::fromRequest(...), FileIds::items($series, self::SERIES_LIMIT)),
-			FileIds::parse($keptOut, ListingService::ENTRY_LIMIT),
-			FileIds::parse($released, ListingService::ENTRY_LIMIT),
+			FileIds::parse($keptOut, Limits::ENTRIES),
+			FileIds::parse($released, Limits::ENTRIES),
 		);
-		if (count(FileIds::eachOnce($write->fileIds())) > ListingService::ENTRY_LIMIT) {
-			throw InvalidRequestException::because(Reason::TooMany, 'A write takes at most ' . ListingService::ENTRY_LIMIT . ' file ids');
+		if (count(FileIds::eachOnce($write->fileIds())) > Limits::ENTRIES) {
+			throw InvalidRequestException::because(Reason::TooMany, 'A write takes at most ' . Limits::ENTRIES . ' file ids');
 		}
 		$seriesIds = array_filter(array_map(static fn (SeriesItem $item): ?int => $item->id, $write->series), static fn (?int $id): bool => $id !== null);
 		if (count(array_unique($seriesIds)) !== count($seriesIds)) {

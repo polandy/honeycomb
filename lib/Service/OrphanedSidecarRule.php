@@ -37,7 +37,7 @@ final class OrphanedSidecarRule {
 			if (!$node instanceof File) {
 				continue;
 			}
-			if (ListingService::isSidecar($node)) {
+			if (PhotoFiles::isSidecar($node)) {
 				$sidecars[$node->getName()] = $node;
 			} elseif (self::isMedia($node)) {
 				$media[] = $node->getName();
@@ -83,7 +83,7 @@ final class OrphanedSidecarRule {
 
 	/** A photo, including untyped RAW files, or a video. */
 	private static function isMedia(File $file): bool {
-		return ListingService::isPhoto($file) || self::isVideo($file);
+		return PhotoFiles::isPhoto($file) || self::isVideo($file);
 	}
 
 	/** @param array<string, true> $owners media file names and their names without the extension, in lower case */

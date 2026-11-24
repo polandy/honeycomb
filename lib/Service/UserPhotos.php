@@ -34,7 +34,7 @@ final class UserPhotos {
 		if ($etags === []) {
 			return [];
 		}
-		$photos = $this->filesOf($user, array_keys($etags), ListingService::isPhoto(...));
+		$photos = $this->filesOf($user, array_keys($etags), PhotoFiles::isPhoto(...));
 		return array_values(array_filter(array_keys($etags), static fn (int $fileId): bool => ($photos[$fileId] ?? null)?->getEtag() === $etags[$fileId]));
 	}
 
@@ -44,7 +44,7 @@ final class UserPhotos {
 	 * @return list<int>
 	 */
 	public function photos(IUser $user, array $fileIds): array {
-		return $this->reached($user, $fileIds, ListingService::isPhoto(...));
+		return $this->reached($user, $fileIds, PhotoFiles::isPhoto(...));
 	}
 
 	/**
@@ -55,7 +55,7 @@ final class UserPhotos {
 	public function rateable(IUser $user, array $fileIds): array {
 		$folderRateable = [];
 		$rateable = [];
-		foreach ($this->filesOf($user, $fileIds, ListingService::isPhoto(...)) as $fileId => $photo) {
+		foreach ($this->filesOf($user, $fileIds, PhotoFiles::isPhoto(...)) as $fileId => $photo) {
 			$folder = dirname($photo->getPath());
 			$folderRateable[$folder] ??= ($photo->getParent()->getPermissions() & self::RATEABLE) === self::RATEABLE;
 			$rateable[$fileId] = $folderRateable[$folder];
@@ -74,7 +74,7 @@ final class UserPhotos {
 	 * @return list<int>
 	 */
 	public function sidecars(IUser $user, array $fileIds): array {
-		return $this->reached($user, $fileIds, ListingService::isSidecar(...));
+		return $this->reached($user, $fileIds, PhotoFiles::isSidecar(...));
 	}
 
 	/**
@@ -93,7 +93,7 @@ final class UserPhotos {
 
 	/** The photo with `$fileId` in `$userFolder`, or null for a missing, foreign, folder or other id. */
 	public function photo(Folder $userFolder, int $fileId): ?File {
-		return self::fileOf($userFolder, $fileId, ListingService::isPhoto(...));
+		return self::fileOf($userFolder, $fileId, PhotoFiles::isPhoto(...));
 	}
 
 	/** The JPEG with `$fileId` in `$userFolder`, or null for a missing, foreign, folder or other id. */
@@ -103,12 +103,12 @@ final class UserPhotos {
 
 	/** The XMP sidecar with `$fileId` in `$userFolder`, or null for a missing, foreign, folder or other id. */
 	public function sidecar(Folder $userFolder, int $fileId): ?File {
-		return self::fileOf($userFolder, $fileId, ListingService::isSidecar(...));
+		return self::fileOf($userFolder, $fileId, PhotoFiles::isSidecar(...));
 	}
 
 	/** The photo or sidecar with `$fileId` in `$userFolder`, or null for a missing, foreign, folder or other id. */
 	public function listed(Folder $userFolder, int $fileId): ?File {
-		return self::fileOf($userFolder, $fileId, ListingService::isListedType(...));
+		return self::fileOf($userFolder, $fileId, PhotoFiles::isListedType(...));
 	}
 
 	/**
@@ -144,7 +144,7 @@ final class UserPhotos {
 	}
 
 	private static function isJpeg(File $file): bool {
-		return ListingService::isPhoto($file) && $file->getMimetype() === self::JPEG_MIME;
+		return PhotoFiles::isPhoto($file) && $file->getMimetype() === self::JPEG_MIME;
 	}
 
 	/** @param \Closure(File): bool $isType */

@@ -84,7 +84,7 @@ final class MoveService {
 	 * @return list<array{result: MoveResult, replaced: bool, path?: string, newFileId?: int, etag?: string}> in the order of `$moves`
 	 */
 	private function moveInOrder(string $userId, Folder $userFolder, array $moves): array {
-		$sidecars = array_filter($moves, static fn (CheckedMove $move): bool => ListingService::isSidecar($move->source));
+		$sidecars = array_filter($moves, static fn (CheckedMove $move): bool => PhotoFiles::isSidecar($move->source));
 		$outcomes = array_fill_keys(array_keys($moves), ['result' => MoveResult::Skipped, 'replaced' => false]);
 		/** @var array<int, Node> $moved */
 		$moved = [];
