@@ -36,7 +36,10 @@ what is on screen is loaded, and every number comes from the server.
 - **Decision filters:** when the filter admits undecided assets, the listing pages Immich and
   leaves out the decided ones it refuses. When it admits decided assets only (*Picked* or
   *Rejected* alone, a rating above 0, a colour label), the listing pages the matching decisions by
-  the capture time saved with them, newest first, and asks Immich for those assets by id.
+  the capture time saved with them, newest first, and asks Immich for those assets by id. The
+  grid, the listing, the counts and the decision query judge a decision by one rule: the flag is one
+  of the chosen flags, the rating compares with the chosen stars, the colour label is one of the
+  chosen labels (none passes no label chip).
 - **A decision the filter refuses** takes the picture out of the grid without a request: when the
   loupe closes, or at once when the loupe is not open (an undo from the grid). While the loupe is
   open the picture stays, so the filmstrip and *k / N* do not jump. Undo and redo bring it back
@@ -247,3 +250,10 @@ what is on screen is loaded, and every number comes from the server.
 - **Then** the grid no longer shows it, without a new listing request, and *Rejected* counts one
   more; while the loupe was open the picture stayed in the filmstrip; an undo brings it back in
   its place, and with *Rejected* pressed it shows
+
+### IMMICH-002.29 – One rule for the decision filters
+
+- **Given** the decision filters (flags, a rating *atLeast*, *atMost* or *exactly*, colour labels)
+  and a decision, as the shared vectors in `tests/fixtures/decision-filter/vectors.json` list them
+- **When** the grid's filter, the server's check and the decision query each judge the decision
+- **Then** all three admit it or all three refuse it, as the vector says

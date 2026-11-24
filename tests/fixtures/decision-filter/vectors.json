@@ -1,0 +1,26 @@
+{
+  "description": "Decision filter vectors (IMMICH-002.29): request filters and a decision in, whether the filter admits it out. The grid's filter (TypeScript), the server's check and the decision query (PHP) each run every case.",
+  "cases": [
+    { "name": "no filter admits an undecided picture", "filters": {}, "decision": { "flag": "unflagged", "rating": 0, "colourLabel": null }, "admits": true },
+    { "name": "a chosen flag admits its decision", "filters": { "flags": ["picked", "unflagged"] }, "decision": { "flag": "picked", "rating": 0, "colourLabel": null }, "admits": true },
+    { "name": "a flag not chosen refuses its decision", "filters": { "flags": ["picked", "unflagged"] }, "decision": { "flag": "rejected", "rating": 0, "colourLabel": null }, "admits": false },
+    { "name": "rejected alone admits a reject", "filters": { "flags": ["rejected"] }, "decision": { "flag": "rejected", "rating": 2, "colourLabel": "red" }, "admits": true },
+    { "name": "at least admits the same stars", "filters": { "rating": { "op": "atLeast", "value": 3 } }, "decision": { "flag": "picked", "rating": 3, "colourLabel": null }, "admits": true },
+    { "name": "at least admits more stars", "filters": { "rating": { "op": "atLeast", "value": 3 } }, "decision": { "flag": "picked", "rating": 5, "colourLabel": null }, "admits": true },
+    { "name": "at least refuses fewer stars", "filters": { "rating": { "op": "atLeast", "value": 3 } }, "decision": { "flag": "picked", "rating": 2, "colourLabel": null }, "admits": false },
+    { "name": "at least 0 admits no stars", "filters": { "rating": { "op": "atLeast", "value": 0 } }, "decision": { "flag": "unflagged", "rating": 0, "colourLabel": null }, "admits": true },
+    { "name": "at most admits the same stars", "filters": { "rating": { "op": "atMost", "value": 2 } }, "decision": { "flag": "picked", "rating": 2, "colourLabel": null }, "admits": true },
+    { "name": "at most admits no stars", "filters": { "rating": { "op": "atMost", "value": 2 } }, "decision": { "flag": "picked", "rating": 0, "colourLabel": null }, "admits": true },
+    { "name": "at most refuses more stars", "filters": { "rating": { "op": "atMost", "value": 2 } }, "decision": { "flag": "picked", "rating": 3, "colourLabel": null }, "admits": false },
+    { "name": "exactly admits the same stars", "filters": { "rating": { "op": "exactly", "value": 4 } }, "decision": { "flag": "picked", "rating": 4, "colourLabel": null }, "admits": true },
+    { "name": "exactly refuses fewer stars", "filters": { "rating": { "op": "exactly", "value": 4 } }, "decision": { "flag": "picked", "rating": 3, "colourLabel": null }, "admits": false },
+    { "name": "exactly refuses more stars", "filters": { "rating": { "op": "exactly", "value": 4 } }, "decision": { "flag": "picked", "rating": 5, "colourLabel": null }, "admits": false },
+    { "name": "exactly 0 refuses a rated picture", "filters": { "rating": { "op": "exactly", "value": 0 } }, "decision": { "flag": "picked", "rating": 1, "colourLabel": null }, "admits": false },
+    { "name": "a chosen colour label admits its decision", "filters": { "colourLabels": ["red", "blue"] }, "decision": { "flag": "picked", "rating": 0, "colourLabel": "blue" }, "admits": true },
+    { "name": "a colour label not chosen refuses its decision", "filters": { "colourLabels": ["red", "blue"] }, "decision": { "flag": "picked", "rating": 0, "colourLabel": "green" }, "admits": false },
+    { "name": "a colour label chip refuses a picture without a label", "filters": { "colourLabels": ["red"] }, "decision": { "flag": "picked", "rating": 0, "colourLabel": null }, "admits": false },
+    { "name": "every group passing admits the decision", "filters": { "flags": ["picked"], "rating": { "op": "atLeast", "value": 4 }, "colourLabels": ["green"] }, "decision": { "flag": "picked", "rating": 4, "colourLabel": "green" }, "admits": true },
+    { "name": "one group failing refuses the decision", "filters": { "flags": ["picked"], "rating": { "op": "atLeast", "value": 4 }, "colourLabels": ["green"] }, "decision": { "flag": "picked", "rating": 4, "colourLabel": "red" }, "admits": false },
+    { "name": "groups combine with AND", "filters": { "flags": ["picked"], "rating": { "op": "atMost", "value": 1 } }, "decision": { "flag": "picked", "rating": 2, "colourLabel": null }, "admits": false }
+  ]
+}
