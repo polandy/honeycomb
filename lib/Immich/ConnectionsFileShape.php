@@ -13,7 +13,8 @@ final class ConnectionsFileShape {
 	private const array TOP_FIELDS = ['version', 'connections'];
 	private const array STRING_FIELDS = ['id', 'user', 'label', 'url', 'keyFile'];
 	private const string FAVOURITES = 'picksAsFavorites';
-	private const string ID = '/^[a-z0-9-]{1,64}$/';
+	/** What a connection id may be: lower-case letters, digits and hyphens. */
+	public const string ID = '/^[a-z0-9-]{1,64}$/';
 	private const array SCHEMES = ['http', 'https'];
 
 	/**
