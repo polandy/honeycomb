@@ -101,6 +101,17 @@ export function useImmichCull(context: ImmichCullContext) {
 		}, { key: (row) => row.assetId })
 	}
 
+	/** Shows the listing under new filters from its start (IMMICH-002.11). */
+	function setFilters(next: ImmichFilters) {
+		filters.value = next
+		restart()
+	}
+
+	/** Shows the listing under the default filters again, from its start (IMMICH-002.18). */
+	function resetFilters() {
+		setFilters(defaultImmichFilters(now(), calendar))
+	}
+
 	/** Opens the connection on its default filters. */
 	function open(id: string) {
 		connectionId.value = id
@@ -111,17 +122,6 @@ export function useImmichCull(context: ImmichCullContext) {
 		history.reset()
 		held = false
 		resetFilters()
-	}
-
-	/** Shows the listing under new filters from its start (IMMICH-002.11). */
-	function setFilters(next: ImmichFilters) {
-		filters.value = next
-		restart()
-	}
-
-	/** Shows the listing under the default filters again, from its start (IMMICH-002.18). */
-	function resetFilters() {
-		setFilters(defaultImmichFilters(now(), calendar))
 	}
 
 	/** Drops what was loaded and asks the counts and the first page again; older answers are ignored. */
