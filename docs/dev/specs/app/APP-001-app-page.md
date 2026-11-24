@@ -142,7 +142,7 @@ stays the same.
   loupe, gesture guide, series compare and series viewer are open
 - **Then** an axe-core scan (WCAG 2.2 A and AA rules, ADR 0042) finds no fault rated *moderate*,
   *serious* or *critical*, contrast included; a known fault is excluded only by its rule and
-  element, each with a `TODO.md` item
+  element, each with a `TODO.md` item; the same scan fails any visible text under 12 px
 
 ### APP-001.16 – Escape closes a dialog from a switch or a checkbox
 
