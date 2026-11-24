@@ -13,5 +13,5 @@ export function optInToEdgeToEdge(doc: Document): void {
 		doc.head.append(meta)
 	}
 	const content = (meta.getAttribute('content') ?? '').replace(FIT, '')
-	meta.setAttribute('content', `${content}, viewport-fit=cover`)
+	meta.setAttribute('content', content === '' ? 'viewport-fit=cover' : `${content}, viewport-fit=cover`)
 }

@@ -43,4 +43,13 @@ describe('optInToEdgeToEdge', () => {
 
 		expect(viewport()).toBe('width=device-width, viewport-fit=cover')
 	})
+
+	// spec: APP-001.21
+	it('adds no leading comma to an empty viewport', () => {
+		setViewport('')
+
+		optInToEdgeToEdge(document)
+
+		expect(viewport()).toBe('viewport-fit=cover')
+	})
 })
