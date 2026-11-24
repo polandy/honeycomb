@@ -6,6 +6,12 @@ import type { ImmichOnlyOffer } from './logic/immich-only.ts'
 import { n, t } from '@nextcloud/l10n'
 import { formatNumber, PLAIN_TEXT } from './l10n.ts'
 
+/** The admin page on the Immich connections (IMMICH-001.26). */
+export const IMMICH_ADMIN_URL = 'https://github.com/polandy/honeycomb/blob/main/docs/user/admin/immich.md'
+
+/** The admin page's section on the connections file and the key's scopes (IMMICH-001.27). */
+export const IMMICH_SCOPES_URL = `${IMMICH_ADMIN_URL}#api-key-scopes`
+
 /** What a state that does not work says (IMMICH-001). */
 function stateText(state: Exclude<ConnectionState, 'ok'>): string {
 	switch (state) {
@@ -17,6 +23,25 @@ function stateText(state: Exclude<ConnectionState, 'ok'>): string {
 			return t('honeycomb', 'The API key cannot be read')
 		case 'version':
 			return t('honeycomb', 'This Immich version is not supported')
+	}
+}
+
+/** A state that needs the user or their admin to act: a failed connection or a broken connections file. */
+export type HelpState = Exclude<ConnectionState, 'ok'> | 'configuration'
+
+/** What to do about a state that does not work, and the admin page's section on it (IMMICH-001.26). */
+export function stateHelp(state: HelpState): { todo: string; url: string } {
+	switch (state) {
+		case 'unreachable':
+			return { todo: t('honeycomb', 'Try again in a moment. If it stays, ask your admin to check that Immich is running and reachable from Nextcloud.'), url: `${IMMICH_ADMIN_URL}#immich-unreachable` }
+		case 'refused':
+			return { todo: t('honeycomb', 'Ask your admin to replace the API key. It may have been deleted or revoked in Immich.'), url: `${IMMICH_ADMIN_URL}#the-api-key-is-refused` }
+		case 'key':
+			return { todo: t('honeycomb', 'Ask your admin to check that the key file exists, is readable and holds the API key.'), url: `${IMMICH_ADMIN_URL}#the-api-key-cannot-be-read` }
+		case 'version':
+			return { todo: t('honeycomb', 'This version is not supported. Ask your admin to update Immich or honeycomb.'), url: `${IMMICH_ADMIN_URL}#this-immich-version-is-not-supported` }
+		case 'configuration':
+			return { todo: t('honeycomb', 'Ask your Nextcloud admin to check the connections file.'), url: `${IMMICH_ADMIN_URL}#the-connections-file` }
 	}
 }
 

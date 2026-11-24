@@ -10,7 +10,7 @@ import { computed } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import AppIcon from './AppIcon.vue'
-import { connectionFacts, connectionLine } from '../immich-text.ts'
+import { connectionFacts, connectionLine, stateHelp } from '../immich-text.ts'
 
 const props = defineProps<{
 	/** The opened connection, none with a broken connections file. */
@@ -24,13 +24,16 @@ const emit = defineEmits<{
 	details: []
 }>()
 
-const failed = computed(() => props.status !== null && props.status.state !== 'ok')
+const failedState = computed(() => (props.status === null || props.status.state === 'ok' ? null : props.status.state))
+const failed = computed(() => failedState.value !== null)
+const help = computed(() => stateHelp(failedState.value ?? 'configuration'))
+const retryIsPrimary = computed(() => failedState.value === 'unreachable')
 const description = computed(() => {
 	if (props.connection === null) {
 		return t('honeycomb', 'Ask your Nextcloud admin to check the Immich connections. Your Nextcloud folders work as before.')
 	}
 	if (failed.value) {
-		return t('honeycomb', 'Decisions already made stay in honeycomb.')
+		return `${help.value.todo} ${t('honeycomb', 'Decisions already made stay in honeycomb.')}`
 	}
 	return props.status === null ? '' : connectionFacts(props.status)
 })
@@ -44,13 +47,18 @@ const description = computed(() => {
 		<template #icon>
 			<AppIcon name="phone" />
 		</template>
-		<template v-if="props.connection !== null && props.status !== null" #action>
+		<template v-if="props.connection === null || props.status !== null" #action>
 			<div class="immich-state__actions">
-				<NcButton v-if="failed" variant="primary" @click="emit('retry')">
-					{{ t('honeycomb', 'Try again') }}
-				</NcButton>
-				<NcButton :variant="failed ? 'secondary' : 'primary'" @click="emit('details')">
-					{{ t('honeycomb', 'Connection details') }}
+				<template v-if="props.connection !== null">
+					<NcButton v-if="failed" :variant="retryIsPrimary ? 'primary' : 'secondary'" @click="emit('retry')">
+						{{ t('honeycomb', 'Try again') }}
+					</NcButton>
+					<NcButton :variant="failed && retryIsPrimary ? 'secondary' : 'primary'" @click="emit('details')">
+						{{ t('honeycomb', 'Connection details') }}
+					</NcButton>
+				</template>
+				<NcButton v-if="failed || props.connection === null" variant="tertiary" :href="help.url" target="_blank">
+					{{ t('honeycomb', 'Help for your admin') }}
 				</NcButton>
 			</div>
 		</template>
