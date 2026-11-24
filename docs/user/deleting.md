@@ -6,9 +6,9 @@ honeycomb deletes a file for good only after you confirm a warning that names it
 [Files the trash bin would not keep](#files-the-trash-bin-would-not-keep)).
 
 A photo restored from the trash bin comes back without a decision of its own. If a sidecar of its
-files states a pick or reject, honeycomb takes it over again the next time it sees the photo, so
-the pick or reject comes back; only when no sidecar of its files states one (it was never written,
-or is not readable) does it come back without its pick or reject.
+files states a pick, reject or *Keep RAW*, honeycomb takes it over again the next time it sees the
+photo, so it comes back; only when no sidecar of its files states one (it was never written, or is
+not readable) does it come back without its pick, reject or *Keep RAW*.
 
 ## Delete every rejected photo
 

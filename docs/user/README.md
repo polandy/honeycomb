@@ -15,10 +15,11 @@ privacy](your-files-and-privacy.md).
 - **Loupe.** Full-screen view for one picture: swipe or tap the photo's edges to page, pinch to
   zoom, 100 % view, and a view without chrome.
 - **Deciding.** Stars, colour labels, Pick and Reject by large buttons, by swipe gestures or by
-  [keys](keyboard-shortcuts.md), with undo and redo. Your stars, colour labels and tags go into the
-  photo's XMP sidecar; a Pick, Reject or *Keep RAW* is kept in honeycomb's database, one per photo
-  for everyone who reaches it. Where you stopped is kept per user on the server, so a cull stops on
-  one device and goes on at the same place on another.
+  [keys](keyboard-shortcuts.md), with undo and redo. For a photo in your Nextcloud folders, your
+  stars, colour labels and tags go into its XMP sidecar, and a Pick, Reject or *Keep RAW* is kept
+  in honeycomb's database, one per photo for everyone who reaches it; an Immich upload's whole
+  decision stays in the database. Where you stopped is kept per user on the server, so a cull stops
+  on one device and goes on at the same place on another.
 - **Selection.** Select many pictures in the grid and rate, label or flag them in one step.
 - **Deleting.** Review the rejects once more, rescue single pictures, then move every file of the
   rejected pictures (JPEG, RAW and sidecars) into the Nextcloud trash bin after a summary.

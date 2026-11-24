@@ -39,17 +39,20 @@ photo is not safe there for ever. The [licence](../../LICENSE) excludes any warr
 honeycomb sends nothing out: no telemetry and no outgoing requests. It stores in the Nextcloud
 database:
 
-- flags and *Keep RAW* per picture, one set for everyone who reaches it;
+- for photos in your Nextcloud folders: flags and *Keep RAW* per picture, one set for everyone who
+  reaches it;
+- for an Immich upload, per user: the whole decision (rating, colour label, flag and *Keep RAW*)
+  with its capture time and camera model;
 - per user: what honeycomb read from your photos' sidecars and embedded XMP — ratings, colour
   labels, tags, the flag and *Keep RAW* — your tag list, the position where you stopped a cull,
   your series, settings and view state.
 
-For every user who reaches a picture it stores the picture's visual hash and, for a picture in a
-series, its sharpness; deleting a user leaves them while the picture exists.
+For every user who reaches a photo in a Nextcloud folder it stores the photo's visual hash and, for
+a photo in a series, its sharpness; deleting a user leaves them while the photo exists.
 
-It stores file ids, not file names. The Nextcloud log can contain full file paths when a sidecar
-cannot be saved, so remove them before you share a log. Deleting a user deletes their honeycomb
-data. There is no per-user export. `occ app:remove` leaves the tables in place; see
-[removing](admin/removing.md) to delete them.
+It stores file ids and Immich asset ids, not file names. The Nextcloud log can contain full file
+paths when a sidecar cannot be saved, so remove them before you share a log. Deleting a user
+deletes their honeycomb data. There is no per-user export. `occ app:remove` leaves the tables in
+place; see [removing](admin/removing.md) to delete them.
 
 Report a security problem privately: [`SECURITY.md`](../../SECURITY.md).
