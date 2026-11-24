@@ -110,7 +110,7 @@ trait FileRowQueries {
 		$query->update($this->getTableName());
 		foreach ($columns as $name => $type) {
 			if ($name !== 'file_id' && $name !== 'user_id') {
-				$query->set($name, $query->createNamedParameter($row[$name], $row[$name] === null ? IQueryBuilder::PARAM_NULL : $type));
+				$query->set($name, $query->createNamedParameter($row[$name], $row[$name] === null ? IQueryBuilder::PARAM_NULL : (int)$type));
 			}
 		}
 		$query->where($query->expr()->eq('file_id', $query->createNamedParameter($row['file_id'], IQueryBuilder::PARAM_INT)));

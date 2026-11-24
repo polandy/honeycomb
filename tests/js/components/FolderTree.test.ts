@@ -177,14 +177,14 @@ describe('FolderTree', () => {
 	})
 
 	// spec: LISTING-003.19
-	it('shows the pictures of each folder last in its row, spoken as part of the folder', async () => {
+	it('shows the photos of each folder last in its row, spoken as part of the folder', async () => {
 		const { wrapper, answer } = await mountTree(['/Photos/2025'])
 		const count = (name: string) => item(wrapper, name).find('.folder-tree__count')
 
 		expect(count('Photos').find('[aria-hidden="true"]').text()).toBe('3')
 		expect(count('Photos').find('.hidden-visually').text()).toBe(`${MARK}${MARK}3 photos`)
 		expect(item(wrapper, 'Photos').element.lastElementChild?.classList).toContain('folder-tree__count')
-		expect(count('Day 9').find('.hidden-visually').text()).toBe(`${MARK}${MARK}1 picture`)
+		expect(count('Day 9').find('.hidden-visually').text()).toBe(`${MARK}${MARK}1 photo`)
 		expect(count('Day 10').exists()).toBe(false)
 		expect(count('.hidden').exists()).toBe(false)
 
@@ -195,13 +195,13 @@ describe('FolderTree', () => {
 	})
 
 	// spec: LISTING-003.20
-	it('shows the pictures below a collapsed folder and its own once it is expanded', async () => {
+	it('shows the photos below a collapsed folder and its own once it is expanded', async () => {
 		const { wrapper, answer } = await mountTree()
 		const count = (name: string) => item(wrapper, name).find('.folder-tree__count')
 
 		expect(count('Photos').find('[aria-hidden="true"]').text()).toBe('1,203')
 		expect(count('Photos').find('.hidden-visually').text()).toBe(`${MARK}${MARK}1,203 photos with subfolders`)
-		expect(count('Day 9').find('.hidden-visually').text()).toBe(`${MARK}${MARK}1 picture`)
+		expect(count('Day 9').find('.hidden-visually').text()).toBe(`${MARK}${MARK}1 photo`)
 
 		await twisty(wrapper, 'Photos').trigger('click')
 		await answer('/Photos')
