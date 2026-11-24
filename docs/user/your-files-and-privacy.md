@@ -23,8 +23,9 @@ file versions and the trash bin apply.
   merged, so what other programs wrote stays, and it is only replaced while Nextcloud's file
   versions are on. When and what honeycomb writes:
   [sidecars and digiKam](sidecars.md). The photos themselves are never modified.
-- **Everything else** (flags and *Keep RAW*, series, positions, similarity, statistics) lives in
-  honeycomb's own tables, not in your files.
+- **Everything else** lives in honeycomb's own tables, not in your files: the master copies of
+  the flag and *Keep RAW* (mirrored into the sidecars by default), series, positions, similarity
+  and statistics.
 
 ## Back up first
 
@@ -39,8 +40,9 @@ honeycomb sends nothing out: no telemetry and no outgoing requests. It stores in
 database:
 
 - flags and *Keep RAW* per picture, one set for everyone who reaches it;
-- per user: your tag list, the position where you stopped a cull, your series, settings and view
-  state.
+- per user: what honeycomb read from your photos' sidecars and embedded XMP — ratings, colour
+  labels, tags, the flag and *Keep RAW* — your tag list, the position where you stopped a cull,
+  your series, settings and view state.
 
 For every user who reaches a picture it stores the picture's visual hash and, for a picture in a
 series, its sharpness; deleting a user leaves them while the picture exists.
