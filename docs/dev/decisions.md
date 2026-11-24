@@ -1901,3 +1901,5 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   drops the tables and deletes the `oc_migrations`, `oc_preferences`, `oc_jobs` and `oc_appconfig`
   rows; the reinstall before 0.2.0 is an opt-in pre-migration repair step (`reinstall = yes`),
   as no app command runs before the update (#187, autonomous).
+- 2026-11-24: a glue file in `src/` that would share its name with a `src/logic` file takes the
+  suffix `-flow` or `-run`; existing clashes are renamed in a later PR (#187, autonomous).
