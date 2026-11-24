@@ -1912,3 +1912,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   toolbar, not in the navigation as the Phase 1 mockup drew them, since the owner asked for the
   folder filter bar's style; they are kept per connection in the server view state
   (`immich_filters`, ADR 0019 amendment), so they follow the user like the other view state.
+  The current month is kept as `current`, so it follows the calendar; the stored keys are the
+  connections file's ids (a numeric id included), and 4096 bytes per connection suffice, since a
+  listing takes at most 20 devices.
