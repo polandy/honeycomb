@@ -88,7 +88,7 @@ trait FileRowQueries {
 	/**
 	 * Saves `$rows` by file id: a file's existing row is updated in place, any other row inserted.
 	 * Updates first, so SQLite takes its write lock at once; `RetryOnConflict` repeats a save that met a row inserted meanwhile.
-	 * @param non-empty-array<string, int|string> $columns each column's `IQueryBuilder::PARAM_*` type, with `file_id`
+	 * @param non-empty-array<string, mixed> $columns each column's `IQueryBuilder::PARAM_*` type, with `file_id`
 	 * @param list<array<string, scalar|null>> $rows each row's value of every column
 	 */
 	private function upsertFileRows(?string $userId, array $columns, array $rows): void {
@@ -102,7 +102,7 @@ trait FileRowQueries {
 	}
 
 	/**
-	 * @param array<string, int|string> $columns
+	 * @param array<string, mixed> $columns
 	 * @param array<string, scalar|null> $row
 	 */
 	private function updateFileRow(?string $userId, array $columns, array $row): int {

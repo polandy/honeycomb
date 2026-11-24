@@ -182,7 +182,7 @@ describe('FolderTree', () => {
 		const count = (name: string) => item(wrapper, name).find('.folder-tree__count')
 
 		expect(count('Photos').find('[aria-hidden="true"]').text()).toBe('3')
-		expect(count('Photos').find('.hidden-visually').text()).toBe(`${MARK}${MARK}3 pictures`)
+		expect(count('Photos').find('.hidden-visually').text()).toBe(`${MARK}${MARK}3 photos`)
 		expect(item(wrapper, 'Photos').element.lastElementChild?.classList).toContain('folder-tree__count')
 		expect(count('Day 9').find('.hidden-visually').text()).toBe(`${MARK}${MARK}1 picture`)
 		expect(count('Day 10').exists()).toBe(false)
@@ -200,13 +200,13 @@ describe('FolderTree', () => {
 		const count = (name: string) => item(wrapper, name).find('.folder-tree__count')
 
 		expect(count('Photos').find('[aria-hidden="true"]').text()).toBe('1,203')
-		expect(count('Photos').find('.hidden-visually').text()).toBe(`${MARK}${MARK}1,203 pictures with subfolders`)
+		expect(count('Photos').find('.hidden-visually').text()).toBe(`${MARK}${MARK}1,203 photos with subfolders`)
 		expect(count('Day 9').find('.hidden-visually').text()).toBe(`${MARK}${MARK}1 picture`)
 
 		await twisty(wrapper, 'Photos').trigger('click')
 		await answer('/Photos')
 		expect(count('Photos').find('[aria-hidden="true"]').text()).toBe('3')
-		expect(count('Photos').find('.hidden-visually').text()).toBe(`${MARK}${MARK}3 pictures`)
+		expect(count('Photos').find('.hidden-visually').text()).toBe(`${MARK}${MARK}3 photos`)
 
 		await twisty(wrapper, 'Photos').trigger('click')
 		expect(count('Photos').find('[aria-hidden="true"]').text()).toBe('1,203')
@@ -219,7 +219,7 @@ describe('FolderTree', () => {
 		const count = (name: string) => item(wrapper, name).find('.folder-tree__count')
 
 		expect(count('Photos').find('[aria-hidden="true"]').text()).toBe('~1,203')
-		expect(count('Photos').find('.hidden-visually').text()).toBe(`${MARK}${MARK}about 1,203 pictures with subfolders`)
+		expect(count('Photos').find('.hidden-visually').text()).toBe(`${MARK}${MARK}about 1,203 photos with subfolders`)
 		expect(count('Day 9').find('[aria-hidden="true"]').text()).toBe('1')
 
 		await twisty(wrapper, 'Photos').trigger('click')

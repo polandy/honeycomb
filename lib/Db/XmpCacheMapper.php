@@ -24,6 +24,7 @@ final class XmpCacheMapper implements XmpCacheStore {
 	use TTransactional;
 
 	private const string TABLE = 'honeycomb_xmp_cache';
+	/** @var non-empty-array<string, int|string> */
 	private const array COLUMNS = [
 		'user_id' => IQueryBuilder::PARAM_STR,
 		'file_id' => IQueryBuilder::PARAM_INT,
