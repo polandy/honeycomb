@@ -1882,3 +1882,18 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   folder done are shared; series, XMP cache, positions, tag list, stats and Immich decisions are per
   user. A deleted user's done statuses stay with `user_id` cleared, replacing the earlier removal
   (FOLDERS-006.13, .14; #187).
+- 2026-11-23: One decision table (ADR 0054, architecture report A7): `honeycomb_decisions` with
+  typed keys per source (`file_id`; `connection_id` and `asset_id`) instead of the report's string
+  `source_key`, so a file id is never stored twice; the Immich facets stay in
+  `honeycomb_immich_assets`. The flags move first, the Immich decisions in a second PR (#187).
+- 2026-11-23: Immich decisions in `honeycomb_decisions` (ADR 0054 step 2): the facet table keeps
+  `user_id` beside the key, so forgetting a user and the connection sweep delete from both tables
+  without a join; migration 12 deletes the old Immich rows instead of copying them, as nothing is
+  deployed (#187).
+- 2026-11-23: One baseline migration replaces migrations 0–12 (ADR 0055, arch report A1): the
+  table names stay, as each is a glossary word; every index is named `<table>_<columns>`; no
+  `hasTable` guard, so an instance from before fails loud and reinstalls (`updating.md`);
+  `DecidedPictures` goes with migration 5, as nothing read its preference (#187, autonomous).
+- 2026-11-23: `honeycomb_tag_list` keeps `UNIQUE(user_id, tag)` against ADR 0022's collation
+  concern, as Nextcloud creates MySQL tables as `utf8mb4_bin`; a folding `mysql.collation`
+  override is accepted as unsupported (#187, autonomous).

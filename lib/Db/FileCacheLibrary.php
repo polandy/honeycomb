@@ -101,7 +101,7 @@ final class FileCacheLibrary implements LibraryFiles {
 			$query->select('f.parent', 'f.name', 'fl.flag', 'fl.updated_at')
 				->selectAlias('s.id', 'done_series')
 				->from('filecache', 'f')
-				->leftJoin('f', 'honeycomb_flags', 'fl', $expr->eq('fl.file_id', 'f.fileid'))
+				->leftJoin('f', 'honeycomb_decisions', 'fl', $expr->eq('fl.file_id', 'f.fileid'))
 				->leftJoin('f', 'honeycomb_series_files', 'sf', $expr->andX(
 					$expr->eq('sf.file_id', 'f.fileid'),
 					$expr->eq('sf.user_id', $query->createNamedParameter($userId)),

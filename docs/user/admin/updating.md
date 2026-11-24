@@ -19,14 +19,44 @@ sudo -u www-data php /var/www/nextcloud/occ upgrade
 Clicking *Update* in *Apps* does the same as `occ app:update`. Until the update has run, the
 new code may read tables that do not exist yet, and saving a flag, a rating or a tag fails.
 
-## Updating from 0.1.0 drops flags and tags
+## Installed before 0.2.0: install again
 
-The update from 0.1.0 to 0.2.0 deletes the flags (*Picked*, *Rejected*, *Keep RAW*) and the tags
-that 0.1.0 stored in the database tables `honeycomb_decisions` and `honeycomb_file_tags`
-(migration 0005, [ADR 0040](../../dev/adr/0040-flags-per-picture-in-the-database.md)). Photos and
-sidecars are not touched, and what 0.1.0 already wrote into sidecars stays. Before
-updating an instance that holds 0.1.0 flags or tags you want to keep, cull those folders again.
-Tags that 0.1.0 wrote into sidecars (setting *XMP sidecars* on) stay in the sidecars.
+0.2.0 replaces the migrations of 0.1.0 and of every Git checkout before 2026-11-23 with one
+migration that creates all tables at once
+([ADR 0055](../../dev/adr/0055-one-baseline-migration-before-the-first-deployment.md)). Such an
+instance cannot update: the migration stops before it creates a table, names the honeycomb tables
+that exist already and points to this section. Install honeycomb again instead. This deletes what
+the database holds: the flags and *Keep RAW*, the tag lists, series, resume positions, statistics,
+folder summaries, done statuses and Immich decisions. The photos, the XMP sidecars with their
+ratings, colour labels and tags, and the users' settings stay.
+
+```sh
+sudo -u www-data php /var/www/nextcloud/occ app:disable honeycomb
+```
+
+Then drop the tables and forget the old migrations, for example with `mysql` or `psql` (default
+table prefix `oc_`; on SQLite drop one table per statement):
+
+```sql
+DROP TABLE IF EXISTS oc_honeycomb_flags, oc_honeycomb_decisions, oc_honeycomb_positions,
+  oc_honeycomb_file_tags, oc_honeycomb_tag_list, oc_honeycomb_hashes, oc_honeycomb_series,
+  oc_honeycomb_series_files, oc_honeycomb_xmp_cache, oc_honeycomb_quality, oc_honeycomb_stats,
+  oc_honeycomb_immich_assets, oc_honeycomb_folder_summary, oc_honeycomb_folder_done;
+DELETE FROM oc_migrations WHERE app = 'honeycomb';
+```
+
+Put the new release into `custom_apps/honeycomb`, run its migration (the `migrations:` commands
+exist only in debug mode) and enable the app again:
+
+```sh
+sudo -u www-data php /var/www/nextcloud/occ config:system:set debug --value=true --type=boolean
+sudo -u www-data php /var/www/nextcloud/occ migrations:migrate honeycomb
+sudo -u www-data php /var/www/nextcloud/occ config:system:set debug --value=false --type=boolean
+sudo -u www-data php /var/www/nextcloud/occ app:enable honeycomb
+```
+
+`oc_appconfig` keeps the app's settings, such as the Immich `connections_file` path, so they need
+no step.
 
 ## Supported Nextcloud versions
 
@@ -38,20 +68,16 @@ tables and is used again once a honeycomb release for that major is installed.
 ## Downgrade not supported
 
 Going back to an older honeycomb release is not supported. Updates mostly add tables and
-columns; the update that added `honeycomb_quality` also dropped every stored visual hash, which
-the next cull computes again. The older code does not know what a newer release wrote, and
+columns. The older code does not know what a newer release wrote, and
 Nextcloud does not undo a migration. To go back, restore the database and the
 `custom_apps/honeycomb` folder from the backup taken before the update.
 
 ## Installed from a Git checkout
 
-Tag storage (pull request #119) added the tables `honeycomb_file_tags` and
-`honeycomb_tag_list`, visual hash storage added `honeycomb_hashes` and stored series added
-`honeycomb_series` and `honeycomb_series_files`, and sharpness storage added `honeycomb_quality`,
-without raising the app version, so an
-instance installed from a Git checkout before them never created them, and the commands above
-do not either. Without `honeycomb_hashes` or `honeycomb_quality` no folder opens. The `migrations:`
-commands exist only in debug mode, so turn it on for this one run:
+A migration merged without raising the app version does not run on the commands above, since
+Nextcloud only migrates an app whose version changed. After pulling such a change, run the
+app's missing migrations; the `migrations:` commands exist only in debug mode, so turn it on
+for this one run:
 
 ```sh
 sudo -u www-data php /var/www/nextcloud/occ config:system:set debug --value=true --type=boolean

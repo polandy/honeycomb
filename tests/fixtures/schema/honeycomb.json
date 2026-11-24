@@ -1,0 +1,192 @@
+{
+    "honeycomb_decisions": {
+        "columns": {
+            "asset_id": "string(255) null",
+            "colour_label": "string(16) null",
+            "connection_id": "string(64) null",
+            "file_id": "bigint null",
+            "flag": "string(16) notnull",
+            "id": "bigint notnull autoincrement",
+            "keep_raw": "boolean null default false",
+            "rating": "smallint null",
+            "sidecar_etag": "string(40) null",
+            "source": "string(16) notnull",
+            "updated_at": "bigint notnull",
+            "updated_by": "string(64) null",
+            "user_id": "string(64) null"
+        },
+        "indexes": {
+            "honeycomb_decisions_connection_id_asset_id": "unique(connection_id, asset_id)",
+            "honeycomb_decisions_file_id": "unique(file_id)",
+            "honeycomb_decisions_source_connection_id": "index(source, connection_id)",
+            "honeycomb_decisions_user_id": "index(user_id)",
+            "primary": "primary(id)"
+        }
+    },
+    "honeycomb_folder_done": {
+        "columns": {
+            "done_at": "bigint notnull",
+            "file_id": "bigint notnull",
+            "id": "bigint notnull autoincrement",
+            "photos": "integer notnull",
+            "user_id": "string(64) null"
+        },
+        "indexes": {
+            "honeycomb_folder_done_file_id": "unique(file_id)",
+            "primary": "primary(id)"
+        }
+    },
+    "honeycomb_folder_summary": {
+        "columns": {
+            "bursts": "integer notnull",
+            "bytes": "bigint notnull",
+            "etag": "string(40) notnull",
+            "file_id": "bigint notnull",
+            "id": "bigint notnull autoincrement",
+            "last_activity": "bigint null",
+            "newest": "bigint null",
+            "oldest": "bigint null",
+            "photos": "integer notnull",
+            "raw_bytes": "bigint notnull",
+            "scanned_at": "bigint notnull"
+        },
+        "indexes": {
+            "honeycomb_folder_summary_file_id": "unique(file_id)",
+            "primary": "primary(id)"
+        }
+    },
+    "honeycomb_hashes": {
+        "columns": {
+            "etag": "string(40) notnull",
+            "file_id": "bigint notnull",
+            "hash": "string(16) notnull",
+            "id": "bigint notnull autoincrement",
+            "method": "smallint notnull default 1"
+        },
+        "indexes": {
+            "honeycomb_hashes_file_id": "unique(file_id)",
+            "primary": "primary(id)"
+        }
+    },
+    "honeycomb_immich_assets": {
+        "columns": {
+            "asset_id": "string(255) notnull",
+            "asset_updated_at": "string(32) notnull",
+            "camera_model": "string(128) null",
+            "connection_id": "string(64) notnull",
+            "id": "bigint notnull autoincrement",
+            "kind": "string(16) notnull",
+            "taken_at": "bigint notnull",
+            "user_id": "string(64) notnull"
+        },
+        "indexes": {
+            "honeycomb_immich_assets_connection_id_asset_id": "unique(connection_id, asset_id)",
+            "honeycomb_immich_assets_connection_id_taken_at": "index(connection_id, taken_at)",
+            "honeycomb_immich_assets_user_id": "index(user_id)",
+            "primary": "primary(id)"
+        }
+    },
+    "honeycomb_positions": {
+        "columns": {
+            "asset_id": "string(255) null",
+            "decided": "integer notnull default 0",
+            "file_id": "bigint null",
+            "folder_set": "text notnull",
+            "folder_set_key": "string(64) notnull",
+            "id": "bigint notnull autoincrement",
+            "taken_at": "bigint null",
+            "total": "integer notnull default 0",
+            "updated_at": "bigint notnull",
+            "user_id": "string(64) notnull"
+        },
+        "indexes": {
+            "honeycomb_positions_user_id_folder_set_key": "unique(user_id, folder_set_key)",
+            "honeycomb_positions_user_id_updated_at": "index(user_id, updated_at)",
+            "primary": "primary(id)"
+        }
+    },
+    "honeycomb_quality": {
+        "columns": {
+            "etag": "string(40) notnull",
+            "file_id": "bigint notnull",
+            "focus_tile": "smallint notnull",
+            "id": "bigint notnull autoincrement",
+            "method": "smallint notnull",
+            "sharpness": "float notnull"
+        },
+        "indexes": {
+            "honeycomb_quality_file_id": "unique(file_id)",
+            "primary": "primary(id)"
+        }
+    },
+    "honeycomb_series": {
+        "columns": {
+            "id": "bigint notnull autoincrement",
+            "status": "string(16) notnull default open",
+            "user_id": "string(64) notnull"
+        },
+        "indexes": {
+            "honeycomb_series_user_id": "index(user_id)",
+            "primary": "primary(id)"
+        }
+    },
+    "honeycomb_series_files": {
+        "columns": {
+            "file_id": "bigint notnull",
+            "id": "bigint notnull autoincrement",
+            "series_id": "bigint null",
+            "user_id": "string(64) notnull"
+        },
+        "indexes": {
+            "honeycomb_series_files_series_id": "index(series_id)",
+            "honeycomb_series_files_user_id_file_id": "unique(user_id, file_id)",
+            "honeycomb_series_files_user_id_series_id": "index(user_id, series_id)",
+            "primary": "primary(id)"
+        }
+    },
+    "honeycomb_stats": {
+        "columns": {
+            "day": "string(10) notnull",
+            "id": "bigint notnull autoincrement",
+            "metric": "string(32) notnull",
+            "user_id": "string(64) notnull",
+            "value": "bigint notnull default 0"
+        },
+        "indexes": {
+            "honeycomb_stats_user_id_day_metric": "unique(user_id, day, metric)",
+            "primary": "primary(id)"
+        }
+    },
+    "honeycomb_tag_list": {
+        "columns": {
+            "id": "bigint notnull autoincrement",
+            "tag": "string(255) notnull",
+            "user_id": "string(64) notnull"
+        },
+        "indexes": {
+            "honeycomb_tag_list_user_id_tag": "unique(user_id, tag)",
+            "primary": "primary(id)"
+        }
+    },
+    "honeycomb_xmp_cache": {
+        "columns": {
+            "colour_label": "string(16) null",
+            "etag": "string(40) notnull",
+            "file_id": "bigint notnull",
+            "flag": "string(16) null",
+            "id": "bigint notnull autoincrement",
+            "keep_raw": "boolean null",
+            "kind": "string(16) notnull",
+            "rating": "smallint null",
+            "reader": "integer notnull",
+            "reason": "string(32) null",
+            "state": "string(16) notnull",
+            "tags": "text null",
+            "user_id": "string(64) notnull"
+        },
+        "indexes": {
+            "honeycomb_xmp_cache_user_id_file_id": "unique(user_id, file_id)",
+            "primary": "primary(id)"
+        }
+    }
+}

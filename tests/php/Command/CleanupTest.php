@@ -44,7 +44,7 @@ final class CleanupTest extends TestCase {
 	}
 
 	private function data(): FakeAppData {
-		return new FakeAppData(['honeycomb_flags' => 5, 'honeycomb_hashes' => 2, 'preferences' => 0]);
+		return new FakeAppData(['honeycomb_decisions' => 5, 'honeycomb_hashes' => 2, 'preferences' => 0]);
 	}
 
 	// spec: DECISIONS-001.35
@@ -53,10 +53,10 @@ final class CleanupTest extends TestCase {
 		$tester = new CommandTester($this->command($data));
 
 		$this->assertSame(Command::SUCCESS, $tester->execute(['--all' => true, '--dry-run' => true]));
-		$this->assertStringContainsString('honeycomb_flags: 5', $tester->getDisplay());
+		$this->assertStringContainsString('honeycomb_decisions: 5', $tester->getDisplay());
 		$this->assertStringContainsString('honeycomb_hashes: 2', $tester->getDisplay());
 		$this->assertStringContainsString('Dry run', $tester->getDisplay());
-		$this->assertSame(5, $data->rows['honeycomb_flags']);
+		$this->assertSame(5, $data->rows['honeycomb_decisions']);
 	}
 
 	// spec: DECISIONS-001.35
@@ -65,9 +65,9 @@ final class CleanupTest extends TestCase {
 		$tester = new CommandTester($this->command($data));
 
 		$this->assertSame(Command::SUCCESS, $tester->execute(['--all' => true]));
-		$this->assertStringContainsString('honeycomb_flags: 5', $tester->getDisplay());
+		$this->assertStringContainsString('honeycomb_decisions: 5', $tester->getDisplay());
 		$this->assertStringContainsString('Removed 7 rows.', $tester->getDisplay());
-		$this->assertSame(['honeycomb_flags' => 0, 'honeycomb_hashes' => 0, 'preferences' => 0], $data->rows);
+		$this->assertSame(['honeycomb_decisions' => 0, 'honeycomb_hashes' => 0, 'preferences' => 0], $data->rows);
 	}
 
 	// spec: DECISIONS-001.35
@@ -88,7 +88,7 @@ final class CleanupTest extends TestCase {
 
 		$this->assertSame(Command::FAILURE, $tester->execute(['--dry-run' => true]));
 		$this->assertStringContainsString('--all', $tester->getDisplay());
-		$this->assertSame(5, $data->rows['honeycomb_flags']);
+		$this->assertSame(5, $data->rows['honeycomb_decisions']);
 		$this->assertStringNotContainsString('Removed', $tester->getDisplay());
 	}
 

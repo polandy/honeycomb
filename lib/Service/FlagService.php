@@ -30,7 +30,7 @@ final class FlagService {
 	 * @throws \OCP\DB\Exception
 	 */
 	public function save(IUser $user, array $items): FlagAnswer {
-		$flags = $this->parse($items);
+		$flags = $this->parse($user, $items);
 		$counts = self::counts($items);
 		$rateable = $this->photos->rateable($user, array_keys($flags));
 		$allowed = array_values(array_filter($flags, static fn (FileFlag $flag): bool => $rateable[$flag->fileId] ?? false));
@@ -49,7 +49,7 @@ final class FlagService {
 	 * @throws \OCP\DB\Exception
 	 */
 	public function takeOver(IUser $user, array $items): FlagAnswer {
-		$flags = $this->parse($items);
+		$flags = $this->parse($user, $items);
 		$reached = array_flip($this->photos->photos($user, array_keys($flags)));
 		$candidates = array_values(array_intersect_key($flags, $reached));
 		$inserted = $candidates === [] ? [] : RetryOnConflict::run(fn (): array => $this->store->takeOver($candidates));
@@ -57,13 +57,14 @@ final class FlagService {
 	}
 
 	/**
-	 * The request's flags by file id, in its order, stamped now.
+	 * The request's flags by file id, in its order, stamped now by the user.
 	 * @param array<array-key, mixed> $items
 	 * @return array<int, FileFlag>
 	 */
-	private function parse(array $items): array {
+	private function parse(IUser $user, array $items): array {
 		$now = $this->time->getTime();
-		$flags = array_map(static fn (mixed $item): FileFlag => FileFlag::fromRequest($item, $now), FileIds::items($items, ListingService::ENTRY_LIMIT, InvalidFlagException::class));
+		$uid = $user->getUID();
+		$flags = array_map(static fn (mixed $item): FileFlag => FileFlag::fromRequest($item, $now, $uid), FileIds::items($items, ListingService::ENTRY_LIMIT, InvalidFlagException::class));
 		$fileIds = FileIds::eachOnce(array_map(static fn (FileFlag $flag): int => $flag->fileId, $flags), InvalidFlagException::class);
 		return array_combine($fileIds, $flags);
 	}

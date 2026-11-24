@@ -32,13 +32,14 @@ trait FileRowQueries {
 			->executeStatement();
 	}
 
-	/** @return array<int, int> row id to file id */
+	/** @return array<int, int> row id to file id, skipping rows without a file id */
 	#[\Override]
 	public function fileIdsAfter(int $afterId, int $limit): array {
 		$query = $this->db->getQueryBuilder();
 		$query->select('id', 'file_id')
 			->from($this->getTableName())
 			->where($query->expr()->gt('id', $query->createNamedParameter($afterId, IQueryBuilder::PARAM_INT)))
+			->andWhere($query->expr()->isNotNull('file_id'))
 			->orderBy('id')
 			->setMaxResults($limit);
 		$result = $query->executeQuery();

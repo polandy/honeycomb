@@ -20,11 +20,12 @@ final readonly class UserRowStores {
 		private StatsStore $stats,
 		private ImmichDecisionStore $immichDecisions,
 		private FolderDoneStore $folderDone,
+		private FlagStore $flags,
 	) {
 	}
 
 	/** @return list<UserRowStore> */
 	public function all(): array {
-		return [$this->series, $this->xmpCache, $this->tags, $this->positions, $this->stats, $this->immichDecisions, $this->folderDone];
+		return [$this->series, $this->xmpCache, $this->tags, $this->positions, $this->stats, $this->immichDecisions, $this->folderDone, $this->flags];
 	}
 }

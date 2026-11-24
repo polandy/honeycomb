@@ -8,7 +8,7 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { API, ApiResponseError, isRecord } from './api.ts'
 
-/** The state of one file in `honeycomb_flags` (DECISIONS-001). */
+/** The state of one file in `honeycomb_decisions` (DECISIONS-001). */
 export interface FlagItem {
 	readonly fileId: PictureId
 	readonly flag: Flag

@@ -21,14 +21,14 @@ final class Entry implements \JsonSerializable {
 		private ?int $width,
 		private ?int $height,
 		private ?string $camera,
-		private ?string $visualHash,
+		private ?VisualHash $visualHash,
 		private ?QualityValue $quality,
 		private ?Exposure $exposure,
 		private ?FileFlag $flag,
 	) {
 	}
 
-	/** @return array<string, int|string|bool|array{method: int, sharpness: float, focusTile: int}|array{exposureTime: ?float, focalLength: ?float, focalLength35: ?float, aperture: ?float, iso: ?int}|null> */
+	/** @return array<string, int|string|bool|array{method: int, hash: string}|array{method: int, sharpness: float, focusTile: int}|array{exposureTime: ?float, focalLength: ?float, focalLength35: ?float, aperture: ?float, iso: ?int}|null> */
 	#[\Override]
 	public function jsonSerialize(): array {
 		return [
@@ -43,7 +43,7 @@ final class Entry implements \JsonSerializable {
 			'width' => $this->width,
 			'height' => $this->height,
 			'camera' => $this->camera,
-			'visualHash' => $this->visualHash,
+			'visualHash' => $this->visualHash?->listed(),
 			'quality' => $this->quality?->listed(),
 			'exposure' => $this->exposure?->jsonSerialize(),
 			'flag' => $this->flag?->flag->value,

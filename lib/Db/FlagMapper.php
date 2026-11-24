@@ -14,17 +14,20 @@ use OCP\AppFramework\Db\TTransactional;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
-/** Keeps the one flag of each file in `honeycomb_flags`, without a user (ADR 0040). */
+/** Keeps the one flag of each file as a file row of `honeycomb_decisions`, without a user (ADR 0040, 0054). */
 final class FlagMapper implements FlagStore {
 	use FileRowQueries;
 	use TTransactional;
 
-	private const string TABLE = 'honeycomb_flags';
+	private const string TABLE = 'honeycomb_decisions';
+	private const string SOURCE = 'file';
 	private const array COLUMNS = [
+		'source' => IQueryBuilder::PARAM_STR,
 		'file_id' => IQueryBuilder::PARAM_INT,
 		'flag' => IQueryBuilder::PARAM_STR,
 		'keep_raw' => IQueryBuilder::PARAM_BOOL,
 		'updated_at' => IQueryBuilder::PARAM_INT,
+		'updated_by' => IQueryBuilder::PARAM_STR,
 	];
 
 	/** @psalm-suppress PossiblyUnusedMethod Nextcloud constructs it. */
@@ -71,6 +74,17 @@ final class FlagMapper implements FlagStore {
 		$this->deleteFileRows(null, $fileIds);
 	}
 
+	/** The flags stay; only the note of who decided them last is emptied (DECISIONS-001.37). */
+	#[\Override]
+	public function forgetUser(string $userId): void {
+		$query = $this->db->getQueryBuilder();
+		$query->update(self::TABLE)
+			->set('updated_by', $query->createNamedParameter(null, IQueryBuilder::PARAM_NULL))
+			->where($query->expr()->eq('source', $query->createNamedParameter(self::SOURCE)))
+			->andWhere($query->expr()->eq('updated_by', $query->createNamedParameter($userId)))
+			->executeStatement();
+	}
+
 	/** A file's one flag follows it to the new file id, whoever set it. */
 	#[\Override]
 	public function carryOver(string $userId, int $fileId, int $newFileId): void {
@@ -80,15 +94,17 @@ final class FlagMapper implements FlagStore {
 	/** @param list<FileFlag> $flags */
 	private function insert(array $flags): void {
 		$this->insertRows(new InsertStatements(self::TABLE, self::COLUMNS), array_map(static fn (FileFlag $flag): array => [
+			'source' => self::SOURCE,
 			'file_id' => $flag->fileId,
 			'flag' => $flag->flag->value,
 			'keep_raw' => $flag->keepRaw,
 			'updated_at' => $flag->updatedAt,
+			'updated_by' => $flag->updatedBy,
 		], $flags));
 	}
 
 	/** @param array<string, mixed> $row */
 	private static function fromRow(array $row): FileFlag {
-		return new FileFlag((int)$row['file_id'], Flag::from((string)$row['flag']), (bool)$row['keep_raw'], (int)$row['updated_at']);
+		return new FileFlag((int)$row['file_id'], Flag::from((string)$row['flag']), (bool)$row['keep_raw'], (int)$row['updated_at'], $row['updated_by'] === null ? null : (string)$row['updated_by']);
 	}
 }

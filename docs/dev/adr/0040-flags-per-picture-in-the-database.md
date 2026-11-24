@@ -5,6 +5,8 @@
 - Supersedes in part: [0032](0032-sidecar-is-the-source-of-truth.md),
   [0005](0005-decisions-in-database-and-xmp-sidecars.md), [0012](0012-decision-storage.md),
   [0017](0017-sidecar-endpoints.md), [0022](0022-tag-storage.md)
+- Amended by: [0054](0054-one-decision-table-for-files-and-immich-assets.md), the flags are the
+  file rows of `honeycomb_decisions`
 
 ## Context
 

@@ -51,11 +51,12 @@ final class ForgetDeletedUserTest extends TestCase {
 	#[\Override]
 	protected function setUp(): void {
 		$this->flags = new FakeFlagStore();
-		$this->flags->rows[7] = new FileFlag(7, Flag::Picked, false, 100);
+		$this->flags->rows[7] = new FileFlag(7, Flag::Picked, false, 100, 'alice');
+		$this->flags->rows[8] = new FileFlag(8, Flag::Picked, false, 100, 'bob');
 		$this->positions = new FakePositionStore();
 		$this->tags = new FakeTagStore();
 		$this->hashes = new FakeVisualHashStore();
-		$this->hashes->replace([new VisualHash(7, 'etag-7', '0000000000000007')]);
+		$this->hashes->replace([new VisualHash(7, 'etag-7', 1, '0000000000000007')]);
 		$this->quality = new FakeQualityStore();
 		$this->quality->replace([new QualityValue(7, 'etag-7', 1, 3.0, 0)]);
 		$this->series = new FakeSeriesStore();
@@ -76,7 +77,7 @@ final class ForgetDeletedUserTest extends TestCase {
 	}
 
 	private function registry(): UserRowStores {
-		return new UserRowStores($this->series, $this->xmpCache, $this->tags, $this->positions, $this->stats, $this->immich, $this->done);
+		return new UserRowStores($this->series, $this->xmpCache, $this->tags, $this->positions, $this->stats, $this->immich, $this->done, $this->flags);
 	}
 
 	private function deleted(string $userId): UserDeletedEvent {
@@ -85,11 +86,11 @@ final class ForgetDeletedUserTest extends TestCase {
 		return new UserDeletedEvent($user);
 	}
 
-	// spec: DECISIONS-001.33, DECISIONS-002.13, TAGS-001.12, SERIES-003.29, SERIES-005.25, SERIES-006.14, XMP-006.8, STATS-001.28, IMMICH-003.9, FOLDERS-006.13
+	// spec: DECISIONS-001.33, DECISIONS-001.37, DECISIONS-002.13, TAGS-001.12, SERIES-003.29, SERIES-005.25, SERIES-006.14, XMP-006.8, STATS-001.28, IMMICH-003.9, FOLDERS-006.13
 	public function testForgetsTheRowsOfTheDeletedUserOnlyAndLeavesTheFlags(): void {
 		(new ForgetDeletedUser($this->registry()))->handle($this->deleted('alice'));
 
-		$this->assertSame([7], array_keys($this->flags->find([7])));
+		$this->assertEquals([7 => new FileFlag(7, Flag::Picked, false, 100), 8 => new FileFlag(8, Flag::Picked, false, 100, 'bob')], $this->flags->find([7, 8]));
 		$this->assertSame([], $this->positions->all('alice'));
 		$this->assertCount(1, $this->positions->all('bob'));
 		$this->assertSame([], $this->tags->tagList('alice'));

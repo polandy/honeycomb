@@ -13,16 +13,19 @@ final readonly class VisualHash {
 	public const int MAX_ETAG_LENGTH = 40;
 	/** A 64-bit dHash, as `src/logic/visual-hash.ts` writes it. */
 	private const string HASH_PATTERN = '/^[0-9a-f]{16}$/';
+	/** The largest method number, the range of its column. */
+	public const int MAX_METHOD = 255;
 
 	public function __construct(
 		public int $fileId,
 		public string $etag,
+		public int $method,
 		public string $hash,
 	) {
 	}
 
 	/**
-	 * The hash in a request item, all three fields required.
+	 * The hash in a request item, all four fields required.
 	 * @throws InvalidVisualHashException for a missing or malformed field
 	 */
 	public static function fromRequest(mixed $item): self {
@@ -31,6 +34,7 @@ final readonly class VisualHash {
 		}
 		$fileId = $item['fileId'] ?? null;
 		$etag = $item['etag'] ?? null;
+		$method = $item['method'] ?? null;
 		$hash = $item['hash'] ?? null;
 		if (!is_int($fileId) || $fileId < 1) {
 			throw new InvalidVisualHashException('fileId must be a positive integer');
@@ -38,9 +42,28 @@ final readonly class VisualHash {
 		if (!is_string($etag) || $etag === '' || strlen($etag) > self::MAX_ETAG_LENGTH) {
 			throw new InvalidVisualHashException("etag of file $fileId must be 1 to " . self::MAX_ETAG_LENGTH . ' characters');
 		}
+		if (!self::isMethod($method)) {
+			throw new InvalidVisualHashException("method of file $fileId must be an integer from 1 to " . self::MAX_METHOD);
+		}
 		if (!is_string($hash) || preg_match(self::HASH_PATTERN, $hash) !== 1) {
 			throw new InvalidVisualHashException("hash of file $fileId must be 16 lower-case hex digits");
 		}
-		return new self($fileId, $etag, $hash);
+		return new self($fileId, $etag, $method, $hash);
+	}
+
+	/**
+	 * The hash as the listing gives it.
+	 * @return array{method: int, hash: string}
+	 */
+	public function listed(): array {
+		return ['method' => $this->method, 'hash' => $this->hash];
+	}
+
+	/**
+	 * Whether a value is a method number a hash can be stored with.
+	 * @psalm-assert-if-true int $method
+	 */
+	public static function isMethod(mixed $method): bool {
+		return is_int($method) && $method >= 1 && $method <= self::MAX_METHOD;
 	}
 }

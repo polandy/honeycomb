@@ -2,7 +2,7 @@
 
 - Status: accepted
 - Area: immich
-- Origin: ADR 0041, ADR 0043, ADR 0044, [mockup](../../mockup/immich/index.html)
+- Origin: ADR 0041, ADR 0043, ADR 0044, ADR 0054, [mockup](../../mockup/immich/index.html)
 - Depends on: IMMICH-001, IMMICH-002, DECISIONS-002, LOUPE-002
 
 ## Purpose
@@ -21,6 +21,12 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
   connection is rateable.
 - **Read:** a listing entry carries its decision, `UNDECIDED` without a row (rating 0, no colour
   label, unflagged, no *Keep RAW*). No route returns the rows as they are.
+- **Storage:** the decision (flag, *Keep RAW*, rating, colour label, `updated_at`, and the user
+  in `updated_by`) is a row of
+  the source `immich` in `honeycomb_decisions` (ADR 0054), the facets copied from the listing
+  (`takenAt`, `cameraModel`, `kind`, `assetUpdatedAt`) a row of `honeycomb_immich_assets`, both
+  keyed by (connection, asset id) and the user. The decision filter and the counts join the two.
+  The Immich decisions never read, change or remove a row of the source `file` (IMMICH-003.22).
 - **Keys and the UI** are the cull's (KEYS-001, LOUPE-002): *P*, *X*, *U*, *1*–*5*, *0*, swipe up
   and down, auto-advance after a pick or reject, the reject toast with *Undo*. A rejected tile is
   dimmed; nothing is deleted, and no tile says "Not written to Immich" in Phase 1.
@@ -64,7 +70,8 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
 
 - **Given** a row with rating 4 and flag `picked`
 - **When** a save sends rating 0 and flag `unflagged` for it
-- **Then** the row holds exactly the second save, with `updated_at` from the clock
+- **Then** the row holds exactly the second save, with `updated_at` from the clock and the user
+  in `updated_by`
 
 ### IMMICH-003.4 – Undo is a new save
 
@@ -188,3 +195,11 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
 - **When** the reject's save fails and the pick's save succeeds
 - **Then** the first asset stays picked, the second is unflagged again, the counts follow, and
   the user is told once
+
+### IMMICH-003.22 – The decision table holds the decision, the asset table the facets
+
+- **Given** file rows in `honeycomb_decisions`
+- **When** a user saves, removes, sweeps or forgets Immich decisions
+- **Then** each decision is one row of the source `immich` with the connection, asset id, user,
+  flag, *Keep RAW*, rating, colour label and `updated_at`, its facets one row of
+  `honeycomb_immich_assets`, and the file rows are unchanged

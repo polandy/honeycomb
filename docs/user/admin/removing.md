@@ -13,11 +13,11 @@ everything it stored stays in the database:
 
 | What | Where (default table prefix `oc_`) |
 |---|---|
-| Ratings, flags, colour labels, *Keep RAW* | table `oc_honeycomb_flags` |
+| Flags and *Keep RAW* of the files | table `oc_honeycomb_decisions` |
 | Resume positions | table `oc_honeycomb_positions` |
 | Tags | table `oc_honeycomb_tag_list` |
 | Daily statistics counters | table `oc_honeycomb_stats` |
-| Immich decisions | table `oc_honeycomb_immich_assets` |
+| Immich decisions | table `oc_honeycomb_decisions`, their capture time, device and kind in `oc_honeycomb_immich_assets` |
 | Visual hashes of the pictures | table `oc_honeycomb_hashes` |
 | Sharpness of the pictures in a series | table `oc_honeycomb_quality` |
 | Stored series and kept-out photos | tables `oc_honeycomb_series`, `oc_honeycomb_series_files` |
@@ -100,9 +100,11 @@ database fails, nothing is deleted and the command exits non-zero. The tables, t
 ## Deleting the data by hand
 
 To remove everything, back up the database first, then, with honeycomb removed, drop the tables
-and delete the rows listed above, for example on MySQL or MariaDB. The two tables
-`oc_honeycomb_decisions` and `oc_honeycomb_file_tags` only exist on installs from before
-[ADR 0040](../../dev/adr/0040-flags-per-picture-in-the-database.md); `IF EXISTS` skips them.
+and delete the rows listed above, for example on MySQL or MariaDB. The table
+`oc_honeycomb_file_tags` only exists on installs from before
+[ADR 0040](../../dev/adr/0040-flags-per-picture-in-the-database.md), `oc_honeycomb_flags` on
+installs from before [ADR 0054](../../dev/adr/0054-one-decision-table-for-files-and-immich-assets.md);
+`IF EXISTS` skips them.
 
 ```sql
 DROP TABLE IF EXISTS oc_honeycomb_flags, oc_honeycomb_decisions, oc_honeycomb_positions,

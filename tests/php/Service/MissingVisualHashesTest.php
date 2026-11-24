@@ -10,6 +10,7 @@ namespace OCA\Honeycomb\Tests\Service;
 use OCA\Honeycomb\Service\FolderNotFoundException;
 use OCA\Honeycomb\Service\FolderNotReadableException;
 use OCA\Honeycomb\Service\InvalidCursorException;
+use OCA\Honeycomb\Service\InvalidVisualHashException;
 use OCA\Honeycomb\Service\MissingVisualHashes;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\VisualHash;
@@ -22,6 +23,7 @@ final class MissingVisualHashesTest extends TestCase {
 	use FakeFiles;
 
 	private const string HASH = '00ff00ff00ff00ff';
+	private const int METHOD = 1;
 
 	private FakeVisualHashStore $store;
 
@@ -60,15 +62,17 @@ final class MissingVisualHashesTest extends TestCase {
 			$this->file(5, '/Photos/a.JPG'),
 			$this->file(6, '/Photos/.hidden/c.JPG'),
 			$this->file(7, '/Photos/c.JPG'),
+			$this->file(8, '/Photos/d.JPG'),
 		]);
 		$this->store->rows = [
-			5 => new VisualHash(5, 'etag-5', self::HASH),
-			7 => new VisualHash(7, 'older', self::HASH),
+			5 => new VisualHash(5, 'etag-5', self::METHOD, self::HASH),
+			7 => new VisualHash(7, 'older', self::METHOD, self::HASH),
+			8 => new VisualHash(8, 'etag-8', self::METHOD + 1, self::HASH),
 		];
 
-		$page = $this->service($this->rootWith(['/Photos' => $photos]))->page($this->user(), 'Photos', '');
+		$page = $this->service($this->rootWith(['/Photos' => $photos]))->page($this->user(), 'Photos', '', self::METHOD);
 
-		$this->assertSame(['/Photos/2024/a.JPG', '/Photos/2024/b.CR2', '/Photos/b.JPG', '/Photos/c.JPG'], $this->paths($page));
+		$this->assertSame(['/Photos/2024/a.JPG', '/Photos/2024/b.CR2', '/Photos/b.JPG', '/Photos/c.JPG', '/Photos/d.JPG'], $this->paths($page));
 		$this->assertSame(['fileId' => 2, 'etag' => 'etag-2', 'mtime' => 1_700_000_002, 'path' => '/Photos/2024/a.JPG'], $page['pictures'][0]);
 		$this->assertNull($page['nextCursor']);
 	}
@@ -77,10 +81,10 @@ final class MissingVisualHashesTest extends TestCase {
 	public function testAPageEndsWithTheCursorOfItsLastPhotoAndTheNextGoesOnAfterIt(): void {
 		$service = $this->service($this->rootWith(['/Photos' => $this->photos(5)]), 2);
 
-		$first = $service->page($this->user(), 'Photos', '');
-		$second = $service->page($this->user(), 'Photos', (string)$first['nextCursor']);
+		$first = $service->page($this->user(), 'Photos', '', self::METHOD);
+		$second = $service->page($this->user(), 'Photos', (string)$first['nextCursor'], self::METHOD);
 		$listedBefore = count($this->listed);
-		$third = $service->page($this->user(), 'Photos', (string)$second['nextCursor']);
+		$third = $service->page($this->user(), 'Photos', (string)$second['nextCursor'], self::METHOD);
 
 		$this->assertSame(['/Photos/2023/IMG_0001.JPG', '/Photos/2023/IMG_0002.JPG'], $this->paths($first));
 		$this->assertSame('2023/IMG_0002.JPG', $first['nextCursor']);
@@ -92,9 +96,9 @@ final class MissingVisualHashesTest extends TestCase {
 
 	// spec: SERIES-004.2, APP-004.3
 	public function testAPageOfHashedPhotosIsEmptyButGoesOn(): void {
-		$this->store->rows = [1 => new VisualHash(1, 'etag-1', self::HASH), 2 => new VisualHash(2, 'etag-2', self::HASH)];
+		$this->store->rows = [1 => new VisualHash(1, 'etag-1', 1, self::HASH), 2 => new VisualHash(2, 'etag-2', 1, self::HASH)];
 
-		$page = $this->service($this->rootWith(['/Photos' => $this->photos(3)]), 2)->page($this->user(), 'Photos', '');
+		$page = $this->service($this->rootWith(['/Photos' => $this->photos(3)]), 2)->page($this->user(), 'Photos', '', self::METHOD);
 
 		$this->assertSame([], $page['pictures']);
 		$this->assertSame('2023/IMG_0002.JPG', $page['nextCursor']);
@@ -102,14 +106,14 @@ final class MissingVisualHashesTest extends TestCase {
 
 	// spec: SERIES-004.2, APP-004.3
 	public function testACursorWhoseFileVanishedGoesOnAfterItsName(): void {
-		$page = $this->service($this->rootWith(['/Photos' => $this->photos(5)]))->page($this->user(), 'Photos', '2023/IMG_0002b.JPG');
+		$page = $this->service($this->rootWith(['/Photos' => $this->photos(5)]))->page($this->user(), 'Photos', '2023/IMG_0002b.JPG', self::METHOD);
 
 		$this->assertSame(['/Photos/2023/IMG_0003.JPG', '/Photos/2024/IMG_0004.JPG', '/Photos/2024/IMG_0005.JPG'], $this->paths($page));
 	}
 
 	// spec: SERIES-004.2, APP-004.3
 	public function testLooksUpTheHashesOfAPageAtOnce(): void {
-		$this->service($this->rootWith(['/Photos' => $this->photos(3)]))->page($this->user(), 'Photos', '');
+		$this->service($this->rootWith(['/Photos' => $this->photos(3)]))->page($this->user(), 'Photos', '', self::METHOD);
 
 		$this->assertSame([[1, 2, 3]], $this->store->findCalls);
 	}
@@ -122,7 +126,7 @@ final class MissingVisualHashesTest extends TestCase {
 			$this->file(3, '/Photos/Team/b.JPG'),
 		], mountTypes: ['/Photos/From Bob' => 'shared', '/Photos/Team' => 'group']);
 
-		$page = $this->service($this->rootWith(['/Photos' => $photos]))->page($this->user(), 'Photos', '');
+		$page = $this->service($this->rootWith(['/Photos' => $photos]))->page($this->user(), 'Photos', '', self::METHOD);
 
 		$this->assertSame(['/Photos/own.JPG'], $this->paths($page));
 	}
@@ -131,7 +135,7 @@ final class MissingVisualHashesTest extends TestCase {
 	public function testAChosenShareListsNothing(): void {
 		$shared = $this->treeOf([$this->file(1, '/From Bob/a.JPG')], '/From Bob', mountTypes: ['/From Bob' => 'shared']);
 
-		$page = $this->service($this->rootWith(['/From Bob' => $shared]))->page($this->user(), 'From Bob', '');
+		$page = $this->service($this->rootWith(['/From Bob' => $shared]))->page($this->user(), 'From Bob', '', self::METHOD);
 
 		$this->assertSame(['pictures' => [], 'nextCursor' => null], $page);
 	}
@@ -140,7 +144,7 @@ final class MissingVisualHashesTest extends TestCase {
 	public function testSkipsUnreadableFolders(): void {
 		$photos = $this->treeOf([$this->file(1, '/Photos/a.JPG'), $this->file(2, '/Photos/Locked/b.JPG')], unreadable: ['/Photos/Locked']);
 
-		$page = $this->service($this->rootWith(['/Photos' => $photos]))->page($this->user(), 'Photos', '');
+		$page = $this->service($this->rootWith(['/Photos' => $photos]))->page($this->user(), 'Photos', '', self::METHOD);
 
 		$this->assertSame(['/Photos/a.JPG'], $this->paths($page));
 	}
@@ -149,14 +153,27 @@ final class MissingVisualHashesTest extends TestCase {
 	public function testAPathThatIsNoFolderOfTheUserIsNotFound(): void {
 		$this->expectException(FolderNotFoundException::class);
 
-		$this->service($this->rootWith([]))->page($this->user(), 'Nowhere', '');
+		$this->service($this->rootWith([]))->page($this->user(), 'Nowhere', '', self::METHOD);
 	}
 
 	// spec: SERIES-004.4
 	public function testAnUnreadableFolderIsRefused(): void {
 		$this->expectException(FolderNotReadableException::class);
 
-		$this->service($this->rootWith(['/Locked' => $this->folder('/Locked', false)]))->page($this->user(), 'Locked', '');
+		$this->service($this->rootWith(['/Locked' => $this->folder('/Locked', false)]))->page($this->user(), 'Locked', '', self::METHOD);
+	}
+
+	/** @return array<string, array{int}> */
+	public static function badMethods(): array {
+		return ['zero' => [0], 'negative' => [-1], 'beyond a small integer' => [256]];
+	}
+
+	// spec: SERIES-004.4
+	#[DataProvider('badMethods')]
+	public function testAMethodOutsideOneTo255IsRefused(int $method): void {
+		$this->expectException(InvalidVisualHashException::class);
+
+		$this->service($this->rootWith(['/Photos' => $this->photos(1)]))->page($this->user(), 'Photos', '', $method);
 	}
 
 	/** @return array<string, array{string}> */
@@ -169,6 +186,6 @@ final class MissingVisualHashesTest extends TestCase {
 	public function testACursorThatIsNoRelativePathIsRefused(string $cursor): void {
 		$this->expectException(InvalidCursorException::class);
 
-		$this->service($this->rootWith(['/Photos' => $this->photos(1)]))->page($this->user(), 'Photos', $cursor);
+		$this->service($this->rootWith(['/Photos' => $this->photos(1)]))->page($this->user(), 'Photos', $cursor, self::METHOD);
 	}
 }

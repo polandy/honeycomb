@@ -2,6 +2,8 @@
 
 - Status: accepted
 - Date: 2026-11-19
+- Amended by: [0054](0054-one-decision-table-for-files-and-immich-assets.md), the decision
+  columns move into `honeycomb_decisions`
 - Extends: [0041](0041-immich-as-an-external-picture-source.md),
   [0042](0042-declarative-immich-connections.md)
 - Leaves unchanged: [0040](0040-flags-per-picture-in-the-database.md),
@@ -66,6 +68,10 @@ the asset that is shown (ADR 0041).
 A unique index on `(connection_id, asset_id)` and an index on `(connection_id, flag, taken_at)`
 for the counts and the decision filters below. The name is not `honeycomb_immich_decisions`
 because Nextcloud limits a table with an autoincrement key to 23 characters.
+
+Since ADR 0054, `rating`, `colour_label`, `flag`, `keep_raw` and `updated_at` are a row of the
+source `immich` in `honeycomb_decisions`; this table keeps the key, `user_id` and the facets, with
+an index on `(connection_id, taken_at)` instead of the flag index.
 
 `user_id` is in the row although the file maps a connection to its user: `forgetUser` must work
 while the file is missing or invalid, a deleted user's rows go at once, and a connection id the

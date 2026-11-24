@@ -63,16 +63,16 @@ final class AppDataMapperTest extends DbTestCase {
 
 		$counts = $this->data->count();
 		$this->assertCount(13, $counts);
-		$this->assertSame([], array_filter(array_diff_key($counts, ['honeycomb_flags' => 1, 'preferences' => 1])));
-		$this->assertSame(1, $counts['honeycomb_flags']);
+		$this->assertSame([], array_filter(array_diff_key($counts, ['honeycomb_decisions' => 1, 'preferences' => 1])));
+		$this->assertSame(1, $counts['honeycomb_decisions']);
 		$this->assertSame(1, $counts['preferences']);
-		$this->assertSame(1, $this->data->count()['honeycomb_flags']);
+		$this->assertSame(1, $this->data->count()['honeycomb_decisions']);
 
 		$removed = $this->data->empty();
 
-		$this->assertSame(1, $removed['honeycomb_flags']);
+		$this->assertSame(1, $removed['honeycomb_decisions']);
 		$this->assertSame(1, $removed['preferences']);
-		$this->assertSame(0, $this->data->count()['honeycomb_flags']);
+		$this->assertSame(0, $this->data->count()['honeycomb_decisions']);
 		$this->assertSame(0, $this->remainingPreferences('honeycomb'));
 		$this->assertSame(1, $this->remainingPreferences(self::OTHER_APP));
 	}
@@ -124,7 +124,7 @@ final class AppDataMapperTest extends DbTestCase {
 			$this->assertSame('connection lost', $e->getMessage());
 		}
 
-		$this->assertSame(1, $this->data->count()['honeycomb_flags']);
+		$this->assertSame(1, $this->data->count()['honeycomb_decisions']);
 		$this->assertSame(1, $this->remainingPreferences('honeycomb'));
 	}
 }

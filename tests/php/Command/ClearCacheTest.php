@@ -27,7 +27,7 @@ final class ClearCacheTest extends TestCase {
 	#[\Override]
 	protected function setUp(): void {
 		$row = XmpCacheRow::fromRequest(XmpCacheRowTest::item());
-		$hash = new VisualHash(7, 'etag-7', '00ff00ff00ff00ff');
+		$hash = new VisualHash(7, 'etag-7', 1, '00ff00ff00ff00ff');
 		$this->xmpCache = new FakeXmpCacheStore();
 		$this->xmpCache->rows = ['alice' => [9 => $row, 10 => $row], 'bob' => [9 => $row]];
 		$this->visualHashes = new FakeVisualHashStore();
