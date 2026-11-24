@@ -1903,3 +1903,4 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   as no app command runs before the update (#187, autonomous).
 - 2026-11-24: a glue file in `src/` that would share its name with a `src/logic` file takes the
   suffix `-flow` or `-run`; existing clashes are renamed in a later PR (#187, autonomous).
+2026-11-24 First-run hints (issue #187): the first-reject hint is the view-state key `reject_hint_seen` (like `series_hint_seen`, per user on the server), shown as a longer toast sentence at the first reject; the setup page links the privacy page on GitHub, as `appinfo/info.xml` does for the docs.

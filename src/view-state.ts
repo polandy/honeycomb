@@ -72,6 +72,9 @@ export function useViewState(api: ViewStateApi, storage: BrowserStorage) {
 		/** Seen until the view state is read, like the gesture guide. */
 		seriesHintSeen: computed(() => !loaded.value || state.value.series_hint_seen),
 		dismissSeriesHint: () => change({ series_hint_seen: true }),
+		/** Seen until the view state is read, so the first reject never says it twice. */
+		rejectHintSeen: computed(() => !loaded.value || state.value.reject_hint_seen),
+		dismissRejectHint: () => change({ reject_hint_seen: true }),
 	}
 }
 

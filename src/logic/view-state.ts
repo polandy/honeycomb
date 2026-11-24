@@ -6,6 +6,7 @@ export interface ViewState {
 	info_panel_open: boolean
 	gesture_guide_seen: boolean
 	series_hint_seen: boolean
+	reject_hint_seen: boolean
 }
 
 export type ViewStateKey = keyof ViewState
@@ -16,11 +17,11 @@ export type ViewStatePatch = Partial<ViewState> & { year_review_hint_closed?: nu
 /** Each key's stored value, null while it was never stored. */
 export type StoredViewState = { [Key in ViewStateKey]: boolean | null }
 
-const VIEW_STATE_KEYS: readonly ViewStateKey[] = ['info_panel_open', 'gesture_guide_seen', 'series_hint_seen']
+const VIEW_STATE_KEYS: readonly ViewStateKey[] = ['info_panel_open', 'gesture_guide_seen', 'series_hint_seen', 'reject_hint_seen']
 
-export const DEFAULT_VIEW_STATE: ViewState = { info_panel_open: false, gesture_guide_seen: false, series_hint_seen: false }
+export const DEFAULT_VIEW_STATE: ViewState = { info_panel_open: false, gesture_guide_seen: false, series_hint_seen: false, reject_hint_seen: false }
 
-export const NOTHING_STORED: StoredViewState = { info_panel_open: null, gesture_guide_seen: null, series_hint_seen: null }
+export const NOTHING_STORED: StoredViewState = { info_panel_open: null, gesture_guide_seen: null, series_hint_seen: null, reject_hint_seen: null }
 
 /** What to apply, write and remove from browser storage once the stored view state is known. */
 export interface ViewStatePlan {

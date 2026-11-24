@@ -54,7 +54,7 @@ describe('planViewState', () => {
 
 	// spec: LOUPE-003.6
 	it('leaves a key the user changed before the answer alone', () => {
-		expect(planViewState({ info_panel_open: false, gesture_guide_seen: null, series_hint_seen: true, reject_hint_seen: true }, { info_panel_open: true, gesture_guide_seen: false, series_hint_seen: null, reject_hint_seen: null }, new Set(['info_panel_open', 'gesture_guide_seen', 'series_hint_seen'] as const))).toEqual({
+		expect(planViewState({ info_panel_open: false, gesture_guide_seen: null, series_hint_seen: true, reject_hint_seen: true }, { info_panel_open: true, gesture_guide_seen: false, series_hint_seen: null, reject_hint_seen: null }, new Set(['info_panel_open', 'gesture_guide_seen', 'series_hint_seen', 'reject_hint_seen'] as const))).toEqual({
 			apply: {},
 			upload: {},
 			remove: [],

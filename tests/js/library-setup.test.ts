@@ -58,7 +58,7 @@ describe('LibrarySetup', () => {
 		expect(link.text()).toBe(`${MARK}Your files and privacy`)
 		expect(link.attributes('href')).toBe('https://github.com/polandy/honeycomb/blob/main/docs/user/your-files-and-privacy.md')
 		expect(link.attributes('target')).toBe('_blank')
-		expect(link.attributes('rel')).toBe('noopener noreferrer')
+		expect(link.attributes('rel')).toBe('nofollow noreferrer noopener')
 	})
 
 	// spec: FOLDERS-007.3
