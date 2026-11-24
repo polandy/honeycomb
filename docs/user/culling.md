@@ -7,7 +7,7 @@ keys: [keyboard shortcuts](keyboard-shortcuts.md).
 
 No setting needs turning on before the first rating. You can rate a photo when you may change the
 folder of every file it has (Nextcloud's *Edit* right, which brings *Create*); in a folder you may
-only read it shows a lock and you can look, compare and move, but not rate. For a photo in a
+only read it shows a lock and you can look, compare and filter, but not rate. For a photo in a
 Nextcloud folder, what lands where: your stars, colour labels and tags go into the photo's XMP
 sidecar; a Pick, Reject or *Keep RAW* is kept in honeycomb's database, one per photo for everyone
 who reaches it, and by default written into the sidecar too. What that changes in your files:
