@@ -218,7 +218,7 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
   (*Remove RAWs…*, *Move picks…*), *Picks and rejects* (*Clear picks/rejects* (.22), *Write
   picks/rejects to XMP* (.21)), and *Settings* last, without a heading; a changed view option
   leaves the menu open, and an action closes it, so no menu stays above the dialog or view it
-  opens
+  opens; on a short viewport the menu scrolls, so every entry stays reachable
 
 ### GRID-001.19 – Every control is at least 44 × 44 px on an iPad
 

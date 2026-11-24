@@ -197,6 +197,8 @@ const emit = defineEmits<{
 	flex-direction: column;
 	gap: calc(2 * var(--default-grid-baseline));
 	padding: calc(2 * var(--default-grid-baseline));
+	max-height: calc(100dvh - 8 * var(--default-clickable-area));
+	overflow-y: auto;
 }
 
 .grid-more-menu__count {

@@ -96,7 +96,7 @@ test.describe('as a user with two Immich connections', () => {
 		const asked = page.waitForResponse(`**/api/v1/immich/${FAMILY.id}/status`)
 		await dialog.getByRole('button', { name: 'Test connection' }).click()
 		expect((await (await asked).json()).state).toBe('ok')
-		await dialog.getByRole('button', { name: 'Close' }).click()
+		await dialog.getByText('Close', { exact: true }).click()
 		await expect(dialog).toBeHidden()
 	})
 
