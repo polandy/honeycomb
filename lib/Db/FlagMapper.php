@@ -103,12 +103,6 @@ final class FlagMapper implements FlagStore {
 			->executeStatement();
 	}
 
-	/** A file's one flag follows it to the new file id, whoever set it. */
-	#[\Override]
-	public function carryOver(string $userId, int $fileId, int $newFileId): void {
-		$this->carryFileRow($fileId, $newFileId);
-	}
-
 	/** @param list<FileFlag> $flags */
 	private function insert(array $flags): void {
 		$this->insertRows(new InsertStatements(self::TABLE, self::COLUMNS), array_map(static fn (FileFlag $flag): array => [

@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\FolderSet;
-use OCA\Honeycomb\Service\InvalidPositionException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\PositionService;
 use OCA\Honeycomb\Service\ResumePosition;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -131,7 +131,7 @@ final class PositionServiceTest extends TestCase {
 	// spec: DECISIONS-002.5
 	#[DataProvider('malformedPositions')]
 	public function testRejectsAMalformedPosition(array $folderSet, int $fileId, int $decided, int $total): void {
-		$this->expectException(InvalidPositionException::class);
+		$this->expectException(InvalidRequestException::class);
 
 		$this->service()->save($this->user('alice'), $folderSet, $fileId, $decided, $total);
 	}

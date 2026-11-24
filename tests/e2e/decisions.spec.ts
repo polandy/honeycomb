@@ -41,7 +41,7 @@ test('stores whole flag states, lists them with the folder and takes over only m
 	expect(await flagsOf(page, folder)).toEqual(new Map([[first, { flag: 'unflagged', keepRaw: false, updated: true }], [second, { flag: 'rejected', keepRaw: false, updated: true }]]))
 })
 
-// spec: DECISIONS-001.25
+// spec: DECISIONS-001.25, APP-004.5
 test('rejects a malformed flag without writing any', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Malformed ${randomUUID().slice(0, 8)}`
@@ -51,6 +51,7 @@ test('rejects a malformed flag without writing any', async ({ page }) => {
 	const response = await send(page, 'PUT', '/flags', { flags: [{ fileId, flag: 'picked', keepRaw: false }, { fileId, flag: 'pending', keepRaw: false }] })
 
 	expect(response.status()).toBe(400)
+	expect(await response.json()).toEqual({ error: 'request', reason: 'bad-value' })
 	expect((await flagsOf(page, folder)).get(fileId)?.flag).toBeNull()
 })
 

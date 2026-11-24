@@ -4,12 +4,11 @@ honeycomb writes your decisions — stars, flag, colour label, *Keep RAW* and ta
 sidecars next to your photos, where digiKam, darktable and Lightroom read them. The photos
 themselves are never changed.
 
-**Changing in the next release** ([ADR 0040](../dev/adr/0040-flags-per-picture-in-the-database.md)).
-Stars, colour labels and tags are still written into the sidecars at once, without a setting to turn
-on. Flags (pick, reject) and *Keep RAW* are kept by honeycomb itself and, by default, written into
-the sidecars too ([ADR 0056](../dev/adr/0056-flags-written-to-xmp-by-default.md)): digiKam sees your
-picks at its next scan, and a pick or reject you change in digiKam shows in honeycomb the next time
-you open the folder. Turn off *Write picks, rejects and Keep RAW to XMP sidecars* in
+Stars, colour labels and tags are written into the sidecars at once, without a setting to turn on.
+Flags (pick, reject) and *Keep RAW* are kept by honeycomb itself, one per photo for everyone who
+reaches it, and by default written into the sidecars too: digiKam sees your picks at its next scan,
+and a pick or reject you change in digiKam shows in honeycomb the next time you open the folder.
+Turn off *Write picks, rejects and Keep RAW to XMP sidecars* in
 [settings](settings.md#xmp-sidecars) to keep them in honeycomb alone; they then reach the sidecars
 only when you choose *Write picks/rejects to XMP* in the ⋯ menu, whose entry shows how many sidecars
 differ, and a photo honeycomb sees for the first time takes over the flag its sidecars state, once.

@@ -120,8 +120,8 @@ final class SeriesMapperTest extends DbTestCase {
 	// spec: SERIES-005.25
 	public function testCarriesAMemberAndAKeptOutFileOverToTheirNewFileIds(): void {
 		[$id] = $this->write('alice', [[null, 'open', 7, 8]], [9]);
-		$this->series->carryOver('alice', 7, 20);
-		$this->series->carryOver('alice', 9, 30);
+		$this->series->carryOver(7, 20);
+		$this->series->carryOver(9, 30);
 		$lookup = $this->find('alice', [7, 8, 9, 20, 30]);
 		$this->assertEquals([new StoredSeries($id, SeriesStatus::Open, [8, 20], false)], $lookup->series);
 		$this->assertSame([30], $lookup->keptOut);

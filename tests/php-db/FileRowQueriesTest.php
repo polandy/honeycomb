@@ -57,12 +57,13 @@ final class FileRowQueriesTest extends DbTestCase {
 		$this->assertSame('etag-7', $this->cache->find('bob', [7])[7]->etag);
 	}
 
-	public function testCarriesTheUsersRowOverToTheNewFileId(): void {
-		$this->cached('alice', [7]);
+	// spec: MOVE-002.10
+	public function testCarriesEveryUsersRowOverToTheNewFileId(): void {
+		$this->cached('alice', [7, 8]);
 		$this->cached('bob', [7]);
-		$this->cache->carryOver('alice', 7, 20);
-		$this->assertSame([20], $this->fileIds('alice', [7, 20]));
-		$this->assertSame([7], $this->fileIds('bob', [7, 20]));
+		$this->cache->carryOver(7, 20);
+		$this->assertSame([8, 20], $this->fileIds('alice', [7, 8, 20]));
+		$this->assertSame([20], $this->fileIds('bob', [7, 20]));
 	}
 
 	public function testPagesTheFileIdsByRowId(): void {

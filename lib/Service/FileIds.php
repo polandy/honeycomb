@@ -7,18 +7,20 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-/** Checks the lists of file ids and items a request carries; each caller names the exception its controller maps. */
+/** Checks the lists of file ids and items a request carries. */
 final class FileIds {
 	/**
 	 * The request's items, if they are a list of at most `$limit`.
 	 * @param array<array-key, mixed> $items
-	 * @param class-string<InvalidRequestException> $invalid
 	 * @return list<mixed>
-	 * @throws InvalidRequestException of class `$invalid` for anything else
+	 * @throws InvalidRequestException for anything else
 	 */
-	public static function items(array $items, int $limit, string $invalid): array {
-		if (!array_is_list($items) || count($items) > $limit) {
-			throw new $invalid("Expected a list of at most $limit items");
+	public static function items(array $items, int $limit): array {
+		if (!array_is_list($items)) {
+			throw InvalidRequestException::because(Reason::NotAList, 'Expected a list of items');
+		}
+		if (count($items) > $limit) {
+			throw InvalidRequestException::because(Reason::TooMany, "Expected at most $limit items");
 		}
 		return $items;
 	}
@@ -26,15 +28,14 @@ final class FileIds {
 	/**
 	 * The request's file ids, if they are a list of at most `$limit` positive integers.
 	 * @param array<array-key, mixed> $fileIds
-	 * @param class-string<InvalidRequestException> $invalid
 	 * @return list<int>
-	 * @throws InvalidRequestException of class `$invalid` for anything else
+	 * @throws InvalidRequestException for anything else
 	 */
-	public static function parse(array $fileIds, int $limit, string $invalid): array {
+	public static function parse(array $fileIds, int $limit): array {
 		$parsed = [];
-		foreach (self::items($fileIds, $limit, $invalid) as $fileId) {
+		foreach (self::items($fileIds, $limit) as $fileId) {
 			if (!is_int($fileId) || $fileId < 1) {
-				throw new $invalid('fileIds must be positive integers');
+				throw InvalidRequestException::because(Reason::BadFileId, 'fileIds must be positive integers');
 			}
 			$parsed[] = $fileId;
 		}
@@ -44,13 +45,12 @@ final class FileIds {
 	/**
 	 * The file ids, if each appears only once.
 	 * @param list<int> $fileIds
-	 * @param class-string<InvalidRequestException> $invalid
 	 * @return list<int>
-	 * @throws InvalidRequestException of class `$invalid` for a file id given twice
+	 * @throws InvalidRequestException for a file id given twice
 	 */
-	public static function eachOnce(array $fileIds, string $invalid): array {
+	public static function eachOnce(array $fileIds): array {
 		if (count(array_unique($fileIds)) !== count($fileIds)) {
-			throw new $invalid('Each file id may appear only once');
+			throw InvalidRequestException::because(Reason::Duplicate, 'Each file id may appear only once');
 		}
 		return $fileIds;
 	}

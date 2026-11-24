@@ -222,6 +222,6 @@ describe('measureInWorkers', () => {
 		const measureImage = measureInWorkers({ measure }, (fileId, size, mtime) => `/preview/${fileId}/${size}/${mtime}`)
 
 		await expect(measureImage(listingEntry(5, '/P/A.JPG', { mtime: 9 }))).resolves.toEqual({ sharpness: 3, focusTile: 1 })
-		expect(measure).toHaveBeenCalledWith(`/preview/5/${LOUPE_TIER}/9`)
+		expect(measure).toHaveBeenCalledWith('sharpness', `/preview/5/${LOUPE_TIER}/9`)
 	})
 })

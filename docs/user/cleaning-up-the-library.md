@@ -65,6 +65,6 @@ have no library roots it says *Choose your library*.
 ## What is never written to a sidecar
 
 Marking a folder done, reopening it and the library roots never write an XMP sidecar, never
-touch a photo and move nothing to the trash bin. They are stored in honeycomb's own tables
-([your files and privacy](your-files-and-privacy.md)). Only *Pick*, *Reject*, ratings, colour
-labels and tags write to sidecars, as in the cull itself ([sidecars](sidecars.md)).
+touch a photo and move nothing to the trash bin. They live in honeycomb's own tables
+([your files and privacy](your-files-and-privacy.md)). A cull writes to the sidecars: stars,
+colour labels and tags always, and the flag and *Keep RAW* by default ([sidecars](sidecars.md)).

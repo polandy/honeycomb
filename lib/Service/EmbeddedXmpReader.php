@@ -32,7 +32,7 @@ final class EmbeddedXmpReader {
 	 * Reads each JPEG's packet and reports each, in the order sent.
 	 * @param array<array-key, mixed> $fileIds
 	 * @return list<array{fileId: int, result: SidecarResult, content?: string}>
-	 * @throws InvalidSidecarRequestException for a malformed request; nothing is read
+	 * @throws InvalidRequestException for a malformed request; nothing is read
 	 */
 	public function lookup(IUser $user, array $fileIds): array {
 		$fileIds = SidecarRequest::fileIds($fileIds);

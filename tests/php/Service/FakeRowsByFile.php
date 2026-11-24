@@ -17,7 +17,7 @@ trait FakeRowsByFile {
 
 	/** A file's row follows it, whoever saved it. */
 	#[\Override]
-	public function carryOver(string $userId, int $fileId, int $newFileId): void {
+	public function carryOver(int $fileId, int $newFileId): void {
 		if (isset($this->rows[$fileId])) {
 			$this->rows[$newFileId] = self::movedTo($this->rows[$fileId], $newFileId);
 			unset($this->rows[$fileId]);

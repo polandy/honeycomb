@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\ExistingSidecar;
-use OCA\Honeycomb\Service\InvalidSidecarRequestException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\NewSidecar;
 use OCA\Honeycomb\Service\SidecarLimits;
 use OCA\Honeycomb\Service\SidecarRequest;
@@ -65,7 +65,7 @@ final class SidecarRequestTest extends TestCase {
 	// spec: XMP-002.7
 	#[DataProvider('malformedSidecars')]
 	public function testRefusesAMalformedSave(array $sidecars): void {
-		$this->expectException(InvalidSidecarRequestException::class);
+		$this->expectException(InvalidRequestException::class);
 		SidecarRequest::sidecars($sidecars);
 	}
 
@@ -83,7 +83,7 @@ final class SidecarRequestTest extends TestCase {
 	// spec: XMP-002.7
 	#[DataProvider('malformedFileIds')]
 	public function testRefusesAMalformedLookup(array $fileIds): void {
-		$this->expectException(InvalidSidecarRequestException::class);
+		$this->expectException(InvalidRequestException::class);
 		SidecarRequest::fileIds($fileIds);
 	}
 }

@@ -32,7 +32,7 @@ final class SidecarWriter {
 	 * Saves each sidecar, counts the saves and reports each, in the order sent.
 	 * @param array<array-key, mixed> $sidecars
 	 * @return list<array{result: SidecarResult, fileId?: int, etag?: string, size?: int|float, mtime?: int}>
-	 * @throws InvalidSidecarRequestException for a malformed request; nothing is written
+	 * @throws InvalidRequestException for a malformed request; nothing is written
 	 */
 	public function save(IUser $user, array $sidecars): array {
 		$sidecars = SidecarRequest::sidecars($sidecars);

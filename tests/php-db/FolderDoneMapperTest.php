@@ -41,7 +41,7 @@ final class FolderDoneMapperTest extends DbTestCase {
 
 	public function testCarriesTheRowOverWhoeverMovesTheFolder(): void {
 		$this->insert(new FolderDone(7, 'bob', 1_750_000_000, 412));
-		$this->done->carryOver('alice', 7, 20);
+		$this->done->carryOver(7, 20);
 
 		$this->assertEquals([20 => new FolderDone(20, 'bob', 1_750_000_000, 412)], $this->done->find([7, 20]));
 	}

@@ -120,10 +120,12 @@ final class FakeSeriesStore implements SeriesStore {
 	}
 
 	#[\Override]
-	public function carryOver(string $userId, int $fileId, int $newFileId): void {
-		if (array_key_exists($fileId, $this->rows[$userId] ?? [])) {
-			$this->rows[$userId][$newFileId] = $this->rows[$userId][$fileId];
-			unset($this->rows[$userId][$fileId]);
+	public function carryOver(int $fileId, int $newFileId): void {
+		foreach ($this->rows as $userId => $rows) {
+			if (array_key_exists($fileId, $rows)) {
+				$this->rows[$userId][$newFileId] = $rows[$fileId];
+				unset($this->rows[$userId][$fileId]);
+			}
 		}
 	}
 

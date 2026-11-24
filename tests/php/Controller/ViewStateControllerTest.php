@@ -47,7 +47,7 @@ final class ViewStateControllerTest extends TestCase {
 		$response = $this->controller()->index();
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
-		$this->assertSame('{"viewState":{"info_panel_open":null,"gesture_guide_seen":null,"series_hint_seen":null,"reject_hint_seen":null,"year_review_hint_closed":null}}', $response->render());
+		$this->assertSame('{"viewState":{"info_panel_open":null,"gesture_guide_seen":null,"series_hint_seen":null,"reject_hint_seen":null,"year_review_hint_closed":null,"immich_filters":null}}', $response->render());
 	}
 
 	// spec: LOUPE-003.1, LOUPE-003.2
@@ -57,30 +57,30 @@ final class ViewStateControllerTest extends TestCase {
 		$saved = $controller->save(['gesture_guide_seen' => true]);
 		$read = $controller->index();
 
-		$expected = '{"viewState":{"info_panel_open":null,"gesture_guide_seen":true,"series_hint_seen":null,"reject_hint_seen":null,"year_review_hint_closed":null}}';
+		$expected = '{"viewState":{"info_panel_open":null,"gesture_guide_seen":true,"series_hint_seen":null,"reject_hint_seen":null,"year_review_hint_closed":null,"immich_filters":null}}';
 		$this->assertSame(Http::STATUS_OK, $saved->getStatus());
 		$this->assertSame($expected, $saved->render());
 		$this->assertSame($expected, $read->render());
 	}
 
-	/** @return array<string, array{mixed}> */
+	/** @return array<string, array{mixed, string}> */
 	public static function malformed(): array {
 		return [
-			'no body' => [null],
-			'a string' => ['gesture_guide_seen'],
-			'an empty object' => [[]],
-			'an unknown key' => [['tileSize' => true]],
-			'a non-boolean' => [['info_panel_open' => 'yes']],
+			'no body' => [null, 'not-an-object'],
+			'a string' => ['gesture_guide_seen', 'not-an-object'],
+			'an empty object' => [[], 'not-an-object'],
+			'an unknown key' => [['tileSize' => true], 'bad-value'],
+			'a non-boolean' => [['info_panel_open' => 'yes'], 'bad-value'],
 		];
 	}
 
 	// spec: LOUPE-003.3
 	#[DataProvider('malformed')]
-	public function testAMalformedViewStateIsABadRequest(mixed $viewState): void {
+	public function testAMalformedViewStateIsABadRequest(mixed $viewState, string $reason): void {
 		$response = $this->controller()->save($viewState);
 
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
-		$this->assertSame(['error' => 'request'], json_decode($response->render(), true));
+		$this->assertSame(['error' => 'request', 'reason' => $reason], json_decode($response->render(), true));
 		$this->assertSame([], $this->stored);
 	}
 

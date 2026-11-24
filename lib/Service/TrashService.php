@@ -36,7 +36,7 @@ final class TrashService {
 	 * Trashes the files of each picture whose rows still say `$expect`, removes the rows of the files deleted and reports each file, pictures and files in the order sent.
 	 * @param array<array-key, mixed> $pictures
 	 * @return list<list<array{fileId: int, result: TrashResult}>>
-	 * @throws InvalidTrashRequestException for a malformed request; nothing is touched
+	 * @throws InvalidRequestException for a malformed request; nothing is touched
 	 * @throws TrashBinDisabledException when deleting would not be restorable; nothing is touched
 	 * @throws \OCP\DB\Exception when the rows cannot be read; nothing is touched
 	 */
@@ -84,14 +84,14 @@ final class TrashService {
 		}
 	}
 
-	/** @throws InvalidTrashRequestException */
+	/** @throws InvalidRequestException */
 	private static function expectation(mixed $expect): ?TrashExpectation {
 		if ($expect === null) {
 			return null;
 		}
 		$expectation = is_string($expect) ? TrashExpectation::tryFrom($expect) : null;
 		if ($expectation === null) {
-			throw new InvalidTrashRequestException('expect must be rejected or rawRemovable');
+			throw InvalidRequestException::because(Reason::BadValue, 'expect must be rejected or rawRemovable');
 		}
 		return $expectation;
 	}
@@ -219,17 +219,17 @@ final class TrashService {
 	/**
 	 * @param array<array-key, mixed> $pictures
 	 * @return list<non-empty-list<array{fileId: int, etag: string, permanent: bool}>>
-	 * @throws InvalidTrashRequestException
+	 * @throws InvalidRequestException
 	 */
 	private function parse(array $pictures): array {
 		if (!array_is_list($pictures)) {
-			throw new InvalidTrashRequestException('pictures must be a list');
+			throw InvalidRequestException::because(Reason::NotAList, 'pictures must be a list');
 		}
 		$fileIds = [];
 		$parsed = [];
 		foreach ($pictures as $picture) {
 			if (!is_array($picture) || $picture === [] || !array_is_list($picture)) {
-				throw new InvalidTrashRequestException('Each picture must be a non-empty list of files');
+				throw InvalidRequestException::because(Reason::NotAList, 'Each picture must be a non-empty list of files');
 			}
 			$files = [];
 			/** @var mixed $file */
@@ -238,16 +238,16 @@ final class TrashService {
 				$etag = is_array($file) ? $file['etag'] ?? null : null;
 				$permanent = is_array($file) ? $file['permanent'] ?? false : false;
 				if (!is_int($fileId) || $fileId < 1 || !is_string($etag) || $etag === '' || !is_bool($permanent)) {
-					throw new InvalidTrashRequestException('Each file must have a positive fileId, an etag and at most a boolean permanent');
+					throw InvalidRequestException::because(Reason::BadValue, 'Each file must have a positive fileId, an etag and at most a boolean permanent');
 				}
 				$fileIds[] = $fileId;
 				$files[] = ['fileId' => $fileId, 'etag' => $etag, 'permanent' => $permanent];
 			}
 			$parsed[] = $files;
 		}
-		FileIds::eachOnce($fileIds, InvalidTrashRequestException::class);
+		FileIds::eachOnce($fileIds);
 		if (count($fileIds) > PictureRequestLimit::FILES) {
-			throw new InvalidTrashRequestException('At most ' . PictureRequestLimit::FILES . ' files');
+			throw InvalidRequestException::because(Reason::TooMany, 'At most ' . PictureRequestLimit::FILES . ' files');
 		}
 		/** @var list<non-empty-list<array{fileId: int, etag: string, permanent: bool}>> $parsed */
 		return $parsed;

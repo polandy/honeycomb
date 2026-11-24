@@ -7,7 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\InvalidSettingsException;
+use OCA\Honeycomb\Service\InvalidRequestException;
+use OCA\Honeycomb\Service\Reason;
 use OCA\Honeycomb\Service\SettingsService;
 use OCP\Config\IUserConfig;
 use OCP\IUser;
@@ -90,7 +91,7 @@ final class SettingsServiceTest extends TestCase {
 	// spec: SETTINGS-001.4
 	#[DataProvider('invalidSettings')]
 	public function testRefusesSettingsThatAreNotAnObject(mixed $settings): void {
-		$this->expectException(InvalidSettingsException::class);
+		$this->expectException(InvalidRequestException::class);
 
 		$this->service()->save($this->user(), $settings);
 	}
@@ -99,12 +100,8 @@ final class SettingsServiceTest extends TestCase {
 	public function testRefusesSettingsOverTheSizeLimit(): void {
 		$service = $this->service();
 
-		try {
-			$service->save($this->user(), ['note' => str_repeat('x', SettingsService::MAX_BYTES)]);
-			$this->fail('expected InvalidSettingsException');
-		} catch (InvalidSettingsException) {
-			$this->assertSame([], $this->stored);
-		}
+		$this->assertSame(Reason::TooLarge, ReasonOf::call(fn () => $service->save($this->user(), ['note' => str_repeat('x', SettingsService::MAX_BYTES)])));
+		$this->assertSame([], $this->stored);
 	}
 
 	// spec: SETTINGS-001.4
@@ -147,27 +144,23 @@ final class SettingsServiceTest extends TestCase {
 		$this->assertSame(['/New'], $service->get($this->user())->moveRecent);
 	}
 
-	/** @return array<string, array{string, mixed}> */
+	/** @return array<string, array{string, mixed, Reason}> */
 	public static function invalidLists(): array {
 		return [
-			'an unknown name' => ['moveTemplate', ['/A']],
-			'an object' => ['moveRecent', ['a' => '/A']],
-			'a number in it' => ['moveRecent', ['/A', 3]],
-			'a string' => ['libraryRoots', '/A'],
-			'null' => ['moveFavourites', null],
-			'over the size limit' => ['moveRecent', [str_repeat('x', SettingsService::MAX_BYTES)]],
+			'an unknown name' => ['moveTemplate', ['/A'], Reason::UnknownName],
+			'an object' => ['moveRecent', ['a' => '/A'], Reason::NotAList],
+			'a number in it' => ['moveRecent', ['/A', 3], Reason::NotAList],
+			'a string' => ['libraryRoots', '/A', Reason::NotAList],
+			'null' => ['moveFavourites', null, Reason::NotAList],
+			'over the size limit' => ['moveRecent', [str_repeat('x', SettingsService::MAX_BYTES)], Reason::TooLarge],
 		];
 	}
 
 	// spec: SETTINGS-001.31
 	#[DataProvider('invalidLists')]
-	public function testRefusesAnythingButAKnownListOfStrings(string $name, mixed $items): void {
-		try {
-			$this->service()->saveList($this->user(), $name, $items);
-			$this->fail('expected InvalidSettingsException');
-		} catch (InvalidSettingsException) {
-			$this->assertSame([], $this->stored);
-		}
+	public function testRefusesAnythingButAKnownListOfStrings(string $name, mixed $items, Reason $reason): void {
+		$this->assertSame($reason, ReasonOf::call(fn () => $this->service()->saveList($this->user(), $name, $items)));
+		$this->assertSame([], $this->stored);
 	}
 
 	// spec: SETTINGS-001.31

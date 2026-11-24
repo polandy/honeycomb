@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\InvalidVisualHashException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
 use OCA\Honeycomb\Service\VisualHash;
@@ -112,7 +112,7 @@ final class VisualHashServiceTest extends TestCase {
 		try {
 			$service->save($this->user(), $items);
 			$this->fail('A malformed save was accepted');
-		} catch (InvalidVisualHashException) {
+		} catch (InvalidRequestException) {
 			$this->assertSame(0, $this->store->replaceCalls);
 		}
 	}

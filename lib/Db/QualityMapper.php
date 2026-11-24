@@ -65,12 +65,6 @@ final class QualityMapper implements QualityStore {
 		}, $this->db);
 	}
 
-	/** A file's one value follows it to the new file id, whoever saved it. */
-	#[\Override]
-	public function carryOver(string $userId, int $fileId, int $newFileId): void {
-		$this->carryFileRow($fileId, $newFileId);
-	}
-
 	#[\Override]
 	public function clearAll(): int {
 		return $this->clearRows(null);

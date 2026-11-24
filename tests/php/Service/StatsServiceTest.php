@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\AppInfo\Application;
-use OCA\Honeycomb\Service\InvalidStatsRequestException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\SettingsService;
 use OCA\Honeycomb\Service\StatsCount;
 use OCA\Honeycomb\Service\StatsCounter;
@@ -177,7 +177,7 @@ final class StatsServiceTest extends TestCase {
 
 	#[DataProvider('invalidPeriods')]
 	public function testRejectsAMalformedPeriod(?string $from, ?string $to): void {
-		$this->expectException(InvalidStatsRequestException::class);
+		$this->expectException(InvalidRequestException::class);
 
 		$this->service()->read($this->user(), $from, $to);
 	}

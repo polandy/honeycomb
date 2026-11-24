@@ -19,25 +19,25 @@ final readonly class SeriesItem {
 
 	/**
 	 * The series in a request item; `id` is required and may be null.
-	 * @throws InvalidSeriesException for a missing or malformed field
+	 * @throws InvalidRequestException for a missing or malformed field
 	 */
 	public static function fromRequest(mixed $item): self {
 		if (!is_array($item) || !array_key_exists('id', $item)) {
-			throw new InvalidSeriesException('A series item must be an object with an id');
+			throw InvalidRequestException::because(Reason::NotAnObject, 'A series item must be an object with an id');
 		}
 		$id = $item['id'];
 		if ($id !== null && (!is_int($id) || $id < 1)) {
-			throw new InvalidSeriesException('id must be null or a positive integer');
+			throw InvalidRequestException::because(Reason::BadFileId, 'id must be null or a positive integer');
 		}
 		$status = isset($item['status']) && is_string($item['status']) ? SeriesStatus::tryFrom($item['status']) : null;
 		if ($status === null) {
-			throw new InvalidSeriesException('status must be open or done');
+			throw InvalidRequestException::because(Reason::BadValue, 'status must be open or done');
 		}
 		$fileIds = $item['fileIds'] ?? null;
 		if (!is_array($fileIds)) {
-			throw new InvalidSeriesException('fileIds must be a list');
+			throw InvalidRequestException::because(Reason::NotAList, 'fileIds must be a list');
 		}
-		return new self($id, $status, FileIds::parse($fileIds, ListingService::ENTRY_LIMIT, InvalidSeriesException::class));
+		return new self($id, $status, FileIds::parse($fileIds, ListingService::ENTRY_LIMIT));
 	}
 
 	/**

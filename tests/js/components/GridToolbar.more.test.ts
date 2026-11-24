@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import AppIcon from '../../../src/components/AppIcon.vue'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue } from '../l10n/marked-catalogue.ts'
 import { mountToolbar } from './grid-toolbar-mount.ts'
 import { PopoverStub } from './stubs.ts'
@@ -71,6 +72,7 @@ describe('GridToolbar More menu', () => {
 		expect(item(mountToolbar(set)).attributes('disabled')).toBeDefined()
 		expect(item(wrapper).classes()).not.toContain('grid-more-menu__narrow')
 		expect(item(wrapper).text().replaceAll(MARK, '')).toBe('Review rejects 4Ctrl+Backspace')
+		expect(item(wrapper).findComponent(AppIcon).props('name')).toBe('review')
 		expect(item(wrapper).find('kbd').text()).toBe('Ctrl+Backspace')
 		await item(wrapper).trigger('click')
 		expect(wrapper.emitted('reviewRejects')).toHaveLength(1)

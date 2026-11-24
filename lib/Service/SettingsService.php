@@ -44,11 +44,11 @@ final class SettingsService {
 
 	/**
 	 * Stores the whole settings object without the lists and returns the settings as stored.
-	 * @throws InvalidSettingsException for anything but an object, or one over MAX_BYTES encoded
+	 * @throws InvalidRequestException for anything but an object, or one over MAX_BYTES encoded
 	 */
 	public function save(IUser $user, mixed $settings): stdClass {
 		if (!is_array($settings) || ($settings !== [] && array_is_list($settings))) {
-			throw new InvalidSettingsException('settings must be a JSON object');
+			throw InvalidRequestException::because(Reason::NotAnObject, 'settings must be a JSON object');
 		}
 		$encoded = $this->encode((object)array_diff_key($settings, self::LISTS), 'settings must be at most ' . self::MAX_BYTES . ' bytes');
 		$this->carryOverLists($user);
@@ -59,12 +59,12 @@ final class SettingsService {
 	/**
 	 * Stores one whole list under its own key and returns it.
 	 * @return list<string>
-	 * @throws InvalidSettingsException for an unknown list, anything but a list of strings, or one over MAX_BYTES encoded
+	 * @throws InvalidRequestException for an unknown list, anything but a list of strings, or one over MAX_BYTES encoded
 	 */
 	public function saveList(IUser $user, string $name, mixed $items): array {
-		$key = self::LISTS[$name] ?? throw new InvalidSettingsException('there is no settings list ' . $name);
+		$key = self::LISTS[$name] ?? throw InvalidRequestException::because(Reason::UnknownName, 'there is no settings list ' . $name);
 		if (!is_array($items) || !array_is_list($items) || array_filter($items, is_string(...)) !== $items) {
-			throw new InvalidSettingsException('a settings list must be a JSON list of strings');
+			throw InvalidRequestException::because(Reason::NotAList, 'a settings list must be a JSON list of strings');
 		}
 		/** @var list<string> $items */
 		$encoded = $this->encode($items, 'a settings list must be at most ' . self::MAX_BYTES . ' bytes');
@@ -100,11 +100,11 @@ final class SettingsService {
 		return is_array($list) ? $list : [];
 	}
 
-	/** The value as JSON. @throws InvalidSettingsException when it is over MAX_BYTES encoded */
+	/** The value as JSON. @throws InvalidRequestException when it is over MAX_BYTES encoded */
 	private function encode(object|array $value, string $tooLarge): string {
 		$encoded = json_encode($value, JSON_THROW_ON_ERROR);
 		if (strlen($encoded) > self::MAX_BYTES) {
-			throw new InvalidSettingsException($tooLarge);
+			throw InvalidRequestException::because(Reason::TooLarge, $tooLarge);
 		}
 		return $encoded;
 	}

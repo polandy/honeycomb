@@ -3,9 +3,6 @@
 What honeycomb needs from the server and what an admin can run. Installation:
 [installing](installing.md).
 
-**Changing in the next release** ([ADR 0040](../../dev/adr/0040-flags-per-picture-in-the-database.md)).
-The Versions app is no longer needed for writing sidecars.
-
 ## Nextcloud apps
 
 honeycomb declares no app dependency and runs on Nextcloud 35 with PHP 8.3 or newer. Two of

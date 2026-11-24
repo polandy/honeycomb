@@ -22,9 +22,8 @@ new code may read tables that do not exist yet, and saving a flag, a rating or a
 ## Installed before 0.2.0: install again
 
 0.2.0 replaces the migrations of 0.1.0 and of every Git checkout before 2026-11-23 with one
-migration that creates all tables at once
-([ADR 0055](../../dev/adr/0055-one-baseline-migration-before-the-first-deployment.md)). Such an
-instance cannot update: the migration stops before it creates a table, names the honeycomb tables
+migration that creates all tables at once. Such an instance cannot update: the migration stops
+before it creates a table, names the honeycomb tables
 that exist already and points to this section. Install honeycomb again instead. This deletes what
 the tables hold: the flags and *Keep RAW*, the tag lists, series, resume positions, statistics,
 folder summaries, done statuses and Immich decisions. The photos, the XMP sidecars with their
@@ -40,10 +39,9 @@ sudo -u www-data php /var/www/nextcloud/occ upgrade
 ```
 
 Before the migrations, a repair step drops the honeycomb tables, also those of older releases,
-and honeycomb's rows in `oc_migrations`, so the update creates the tables empty
-([ADR 0053](../../dev/adr/0053-app-data-on-removal.md)). It then deletes the `reinstall` value; on
-0.2.0 or later the value drops nothing. After a failed update Nextcloud keeps the maintenance mode
-on; turn it off with `occ maintenance:mode --off`.
+and honeycomb's rows in `oc_migrations`, so the update creates the tables empty. It then deletes
+the `reinstall` value; on 0.2.0 or later the value drops nothing. After a failed update Nextcloud
+keeps the maintenance mode on; turn it off with `occ maintenance:mode --off`.
 
 A test server that ran a later Git checkout with an older form of the baseline cannot use the
 value, since it is already at 0.2.0. Drop everything with

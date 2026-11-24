@@ -41,9 +41,10 @@ For each picture:
    `permanent` and not kept by the trash bin, is deleted for good, logged without its path.
 3. If a move fails, the picture's files already moved go back to their old paths, last first, and
    its remaining files are `skipped`. One picture's failure does not stop the others.
-4. A file that gets a new file id anyway takes its flag row (DECISIONS-001) and the user's other
-   rows of the file along to the new id, also when it moves back. A row that cannot be carried over
-   is logged as an error; the file stays where it moved.
+4. A file that gets a new file id anyway takes its flag row (DECISIONS-001) and every other row of
+   the file along to the new id, every user's, also when it moves back: in a shared folder the file
+   id is the same for all its users. The rows move in one transaction: when one cannot be carried
+   over, none is, the failure is logged as an error and the file stays where it moved.
 
 The answer is `200` with `{"pictures": [[{"fileId": 7, "result": "moved", "replaced": false, "path":
 "/Sorted/2026/a.RAF", "newFileId": 7, "etag": "…"}, …], …]}` in the order sent; `path`,
@@ -135,13 +136,14 @@ The answer is `200` with `{"pictures": [[{"fileId": 7, "result": "moved", "repla
 - **When** it reaches either endpoint
 - **Then** the answer is `401`, and both routes are `POST`, need no admin and keep the CSRF check
 
-### MOVE-002.10 – Flags follow a new file id
+### MOVE-002.10 – Rows follow a new file id
 
 - **Given** a file with a flag row that gets a new file id when it moves, or when it moves back
 - **When** the client posts it
 - **Then** the row is stored under the new file id and none is left under the old, whoever set
-  it; the user's other rows of the file follow it, other users' stay; a row that cannot be
-  carried over is logged as an error and the file is still reported `moved`
+  it; every user's other rows of the file follow it, series members and XMP cache rows too; when
+  one row cannot be carried over, every row stays under the old file id, the failure is logged as
+  an error and the file is still reported `moved`
 
 ### MOVE-002.11 – A move stays on its storage
 
@@ -187,3 +189,4 @@ over.
 | 2026-11-19 | M8 PR 5: the flag row follows a new file id, whoever set it (MOVE-002.10, ADR 0040). |
 | 2026-11-21 | A replace whose file the trash bin would not keep is refused (MOVE-002.5, ADR 0036). |
 | 2026-11-21 | A replace marked `permanent` deletes such a file for good (MOVE-002.13, ADR 0048). |
+| 2026-11-24 | Every user's rows follow a new file id, all in one transaction (MOVE-002.10, #187). |

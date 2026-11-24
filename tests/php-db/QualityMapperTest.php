@@ -51,7 +51,7 @@ final class QualityMapperTest extends DbTestCase {
 	// spec: SERIES-006.14
 	public function testCarriesTheRowOverWhoeverMovesTheFile(): void {
 		$this->save([7]);
-		$this->quality->carryOver('bob', 7, 20);
+		$this->quality->carryOver(7, 20);
 
 		$this->assertEquals([20 => self::row(20, 'etag-7')], $this->quality->find([7, 20]));
 	}

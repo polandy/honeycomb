@@ -147,7 +147,7 @@ const setName = computed(() => {
 			:disabled="props.tasks.rejected === 0"
 			@click="emit('reviewRejects')">
 			<template #icon>
-				<AppIcon name="trash" />
+				<AppIcon name="review" />
 			</template>
 			<span v-if="props.tasks.rejected > 0" class="grid-toolbar__badge" aria-hidden="true">{{ formatNumber(props.tasks.rejected) }}</span>
 		</NcButton>
