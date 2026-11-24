@@ -733,6 +733,7 @@ const DE = {
   'Rejected': 'Abgelehnt',
   'Unflagged': 'Unmarkiert',
   'Clear rating': 'Bewertung entfernen',
+  'Clear': 'Leeren',
   'Rate %n star': ['Mit %n Stern bewerten', 'Mit %n Sternen bewerten'],
   'Colour label: {name}': 'Farbetikett: {name}',
   'Colour label': 'Farbetikett',
@@ -1063,7 +1064,7 @@ const DE = {
   'Grid: one row down, one row up. Elsewhere: next photo, previous photo': 'Raster: eine Reihe nach unten, nach oben. Sonst: nächstes Foto, vorheriges Foto',
   'Tags': 'Tags', 'Tag': 'Tag', 'Add tag': 'Tag hinzufügen', 'Tag filter': 'Tag-Filter', 'Matching tags': 'Passende Tags', 'Written to': 'Geschrieben nach',
   'Remove tag {name} from the filter': 'Tag {name} aus dem Filter entfernen', 'Remove {name}': '{name} entfernen', 'Select photos first': 'Wähle zuerst Fotos aus',
-  'Pick a known tag': 'Wähle ein bekanntes Tag', 'A tag needs a name without "|"': 'Ein Tag braucht einen Namen ohne „|“',
+  'Pick a known tag': 'Wähle ein bekanntes Tag', 'Separate the levels of a tag with "/". A name cannot be empty and cannot contain "|".': 'Trenne die Ebenen eines Tags mit „/“. Ein Name darf nicht leer sein und kein „|“ enthalten.',
   'Pick tags: the grid shows photos that have all of them.': 'Wähle Tags: Das Raster zeigt Fotos, die alle haben.', 'Tags for {name}': 'Tags für {name}',
   'Tag, or Place/Sub-place': 'Tag oder Ort/Unterort', 'Create tag “{name}”': 'Tag „{name}“ anlegen', 'Tagged {name} {tag}': '{name} mit {tag} getaggt', 'Removed {tag} from {name}': '{tag} von {name} entfernt',
   'Tags: open the tag entry': 'Tags: Tag-Eingabe öffnen', '%n tag': '%n Tag', '%n tags': '%n Tags',
@@ -1099,7 +1100,8 @@ const IC = {
   filter:'M3 5h18l-7 8v6l-4-2v-4z', tag:'M3 12V4h8l10 10-8 8zM7.5 8.5h.01', select:'M4 4h16v16H4zM8 12l3 3 5-6', film:'M3 6h18v12H3zM8 6v12M16 6v12', sort:'M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3',
   help:'M9 9a3 3 0 1 1 4.5 2.6c-1 .6-1.5 1.2-1.5 2.4M12 18v.5', grid:'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z', up:'M6 15l6-6 6 6', down:'M6 9l6 6 6-6',
   flag:'M5 3v18M5 4h11l-2 4 2 4H5', flagPick:'M5 3v18M5 4h11l-2 4 2 4H5z', flagX:'M5 3v18M5 4h11l-2 4 2 4H5M8 6l3 4M11 6l-3 4', flagCross:'M5 3v18M5 4h11l-2 4 2 4H5M8 6l3 4M11 6l-3 4M3 20 21 4', move:'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 13h7M13 10l3 3-3 3',
-  more:'M5 12h.01M12 12h.01M19 12h.01', home:'M4 11l8-7 8 7v9H4zM10 20v-6h4v6', compare:'M3 5h8v14H3zM13 5h8v14h-8z', zoom:'M10 10m-6 0a6 6 0 1 0 12 0a6 6 0 1 0-12 0M15 15l5 5M10 7v6M7 10h6'
+  more:'M5 12h.01M12 12h.01M19 12h.01', home:'M4 11l8-7 8 7v9H4zM10 20v-6h4v6', compare:'M3 5h8v14H3zM13 5h8v14h-8z', zoom:'M10 10m-6 0a6 6 0 1 0 12 0a6 6 0 1 0-12 0M15 15l5 5M10 7v6M7 10h6',
+  review:'M3 6l1.5 1.5L7 5M3 13l1.5 1.5L7 12M3 20l1.5 1.5L7 19M11 6h10M11 13h10M11 20h10'
 };
 const FILLED = new Set(['flagPick']);
 const ic = (n, extra='') => `<svg class="ic${FILLED.has(n) ? ' fill' : ''}" viewBox="0 0 24 24" aria-hidden="true" ${extra}><path d="${IC[n]}"/></svg>`;
@@ -1136,7 +1138,7 @@ function flagButtons(cur, forKey, {id = '', dis = '', big = false} = {}){
 }
 const rateText = k => k ? n('Rate %n star', 'Rate %n stars', k) : t('Clear rating');
 function starRating(cur, forKey, {id = '', dis = ''} = {}){
-  return `<div class="grp" role="group" aria-label="${t('Rating')}"><span class="gl">${t('Rating')}</span>${[0, 1, 2, 3, 4, 5].map(k => `<button class="sq" data-act="rate" data-v="${k}" ${forAttrs(forKey, id)} ${dis} aria-pressed="${cur === k}" aria-label="${rateText(k)}" ${tip(rateText(k), String(k))}>${k ? nf(k) + '★' : nf(0)}</button>`).join('')}</div>`;
+  return `<div class="grp" role="group" aria-label="${t('Rating')}"><span class="gl">${t('Rating')}</span>${[0, 1, 2, 3, 4, 5].map(k => `<button class="sq" data-act="rate" data-v="${k}" ${forAttrs(forKey, id)} ${dis} aria-pressed="${cur === k}" aria-label="${rateText(k)}" ${tip(rateText(k), String(k))}>${k ? nf(k) + '★' : t('Clear')}</button>`).join('')}</div>`;
 }
 function colourLabel(cur, forKey, {dis = ''} = {}){
   const bg = cur ? LBL[cur].hex : 'conic-gradient(#e5484d,#f2c94c,#3fb26b,#3b82f6,#d946ef,#e5484d)';
@@ -1596,7 +1598,7 @@ function renderToolbar(){
   tb.classList.toggle('selmode', S.selMode);
   const keys = `<div class="fchips" role="group" aria-label="${t('Flag filter')}">${FLAGS.map(f => `<button class="chip fc ${f.v}" data-act="fFlag" data-v="${f.v}" aria-pressed="${S.filters.flags.has(f.v)}" aria-label="${esc(flagName(f.v))}" ${tip(flagName(f.v))}>${ic(f.icon)}<span class="sl">${esc(flagName(f.v))}</span></button>`).join('')}</div>
       <span class="count" aria-live="polite">${n('{done} / %n<span class="lb"> decided</span>', '{done} / %n<span class="lb"> decided</span>', nTot, {done:nf(nDec)})}</span>
-      ${ib('delRejected', 'trash', t('Review rejects'), nRej, nRej ? '' : 'disabled', HOTKEY.reviewRejects)}
+      ${ib('delRejected', 'review', t('Review rejects'), nRej, nRej ? '' : 'disabled', HOTKEY.reviewRejects)}
       <button class="btn ghost ib" data-act="more" aria-haspopup="menu" aria-label="${t('More')}" ${tip(t('More'))}>${ic('more')}</button>
       <div class="prog" role="progressbar" aria-label="${t('Decided')}" aria-valuemin="0" aria-valuemax="${nTot}" aria-valuenow="${nDec}"><i style="width:${nTot ? Math.round(100 * nDec / nTot) : 0}%"></i></div>`;
   $('hKeys').innerHTML = keys;
@@ -1908,9 +1910,11 @@ function renderDlg(){
   if (d.refocus){ const i = root.querySelector(d.refocus); i && i.focus(); d.refocus = null; }
 }
 /* tag entry: one dialog for assigning to the targets (T, Tags) and for picking filter tags; the field keeps its focus while the lists redraw */
-const tagMsgs = () => ({unknown:t('Pick a known tag'), bad:t('A tag needs a name without "|"')});
+const tagMsgs = () => ({unknown:t('Pick a known tag'), bad:t('Separate the levels of a tag with "/". A name cannot be empty and cannot contain "|".')});
 function tagTargets(it){ const files = [it.jpg, it.raw].filter(Boolean).map(f => it.xmp && !it.xmp.shared ? it.xmp.name : f.name + '.xmp'); return [...new Set(files)].join(', '); }
 const tagNorm = text => text.split('/').map(x => x.trim()).filter(Boolean).join('/');
+/* The typed tag with each name trimmed, or null for an empty name or a "|", as the app's tagOf does. */
+const tagOf = text => { const names = text.split('/').map(x => x.trim()); return names.every(x => x && !x.includes('|')) ? names.join('/') : null; };
 function openTags(ids, mode = 'assign'){
   if (mode === 'assign' && !ids.length){ toast(t('Select photos first')); return; }
   openDlg({type:'tags', mode, ids, base:'', picked:-1, msg:'', refocus:'#tgField'});
@@ -1920,7 +1924,8 @@ function tagRows(d){
   const typed = tagNorm(d.base), q = typed.toLowerCase(), its = tagIts(d);
   const open = k => d.mode === 'filter' ? !S.filters.tags.includes(k) : !its.every(i => hasExactTag(i, k));
   const rows = knownTags().filter(k => open(k) && k.toLowerCase().includes(q)).map(tag => ({tag, create:false}));
-  if (d.mode === 'assign' && typed && !knownTags().some(k => sameTag(k, typed))) rows.push({tag:typed, create:true});
+  const create = d.mode === 'assign' ? tagOf(d.base) : null;
+  if (create !== null && !knownTags().some(k => sameTag(k, create))) rows.push({tag:create, create:true});
   return rows;
 }
 function tagChips(d){
@@ -1949,14 +1954,16 @@ function dlgTags(d){
 const tagRefocus = () => { const f = $('tgField'); f && f.focus(); };
 function tagReset(d){ d.base = ''; d.picked = -1; $('tgField').value = ''; }
 function tagCommit(text){
+  if (text.trim() === '') return;
   const d = S.dlg, tag = tagNorm(text), msgs = tagMsgs();
   if (d.mode === 'filter'){
     const known = knownTags().find(k => sameTag(k, tag));
     if (!known) d.msg = msgs.unknown; else { d.msg = ''; if (!S.filters.tags.includes(known)) S.filters.tags.push(known); refreshView(); tagReset(d); }
     tagLists(d); return;
   }
-  if (!tag || tag.includes('|')){ d.msg = msgs.bad; tagLists(d); return; }
-  d.msg = ''; const path = knownTags().find(k => sameTag(k, tag)) || tag;
+  const typed = tagOf(text);
+  if (typed === null){ d.msg = msgs.bad; tagLists(d); return; }
+  d.msg = ''; const path = knownTags().find(k => sameTag(k, typed)) || typed;
   if (!S.tagList.some(k => sameTag(k, path))) S.tagList.push(path);
   const its = tagIts(d).filter(i => !hasExactTag(i, path));
   if (its.length) tagChange(its, path, true);

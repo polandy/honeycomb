@@ -1922,6 +1922,11 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   link is text, not a second button, so the state keeps one action. On the default filters (this
   month, *Picked* and *Unflagged*) the Immich *Clear filters* does not show, since it would change
   nothing, like the filter bar's *Clear filters* (IMMICH-002.31).
+- 2026-11-24: Icons and labels (Fable review, owner-approved): the rating's first button reads
+  *Clear* instead of `0`, its aria-label unchanged; *Review rejects* takes a check-list icon
+  (the trash stays with the delete action); the Immich source takes a neutral server icon
+  instead of a phone; and the tag refusal reads two plain sentences ("Separate the levels of a
+  tag with \"/\". A name cannot be empty and cannot contain \"|\"."). Wording and icons only.
 - 2026-11-24: The 17 empty `Invalid*Exception` classes are gone; `InvalidRequestException::because(Reason)`
   names the reason in the 400 body next to `error: "request"` (ADR 0057, #187, autonomous). Twelve coarse
   reasons, one per kind of malformed part, not one per field; the free-text detail stays on the exception.

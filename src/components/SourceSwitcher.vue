@@ -24,7 +24,7 @@ const emit = defineEmits<{ choose: [source: SourceKind] }>()
 		</NcButton>
 		<NcButton :pressed="props.source === 'immich'" wide @click="emit('choose', 'immich')">
 			<template #icon>
-				<AppIcon name="phone" />
+				<AppIcon name="server" />
 			</template>
 			{{ t('honeycomb', 'Immich') }}
 		</NcButton>
