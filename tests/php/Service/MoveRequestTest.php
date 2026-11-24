@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\InvalidMoveRequestException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\MoveRequest;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -52,7 +52,7 @@ final class MoveRequestTest extends TestCase {
 	// spec: MOVE-002.8, MOVE-002.13
 	#[DataProvider('malformedRequests')]
 	public function testAMalformedRequestIsRefusedWhole(array $pictures): void {
-		$this->expectException(InvalidMoveRequestException::class);
+		$this->expectException(InvalidRequestException::class);
 
 		MoveRequest::pictures($pictures);
 	}

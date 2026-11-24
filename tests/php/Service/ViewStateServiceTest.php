@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\InvalidViewStateException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\ViewStateService;
 use OCP\Config\IUserConfig;
 use OCP\IUser;
@@ -129,8 +129,8 @@ final class ViewStateServiceTest extends TestCase {
 
 		try {
 			$service->save($this->user(), $viewState);
-			$this->fail('expected InvalidViewStateException');
-		} catch (InvalidViewStateException) {
+			$this->fail('expected InvalidRequestException');
+		} catch (InvalidRequestException) {
 			$this->assertSame([], $this->stored);
 		}
 	}
@@ -165,8 +165,8 @@ final class ViewStateServiceTest extends TestCase {
 
 		try {
 			$this->service()->save($this->user(), ['immich_filters' => ['c51' => []]]);
-			$this->fail('expected InvalidViewStateException');
-		} catch (InvalidViewStateException) {
+			$this->fail('expected InvalidRequestException');
+		} catch (InvalidRequestException) {
 			$this->assertSame($stored, $this->stored);
 		}
 	}

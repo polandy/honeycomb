@@ -1922,3 +1922,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   link is text, not a second button, so the state keeps one action. On the default filters (this
   month, *Picked* and *Unflagged*) the Immich *Clear filters* does not show, since it would change
   nothing, like the filter bar's *Clear filters* (IMMICH-002.31).
+- 2026-11-24: The 17 empty `Invalid*Exception` classes are gone; `InvalidRequestException::because(Reason)`
+  names the reason in the 400 body next to `error: "request"` (ADR 0057, #187, autonomous). Twelve coarse
+  reasons, one per kind of malformed part, not one per field; the free-text detail stays on the exception.

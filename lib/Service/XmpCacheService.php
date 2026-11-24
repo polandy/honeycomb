@@ -25,10 +25,10 @@ final class XmpCacheService {
 	 * The user's stored rows among `$fileIds`; the client compares their etags.
 	 * @param array<array-key, mixed> $fileIds
 	 * @return list<XmpCacheRow>
-	 * @throws InvalidXmpCacheException for a malformed request or too many file ids
+	 * @throws InvalidRequestException for a malformed request or too many file ids
 	 */
 	public function lookup(IUser $user, array $fileIds): array {
-		$fileIds = FileIds::parse($fileIds, self::LIMIT, InvalidXmpCacheException::class);
+		$fileIds = FileIds::parse($fileIds, self::LIMIT);
 		return array_values($this->store->find($user->getUID(), $fileIds));
 	}
 
@@ -36,11 +36,11 @@ final class XmpCacheService {
 	 * Stores the rows in `$items` whose file the user reaches as that kind and adds their tags to the tag list (XMP-006.9); returns their file ids in request order.
 	 * @param array<array-key, mixed> $items
 	 * @return list<int>
-	 * @throws InvalidXmpCacheException for a malformed row, a file id given twice or too many rows
+	 * @throws InvalidRequestException for a malformed row, a file id given twice or too many rows
 	 */
 	public function save(IUser $user, array $items): array {
-		$rows = array_map(XmpCacheRow::fromRequest(...), FileIds::items($items, self::LIMIT, InvalidXmpCacheException::class));
-		FileIds::eachOnce(array_map(static fn (XmpCacheRow $row): int => $row->fileId, $rows), InvalidXmpCacheException::class);
+		$rows = array_map(XmpCacheRow::fromRequest(...), FileIds::items($items, self::LIMIT));
+		FileIds::eachOnce(array_map(static fn (XmpCacheRow $row): int => $row->fileId, $rows));
 		if ($rows === []) {
 			return [];
 		}

@@ -63,24 +63,24 @@ final class ViewStateControllerTest extends TestCase {
 		$this->assertSame($expected, $read->render());
 	}
 
-	/** @return array<string, array{mixed}> */
+	/** @return array<string, array{mixed, string}> */
 	public static function malformed(): array {
 		return [
-			'no body' => [null],
-			'a string' => ['gesture_guide_seen'],
-			'an empty object' => [[]],
-			'an unknown key' => [['tileSize' => true]],
-			'a non-boolean' => [['info_panel_open' => 'yes']],
+			'no body' => [null, 'not-an-object'],
+			'a string' => ['gesture_guide_seen', 'not-an-object'],
+			'an empty object' => [[], 'not-an-object'],
+			'an unknown key' => [['tileSize' => true], 'bad-value'],
+			'a non-boolean' => [['info_panel_open' => 'yes'], 'bad-value'],
 		];
 	}
 
 	// spec: LOUPE-003.3
 	#[DataProvider('malformed')]
-	public function testAMalformedViewStateIsABadRequest(mixed $viewState): void {
+	public function testAMalformedViewStateIsABadRequest(mixed $viewState, string $reason): void {
 		$response = $this->controller()->save($viewState);
 
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
-		$this->assertSame(['error' => 'request'], json_decode($response->render(), true));
+		$this->assertSame(['error' => 'request', 'reason' => $reason], json_decode($response->render(), true));
 		$this->assertSame([], $this->stored);
 	}
 

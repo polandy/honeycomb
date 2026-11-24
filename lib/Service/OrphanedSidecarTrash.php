@@ -33,7 +33,7 @@ final class OrphanedSidecarTrash {
 	 * Trashes each sidecar that is still unchanged and orphaned, and reports each in the order sent.
 	 * @param array<array-key, mixed> $sidecars
 	 * @return list<array{fileId: int, result: TrashResult}>
-	 * @throws InvalidTrashRequestException for a malformed request; nothing is touched
+	 * @throws InvalidRequestException for a malformed request; nothing is touched
 	 * @throws TrashBinDisabledException when deleting would not be restorable; nothing is touched
 	 */
 	public function trash(IUser $user, array $sidecars): array {
@@ -95,14 +95,14 @@ final class OrphanedSidecarTrash {
 	/**
 	 * @param array<array-key, mixed> $sidecars
 	 * @return list<array{fileId: int, etag: string}>
-	 * @throws InvalidTrashRequestException
+	 * @throws InvalidRequestException
 	 */
 	private static function parse(array $sidecars): array {
 		if (!array_is_list($sidecars)) {
-			throw new InvalidTrashRequestException('sidecars must be a list');
+			throw InvalidRequestException::because(Reason::NotAList, 'sidecars must be a list');
 		}
 		if (count($sidecars) > PictureRequestLimit::FILES) {
-			throw new InvalidTrashRequestException('At most ' . PictureRequestLimit::FILES . ' sidecars');
+			throw InvalidRequestException::because(Reason::TooMany, 'At most ' . PictureRequestLimit::FILES . ' sidecars');
 		}
 		$parsed = [];
 		/** @var mixed $sidecar */
@@ -110,11 +110,11 @@ final class OrphanedSidecarTrash {
 			$fileId = is_array($sidecar) ? $sidecar['fileId'] ?? null : null;
 			$etag = is_array($sidecar) ? $sidecar['etag'] ?? null : null;
 			if (!is_int($fileId) || $fileId < 1 || !is_string($etag) || $etag === '') {
-				throw new InvalidTrashRequestException('Each sidecar must have a positive fileId and an etag');
+				throw InvalidRequestException::because(Reason::BadValue, 'Each sidecar must have a positive fileId and an etag');
 			}
 			$parsed[] = ['fileId' => $fileId, 'etag' => $etag];
 		}
-		FileIds::eachOnce(array_column($parsed, 'fileId'), InvalidTrashRequestException::class);
+		FileIds::eachOnce(array_column($parsed, 'fileId'));
 		return $parsed;
 	}
 }

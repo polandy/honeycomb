@@ -35,12 +35,12 @@ final class MissingVisualHashes {
 	 * @return array{pictures: list<array{fileId: int, etag: string, mtime: int, path: string}>, nextCursor: ?string}
 	 * @throws FolderNotFoundException for a path that is not the user's folder
 	 * @throws FolderNotReadableException when the user may not read the folder
-	 * @throws InvalidCursorException for a cursor that is no relative path
-	 * @throws InvalidVisualHashException for a method outside 1 to VisualHash::MAX_METHOD
+	 * @throws InvalidRequestException for a cursor that is no relative path
+	 * @throws InvalidRequestException for a method outside 1 to VisualHash::MAX_METHOD
 	 */
 	public function page(IUser $user, string $path, string $after, int $method): array {
 		if ($method < 1 || $method > VisualHash::MAX_METHOD) {
-			throw new InvalidVisualHashException('method must be an integer from 1 to ' . VisualHash::MAX_METHOD . ", not $method");
+			throw InvalidRequestException::because(Reason::BadValue, 'method must be an integer from 1 to ' . VisualHash::MAX_METHOD . ", not $method");
 		}
 		$cursor = self::cursorOf($after);
 		$folder = $this->folders->folder($user, $path);
@@ -101,7 +101,7 @@ final class MissingVisualHashes {
 	/**
 	 * The segments of a cursor; empty for the first page.
 	 * @return list<string>
-	 * @throws InvalidCursorException
+	 * @throws InvalidRequestException
 	 */
 	private static function cursorOf(string $after): array {
 		if ($after === '') {
@@ -110,7 +110,7 @@ final class MissingVisualHashes {
 		$segments = explode('/', $after);
 		foreach ($segments as $segment) {
 			if (in_array($segment, ['', '.', '..'], true) || str_contains($segment, "\0")) {
-				throw new InvalidCursorException($after);
+				throw InvalidRequestException::because(Reason::BadCursor, $after);
 			}
 		}
 		return $segments;

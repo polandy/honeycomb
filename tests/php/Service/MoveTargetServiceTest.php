@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\InvalidMoveRequestException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\ListingService;
 use OCA\Honeycomb\Service\MoveTargetService;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -70,7 +70,7 @@ final class MoveTargetServiceTest extends TestCase {
 	// spec: MOVE-002.8
 	#[DataProvider('malformedRequests')]
 	public function testAMalformedProbeIsRefused(array $folders): void {
-		$this->expectException(InvalidMoveRequestException::class);
+		$this->expectException(InvalidRequestException::class);
 
 		(new MoveTargetService($this->treeRoot()))->targets($this->treeUser(), $folders);
 	}
@@ -78,7 +78,7 @@ final class MoveTargetServiceTest extends TestCase {
 	// spec: MOVE-002.8
 	#[DataProvider('malformedRequests')]
 	public function testAMalformedSourceListIsRefused(array $sources): void {
-		$this->expectException(InvalidMoveRequestException::class);
+		$this->expectException(InvalidRequestException::class);
 
 		(new MoveTargetService($this->treeRoot()))->targets($this->treeUser(), ['/Out'], $sources);
 	}

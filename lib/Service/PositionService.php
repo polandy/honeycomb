@@ -33,11 +33,11 @@ final class PositionService {
 	/**
 	 * Stores where the user stands in the folder set, forgets all but the most recent sets and counts the active time the save carries (STATS-001.39).
 	 * @param array<array-key, mixed> $folderSet
-	 * @throws InvalidPositionException for a malformed folder set, file id or count
+	 * @throws InvalidRequestException for a malformed folder set, file id or count
 	 */
 	public function save(IUser $user, array $folderSet, int $fileId, int $decided, int $total, int $activeSeconds = 0): ResumePosition {
 		if ($fileId < 1 || $decided < 0 || $decided > $total) {
-			throw new InvalidPositionException('fileId must be positive and decided 0 to total');
+			throw InvalidRequestException::because(Reason::BadFileId, 'fileId must be positive and decided 0 to total');
 		}
 		$position = new ResumePosition(FolderSet::fromRequest($folderSet), $fileId, $decided, $total, $this->time->getTime());
 		$since = $this->savedAt($user, $position->folderSet);

@@ -10,7 +10,7 @@ namespace OCA\Honeycomb\Tests\Service;
 use OCA\Honeycomb\Service\FileFlag;
 use OCA\Honeycomb\Service\Flag;
 use OCA\Honeycomb\Service\FlagService;
-use OCA\Honeycomb\Service\InvalidFlagException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\ListingService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Constants;
@@ -92,8 +92,8 @@ final class FlagServiceSidecarEtagTest extends TestCase {
 		$this->store->rows[7] = new FileFlag(7, Flag::Picked, false, 100);
 		try {
 			$this->service()->sidecarEtags($this->user(), $items);
-			$this->fail('Expected InvalidFlagException');
-		} catch (InvalidFlagException) {
+			$this->fail('Expected InvalidRequestException');
+		} catch (InvalidRequestException) {
 			$this->assertSame(0, $this->store->writeCalls);
 		}
 	}
@@ -113,7 +113,7 @@ final class FlagServiceSidecarEtagTest extends TestCase {
 
 	// spec: DECISIONS-001.41
 	public function testATakeOverWithAMalformedEtagWritesNothing(): void {
-		$this->expectException(InvalidFlagException::class);
+		$this->expectException(InvalidRequestException::class);
 
 		$this->service()->takeOver($this->user(), [['fileId' => 7, 'flag' => 'picked', 'keepRaw' => false, 'sidecarEtag' => self::TOO_LONG]]);
 	}

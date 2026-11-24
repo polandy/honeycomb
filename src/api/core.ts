@@ -15,6 +15,12 @@ export function errorCodeOf(error: unknown): string | null {
 	return typeof code === 'string' ? code : null
 }
 
+/** The reason of a `400` answer's `{error: 'request', reason}` body, `null` for anything else (APP-004). */
+export function errorReasonOf(error: unknown): string | null {
+	const reason = isRecord(error) && isRecord(error.response) && isRecord(error.response.data) ? error.response.data.reason : null
+	return typeof reason === 'string' ? reason : null
+}
+
 /** Whether a response body is a JSON object. */
 export function isRecord(data: unknown): data is Record<string, unknown> {
 	return typeof data === 'object' && data !== null

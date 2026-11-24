@@ -23,23 +23,23 @@ final readonly class FileFlag {
 
 	/**
 	 * The flag in a request item, every field but `sidecarEtag` required, stamped `$updatedAt` by `$updatedBy`.
-	 * @throws InvalidFlagException for a missing or unknown field
+	 * @throws InvalidRequestException for a missing or unknown field
 	 */
 	public static function fromRequest(mixed $item, int $updatedAt, string $updatedBy): self {
 		if (!is_array($item)) {
-			throw new InvalidFlagException('A flag must be an object');
+			throw InvalidRequestException::because(Reason::NotAnObject, 'A flag must be an object');
 		}
 		$fileId = $item['fileId'] ?? null;
 		$flag = $item['flag'] ?? null;
 		$keepRaw = $item['keepRaw'] ?? null;
 		if (!is_int($fileId) || $fileId < 1) {
-			throw new InvalidFlagException('fileId must be a positive integer');
+			throw InvalidRequestException::because(Reason::BadFileId, 'fileId must be a positive integer');
 		}
 		if (!is_string($flag) || Flag::tryFrom($flag) === null) {
-			throw new InvalidFlagException("flag of file $fileId must be picked, rejected or unflagged");
+			throw InvalidRequestException::because(Reason::BadValue, "flag of file $fileId must be picked, rejected or unflagged");
 		}
 		if (!is_bool($keepRaw)) {
-			throw new InvalidFlagException("keepRaw of file $fileId must be true or false");
+			throw InvalidRequestException::because(Reason::BadValue, "keepRaw of file $fileId must be true or false");
 		}
 		return new self($fileId, Flag::from($flag), $keepRaw, $updatedAt, $updatedBy, SidecarEtag::parse($item['sidecarEtag'] ?? null, $fileId));
 	}

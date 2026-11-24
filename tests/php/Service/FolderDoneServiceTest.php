@@ -11,7 +11,7 @@ use OCA\Honeycomb\Service\FolderDone;
 use OCA\Honeycomb\Service\FolderDoneService;
 use OCA\Honeycomb\Service\FolderNotFoundException;
 use OCA\Honeycomb\Service\FolderNotReadableException;
-use OCA\Honeycomb\Service\InvalidLibraryRequestException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -119,7 +119,7 @@ final class FolderDoneServiceTest extends TestCase {
 	// spec: FOLDERS-006.6
 	#[DataProvider('malformedCounts')]
 	public function testAMalformedCountIsABadRequestAndStoresNothing(mixed $photos): void {
-		$this->expectException(InvalidLibraryRequestException::class);
+		$this->expectException(InvalidRequestException::class);
 		try {
 			$this->service()->mark($this->user(), 10, $photos);
 		} finally {
