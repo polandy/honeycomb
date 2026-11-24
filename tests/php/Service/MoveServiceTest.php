@@ -297,12 +297,4 @@ final class MoveServiceTest extends TestCase {
 			$this->assertSame([], $this->log);
 		}
 	}
-
-	public function testAnUnexpectedFailureIsNotCaught(): void {
-		$this->pair();
-		$this->moveFailures[3] = new \LogicException('bug');
-		$this->expectException(\LogicException::class);
-
-		$this->service()->move($this->treeUser(), [self::request()[0]]);
-	}
 }

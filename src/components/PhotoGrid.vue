@@ -46,7 +46,6 @@ const props = withDefaults(defineProps<PhotoGridProps>(), {
 	schedule: browserSchedule,
 	frame: browserFrame,
 })
-
 const emit = defineEmits<PhotoGridEmits>()
 
 const GAP = 8

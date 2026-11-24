@@ -146,4 +146,14 @@ final class MoveServiceCarryOverTest extends TestCase {
 
 		$this->assertSame(['alice' => [1 => $id, 20 => $id]], $this->series->rows);
 	}
+
+	public function testAnUnexpectedFailureWhileCarryingOverIsNotCaught(): void {
+		$this->addFolder('/Out');
+		$this->newIds[2] = 20;
+		$flags = $this->createStub(FlagStore::class);
+		$flags->method('carryOver')->willThrowException(new \LogicException('bug'));
+		$this->expectException(\LogicException::class);
+
+		$this->service($flags, $this->createStub(LoggerInterface::class))->move($this->treeUser(), self::request());
+	}
 }
