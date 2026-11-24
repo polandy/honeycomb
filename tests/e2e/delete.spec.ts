@@ -5,9 +5,19 @@ import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { ADMIN } from './admin.ts'
-import { cullFolder } from './cull.ts'
+import { cullFolder, E2E_SETTINGS, putSettings } from './cull.ts'
 import { apiHeaders, createFolder, etagOf, JPEG, pickLabel, RAW, trashEntry, upload } from './files.ts'
 import { IPAD_PORTRAIT, WEBKIT } from './webkit.ts'
+
+// These describe honeycomb with the flags kept out of the sidecars (ADR 0040).
+test.beforeEach(async ({ page }) => {
+	await page.goto('/index.php/apps/honeycomb/')
+	await putSettings(page, { ...E2E_SETTINGS, writeFlagsToXmp: false })
+})
+
+test.afterEach(async ({ page }) => {
+	await putSettings(page, E2E_SETTINGS)
+})
 
 const API = '/index.php/apps/honeycomb/api/v1'
 const TRASHBIN = `/remote.php/dav/trashbin/${ADMIN.username}`

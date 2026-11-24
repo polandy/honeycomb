@@ -107,6 +107,7 @@ final class ListingServiceTest extends TestCase {
 			'flag' => null,
 			'keepRaw' => null,
 			'flagUpdated' => null,
+			'sidecarEtag' => null,
 		]], $this->entriesOf($listing));
 	}
 
@@ -145,11 +146,11 @@ final class ListingServiceTest extends TestCase {
 			$this->file(3, '/Photos/IMG_1.XMP', 'application/octet-stream'),
 		]);
 		$flags = new FakeFlagStore();
-		$flags->rows[1] = new FileFlag(1, Flag::Rejected, true, 1_800_000_000);
+		$flags->rows[1] = new FileFlag(1, Flag::Rejected, true, 1_800_000_000, null, 'e1');
 
 		$entries = $this->entriesOf($this->service($this->rootWith(['/Photos' => $folder]), flags: $flags)->list($this->user(), 'Photos', false));
 
-		$this->assertSame([['rejected', true, 1_800_000_000], [null, null, null], [null, null, null]], array_map(static fn (array $entry): array => [$entry['flag'], $entry['keepRaw'], $entry['flagUpdated']], $entries));
+		$this->assertSame([['rejected', true, 1_800_000_000, 'e1'], [null, null, null, null], [null, null, null, null]], array_map(static fn (array $entry): array => [$entry['flag'], $entry['keepRaw'], $entry['flagUpdated'], $entry['sidecarEtag']], $entries));
 	}
 
 	// spec: LISTING-001.18

@@ -3,7 +3,7 @@
 import axios from '@nextcloud/axios'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiResponseError } from '../../src/api.ts'
-import { saveFlags, takeOverFlags } from '../../src/flags-api.ts'
+import { saveFlags, saveSidecarEtags, takeOverFlags } from '../../src/flags-api.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { post: vi.fn(), put: vi.fn() } }))
 vi.mock('@nextcloud/router', () => ({ generateUrl: (url: string) => `/index.php${url}` }))
@@ -51,5 +51,25 @@ describe('takeOverFlags', () => {
 	it('sends nothing for no flags', async () => {
 		await expect(takeOverFlags([])).resolves.toEqual({ saved: [], skipped: [] })
 		expect(axios.post).not.toHaveBeenCalled()
+	})
+})
+
+describe('saveSidecarEtags', () => {
+	// spec: XMP-003.45
+	it('puts the ETags and answers what was set and skipped', async () => {
+		const etags = [{ fileId: 3, sidecarEtag: 'e2' }, { fileId: 4, sidecarEtag: null }]
+		vi.mocked(axios.put).mockResolvedValue({ data: ANSWER })
+
+		await expect(saveSidecarEtags(etags)).resolves.toEqual(ANSWER)
+		expect(axios.put).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/flags/sidecar-etags', { etags })
+	})
+
+	// spec: XMP-003.45
+	it('sends nothing for no ETags and rejects an answer of another shape', async () => {
+		await expect(saveSidecarEtags([])).resolves.toEqual({ saved: [], skipped: [] })
+		expect(axios.put).not.toHaveBeenCalled()
+
+		vi.mocked(axios.put).mockResolvedValue({ data: 'oops' })
+		await expect(saveSidecarEtags([{ fileId: 3, sidecarEtag: 'e2' }])).rejects.toThrow(ApiResponseError)
 	})
 })

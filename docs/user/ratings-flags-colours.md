@@ -24,9 +24,11 @@ reject and *Keep RAW* stay in honeycomb. If that sidecar cannot be read or writt
 The technical details are in [`../06-xmp-interop.md`](../dev/06-xmp-interop.md).
 
 **Changing in the next release** ([ADR 0040](../dev/adr/0040-flags-per-picture-in-the-database.md)).
-Writing needs no setting any more; stars and colour labels go into the sidecars at once, flags
-and *Keep RAW* only through *Write picks/rejects to XMP* in the ⋯ menu. digiKam sees honeycomb's
-picks and rejects only after that, and until then may still show an old pick of its own.
+Writing needs no setting any more; stars, colour labels, flags and *Keep RAW* go into the
+sidecars at once, and a pick you change in digiKam is taken over at the next visit ([ADR 0056](../dev/adr/0056-flags-written-to-xmp-by-default.md)).
+With *Write picks, rejects and Keep RAW to XMP sidecars* off, flags and *Keep RAW* go only through
+*Write picks/rejects to XMP* in the ⋯ menu, and until then digiKam may still show an old pick of
+its own.
 
 Flags and *Keep RAW* belong to the file's Nextcloud file ID, not to its name or content. A photo
 you upload again or that a rescan registers under a new ID loses its flag; the sidecar stays the

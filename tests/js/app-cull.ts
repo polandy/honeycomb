@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { SidecarWrites } from '../../src/cull-seams.ts'
-import type { FlagApi, FlagItem } from '../../src/flags-api.ts'
+import type { FlagApi, FlagItem, SidecarEtagItem } from '../../src/flags-api.ts'
 import type { FolderDoneApi } from '../../src/folder-done.ts'
 import type { LibraryApi } from '../../src/folders.ts'
 import type { ImmichCullApi } from '../../src/immich-cull.ts'
@@ -72,14 +72,15 @@ export function stored(fileId: number, flag: StoredDecision['flag']): StoredDeci
 }
 
 /** A flag API over a table of rows as the server keeps them, which records each save and take-over. */
-export function fakeFlags(rows: readonly StoredDecision[] = []) {
-	const table = new Map<number, FlagItem>(rows.map(({ fileId, flag, keepRaw }) => [fileId, { fileId, flag, keepRaw }]))
+export function fakeFlags(rows: readonly StoredDecision[] = [], etags: Record<number, string> = {}) {
+	const table = new Map<number, FlagItem>(rows.map(({ fileId, flag, keepRaw }) => [fileId, { fileId, flag, keepRaw, sidecarEtag: etags[fileId] ?? null }]))
 	const saves: FlagItem[][] = []
 	const takenOver: FlagItem[][] = []
+	const etagSaves: SidecarEtagItem[][] = []
 	const api: { -readonly [K in keyof FlagApi]: FlagApi[K] } = {
 		save: async (items) => {
 			saves.push([...items])
-			items.forEach((item) => table.set(item.fileId, item))
+			items.forEach((item) => table.set(item.fileId, { ...item, sidecarEtag: table.get(item.fileId)?.sidecarEtag ?? null }))
 			return { saved: items.map(({ fileId }) => fileId), skipped: [] }
 		},
 		takeOver: async (items) => {
@@ -88,13 +89,19 @@ export function fakeFlags(rows: readonly StoredDecision[] = []) {
 			inserted.forEach((item) => table.set(item.fileId, item))
 			return { saved: inserted.map(({ fileId }) => fileId), skipped: items.filter((item) => !inserted.includes(item)).map(({ fileId }) => ({ fileId, reason: 'exists' })) }
 		},
+		saveSidecarEtags: async (items) => {
+			etagSaves.push([...items])
+			const set = items.filter(({ fileId }) => table.has(fileId))
+			set.forEach(({ fileId, sidecarEtag }) => table.set(fileId, { ...table.get(fileId)!, sidecarEtag }))
+			return { saved: set.map(({ fileId }) => fileId), skipped: items.filter((item) => !set.includes(item)).map(({ fileId }) => ({ fileId, reason: 'missing' })) }
+		},
 	}
 	/** The entries as a listing carries them, with the table's rows. */
 	const listed = (entries: readonly ListingEntry[]): ListingEntry[] => entries.map((entry) => {
 		const row = table.get(entry.fileId)
-		return row === undefined ? entry : { ...entry, flag: row.flag, keepRaw: row.keepRaw, flagUpdated: 1 }
+		return row === undefined ? entry : { ...entry, flag: row.flag, keepRaw: row.keepRaw, flagUpdated: 1, sidecarEtag: row.sidecarEtag ?? null }
 	})
-	return { api, saves, takenOver, listed }
+	return { api, saves, takenOver, etagSaves, listed }
 }
 
 /** The flag table of each mounted app, which its listings carry. */
@@ -135,7 +142,7 @@ export function provideSkipActions() {
 export const NO_SERIES = async () => ({ series: [], keptOut: [] })
 
 /** Sidecars with nothing to read, written without a word. */
-export const NO_SIDECARS: SidecarWrites = { read: async () => ({ decided: [], tagged: [] }), write: async () => ({ written: 0, failed: [] }), writeTags: async () => ({ written: 0, failed: [] }) }
+export const NO_SIDECARS: SidecarWrites = { read: async () => ({ decided: [], tagged: [], rows: new Map() }), write: async () => ({ written: 0, failed: [] }), writeTags: async () => ({ written: 0, failed: [] }) }
 
 /** A series save that keeps each series' id and gives a new one 100. */
 export const SAVED_SERIES = async (write: SeriesWrite) => ({ ids: write.series.map(({ id }) => id ?? 100) })

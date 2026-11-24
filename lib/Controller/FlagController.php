@@ -43,4 +43,12 @@ final class FlagController extends Controller {
 	public function takeOver(array $flags = []): Response {
 		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->flags->takeOver($user, $flags)));
 	}
+
+	/** Records the sidecar ETags given on the rows of the files the user may flag (ADR 0056). */
+	#[NoAdminRequired]
+	#[FrontpageRoute(verb: 'PUT', url: '/api/v1/flags/sidecar-etags')]
+	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
+	public function sidecarEtags(array $etags = []): Response {
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->flags->sidecarEtags($user, $etags)));
+	}
 }

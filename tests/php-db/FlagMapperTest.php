@@ -83,6 +83,32 @@ final class FlagMapperTest extends DbTestCase {
 		$this->assertEquals([7 => self::flag(7, Flag::Rejected), 8 => self::flag(8, Flag::Unflagged, false, 200)], $this->flags->find([7, 8]));
 	}
 
+	// spec: DECISIONS-001.41
+	public function testATakeOverStoresTheSidecarEtag(): void {
+		$this->flags->takeOver([new FileFlag(7, Flag::Picked, false, 100, null, 'e1'), self::flag(8)]);
+
+		$this->assertEquals([7 => new FileFlag(7, Flag::Picked, false, 100, null, 'e1'), 8 => self::flag(8)], $this->flags->find([7, 8]));
+	}
+
+	// spec: DECISIONS-001.42
+	public function testASaveKeepsTheSidecarEtag(): void {
+		$this->flags->takeOver([new FileFlag(7, Flag::Rejected, false, 100, null, 'e1')]);
+
+		$this->flags->save([new FileFlag(7, Flag::Picked, true, 200, 'bob', 'other')]);
+
+		$this->assertEquals([7 => new FileFlag(7, Flag::Picked, true, 200, 'bob', 'e1')], $this->flags->find([7]));
+	}
+
+	// spec: DECISIONS-001.40
+	public function testSetsTheSidecarEtagsOfExistingRowsOnly(): void {
+		$this->flags->save([self::flag(7, Flag::Rejected, true, 100, self::USER), self::flag(9)]);
+
+		$set = $this->flags->setSidecarEtags([7 => 'e2', 8 => 'e2', 9 => null]);
+
+		$this->assertEqualsCanonicalizing([7, 9], $set);
+		$this->assertEquals([7 => new FileFlag(7, Flag::Rejected, true, 100, self::USER, 'e2'), 9 => self::flag(9)], $this->flags->find([7, 8, 9]));
+	}
+
 	// spec: DECISIONS-001.34
 	public function testATakeOverTakesTheWriteLockWithTheFirstStatementOfItsTransaction(): void {
 		$this->requireSqlite();

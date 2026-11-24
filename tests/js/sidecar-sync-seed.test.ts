@@ -54,7 +54,7 @@ describe('useSidecarSync: seed', () => {
 		expect(textOf(packet, 'xmp:Rating')).toBe('3')
 		expect(textOf(packet, 'digiKam:PickLabel')).toBe('3')
 		expect(packet.properties.has(key('honeycomb:KeepRaw'))).toBe(false)
-		expect(savedSidecars).toEqual([[{ path: JPEG_SIDECAR, created: true }]])
+		expect(savedSidecars).toEqual([[expect.objectContaining({ picture: PAIR, path: JPEG_SIDECAR, created: true, fileId: 30 })]])
 		expect(sidecars.known.value.get(JPEG_SIDECAR)?.fileId).toBe(30)
 	})
 

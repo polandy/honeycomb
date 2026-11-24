@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import FolderTree from '../../../src/components/FolderTree.vue'
 import SettingsDialog from '../../../src/components/SettingsDialog.vue'
 import StatisticsSettings from '../../../src/components/StatisticsSettings.vue'
+import XmpSidecarSettings from '../../../src/components/XmpSidecarSettings.vue'
 import { DEFAULT_SETTINGS } from '../../../src/logic/settings.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 import { AppSettingsDialogStub, AppSettingsSectionStub } from './stubs.ts'
@@ -39,12 +40,13 @@ describe('SettingsDialog', () => {
 	beforeEach(installMarkedCatalogue)
 	afterEach(uninstallMarkedCatalogue)
 
-	// spec: SETTINGS-001.7, SETTINGS-001.28, STATS-001.2
-	it('shows the sections of the settings, all translated, and no XMP sidecars section', () => {
+	// spec: SETTINGS-001.7, SETTINGS-001.28, STATS-001.2, SETTINGS-001.34
+	it('shows the sections of the settings, all translated, with an XMP sidecars section of one switch', () => {
 		const wrapper = mountDialog()
 
 		expect(wrapper.find('[role="dialog"]').attributes('name')).toBe(`${MARK}Settings`)
-		expect(wrapper.findAll('h3').map((heading) => plain(heading.text()))).toEqual(['File types', 'Folder layout', 'Library', 'Loupe gestures', 'Keyboard', 'Moving photos', 'Statistics', 'Cache'])
+		expect(wrapper.findAll('h3').map((heading) => plain(heading.text()))).toEqual(['File types', 'Folder layout', 'Library', 'Loupe gestures', 'Keyboard', 'Moving photos', 'XMP sidecars', 'Statistics', 'Cache'])
+		expect(wrapper.find('section#xmp-sidecars').findAll('.checkbox-radio-switch')).toHaveLength(1)
 		expect(untranslatedText(wrapper.element as Element)).toEqual([...DEFAULT_SETTINGS.rawExtensions, ...DEFAULT_SETTINGS.renderedExtensions].map((extension) => `.${extension.toUpperCase()}`))
 	})
 
@@ -141,6 +143,17 @@ describe('SettingsDialog', () => {
 
 		expect(wrapper.emitted('update')).toEqual([[{ keepStatistics: true }]])
 		expect(wrapper.emitted('resetStatistics')).toHaveLength(1)
+	})
+
+	// spec: SETTINGS-001.34
+	it('passes the XMP sidecars section\'s change on', () => {
+		const wrapper = mountDialog({ writeFlagsToXmp: false })
+		const section = wrapper.findComponent(XmpSidecarSettings)
+		expect(section.props('settings')).toMatchObject({ writeFlagsToXmp: false })
+
+		section.vm.$emit('update', { writeFlagsToXmp: true })
+
+		expect(wrapper.emitted('update')).toEqual([[{ writeFlagsToXmp: true }]])
 	})
 
 	// spec: SETTINGS-001.27

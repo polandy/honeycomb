@@ -7,7 +7,8 @@ until you reload the page.
 
 **Changing in the next release** ([ADR 0040](../dev/adr/0040-flags-per-picture-in-the-database.md)).
 The *XMP sidecars* section and its *Off* and *On* go: honeycomb writes wherever you may change the
-folder. Admins get *Clean up orphaned data* in the *Cache* section.
+folder. The section keeps one switch for flags instead. Admins get *Clean up orphaned data* in the
+*Cache* section.
 
 ## File types
 
@@ -71,6 +72,14 @@ Changing a list pairs the open folders again at once; your decisions stay.
   without a camera model (`unknown`).
 - **Favourite folders:** the folders you starred in the move dialog. ✕ removes one; add them in
   the move dialog.
+
+## XMP sidecars
+
+- **Write picks, rejects and Keep RAW to XMP sidecars:** on by default. Each pick, reject and
+  *Keep RAW* goes into the photo's sidecars at once, and a pick or reject changed in digiKam is
+  taken over the next time you open the folder ([sidecars](sidecars.md)). Turn it off to keep
+  them in honeycomb alone; *Write picks/rejects to XMP* in the ⋯ menu then writes them when you
+  choose. Stars, colour labels and tags are written either way.
 
 ## Statistics
 

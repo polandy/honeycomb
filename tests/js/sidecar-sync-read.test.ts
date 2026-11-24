@@ -123,12 +123,12 @@ describe('useSidecarSync: read', () => {
 		const { sidecars, stored, answer, fail } = sync()
 		answer.current = () => ({ result: 'notPermitted' })
 
-		expect(await sidecars.read([single(1)])).toEqual({ decided: [], tagged: [] })
+		expect(await sidecars.read([single(1)])).toEqual({ decided: [], tagged: [], rows: new Map() })
 		expect(stored).toEqual([])
 		expect(warn).toHaveBeenCalledWith('Could not read a sidecar', { fileId: 101, reason: 'notPermitted' })
 
 		fail.lookup = true
-		expect(await sidecars.read([single(1)])).toEqual({ decided: [], tagged: [] })
+		expect(await sidecars.read([single(1)])).toEqual({ decided: [], tagged: [], rows: new Map() })
 		expect(warn).toHaveBeenCalledWith('Could not look up the sidecars; their pictures show what the cache holds', expect.anything())
 	})
 
@@ -136,7 +136,7 @@ describe('useSidecarSync: read', () => {
 	it('looks nothing up without sources', async () => {
 		const { sidecars, lookups, stored } = sync()
 
-		expect(await sidecars.read([pictureOf(listingEntry(1, '/P/A.NEF', { mime: 'image/x-nikon-nef' }))])).toEqual({ decided: [], tagged: [] })
+		expect(await sidecars.read([pictureOf(listingEntry(1, '/P/A.NEF', { mime: 'image/x-nikon-nef' }))])).toEqual({ decided: [], tagged: [], rows: new Map() })
 		expect(lookups).toEqual([])
 		expect(stored).toEqual([])
 	})

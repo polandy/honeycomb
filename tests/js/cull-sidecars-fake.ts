@@ -10,6 +10,7 @@ import type { SidecarFailure, SidecarFailureReason } from '../../src/logic/sidec
 import type { StatsCounts } from '../../src/logic/stats-counts.ts'
 import type { Tag, TagChange } from '../../src/logic/tag.ts'
 import type { ListedAccess } from '../../src/logic/writability.ts'
+import type { XmpCacheRow } from '../../src/logic/xmp-cache.ts'
 
 import { shallowRef } from 'vue'
 import { useCull } from '../../src/cull.ts'
@@ -25,16 +26,18 @@ export function access(permissions: Record<string, number> = {}): ListedAccess {
 	return { folders: ['/Trip/A', '/Trip/B'].map((path) => ({ path, permissions: permissions[path] ?? 31 })) }
 }
 
-/** A cull whose sidecars read as `takenOver`, fail as `failing` names, whose flag table holds `stored`, and whose writes are recorded; `open` lists the entries with the table's rows. */
-export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promise<Map<string, Decision>>, tagsTakenOver?: Map<string, Tag[]>, failing?: Record<string, SidecarFailureReason> } = {}) {
+/** A cull whose sidecars read as `takenOver` with the cache `rows`, fail as `failing` names, whose flag table holds `stored` with the `etags`, and whose writes are recorded; `open` lists the entries with the table's rows; flags are written to the sidecars only with `writeFlags`. */
+export function cullWith(options: { stored?: StoredDecision[], etags?: Record<number, string>, takenOver?: Promise<Map<string, Decision>>, tagsTakenOver?: Map<string, Tag[]>, failing?: Record<string, SidecarFailureReason>, rows?: XmpCacheRow[], writeFlags?: boolean } = {}) {
 	const reads: string[][] = []
+	/** The paths each sidecar write was limited to, by picture name. */
+	const writePaths: Record<string, string[]>[] = []
 	const tagWrites: { names: string[], change: TagChange }[] = []
 	const writes: { name: string, decision: Decision, fields: readonly string[] }[][] = []
 	/** The counts each sidecar write carried, by picture name. */
 	const counted: Record<string, StatsCounts>[] = []
 	const countsOf = (pictures: readonly Picture<ListingEntry>[], counts?: (picture: Picture<ListingEntry>) => StatsCounts) => Object.fromEntries(pictures.map((picture) => [picture.baseName, counts?.(picture) ?? {}]))
-	const settings = shallowRef<Settings>(DEFAULT_SETTINGS)
-	const flags = fakeFlags(options.stored)
+	const settings = shallowRef<Settings>({ ...DEFAULT_SETTINGS, writeFlagsToXmp: options.writeFlags ?? false })
+	const flags = fakeFlags(options.stored, options.etags)
 	const notSaved: number[] = []
 	const failures = (pictures: readonly Picture<ListingEntry>[]): SidecarFailure[] => pictures.flatMap((picture) => {
 		const reason = options.failing?.[picture.baseName]
@@ -48,10 +51,12 @@ export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promi
 			return {
 				decided: pictures.filter((picture) => decisions.has(picture.baseName)).map((picture) => ({ picture, decision: decisions.get(picture.baseName)! })),
 				tagged: pictures.filter((picture) => tags.has(picture.baseName)).map((picture) => ({ picture, tags: tags.get(picture.baseName)! })),
+				rows: new Map((options.rows ?? []).map((row) => [row.fileId, row])),
 			}
 		},
-		write: async (pictures, decisionOf, fields, _paths, counts) => {
+		write: async (pictures, decisionOf, fields, paths, counts) => {
 			counted.push(countsOf(pictures, counts))
+			writePaths.push(Object.fromEntries([...(paths ?? new Map()).entries()].map(([picture, limited]) => [picture.baseName, [...limited]])))
 			writes.push(pictures.map((picture) => ({ name: picture.baseName, decision: decisionOf(picture), fields })))
 			return { written: pictures.length, failed: failures(pictures) }
 		},
@@ -75,5 +80,5 @@ export function cullWith(options: { stored?: StoredDecision[], takenOver?: Promi
 	}, fakeStorage(), () => settings.value, sidecars, (photos) => notSaved.push(photos))
 	const picture = (name: string): Picture<ListingEntry> => cull.pictures.value.find((each) => each.baseName === name)!
 	const open = (set: FolderSet, entries: readonly ListingEntry[], listed?: ListedAccess) => cull.open(set, flags.listed(entries), listed)
-	return { cull, reads, writes, settings, picture, tagWrites, flags, open, notSaved, counted }
+	return { cull, reads, writes, writePaths, settings, picture, tagWrites, flags, open, notSaved, counted }
 }

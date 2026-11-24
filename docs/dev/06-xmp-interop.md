@@ -3,11 +3,13 @@
 How honeycomb reads and writes ratings, flags and colour labels in the XMP sidecars that digiKam,
 darktable and Lightroom Classic use (Q2, Q3, milestone M5). Since ADR 0032 the sidecar is the source
 of truth and digiKam compatibility comes first; since ADR 0040 that holds for rating, colour label
-and tags, while the flag and *Keep RAW* live in the database (`honeycomb_decisions`) and reach the
-sidecars only through *Write picks/rejects to XMP*. Where a rule below has not landed yet, it names
-the pull request of ADR 0032 or of M8 (ADR 0040) that brings it. The file rules are Framehive's
-(CORE-009, LIBRARY-001), so a sidecar means the same in both apps; what honeycomb adds is marked.
-The user-facing summary is [`user/ratings-flags-colours.md`](../user/ratings-flags-colours.md).
+and tags, while the flag and *Keep RAW* live in the database (`honeycomb_decisions`); since ADR 0056
+they are written to the sidecars by default and a flag changed there is taken over, and with that
+setting off they reach the sidecars only through *Write picks/rejects to XMP*. Where a rule below
+has not landed yet, it names the pull request of ADR 0032 or of M8 (ADR 0040) that brings it. The
+file rules are Framehive's (CORE-009, LIBRARY-001), so a sidecar means the same in both apps; what
+honeycomb adds is marked. The user-facing summary is
+[`user/ratings-flags-colours.md`](../user/ratings-flags-colours.md).
 
 ## Sources
 
@@ -196,7 +198,7 @@ Camera Raw settings and unknown namespaces (CORE-009.3, .23).
 | Property | Written | Value |
 |---|---|---|
 | `xmp:Rating` | always | rating 0–5, also when *rejected*; never −1 (ADR 0032) |
-| `digiKam:PickLabel` | always; from M8 PR 6 only by *Write picks/rejects to XMP* | 3 *picked*, 1 *rejected*; *unflagged* removes it, but an existing 2 (pending) stays |
+| `digiKam:PickLabel` | with a flag step (ADR 0056); with that setting off only by *Write picks/rejects to XMP* | 3 *picked*, 1 *rejected*; *unflagged* removes it, but an existing 2 (pending) stays |
 | `xmpDM:pick` | as `digiKam:PickLabel` | 1 *picked*, −1 *rejected*; removed when *unflagged*, as digiKam does |
 | `xmpDM:good` | as `digiKam:PickLabel` | `True` *picked*, `False` *rejected*; removed when *unflagged* |
 | `digiKam:ColorLabel` | always | 0–9; 0 for none, so digiKam does not fall through to `photoshop:Urgency` |
@@ -205,10 +207,13 @@ Camera Raw settings and unknown namespaces (CORE-009.3, .23).
 | `honeycomb:KeepRaw` | always, for a pair; from M8 PR 6 as `digiKam:PickLabel` | `True` when marked *Keep RAW*; removed when not marked |
 | tags | not yet on a change; the module is ready (XMP-004) | `digiKam:TagsList`, `lr:hierarchicalSubject`, `dc:subject` ([`07-tags.md`](07-tags.md)) |
 
-From M8 PR 6 a rating, colour label or tag write leaves the three flag fields and
-`honeycomb:KeepRaw` as the sidecar holds them, and *Write picks/rejects to XMP* writes those four
-alone, into each sidecar of a rateable picture that differs from the database; it creates a
-sidecar only for a picture that is flagged or marked *Keep RAW* (XMP-003.37–.41, ADR 0040).
+A rating, colour label or tag write leaves the three flag fields and `honeycomb:KeepRaw` as the
+sidecar holds them. A flag or *Keep RAW* step writes those four with the setting *Write picks,
+rejects and Keep RAW to XMP sidecars* on, and *Write picks/rejects to XMP* writes them alone, into
+each sidecar of a rateable picture that differs from the database; both create a sidecar only for
+a picture that is flagged or marked *Keep RAW* (XMP-003.37–.43, ADR 0040, ADR 0056). With the
+setting on, a visit takes over a flag whose sidecar changed since honeycomb last knew its ETag
+(`honeycomb_decisions.sidecar_etag`), and writes the row's flag where it did not (XMP-003.46–.48).
 
 A **darktable sidecar** is one with `darktable:xmp_version`. digiKam's fields are written always
 because digiKam is the target of M5; darktable's only where darktable already wrote.

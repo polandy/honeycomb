@@ -98,7 +98,7 @@ test('starts every text line of a settings section at its heading', async ({ pag
 })
 
 // spec: SETTINGS-001.28
-test('decides at once over a stored switch Off, with no XMP sidecars section', async ({ page }) => {
+test('decides at once over a stored switch Off, the XMP sidecars section holding only the flag switch', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	await putSettings(page, { sidecarWrite: 'off', confirmedSharedFolders: [7] })
 	const loupe = await openLoupe(page)
@@ -113,7 +113,9 @@ test('decides at once over a stored switch Off, with no XMP sidecars section', a
 	await page.getByRole('button', { name: 'Settings', exact: true }).click()
 	const settings = page.getByRole('dialog', { name: 'Settings' })
 	await expect(settings.getByRole('heading', { name: 'Cache', exact: true })).toBeVisible()
-	await expect(settings.getByRole('heading', { name: 'XMP sidecars', exact: true })).toHaveCount(0)
+	await expect(settings.getByRole('heading', { name: 'XMP sidecars', exact: true })).toBeVisible()
+	await expect(settings.getByLabel('Write picks, rejects and Keep RAW to XMP sidecars')).toBeChecked()
+	await expect(settings.getByText('Write decisions to XMP sidecars', { exact: true })).toHaveCount(0)
 })
 
 // spec: SETTINGS-001.25

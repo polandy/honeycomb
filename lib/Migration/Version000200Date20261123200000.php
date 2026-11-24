@@ -69,7 +69,7 @@ final class Version000200Date20261123200000 extends SimpleMigrationStep {
 			'updated_at' => [Types::BIGINT, self::NOT_NULL],
 			// Who decided last, for information only; null once that user is deleted.
 			'updated_by' => [Types::STRING, self::OPTIONAL_USER_ID],
-			// The sidecar's etag at the last match of decision and XMP; null until a sync writes it.
+			// The ETag of this member's sidecar as honeycomb last knew it (ADR 0056); null while unknown.
 			'sidecar_etag' => [Types::STRING, self::OPTIONAL_ETAG],
 		], unique: [['file_id'], ['connection_id', 'asset_id']], index: [['user_id'], ['source', 'connection_id']]);
 		// A file's position has file_id; an Immich position has asset_id and taken_at.

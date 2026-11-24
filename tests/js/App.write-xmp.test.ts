@@ -9,10 +9,10 @@ import { mountApp, openCull, stored, toolbarProps } from './app-cull.ts'
 
 enableAutoUnmount(afterEach)
 
-describe('App: Write picks/rejects to XMP', () => {
+describe('App: Write picks/rejects to XMP with the flags kept out of the sidecars', () => {
 	// spec: XMP-003.39, XMP-003.41, GRID-001.21
 	it('counts the sidecars to write, writes them on the menu entry, says so and falls to none', async () => {
-		const { wrapper, sidecarSaves } = mountApp({}, [stored(1, 'picked'), stored(4, 'rejected')])
+		const { wrapper, sidecarSaves } = mountApp({ loadSettings: async () => ({ writeFlagsToXmp: false }) }, [stored(1, 'picked'), stored(4, 'rejected')])
 		await openCull(wrapper)
 		const before = toolbarProps(wrapper).xmpToWrite
 		expect(before).toBeGreaterThan(0)

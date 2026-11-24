@@ -74,6 +74,16 @@ describe('planSaves', () => {
 		expect(next.saves.map(({ item }) => ('path' in item ? item.path : [item.fileId, item.etag]))).toEqual(['/P/IMG_0001.NEF.xmp', [22, 'c']])
 	})
 
+	// spec: XMP-003.43
+	it('creates a missing sidecar for flag fields only while the picture ends flagged or keeps its RAW', () => {
+		const pair = pictureOf(NEF, JPG)
+		const created = (decision: Partial<Decision>) => planSaves(pair, { decision }, new Map(), new Map(), CANONICAL_TIME, undefined, NO_EMBEDDED).saves.length
+
+		expect([created({ flag: 'picked' }), created({ flag: 'rejected', keepRaw: false }), created({ keepRaw: true })]).toEqual([2, 2, 2])
+		expect([created({ flag: 'unflagged' }), created({ flag: 'unflagged', keepRaw: false }), created({ keepRaw: false })]).toEqual([0, 0, 0])
+		expect(created({ flag: 'unflagged', rating: 2 })).toBe(2)
+	})
+
 	it('replaces darktable\'s colour labels only when the colour label differs from the sidecar\'s', () => {
 		const single = pictureOf(listingEntry(5, '/P/D.NEF'), listingEntry(15, '/P/D.NEF.xmp'))
 		const answers = new Map([[15, read(fixtureBytes('darktable.xmp'))]])

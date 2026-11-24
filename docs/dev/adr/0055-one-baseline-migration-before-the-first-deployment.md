@@ -54,7 +54,7 @@ an instance that already ran it (a test server) reinstalls as above.
 - **`honeycomb_decisions.sidecar_etag`** (`string(40)`, null): the sidecar's etag when the row
   and the XMP sidecar last agreed, so a later sync can tell which side changed (digiKam first,
   owner decision 2026-11-24). This change adds the column only; it stays null until the sync
-  writes it.
+  writes it. ADR 0056 widens it to the ETag as honeycomb last knew the sidecar.
 - **`honeycomb_hashes.method`** (`smallint`, not null, default 1): the version of the visual
   hash, as `honeycomb_quality.method` is of the sharpness (ADR 0046). The listing delivers it
   with the hash, a save sends it, the missing-hash walk asks for one method, and the browser
