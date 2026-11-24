@@ -14,11 +14,11 @@ import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import ConfirmDialog from './ConfirmDialog.vue'
 import DeleteStats from './DeleteStats.vue'
 import PictureThumbs from './PictureThumbs.vue'
-import { imageUrl as apiImageUrl } from '../api.ts'
-import { formatFileSize, formatNumber, PLAIN_TEXT } from '../l10n.ts'
+import { imageUrl as apiImageUrl } from '../api/index.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { deleteSummary, filesOf } from '../logic/delete-summary.ts'
 import { badgeExtension } from '../logic/pair-badge.ts'
+import { formatFileSize, formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
 
 const props = withDefaults(defineProps<{
 	/** The rejected pictures. */

@@ -10,9 +10,9 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
 import GridMoreGroup from './GridMoreGroup.vue'
 import GridViewOptions from './GridViewOptions.vue'
-import { keyCap } from '../hotkeys.ts'
-import { formatNumber } from '../l10n.ts'
-import { tip } from '../tooltip.ts'
+import { keyCap } from '../shared/hotkeys.ts'
+import { formatNumber } from '../shared/l10n.ts'
+import { tip } from '../shared/tooltip.ts'
 
 defineProps<{
 	/** How many folders the cull's pictures are in. */

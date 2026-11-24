@@ -13,9 +13,9 @@ import { computed } from 'vue'
 import ConfirmDialog from './ConfirmDialog.vue'
 import DeleteStats from './DeleteStats.vue'
 import TrashFileList from './TrashFileList.vue'
-import { formatNumber } from '../l10n.ts'
 import { filesOf } from '../logic/delete-summary.ts'
-import { failureReason, runningText, skipReason } from '../trash-text.ts'
+import { formatNumber } from '../shared/l10n.ts'
+import { failureReason, runningText, skipReason } from '../trash/trash-text.ts'
 
 const props = defineProps<{
 	report: TrashReport

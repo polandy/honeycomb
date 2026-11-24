@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { WarmOptions } from '../../src/preview-warmer.ts'
+import type { WarmOptions } from '../../src/shared/preview-warmer.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { logger } from '../../src/logger.ts'
-import { usePreviewWarmer, WARMED_PREVIEWS_KEY } from '../../src/preview-warmer.ts'
+import { logger } from '../../src/shared/logger.ts'
+import { usePreviewWarmer, WARMED_PREVIEWS_KEY } from '../../src/shared/preview-warmer.ts'
 import { fakeStorage } from './app-cull.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 

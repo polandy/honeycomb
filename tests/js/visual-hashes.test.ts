@@ -1,16 +1,16 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { WorkerAnswer, WorkerRequest } from '../../src/hash-workers.ts'
+import type { WorkerAnswer, WorkerRequest } from '../../src/hashes/hash-workers.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { imageUrl } from '../../src/api.ts'
-import { APP_SEAMS } from '../../src/app-seams.ts'
-import { logger } from '../../src/logger.ts'
+import { imageUrl } from '../../src/api/index.ts'
+import { APP_SEAMS } from '../../src/app/app-seams.ts'
+import { hashInWorkers, VISUAL_HASHES_KEY } from '../../src/hashes/visual-hashes.ts'
 import { GRID_TIERS, smallSource } from '../../src/logic/image-tiers.ts'
 import { RateLimitedError } from '../../src/logic/retry-after.ts'
-import { hashInWorkers, VISUAL_HASHES_KEY } from '../../src/visual-hashes.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { deferred } from './hash-run-fakes.ts'
 import { listingEntry, picturesOf } from './logic/listing-entries.ts'
 import { BURST, setUp } from './visual-hash-fakes.ts'

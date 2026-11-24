@@ -11,8 +11,8 @@ import { n, t } from '@nextcloud/l10n'
 import { computed } from 'vue'
 import ConfirmDialog from './ConfirmDialog.vue'
 import TrashFileList from './TrashFileList.vue'
-import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
-import { unkeptReason } from '../trash-text.ts'
+import { formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
+import { unkeptReason } from '../trash/trash-text.ts'
 
 const props = defineProps<{
 	/** The files the trash bin would not keep, and why. */

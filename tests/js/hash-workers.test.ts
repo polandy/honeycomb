@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { HashWorker, WorkerAnswer, WorkerRequest } from '../../src/hash-workers.ts'
+import type { HashWorker, WorkerAnswer, WorkerRequest } from '../../src/hashes/hash-workers.ts'
 
 import { describe, expect, it } from 'vitest'
-import { createHashWorkers } from '../../src/hash-workers.ts'
+import { createHashWorkers } from '../../src/hashes/hash-workers.ts'
 
 /** A worker that keeps what it is sent and answers when the test says so. */
 class FakeWorker implements HashWorker {

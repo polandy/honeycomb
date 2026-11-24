@@ -6,8 +6,8 @@
 import { t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
-import { keyCap } from '../hotkeys.ts'
-import { tip } from '../tooltip.ts'
+import { keyCap } from '../shared/hotkeys.ts'
+import { tip } from '../shared/tooltip.ts'
 
 const props = defineProps<{
 	/** Whether the large flag buttons show. */

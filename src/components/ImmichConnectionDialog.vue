@@ -9,8 +9,8 @@ import { t } from '@nextcloud/l10n'
 import { computed, ref } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
-import { connectionLine, IMMICH_SCOPES_URL } from '../immich-text.ts'
-import { formatNumber } from '../l10n.ts'
+import { connectionLine, IMMICH_SCOPES_URL } from '../immich/immich-text.ts'
+import { formatNumber } from '../shared/l10n.ts'
 
 const props = defineProps<{
 	connection: ImmichConnection

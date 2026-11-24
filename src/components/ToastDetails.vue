@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { DetailedToast } from '../toast.ts'
+import type { DetailedToast } from '../shared/toast.ts'
 
 import { t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'

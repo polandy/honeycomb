@@ -7,9 +7,9 @@ import type { Flag } from '../logic/decision.ts'
 
 import { t } from '@nextcloud/l10n'
 import AppIcon from './AppIcon.vue'
-import { FLAG_ICONS, flagLabel } from '../flag-icons.ts'
-import { keyCap } from '../hotkeys.ts'
-import { tip } from '../tooltip.ts'
+import { FLAG_ICONS, flagLabel } from '../cull/flag-icons.ts'
+import { keyCap } from '../shared/hotkeys.ts'
+import { tip } from '../shared/tooltip.ts'
 
 const props = withDefaults(defineProps<{
 	/** The flag, or undefined where a selection's flags differ. */

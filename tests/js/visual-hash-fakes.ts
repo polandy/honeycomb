@@ -5,7 +5,7 @@ import type { Picture } from '../../src/logic/pairing.ts'
 import type { StoredVisualHash } from '../../src/logic/visual-hash.ts'
 
 import { shallowRef } from 'vue'
-import { useVisualHashes } from '../../src/visual-hashes.ts'
+import { useVisualHashes } from '../../src/hashes/visual-hashes.ts'
 import { fakeStorage } from './app-cull.ts'
 import { listingEntry, picturesOf } from './logic/listing-entries.ts'
 

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { FoldersHome as Home } from '../../../src/folders-home.ts'
+import type { FoldersHome as Home } from '../../../src/folders/folders-home.ts'
 
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'

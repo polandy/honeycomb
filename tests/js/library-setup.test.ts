@@ -5,7 +5,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import FolderTree from '../../src/components/FolderTree.vue'
 import LibrarySetup from '../../src/components/LibrarySetup.vue'
-import { logger } from '../../src/logger.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from './l10n/marked-catalogue.ts'
 
 const MARK = TRANSLATED_MARK

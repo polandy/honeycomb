@@ -110,7 +110,7 @@ written as `xmp:Rating` −1. A write of a rating, colour label or tag leaves th
 
 1. An entry of the grid's ⋯ menu, for every picture of the open folder or folder set, whatever
    the filters show (owner, question 1). It replaces *Write decisions to sidecars…* and writes
-   through the existing sidecar write path (`src/sidecar-flow.ts`). There is no switch.
+   through the existing sidecar write path (`src/sidecars/sidecar-flow.ts`). There is no switch.
 2. The entry shows the number of sidecars whose flag or `honeycomb:KeepRaw` differs from the
    database, as the XMP cache states them, plus the sidecars it would create, without asking
    first (owner, question 2): *Write picks/rejects to XMP · 214*.

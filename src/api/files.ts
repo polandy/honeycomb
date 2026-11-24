@@ -7,8 +7,8 @@ import type { TrashExpectation, TrashRequestFile, TrashResponseFile } from '../l
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { browserSchedule } from '../browser-schedule.ts'
 import { CHUNK_TIMEOUT_MS, LISTING_TIMEOUT_MS, withTimeout } from '../logic/timed-request.ts'
+import { browserSchedule } from '../shared/browser-schedule.ts'
 import { API, ApiResponseError, errorCodeOf, isRecord } from './core.ts'
 
 /** The error code of an answer that says the trash bin is off. */

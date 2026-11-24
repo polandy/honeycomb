@@ -3,17 +3,17 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { Folder } from '../api.ts'
+import type { Folder } from '../api/index.ts'
 
 import { t } from '@nextcloud/l10n'
 import { ref } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
 import FolderTree from './FolderTree.vue'
-import { refusalText } from '../folders-text.ts'
-import { PLAIN_TEXT } from '../l10n.ts'
-import { logger } from '../logger.ts'
+import { refusalText } from '../folders/folders-text.ts'
 import { addLibraryRoot, removeLibraryRoot } from '../logic/library-roots.ts'
+import { PLAIN_TEXT } from '../shared/l10n.ts'
+import { logger } from '../shared/logger.ts'
 
 const props = defineProps<{
 	roots: readonly string[]

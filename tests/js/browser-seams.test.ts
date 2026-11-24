@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { APP_SEAMS } from '../../src/app-seams.ts'
-import { fullscreenAvailable, toggleBrowserFullscreen } from '../../src/fullscreen.ts'
-import { formatCaptureDay, formatDateTime, formatDateTimeSeconds, formatDuration, formatFileSize, formatTime } from '../../src/l10n.ts'
-import { observeElementSize } from '../../src/observe-size.ts'
+import { APP_SEAMS } from '../../src/app/app-seams.ts'
+import { fullscreenAvailable, toggleBrowserFullscreen } from '../../src/shared/fullscreen.ts'
+import { formatCaptureDay, formatDateTime, formatDateTimeSeconds, formatDuration, formatFileSize, formatTime } from '../../src/shared/l10n.ts'
+import { observeElementSize } from '../../src/shared/observe-size.ts'
 
 afterEach(() => {
 	vi.restoreAllMocks()

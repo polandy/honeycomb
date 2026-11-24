@@ -18,12 +18,12 @@ import FlagButtons from './FlagButtons.vue'
 import FlagMark from './FlagMark.vue'
 import SharpestMark from './SharpestMark.vue'
 import StarRating from './StarRating.vue'
-import { keyCap } from '../hotkeys.ts'
-import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { isDecided } from '../logic/decision.ts'
 import { gridSrcset, imageMember, smallSource } from '../logic/image-tiers.ts'
-import { useReportedMenu } from '../reported-menu.ts'
-import { tip } from '../tooltip.ts'
+import { keyCap } from '../shared/hotkeys.ts'
+import { formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
+import { useReportedMenu } from '../shared/reported-menu.ts'
+import { tip } from '../shared/tooltip.ts'
 
 const props = defineProps<{
 	picture: Picture<ListingEntry>

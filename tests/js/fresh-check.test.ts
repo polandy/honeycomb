@@ -1,13 +1,13 @@
+import type { ListingEntry } from '../../src/logic/listing.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { FreshCheckApi } from '../../src/fresh-check.ts'
-import type { ListingEntry } from '../../src/logic/listing.ts'
+import type { FreshCheckApi } from '../../src/shared/fresh-check.ts'
 
 import { describe, expect, it, vi } from 'vitest'
-import { freshCheck } from '../../src/fresh-check.ts'
-import { logger } from '../../src/logger.ts'
 import { DEFAULT_PAIRING_SETTINGS } from '../../src/logic/pairing.ts'
+import { freshCheck } from '../../src/shared/fresh-check.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { listingEntry, pictureOf, picturesOf } from './logic/listing-entries.ts'
 
 const RAW = listingEntry(1, '/Trip/IMG_1.NEF', { mime: 'image/x-dcraw' })

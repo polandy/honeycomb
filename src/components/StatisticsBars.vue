@@ -7,7 +7,7 @@ import type { Bar, Period } from '../logic/statistics.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
-import { formatDay, formatDayRange, formatNumber, PLAIN_TEXT } from '../l10n.ts'
+import { formatDay, formatDayRange, formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
 
 const props = defineProps<{ bars: readonly Bar[], period: Period }>()
 

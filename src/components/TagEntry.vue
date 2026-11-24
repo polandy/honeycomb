@@ -9,9 +9,9 @@ import { t } from '@nextcloud/l10n'
 import { computed, onMounted, ref, useTemplateRef } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
-import { PLAIN_TEXT } from '../l10n.ts'
 import { cycleMatch, knownTag, tagChips, tagMatches, typedTag } from '../logic/tag-entry.ts'
-import { useModalDialog } from '../modal-dialog.ts'
+import { PLAIN_TEXT } from '../shared/l10n.ts'
+import { useModalDialog } from '../shared/modal-dialog.ts'
 
 const props = withDefaults(defineProps<{
 	/** The tags of each picture the entry changes. */

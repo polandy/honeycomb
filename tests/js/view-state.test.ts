@@ -5,8 +5,8 @@ import type { ViewState } from '../../src/logic/view-state.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { logger } from '../../src/logger.ts'
-import { GESTURE_GUIDE_SEEN_KEY, INFO_OPEN_KEY, useViewState } from '../../src/view-state.ts'
+import { GESTURE_GUIDE_SEEN_KEY, INFO_OPEN_KEY, useViewState } from '../../src/settings/view-state.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { fakeStorage } from './app-cull.ts'
 
 afterEach(() => {

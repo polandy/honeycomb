@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { LibraryScanning } from '../../src/api.ts'
-import type { FolderList } from '../../src/folders.ts'
+import type { LibraryScanning } from '../../src/api/index.ts'
+import type { FolderList } from '../../src/folders/folders.ts'
 import type { FolderRow } from '../../src/logic/folder-row.ts'
 
 import { mount } from '@vue/test-utils'

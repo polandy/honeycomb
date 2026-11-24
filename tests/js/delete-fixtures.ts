@@ -1,18 +1,18 @@
-// SPDX-FileCopyrightText: 2026 honeycomb contributors
-// SPDX-License-Identifier: AGPL-3.0-or-later
-import type { FreshCheck } from '../../src/delete-flow.ts'
 import type { Decision } from '../../src/logic/decision.ts'
 import type { DecisionFlow } from '../../src/logic/fresh-check.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
 import type { ChunkLimits } from '../../src/logic/request-chunks.ts'
 import type { TrashExpectation, TrashReport, TrashResponseFile } from '../../src/logic/trash-report.ts'
+// SPDX-FileCopyrightText: 2026 honeycomb contributors
+// SPDX-License-Identifier: AGPL-3.0-or-later
+import type { FreshCheck } from '../../src/trash/delete-flow.ts'
 
 import { ref, shallowRef } from 'vue'
-import { useDeleteFlow } from '../../src/delete-flow.ts'
 import { UNDECIDED } from '../../src/logic/decision.ts'
 import { DEFAULT_PAIRING_SETTINGS } from '../../src/logic/pairing.ts'
 import { withoutFiles } from '../../src/logic/trash-report.ts'
+import { useDeleteFlow } from '../../src/trash/delete-flow.ts'
 import { listingEntry, picturesOf } from './logic/listing-entries.ts'
 
 export const [PAIR, SINGLE, OTHER] = picturesOf([

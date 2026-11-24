@@ -80,7 +80,7 @@ is logged in [`decisions.md`](decisions.md).
   deleted for good is an audit line the same way (DELETE-001.14). Checked: PHPUnit
   `tests/php/Conventions/LogContextTest.php` and Vitest `tests/js/conventions/log-paths.test.ts`.
   The text of a caught exception is not checked.
-- **Promises are awaited or started with `fireAndLog(work, what)`** (`src/fire-and-log.ts`), which
+- **Promises are awaited or started with `fireAndLog(work, what)`** (`src/shared/fire-and-log.ts`), which
   logs a rejection; `void` is not enough in `src/` (`@typescript-eslint/no-floating-promises` with
   `ignoreVoid: false`, `no-misused-promises`).
 

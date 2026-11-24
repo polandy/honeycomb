@@ -3,8 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { Folder } from '../api.ts'
-import type { OrphanedSidecarSeams } from '../orphaned-sidecars-run.ts'
+import type { Folder } from '../api/index.ts'
+import type { OrphanedSidecarSeams } from '../trash/orphaned-sidecars-run.ts'
 
 import { t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
@@ -15,9 +15,9 @@ import NcContent from '@nextcloud/vue/components/NcContent'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import AppIcon from './AppIcon.vue'
 import FolderTree from './FolderTree.vue'
-import { formatFileSize } from '../l10n.ts'
-import { useOrphanedSidecars } from '../orphaned-sidecars-run.ts'
-import { folderText, moveText, reportText, skipReason, totalText } from '../orphaned-sidecars-text.ts'
+import { formatFileSize } from '../shared/l10n.ts'
+import { useOrphanedSidecars } from '../trash/orphaned-sidecars-run.ts'
+import { folderText, moveText, reportText, skipReason, totalText } from '../trash/orphaned-sidecars-text.ts'
 
 const props = defineProps<{
 	seams: OrphanedSidecarSeams

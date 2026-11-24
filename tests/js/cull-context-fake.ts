@@ -1,19 +1,19 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Component } from 'vue'
-import type { CullContext } from '../../src/cull-context.ts'
+import type { CullContext } from '../../src/cull/cull-context.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
 
 import { flushPromises, mount } from '@vue/test-utils'
 import { computed, defineComponent, h, ref, shallowRef } from 'vue'
-import { imageUrl } from '../../src/api.ts'
-import { provideCullContext } from '../../src/cull-context.ts'
-import { useCull } from '../../src/cull.ts'
+import { imageUrl } from '../../src/api/index.ts'
+import { provideCullContext } from '../../src/cull/cull-context.ts'
+import { useCull } from '../../src/cull/cull.ts'
+import { useSelectionMode } from '../../src/grid/selection-mode.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { useLoupeOpening } from '../../src/loupe-opening.ts'
-import { useSelectionMode } from '../../src/selection-mode.ts'
-import { useSeriesCompare } from '../../src/series-compare.ts'
+import { useLoupeOpening } from '../../src/loupe/loupe-opening.ts'
+import { useSeriesCompare } from '../../src/series/series-compare.ts'
 import { ENTRIES, fakeFlags, fakeStorage, fakeViewState, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET } from './app-cull.ts'
 
 /** One call of a context action: its name and arguments. */

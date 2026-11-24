@@ -6,9 +6,9 @@
 import type { PictureFile } from '../logic/delete-summary.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
 
-import { formatFileSize } from '../l10n.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { badgeExtension } from '../logic/pair-badge.ts'
+import { formatFileSize } from '../shared/l10n.ts'
 
 /** A file of a delete, with why it stayed when it failed. */
 export interface TrashFileRow {

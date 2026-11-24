@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { dismissesToast, SWIPE_PX, TOAST_MS, useToast } from '../../src/toast.ts'
+import { dismissesToast, SWIPE_PX, TOAST_MS, useToast } from '../../src/shared/toast.ts'
 import { fakeScheduler } from './fake-scheduler.ts'
 
 describe('useToast', () => {

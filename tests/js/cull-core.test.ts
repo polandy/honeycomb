@@ -6,10 +6,10 @@ import type { PictureId } from '../../src/logic/picture-id.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { useCullCore } from '../../src/cull-core.ts'
-import { logger } from '../../src/logger.ts'
+import { useCullCore } from '../../src/cull/cull-core.ts'
 import { UNDECIDED } from '../../src/logic/decision.ts'
 import { assetPicture } from '../../src/logic/immich-asset.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { immichEntry } from './logic/immich-fixtures.ts'
 
 afterEach(() => {

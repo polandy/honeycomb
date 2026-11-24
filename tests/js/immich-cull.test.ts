@@ -3,9 +3,9 @@
 // @vitest-environment happy-dom
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { PAGE_SIZE } from '../../src/immich-cull.ts'
-import { logger } from '../../src/logger.ts'
+import { PAGE_SIZE } from '../../src/immich/immich-cull.ts'
 import { imageMember } from '../../src/logic/image-tiers.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { assetIds, COUNTS, cullOn, page } from './immich-cull-fixtures.ts'
 import { NOW } from './logic/immich-fixtures.ts'
 

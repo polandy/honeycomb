@@ -6,7 +6,7 @@
 import type { Flag } from '../logic/decision.ts'
 
 import AppIcon from './AppIcon.vue'
-import { FLAG_ICONS } from '../flag-icons.ts'
+import { FLAG_ICONS } from '../cull/flag-icons.ts'
 
 const props = defineProps<{ flag: Exclude<Flag, 'unflagged'> }>()
 </script>

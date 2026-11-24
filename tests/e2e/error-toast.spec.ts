@@ -5,7 +5,7 @@ import { randomUUID } from 'node:crypto'
 import { cullFolder, E2E_SETTINGS, putSettings } from './cull.ts'
 import { createFolder, JPEG, upload } from './files.ts'
 
-// The toast's lifetime (src/toast.ts), a little over.
+// The toast's lifetime (src/shared/toast.ts), a little over.
 const PAST_TOAST_MS = 6000
 
 test.afterEach(async ({ page }) => {

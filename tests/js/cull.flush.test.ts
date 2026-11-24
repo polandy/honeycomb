@@ -1,14 +1,14 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { SidecarWrites } from '../../src/cull-seams.ts'
+import type { SidecarWrites } from '../../src/cull/cull-seams.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
-import { useCull } from '../../src/cull.ts'
+import { useCull } from '../../src/cull/cull.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { useBundledSidecars } from '../../src/sidecar-bundle.ts'
-import { useSidecarSync } from '../../src/sidecar-sync.ts'
+import { useBundledSidecars } from '../../src/sidecars/sidecar-bundle.ts'
+import { useSidecarSync } from '../../src/sidecars/sidecar-sync.ts'
 import { ENTRIES, fakeFlags, fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET } from './app-cull.ts'
 import { access } from './cull-sidecars-fake.ts'
 import { fakeScheduler } from './fake-scheduler.ts'

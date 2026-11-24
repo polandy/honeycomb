@@ -1,16 +1,16 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { CullApi } from '../../src/cull-seams.ts'
+import type { CullApi } from '../../src/cull/cull-seams.ts'
 import type { StoredDecision } from '../../src/logic/decision.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { SeriesWrite } from '../../src/logic/series-edit.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { useCull } from '../../src/cull.ts'
-import { logger } from '../../src/logger.ts'
+import { useCull } from '../../src/cull/cull.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { fakeFlags, fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET, stored } from './app-cull.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 

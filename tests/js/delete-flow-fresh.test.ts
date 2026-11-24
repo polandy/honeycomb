@@ -1,12 +1,12 @@
+import type { ListingEntry } from '../../src/logic/listing.ts'
+import type { Picture } from '../../src/logic/pairing.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { FreshCheck } from '../../src/delete-flow.ts'
-import type { ListingEntry } from '../../src/logic/listing.ts'
-import type { Picture } from '../../src/logic/pairing.ts'
+import type { FreshCheck } from '../../src/trash/delete-flow.ts'
 
 import { describe, expect, it } from 'vitest'
-import { skipReason } from '../../src/trash-text.ts'
+import { skipReason } from '../../src/trash/trash-text.ts'
 import { allTrashed, flow, OTHER, PAIR } from './delete-fixtures.ts'
 import { listingEntry, pictureOf } from './logic/listing-entries.ts'
 

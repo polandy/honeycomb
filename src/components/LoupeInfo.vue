@@ -13,8 +13,8 @@ import type { LockReason, Writability } from '../logic/writability.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed } from 'vue'
-import { colourLabelName } from '../colour-labels.ts'
-import { formatDateTime, formatFileSize, formatNumber } from '../l10n.ts'
+import { colourLabelName } from '../cull/colour-labels.ts'
+import { measureById } from '../hashes/quality-measures.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { parseFileName } from '../logic/file-name.ts'
 import { imageMember } from '../logic/image-tiers.ts'
@@ -22,7 +22,7 @@ import { isListingPicture } from '../logic/listing.ts'
 import { badgeExtension } from '../logic/pair-badge.ts'
 import { exposureText, exposureTimeText, pictureExposure, shakeRisk } from '../logic/shake-risk.ts'
 import { sidecarTargets } from '../logic/xmp/targets.ts'
-import { measureById } from '../quality-measures.ts'
+import { formatDateTime, formatFileSize, formatNumber } from '../shared/l10n.ts'
 
 const props = withDefaults(defineProps<{
 	picture: Picture<SourceEntry>

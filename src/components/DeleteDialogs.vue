@@ -3,12 +3,12 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { DeleteDialog } from '../delete-flow.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { RawRemoval } from '../logic/raw-removal.ts'
 import type { SendProgress } from '../logic/request-chunks.ts'
+import type { DeleteDialog } from '../trash/delete-flow.ts'
 
 import DeleteReport from './DeleteReport.vue'
 import DeleteSummary from './DeleteSummary.vue'

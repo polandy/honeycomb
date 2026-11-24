@@ -3,8 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { Folder } from '../api.ts'
-import type { FoldersHome } from '../folders-home.ts'
+import type { Folder } from '../api/index.ts'
+import type { FoldersHome } from '../folders/folders-home.ts'
 
 import FoldersScreen from './FoldersScreen.vue'
 import LibrarySetup from './LibrarySetup.vue'

@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { ImmichCullApi } from '../../src/immich-picture-source.ts'
+import type { ImmichCullApi } from '../../src/immich/immich-picture-source.ts'
 
 import { describe, expect, it, vi } from 'vitest'
-import { immichPictureSource, PAGE_SIZE } from '../../src/immich-picture-source.ts'
+import { immichPictureSource, PAGE_SIZE } from '../../src/immich/immich-picture-source.ts'
 import { GRID_TIERS } from '../../src/logic/image-tiers.ts'
 import { decisionRow } from '../../src/logic/immich-asset.ts'
 import { defaultImmichFilters, requestFilters } from '../../src/logic/immich-filters.ts'

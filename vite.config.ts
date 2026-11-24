@@ -17,7 +17,7 @@ function scriptMap(): Plugin {
 
 // Each entry injects its own CSS; the hash worker is built next to the entries in js/.
 // Entry names carry their content hash, so a new build busts the browser cache (ADR 0033).
-export default createAppConfig({ main: 'src/main.ts', similarity: 'src/similarity-main.ts', statistics: 'src/statistics-main.ts', 'orphaned-sidecars': 'src/orphaned-sidecars-main.ts' }, {
+export default createAppConfig({ main: 'src/app/main.ts', similarity: 'src/hashes/similarity-main.ts', statistics: 'src/statistics/statistics-main.ts', 'orphaned-sidecars': 'src/trash/orphaned-sidecars-main.ts' }, {
 	inlineCSS: { relativeCSSInjection: true },
 	config: {
 		plugins: [scriptMap()],

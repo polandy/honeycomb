@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { ImmichApi } from '../../src/immich-source.ts'
+import type { ImmichApi } from '../../src/immich/immich-source.ts'
 import type { ConnectionStatus, ImmichAvailability } from '../../src/logic/immich-connections.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { IMMICH_CONNECTION_KEY, useImmichSource } from '../../src/immich-source.ts'
-import { logger } from '../../src/logger.ts'
+import { IMMICH_CONNECTION_KEY, useImmichSource } from '../../src/immich/immich-source.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { fakeStorage } from './app-cull.ts'
 
 afterEach(() => {

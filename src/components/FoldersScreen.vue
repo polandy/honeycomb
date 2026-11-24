@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { FolderList } from '../folders.ts'
+import type { FolderList } from '../folders/folders.ts'
 import type { FolderFilter, FolderSort } from '../logic/folder-list.ts'
 import type { FolderRow } from '../logic/folder-row.ts'
 
@@ -15,10 +15,10 @@ import FolderListRow from './FolderListRow.vue'
 import FolderMenu from './FolderMenu.vue'
 import FoldersProgress from './FoldersProgress.vue'
 import ProgressBar from './ProgressBar.vue'
-import { updatingText, yearHeadingText } from '../folders-text.ts'
-import { formatNumber } from '../l10n.ts'
+import { updatingText, yearHeadingText } from '../folders/folders-text.ts'
 import { buildFolderList, filterCounts } from '../logic/folder-list.ts'
 import { folderProgress } from '../logic/folder-progress.ts'
+import { formatNumber } from '../shared/l10n.ts'
 
 const props = defineProps<{
 	folders: FolderList

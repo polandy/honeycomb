@@ -5,10 +5,10 @@ import type { EmbeddedXmpAnswer } from '../../src/logic/embedded-xmp.ts'
 import type { SidecarFailure, SidecarSaveItem } from '../../src/logic/sidecar-sync.ts'
 
 import { describe, expect, it, vi } from 'vitest'
-import { logger } from '../../src/logger.ts'
 import { readXmp } from '../../src/logic/xmp/parse.ts'
 import { serializeXmp } from '../../src/logic/xmp/serialize.ts'
-import { useSidecarSync } from '../../src/sidecar-sync.ts'
+import { logger } from '../../src/shared/logger.ts'
+import { useSidecarSync } from '../../src/sidecars/sidecar-sync.ts'
 import { listingEntry, pictureOf } from './logic/listing-entries.ts'
 import { CANONICAL_TIME, itemsOf, packetOf, seq, textOf } from './logic/xmp/xmp-builders.ts'
 

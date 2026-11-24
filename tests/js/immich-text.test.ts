@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { connectionFacts, connectionLine, IMMICH_ADMIN_URL, stateHelp } from '../../src/immich-text.ts'
+import { connectionFacts, connectionLine, IMMICH_ADMIN_URL, stateHelp } from '../../src/immich/immich-text.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK as MARK, uninstallMarkedCatalogue } from './l10n/marked-catalogue.ts'
 
 const PHONE = { id: 'andy-phone', label: 'Andy · Phone', url: 'https://immich.example' }

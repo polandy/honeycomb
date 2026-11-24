@@ -3,8 +3,8 @@
 // @vitest-environment happy-dom
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { RequestTimeoutError, TrashBinOffError } from '../../src/api.ts'
-import { logger } from '../../src/logger.ts'
+import { RequestTimeoutError, TrashBinOffError } from '../../src/api/index.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { allMoved, moveFlow } from './move-fixtures.ts'
 
 afterEach(() => vi.restoreAllMocks())

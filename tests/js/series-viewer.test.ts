@@ -5,7 +5,7 @@ import type { Decision } from '../../src/logic/decision.ts'
 import { describe, expect, it } from 'vitest'
 import { shallowRef } from 'vue'
 import { UNDECIDED } from '../../src/logic/decision.ts'
-import { useSeriesViewer } from '../../src/series-viewer.ts'
+import { useSeriesViewer } from '../../src/series/series-viewer.ts'
 
 interface Shot { readonly name: string }
 

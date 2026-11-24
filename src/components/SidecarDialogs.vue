@@ -4,7 +4,7 @@
 -->
 <script setup lang="ts">
 import type { FolderSet } from '../logic/folder-set.ts'
-import type { SidecarFlow } from '../sidecar-flow.ts'
+import type { SidecarFlow } from '../sidecars/sidecar-flow.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
@@ -12,7 +12,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import { folderLabel } from '../logic/cull.ts'
 import { splitFolder } from '../logic/file-name.ts'
-import { sidecarFailureReason } from '../sidecar-text.ts'
+import { sidecarFailureReason } from '../sidecars/sidecar-text.ts'
 
 const props = defineProps<{
 	flow: SidecarFlow

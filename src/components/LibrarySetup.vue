@@ -3,13 +3,13 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { Folder } from '../api.ts'
+import type { Folder } from '../api/index.ts'
 
 import { t } from '@nextcloud/l10n'
 import { ref } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import LibraryRoots from './LibraryRoots.vue'
-import { PLAIN_TEXT } from '../l10n.ts'
+import { PLAIN_TEXT } from '../shared/l10n.ts'
 
 const props = defineProps<{
 	listFolders: (path: string) => Promise<Folder[]>

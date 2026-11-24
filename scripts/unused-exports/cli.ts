@@ -29,7 +29,7 @@ function walk(directory: string): string[] {
 const paths = [...ROOTS.flatMap(walk), ...readdirSync('.').filter((entry) => CONFIG_PATTERN.test(entry))]
 const files: SourceFile[] = paths.map((path) => ({ path, text: readFileSync(path, 'utf8') }))
 // Judged: the app; tests, scripts and config only count as importers.
-const findings = findUnusedExports(files, (path) => path.startsWith('src/') && path !== 'src/main.ts')
+const findings = findUnusedExports(files, (path) => path.startsWith('src/') && path !== 'src/app/main.ts')
 for (const finding of findings) {
 	process.stdout.write(`FAIL ${finding.path}:${finding.line} ${finding.name}: ${ACTIONS[finding.action]}\n`)
 }

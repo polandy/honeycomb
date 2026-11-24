@@ -5,8 +5,8 @@
 <script setup lang="ts">
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
-import { keyCap } from '../hotkeys.ts'
-import { tip } from '../tooltip.ts'
+import { keyCap } from '../shared/hotkeys.ts'
+import { tip } from '../shared/tooltip.ts'
 
 const props = defineProps<{
 	/** Where it goes back to, e.g. "Back to the series". */

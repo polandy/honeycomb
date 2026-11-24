@@ -1,19 +1,19 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { ListEntries } from '../../src/folder-count.ts'
+import type { ListEntries } from '../../src/folders/folder-count.ts'
 import type { FolderSet } from '../../src/logic/folder-set.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { ResumePosition } from '../../src/logic/resume-position.ts'
-import type { ToastAction } from '../../src/toast.ts'
+import type { ToastAction } from '../../src/shared/toast.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
-import { RequestTimeoutError } from '../../src/api.ts'
-import { logger } from '../../src/logger.ts'
+import { RequestTimeoutError } from '../../src/api/index.ts'
+import { useRecent } from '../../src/folders/recent.ts'
 import { DEFAULT_PAIRING_SETTINGS } from '../../src/logic/pairing.ts'
-import { useRecent } from '../../src/recent.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
 afterEach(() => {

@@ -3,14 +3,14 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
+import type { QualityOf } from '../hashes/quality-of.ts'
 import type { ImageUrlFor } from '../logic/image-tiers.ts'
 import type { SourceEntry } from '../logic/listing.ts'
 import type { GestureAction, GesturePointer, SwipeDirection, SwipeSetting } from '../logic/loupe-gesture.ts'
 import type { PinchCentre, Size, Zoom } from '../logic/loupe-zoom.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { PictureId } from '../logic/picture-id.ts'
-import type { ObserveSize } from '../observe-size.ts'
-import type { QualityOf } from '../quality-of.ts'
+import type { ObserveSize } from '../shared/observe-size.ts'
 
 import { computed, onBeforeUnmount, onMounted, reactive, ref, useTemplateRef, watch } from 'vue'
 import LoupeSwipeHint from './LoupeSwipeHint.vue'

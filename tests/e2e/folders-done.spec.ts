@@ -7,7 +7,7 @@ import { expectAccessible, SCHEMES } from './a11y.ts'
 import { E2E_SETTINGS, putSettings } from './cull.ts'
 import { expectTouchTargets } from './touch-targets.ts'
 
-// The *Mark done* toast's lifetime (src/folder-done.ts), a little under and a little over.
+// The *Mark done* toast's lifetime (src/folders/folder-done.ts), a little under and a little over.
 const BEFORE_UNDO_MS = 7500
 const PAST_UNDO_MS = 1000
 const ROOT = '/Library'

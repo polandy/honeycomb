@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { SidecarWrites } from '../../src/cull-seams.ts'
+import type { SidecarWrites } from '../../src/cull/cull-seams.ts'
 import type { Decision, StoredDecision } from '../../src/logic/decision.ts'
 import type { FolderSet } from '../../src/logic/folder-set.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
@@ -13,7 +13,7 @@ import type { ListedAccess } from '../../src/logic/writability.ts'
 import type { XmpCacheRow } from '../../src/logic/xmp-cache.ts'
 
 import { shallowRef } from 'vue'
-import { useCull } from '../../src/cull.ts'
+import { useCull } from '../../src/cull/cull.ts'
 import { UNDECIDED } from '../../src/logic/decision.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
 import { fakeFlags, fakeStorage, NO_SERIES, SAVED_SERIES } from './app-cull.ts'

@@ -6,12 +6,12 @@ import type { StatsAnswer } from '../../../src/logic/statistics.ts'
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import StatisticsPage from '../../../src/components/StatisticsPage.vue'
-import { formatDay } from '../../../src/l10n.ts'
-import { logger } from '../../../src/logger.ts'
 import { METRIC } from '../../../src/logic/statistics.ts'
+import { formatDay } from '../../../src/shared/l10n.ts'
+import { logger } from '../../../src/shared/logger.ts'
 import { doneRow, row } from '../logic/folder-fixtures.ts'
 
-vi.mock('../../../src/logger.ts', () => ({ logger: { error: vi.fn() } }))
+vi.mock('../../../src/shared/logger.ts', () => ({ logger: { error: vi.fn() } }))
 
 const TODAY = '2026-11-20'
 const COUNTERS = [

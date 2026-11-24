@@ -6,7 +6,7 @@
 import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
 import ProgressBar from './ProgressBar.vue'
-import { decidedText, shownDecidedText } from '../decision-text.ts'
+import { decidedText, shownDecidedText } from '../cull/decision-text.ts'
 
 const props = defineProps<{
 	decided: number

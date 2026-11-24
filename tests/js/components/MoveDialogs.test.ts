@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { Folder } from '../../../src/api.ts'
+import type { Folder } from '../../../src/api/index.ts'
 
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'

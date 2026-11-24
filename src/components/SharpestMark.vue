@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import AppIcon from './AppIcon.vue'
-import { tip } from '../tooltip.ts'
+import { tip } from '../shared/tooltip.ts'
 
 const props = defineProps<{
 	/** Only the icon, named by its label and tooltip, for a thumbnail. */

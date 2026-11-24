@@ -8,8 +8,8 @@ import type { Picture } from '../logic/pairing.ts'
 import { n } from '@nextcloud/l10n'
 import { computed } from 'vue'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
-import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { ambiguousNames } from '../logic/ambiguous-names.ts'
+import { formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
 
 const props = defineProps<{
 	/** The pictures the grid shows. */

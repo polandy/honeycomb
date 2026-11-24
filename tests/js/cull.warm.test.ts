@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest'
-import { useCull } from '../../src/cull.ts'
+import { useCull } from '../../src/cull/cull.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
 import { ENTRIES, fakeFlags, fakeStorage, NO_SERIES, NO_SIDECARS, NO_TAGS, SAVED_SERIES, SET } from './app-cull.ts'
 import { listingEntry } from './logic/listing-entries.ts'

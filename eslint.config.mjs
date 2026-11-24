@@ -8,6 +8,37 @@ const TYPESCRIPT_FILES = ['**/*.ts', '**/*.vue']
 const LOGIC_FILES = ['src/logic/**/*.ts']
 const TEST_FILES = ['tests/**/*.ts']
 
+// The folders of src/ a folder may import besides itself and the layers (docs/dev/03-coding-standards.md, Packages).
+const LAYERS = ['logic', 'api', 'shared', 'components']
+const FOLDER_IMPORTS = {
+	logic: [],
+	shared: ['logic'],
+	api: ['logic', 'shared', 'hashes'],
+	cull: [...LAYERS, 'folders', 'grid', 'hashes', 'loupe', 'move', 'series', 'settings', 'sidecars', 'statistics', 'trash'],
+	folders: LAYERS,
+	grid: LAYERS,
+	hashes: LAYERS,
+	immich: [...LAYERS, 'cull', 'settings'],
+	loupe: [...LAYERS, 'hashes', 'series', 'settings'],
+	move: [...LAYERS, 'trash'],
+	series: [...LAYERS, 'hashes'],
+	settings: LAYERS,
+	sidecars: [...LAYERS, 'cull'],
+	statistics: [...LAYERS, 'settings'],
+	trash: LAYERS,
+}
+const FOLDERS = ['app', 'components', ...Object.keys(FOLDER_IMPORTS)]
+
+/**
+ * The import pattern that keeps a folder out of the folders it does not list.
+ *
+ * @param {string} folder the folder under src/
+ */
+function folderPattern(folder) {
+	const forbidden = FOLDERS.filter((other) => other !== folder && !FOLDER_IMPORTS[folder].includes(other))
+	return { regex: `^(\\.\\./)+(${forbidden.join('|')})/`, message: `src/${folder} imports only the folders it lists in eslint.config.mjs.` }
+}
+
 const WALL_CLOCK = [
 	{ selector: 'CallExpression[callee.object.name="Date"][callee.property.name="now"]', message: 'Inject a clock.' },
 	{ selector: 'NewExpression[callee.name="Date"][arguments.length=0]', message: 'Inject a clock.' },
@@ -82,11 +113,15 @@ export default [
 				patterns: [{
 					group: ['vue', 'pinia', '@nextcloud/*', 'axios'],
 					message: 'Logic modules stay pure (ADR 0006); wire them in a component or store.',
-				}],
+				}, folderPattern('logic')],
 			}],
 			'no-restricted-syntax': ['error', ...WALL_CLOCK, RANDOMNESS],
 		},
 	},
+	...Object.keys(FOLDER_IMPORTS).filter((folder) => folder !== 'logic').map((folder) => ({
+		files: [`src/${folder}/**/*.ts`, `src/${folder}/**/*.vue`],
+		rules: { 'no-restricted-imports': ['error', { patterns: [folderPattern(folder)] }] },
+	})),
 	{
 		files: TEST_FILES,
 		rules: {

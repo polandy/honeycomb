@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
+import { measureById, QUALITY_MEASURES } from '../../src/hashes/quality-measures.ts'
+import { measureFetched } from '../../src/hashes/sharpness-drawing.ts'
 import { SHARPNESS_METHOD } from '../../src/logic/sharpness.ts'
-import { measureById, QUALITY_MEASURES } from '../../src/quality-measures.ts'
-import { measureFetched } from '../../src/sharpness-drawing.ts'
 
 describe('the quality measure registry', () => {
 	// spec: SERIES-006.22

@@ -3,16 +3,16 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { BrowserStorage } from '../browser-storage.ts'
-import type { useImmichCull } from '../immich-cull.ts'
+import type { useImmichCull } from '../immich/immich-cull.ts'
 import type { DecisionIntent } from '../logic/decision-change.ts'
 import type { Flag } from '../logic/decision.ts'
 import type { SourceEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { Settings } from '../logic/settings.ts'
-import type { ObserveSize } from '../observe-size.ts'
-import type { Toast } from '../toast.ts'
-import type { ViewStateStore } from '../view-state.ts'
+import type { ViewStateStore } from '../settings/view-state.ts'
+import type { BrowserStorage } from '../shared/browser-storage.ts'
+import type { ObserveSize } from '../shared/observe-size.ts'
+import type { Toast } from '../shared/toast.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed, nextTick, ref, useTemplateRef } from 'vue'
@@ -23,11 +23,11 @@ import FlagFilter from './FlagFilter.vue'
 import ImmichFilterBar from './ImmichFilterBar.vue'
 import PhotoGrid from './PhotoGrid.vue'
 import PhotoLoupe from './PhotoLoupe.vue'
-import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { LOUPE_AHEAD, loupeCounter } from '../logic/immich-paging.ts'
 import { keptIndex } from '../logic/loupe-pictures.ts'
 import { DECISIONS_ONLY } from '../logic/opened-source.ts'
 import { DEFAULT_TILE_SIZE } from '../logic/tile-size.ts'
+import { formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
 
 const props = withDefaults(defineProps<{
 	/** The opened connection's cull. */

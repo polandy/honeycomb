@@ -4,8 +4,8 @@ import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { formatTime } from '../../src/l10n.ts'
-import { seriesSubtitle } from '../../src/series-subtitle.ts'
+import { seriesSubtitle } from '../../src/series/series-subtitle.ts'
+import { formatTime } from '../../src/shared/l10n.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue } from './l10n/marked-catalogue.ts'
 import { listingEntry, picturesOf } from './logic/listing-entries.ts'
 

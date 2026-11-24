@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { onBrowserPageHide } from '../../src/page-hide.ts'
+import { onBrowserPageHide } from '../../src/shared/page-hide.ts'
 
 afterEach(() => vi.restoreAllMocks())
 

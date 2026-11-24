@@ -3,14 +3,14 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { Toast } from '../toast.ts'
+import type { Toast } from '../shared/toast.ts'
 
 import { t } from '@nextcloud/l10n'
 import { onBeforeUnmount } from 'vue'
 import AppIcon from './AppIcon.vue'
-import { keyCap } from '../hotkeys.ts'
-import { dismissesToast } from '../toast.ts'
-import { tip } from '../tooltip.ts'
+import { keyCap } from '../shared/hotkeys.ts'
+import { dismissesToast } from '../shared/toast.ts'
+import { tip } from '../shared/tooltip.ts'
 
 const props = defineProps<{
 	toast: Toast

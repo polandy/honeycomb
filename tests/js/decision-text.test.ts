@@ -3,7 +3,7 @@
 import type { DecisionChange } from '../../src/logic/decision-change.ts'
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { changeText, decidedText, flagsNotSavedText, redoneText, shownDecidedText, undoneText } from '../../src/decision-text.ts'
+import { changeText, decidedText, flagsNotSavedText, redoneText, shownDecidedText, undoneText } from '../../src/cull/decision-text.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue } from './l10n/marked-catalogue.ts'
 
 const escapeMark = TRANSLATED_MARK.replace(/[[\]]/g, '\\$&')

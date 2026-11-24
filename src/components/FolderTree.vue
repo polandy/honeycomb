@@ -3,19 +3,19 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { Folder } from '../api.ts'
+import type { Folder } from '../api/index.ts'
 import type { Branch, TreeNote } from '../logic/folder-tree.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed, nextTick, ref } from 'vue'
 import AppIcon from './AppIcon.vue'
-import { listFolders as apiListFolders } from '../api.ts'
-import { fireAndLog } from '../fire-and-log.ts'
-import { formatNumber, nameComparer, PLAIN_TEXT } from '../l10n.ts'
-import { logger } from '../logger.ts'
+import { listFolders as apiListFolders } from '../api/index.ts'
 import { effectiveExclusions, isHiddenFolder } from '../logic/folder-set.ts'
 import { excludedBelow, excludedFrom, foldersToExpand, includedBy, ROOT, rowOrphans, rowPictures, tickedBelow, treeKey, visibleRows } from '../logic/folder-tree.ts'
-import { tip } from '../tooltip.ts'
+import { fireAndLog } from '../shared/fire-and-log.ts'
+import { formatNumber, nameComparer, PLAIN_TEXT } from '../shared/l10n.ts'
+import { logger } from '../shared/logger.ts'
+import { tip } from '../shared/tooltip.ts'
 
 const props = withDefaults(defineProps<{
 	/** The ticked folder paths. */

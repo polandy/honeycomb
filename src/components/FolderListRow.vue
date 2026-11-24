@@ -9,9 +9,9 @@ import { t } from '@nextcloud/l10n'
 import { computed, useId, useTemplateRef } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
-import { doneText, newBadgeText, photosText, reasonText, splitText, undecidedText } from '../folders-text.ts'
-import { PLAIN_TEXT } from '../l10n.ts'
+import { doneText, newBadgeText, photosText, reasonText, splitText, undecidedText } from '../folders/folders-text.ts'
 import { folderName, isComplete, isRateable, newCount, percent } from '../logic/folder-row.ts'
+import { PLAIN_TEXT } from '../shared/l10n.ts'
 
 const props = defineProps<{ row: FolderRow }>()
 

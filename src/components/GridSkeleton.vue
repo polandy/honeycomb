@@ -27,7 +27,7 @@ const TILES = 60
 	</div>
 </template>
 
-<style src="../skeleton-tile.css" />
+<style src="../grid/skeleton-tile.css" />
 
 <style scoped>
 .grid-skeleton {

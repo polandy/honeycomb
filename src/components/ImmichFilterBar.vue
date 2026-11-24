@@ -9,10 +9,10 @@ import type { ImmichFilters, TimeOption } from '../logic/immich-filters.ts'
 import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import { deviceLabel, kindLabel, timeLabel } from '../immich-filter-text.ts'
-import { formatNumber } from '../l10n.ts'
+import { deviceLabel, kindLabel, timeLabel } from '../immich/immich-filter-text.ts'
 import { sameTimeOption } from '../logic/immich-filters.ts'
 import { toggleChip } from '../logic/picture-filter.ts'
+import { formatNumber } from '../shared/l10n.ts'
 
 const props = defineProps<{
 	filters: ImmichFilters

@@ -1,0 +1,81 @@
+import type { StoredViewState, ViewState, ViewStateKey, ViewStatePatch } from '../logic/view-state.ts'
+// SPDX-FileCopyrightText: 2026 honeycomb contributors
+// SPDX-License-Identifier: AGPL-3.0-or-later
+import type { BrowserStorage } from '../shared/browser-storage.ts'
+
+import { computed, ref } from 'vue'
+import { DEFAULT_VIEW_STATE, NOTHING_STORED, parseLocalValue, parseViewState, planViewState } from '../logic/view-state.ts'
+import { readStored, removeStored } from '../shared/browser-storage.ts'
+import { logger } from '../shared/logger.ts'
+
+/** Where versions before ADR 0019 kept the view state in browser storage. */
+export const INFO_OPEN_KEY = 'honeycomb.infoOpen'
+export const GESTURE_GUIDE_SEEN_KEY = 'honeycomb.gestureGuideSeen'
+/** The first-series hint came after ADR 0019 and never lived there. */
+const LOCAL_KEYS: Partial<Record<ViewStateKey, string>> = { info_panel_open: INFO_OPEN_KEY, gesture_guide_seen: GESTURE_GUIDE_SEEN_KEY }
+
+/** The server seams of the view state (ADR 0019). */
+export interface ViewStateApi {
+	loadViewState(): Promise<unknown>
+	saveViewState(patch: ViewStatePatch): Promise<void>
+}
+
+/** The api whose one read is shared by everyone who asks, so the app reads the view state once per visit (LOUPE-003.5). */
+export function readOnce(api: ViewStateApi): ViewStateApi {
+	let read: Promise<unknown> | null = null
+	return { loadViewState: () => (read ??= api.loadViewState()), saveViewState: api.saveViewState }
+}
+
+/** The loupe's view state: read once, each change applied at once and written key by key; values left in browser storage are taken over once. */
+export function useViewState(api: ViewStateApi, storage: BrowserStorage) {
+	const loaded = ref(false)
+	const state = ref<ViewState>({ ...DEFAULT_VIEW_STATE })
+	const changed = new Set<ViewStateKey>()
+	const local: StoredViewState = { ...NOTHING_STORED }
+	for (const [key, name] of Object.entries(LOCAL_KEYS) as [ViewStateKey, string][]) {
+		local[key] = parseLocalValue(readStored(storage, name))
+	}
+
+	/** Removes the local leftovers of `keys`. */
+	const removeLocal = (keys: readonly ViewStateKey[]) => keys.forEach((key) => LOCAL_KEYS[key] !== undefined && removeStored(storage, LOCAL_KEYS[key]))
+
+	api.loadViewState().then((answer) => {
+		const plan = planViewState(parseViewState(answer), local, changed)
+		state.value = { ...state.value, ...plan.apply }
+		removeLocal(plan.remove)
+		if (Object.keys(plan.upload).length > 0) {
+			api.saveViewState(plan.upload)
+				.then(() => removeLocal(Object.keys(plan.upload) as ViewStateKey[]))
+				.catch((error: unknown) => logger.error('Could not take over the view state from the browser.', { error }))
+		}
+	}).catch((error: unknown) => {
+		logger.error('Could not read the view state; the values in the browser apply.', { error })
+		state.value = { ...state.value, ...planViewState(NOTHING_STORED, local, changed).apply }
+	}).finally(() => {
+		loaded.value = true
+	})
+
+	/** Applies the change at once and writes only its key; a failed write keeps it for this visit. */
+	function change(patch: Partial<ViewState>) {
+		Object.keys(patch).forEach((key) => changed.add(key as ViewStateKey))
+		state.value = { ...state.value, ...patch }
+		api.saveViewState(patch).catch((error: unknown) => logger.error('Could not save the view state.', { error }))
+	}
+
+	return {
+		infoPanelOpen: computed(() => state.value.info_panel_open),
+		/** Seen until the view state is read, so the gesture guide never flashes. */
+		gestureGuideSeen: computed(() => !loaded.value || state.value.gesture_guide_seen),
+		setInfoPanelOpen: (open: boolean) => change({ info_panel_open: open }),
+		dismissGestureGuide: () => change({ gesture_guide_seen: true }),
+		showGestureGuide: () => change({ gesture_guide_seen: false }),
+		/** Seen until the view state is read, like the gesture guide. */
+		seriesHintSeen: computed(() => !loaded.value || state.value.series_hint_seen),
+		dismissSeriesHint: () => change({ series_hint_seen: true }),
+		/** Seen until the view state is read, so the first reject never says it twice. */
+		rejectHintSeen: computed(() => !loaded.value || state.value.reject_hint_seen),
+		dismissRejectHint: () => change({ reject_hint_seen: true }),
+	}
+}
+
+export type ViewStateStore = ReturnType<typeof useViewState>

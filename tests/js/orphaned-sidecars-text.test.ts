@@ -4,7 +4,7 @@
 import type { OrphanedSidecarSkip } from '../../src/logic/orphaned-sidecars.ts'
 
 import { describe, expect, it } from 'vitest'
-import { folderText, moveText, reportText, skipReason, totalText } from '../../src/orphaned-sidecars-text.ts'
+import { folderText, moveText, reportText, skipReason, totalText } from '../../src/trash/orphaned-sidecars-text.ts'
 
 describe('orphaned sidecar texts', () => {
 	// spec: XMP-009.11

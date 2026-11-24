@@ -3,8 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { Folder } from '../api.ts'
-import type { HashRunSeams } from '../hash-run.ts'
+import type { Folder } from '../api/index.ts'
+import type { HashRunSeams } from '../hashes/hash-run.ts'
 
 import { t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
@@ -16,7 +16,7 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import AppIcon from './AppIcon.vue'
 import FolderTree from './FolderTree.vue'
 import ProgressBar from './ProgressBar.vue'
-import { useHashRun } from '../hash-run.ts'
+import { useHashRun } from '../hashes/hash-run.ts'
 
 const props = defineProps<{
 	seams: HashRunSeams

@@ -8,10 +8,10 @@ import type { ResumePosition } from '../logic/resume-position.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed, ref } from 'vue'
-import { decidedText } from '../decision-text.ts'
-import { formatNumber } from '../l10n.ts'
-import { folderSetName } from '../recent-text.ts'
-import { tip } from '../tooltip.ts'
+import { decidedText } from '../cull/decision-text.ts'
+import { folderSetName } from '../folders/recent-text.ts'
+import { formatNumber } from '../shared/l10n.ts'
+import { tip } from '../shared/tooltip.ts'
 
 const props = defineProps<{
 	items: readonly RecentFolderSet[]

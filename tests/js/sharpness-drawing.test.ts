@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import { describe, expect, it, vi } from 'vitest'
+import { BAND_ROWS, measureFetched } from '../../src/hashes/sharpness-drawing.ts'
 import { measureSharpness } from '../../src/logic/sharpness.ts'
-import { BAND_ROWS, measureFetched } from '../../src/sharpness-drawing.ts'
 
 const WIDTH = 6
 const HEIGHT = BAND_ROWS + 5

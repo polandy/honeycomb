@@ -7,11 +7,11 @@ import type { ColourLabel } from '../logic/decision.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, ref } from 'vue'
-import { COLOUR_LABEL_SWATCHES, colourLabelName } from '../colour-labels.ts'
-import { PLAIN_TEXT } from '../l10n.ts'
+import { COLOUR_LABEL_SWATCHES, colourLabelName } from '../cull/colour-labels.ts'
 import { COLOUR_LABELS } from '../logic/decision.ts'
 import { colourLabelKey } from '../logic/hotkeys.ts'
-import { tip } from '../tooltip.ts'
+import { PLAIN_TEXT } from '../shared/l10n.ts'
+import { tip } from '../shared/tooltip.ts'
 
 const props = withDefaults(defineProps<{
 	/** The label, null for none, or undefined where a selection's labels differ. */

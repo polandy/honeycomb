@@ -1,9 +1,0 @@
-/*
- * SPDX-FileCopyrightText: 2026 honeycomb contributors
- * SPDX-License-Identifier: AGPL-3.0-or-later
- */
-/* The app's unscoped styles, in one place so App.vue loads them with one block. */
-@import './flag-fills.css';
-@import './coarse-controls.css';
-@import './navigation-toggle.css';
-@import './reduced-motion.css';

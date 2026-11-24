@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Decision } from '../../src/logic/decision.ts'
 import type { Series } from '../../src/logic/series.ts'
-import type { CompareLanding } from '../../src/series-compare.ts'
+import type { CompareLanding } from '../../src/series/series-compare.ts'
 
 import { describe, expect, it } from 'vitest'
 import { computed, ref, shallowRef } from 'vue'
 import { UNDECIDED } from '../../src/logic/decision.ts'
-import { useRestOffer } from '../../src/rest-offer.ts'
+import { useRestOffer } from '../../src/series/rest-offer.ts'
 
 interface Shot { readonly name: string }
 

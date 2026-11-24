@@ -7,7 +7,7 @@ import type { TagChange } from '../../src/logic/tag.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
-import { useCullTags } from '../../src/cull-tags.ts'
+import { useCullTags } from '../../src/cull/cull-tags.ts'
 import { listingEntry, pictureOf } from './logic/listing-entries.ts'
 
 const PAIR = pictureOf(listingEntry(1, '/P/IMG_1.NEF'), listingEntry(2, '/P/IMG_1.JPG'))

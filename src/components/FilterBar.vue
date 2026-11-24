@@ -11,12 +11,12 @@ import { n, t } from '@nextcloud/l10n'
 import { computed } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import TagFilter from './TagFilter.vue'
-import { COLOUR_LABEL_SWATCHES, colourLabelName } from '../colour-labels.ts'
-import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
+import { COLOUR_LABEL_SWATCHES, colourLabelName } from '../cull/colour-labels.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { COLOUR_LABELS } from '../logic/decision.ts'
 import { activeFilterCount, DEFAULT_FILTERS, nextComparison, toggleChip } from '../logic/picture-filter.ts'
-import { tip } from '../tooltip.ts'
+import { formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
+import { tip } from '../shared/tooltip.ts'
 
 const props = defineProps<{
 	filters: Filters

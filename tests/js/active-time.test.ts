@@ -3,7 +3,7 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest'
 import { effectScope } from 'vue'
-import { useActiveTime } from '../../src/active-time.ts'
+import { useActiveTime } from '../../src/statistics/active-time.ts'
 
 describe('useActiveTime', () => {
 	// spec: STATS-001.39

@@ -34,7 +34,7 @@ server keeps the hashes the browser computed and hands them out with the listing
   hashing goes on meanwhile and no other save is sent (SERIES-003.27).
 - The browser hashes only the hashable pictures (SERIES-001.17) whose shown member has no
   `visualHash` of its current method, and sends what it computed with `saveVisualHashes` in
-  `src/api.ts`: every 100 hashes and when no picture is left to hash; it resolves to the `saved`
+  `src/api/index.ts`: every 100 hashes and when no picture is left to hash; it resolves to the `saved`
   file ids, which the grid does not use, and rejects an answer without them. A failed save is
   logged; the hashes still count for the series of this visit. Browser storage holds no hashes; the
   key `honeycomb.visualHashes` of earlier versions is removed when a cull opens.

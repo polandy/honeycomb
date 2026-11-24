@@ -5,7 +5,7 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import AppIcon from '../../../src/components/AppIcon.vue'
 import FlagButtons from '../../../src/components/FlagButtons.vue'
-import { FLAG_ICONS } from '../../../src/flag-icons.ts'
+import { FLAG_ICONS } from '../../../src/cull/flag-icons.ts'
 
 describe('FlagButtons', () => {
 	// spec: GRID-002.12

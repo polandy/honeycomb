@@ -17,7 +17,7 @@ import NcActionSeparator from '@nextcloud/vue/components/NcActionSeparator'
 import ActionIcon from './ActionIcon.vue'
 import AppIcon from './AppIcon.vue'
 import { menuEntries } from '../logic/series-menu.ts'
-import { entryText, seriesCaption } from '../series-menu-text.ts'
+import { entryText, seriesCaption } from '../series/series-menu-text.ts'
 
 const props = defineProps<{
 	/** The selection as the menu sees it. */

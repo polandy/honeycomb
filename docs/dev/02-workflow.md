@@ -53,7 +53,7 @@ during a task becomes an issue as above.
     (`tests/fixtures/immich/e2e/`); its library is 3,660 uploads built from the search fixture's
     photo, paged by an offset cursor and unfiltered.
 - Coverage gate in CI: logic modules (`src/logic/`) at least 95 % lines and 90 % branches; Vue
-  components and the glue modules (`src/*.ts`) in every file at least 70 % lines and 70 % branches
+  components and the glue modules (`src/<folder>/*.ts`) in every file at least 70 % lines and 70 % branches
   (`perFile`), so one weak file cannot hide behind a strong average. A pull request does not
   lower any of them.
 - Test vectors shared with Framehive (pairing, XMP, name templates) are data files under

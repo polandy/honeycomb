@@ -4,7 +4,7 @@
 import { enableAutoUnmount, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick, ref } from 'vue'
-import { useModalDialog } from '../../src/modal-dialog.ts'
+import { useModalDialog } from '../../src/shared/modal-dialog.ts'
 
 enableAutoUnmount(afterEach)
 

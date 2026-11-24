@@ -1,14 +1,14 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { FlagAnswer, FlagItem } from '../../src/flags-api.ts'
+import type { FlagAnswer, FlagItem } from '../../src/cull/flags-api.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { useCullFlags } from '../../src/cull-flags.ts'
-import { logger } from '../../src/logger.ts'
+import { useCullFlags } from '../../src/cull/cull-flags.ts'
 import { UNDECIDED } from '../../src/logic/decision.ts'
+import { logger } from '../../src/shared/logger.ts'
 
-vi.mock('../../src/logger.ts', () => ({ logger: { warn: vi.fn(), error: vi.fn() } }))
+vi.mock('../../src/shared/logger.ts', () => ({ logger: { warn: vi.fn(), error: vi.fn() } }))
 
 const SAVED: FlagAnswer = { saved: [], skipped: [] }
 const row = (fileId: number) => ({ fileId, ...UNDECIDED, flag: 'picked' as const, rating: 3 })

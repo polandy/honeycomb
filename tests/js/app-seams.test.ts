@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { APP_SEAMS } from '../../src/app-seams.ts'
+import { APP_SEAMS } from '../../src/app/app-seams.ts'
 
 afterEach(() => {
 	document.body.replaceChildren()

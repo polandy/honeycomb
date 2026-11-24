@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fireAndLog } from '../../src/fire-and-log.ts'
-import { logger } from '../../src/logger.ts'
+import { fireAndLog } from '../../src/shared/fire-and-log.ts'
+import { logger } from '../../src/shared/logger.ts'
 
-vi.mock('../../src/logger.ts', () => ({ logger: { error: vi.fn() } }))
+vi.mock('../../src/shared/logger.ts', () => ({ logger: { error: vi.fn() } }))
 
 afterEach(() => vi.clearAllMocks())
 

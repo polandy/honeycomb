@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { Folder } from '../api.ts'
+import type { Folder } from '../api/index.ts'
 import type { FolderMode } from '../logic/pairing.ts'
 import type { ExtensionList, Settings } from '../logic/settings.ts'
 
@@ -21,8 +21,8 @@ import MoveSettings from './MoveSettings.vue'
 import StatisticsSettings from './StatisticsSettings.vue'
 import XmpSidecarSettings from './XmpSidecarSettings.vue'
 import { addExtension, DEFAULT_SUBFOLDERS, folderMode, removeExtension } from '../logic/settings.ts'
-import { extensionRefusalText, shown } from '../settings-text.ts'
-import { tip } from '../tooltip.ts'
+import { extensionRefusalText, shown } from '../settings/settings-text.ts'
+import { tip } from '../shared/tooltip.ts'
 
 const props = defineProps<{
 	open: boolean

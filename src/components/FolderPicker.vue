@@ -3,8 +3,8 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { Folder } from '../api.ts'
-import type { ListEntries } from '../folder-count.ts'
+import type { Folder } from '../api/index.ts'
+import type { ListEntries } from '../folders/folder-count.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
 import type { ImmichOnlyOffer } from '../logic/immich-only.ts'
 import type { ListingEntry } from '../logic/listing.ts'
@@ -21,13 +21,13 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import ConfirmDialog from './ConfirmDialog.vue'
 import FolderTree from './FolderTree.vue'
 import PickerRecentSets from './PickerRecentSets.vue'
-import { listEntries as apiListEntries, listFolders as apiListFolders } from '../api.ts'
-import { useFolderCount } from '../folder-count.ts'
-import { immichOnlyReason } from '../immich-text.ts'
-import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
+import { listEntries as apiListEntries, listFolders as apiListFolders } from '../api/index.ts'
+import { useFolderCount } from '../folders/folder-count.ts'
+import { immichOnlyReason } from '../immich/immich-text.ts'
 import { tapFolder } from '../logic/folder-set.ts'
 import { DEFAULT_PAIRING_SETTINGS } from '../logic/pairing.ts'
 import { PICTURE_CAP } from '../logic/picture-order.ts'
+import { formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
 
 const props = withDefaults(defineProps<{
 	/** The folder set of the open cull; null while none is open. */

@@ -21,7 +21,7 @@ The options:
 
 ## Decision
 
-App provides one **`CullContext`** (`src/cull-context.ts`) with `provideCullContext`; a screen's
+App provides one **`CullContext`** (`src/cull/cull-context.ts`) with `provideCullContext`; a screen's
 root component reads it with `useCullContext`, which throws when no parent provides it. The
 injection key stays private to the module.
 
@@ -31,7 +31,7 @@ injection key stays private to the module.
   uses (`Pick<…>`), so a test fakes a flow in a line. A screen that needs more widens the `Pick`;
   the series compare, whose screen binds nearly all of it, is held whole and faked by a real flow.
 - A leaf with many props takes them in **groups** of one concern each: the toolbar takes
-  `folders`, `view`, `progress`, `selection` and `tasks` (`src/grid-toolbar.ts`).
+  `folders`, `view`, `progress`, `selection` and `tasks` (`src/grid/grid-toolbar.ts`).
 - Tests mount a screen with `mountInCullContext` over `fakeCullContext`
   (`tests/js/cull-context-fake.ts`): a real cull and selection, the flows recorded.
 

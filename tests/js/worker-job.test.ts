@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it, vi } from 'vitest'
-import { answerJob } from '../../src/worker-job.ts'
+import { answerJob } from '../../src/hashes/worker-job.ts'
 
 function runners() {
 	return {

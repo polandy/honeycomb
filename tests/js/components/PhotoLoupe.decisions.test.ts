@@ -4,7 +4,7 @@
 import type { DecisionIntent } from '../../../src/logic/decision-change.ts'
 import type { Decision } from '../../../src/logic/decision.ts'
 import type { Settings } from '../../../src/logic/settings.ts'
-import type { Toast } from '../../../src/toast.ts'
+import type { Toast } from '../../../src/shared/toast.ts'
 import type { PICTURES } from './mount-loupe.ts'
 
 import { enableAutoUnmount } from '@vue/test-utils'
