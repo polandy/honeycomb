@@ -1,4 +1,4 @@
-# 0057 – One picture source adapter for folders and Immich
+# 0058 – One picture source adapter for folders and Immich
 
 - Status: accepted
 - Date: 2026-11-24
