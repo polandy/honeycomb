@@ -17,6 +17,8 @@ Add items with `/todo`.
 
 ## Later
 
+- [ ] Architecture review of 2026-11-24 (done: migration rules ADR 0055, filecache exception ADR 0049, XMP-before-rebuild note, wiring rule ADR 0028): add the canary test that runs `FileCacheLibrary`'s raw `oc_filecache` queries on every Nextcloud version CI covers (ADR 0049) (2026-11-24)
+- [ ] Architecture review of 2026-11-24: rename the glue files in `src/` that share a name with a `src/logic` file (`cull.ts`, `series.ts`, `settings.ts` and 14 more) to `-flow` or `-run` (conventions §1) (2026-11-24)
 - [ ] Folders phase 2 (M12, ADR 0049): shares, group folders and external storage as library roots, with a done status that survives the owner's permissions; the walker of ADR 0025 and the roots check of FOLDERS-005 list only the home storage today (2026-11-22)
 - [ ] Folders phase 2 (M12, ADR 0049): Immich albums as folders in the list, with their own summaries and done status (ADR 0041 keeps them out of phase 1) (2026-11-22)
 - [ ] Immich kinds *Screenshots* and *Messenger images* from the Phase 1 mockup: Immich cannot filter them, so the server cannot count them without paging the library (ADR 0044); needs a server-side classification first (2026-11-20)

@@ -21,6 +21,8 @@ is logged in [`decisions.md`](decisions.md).
   Checked: ESLint bans `vue`, `pinia`, `@nextcloud/*`, `axios`, `Date.now()`, `new Date()` and
   `Math.random()` in `src/logic/`; psalm forbids `time`, `date`, `rand`, `random_int` and friends
   in PHP (use `OCP\AppFramework\Utility\ITimeFactory`, `OCP\Security\ISecureRandom`).
+- **Glue beside logic:** a file in `src/` that wires a pure module of `src/logic/` to the DOM or
+  the network and would share its name takes a suffix, `-flow` or `-run`, so a name means one file.
 - **Small units.** A function does one thing; a source file has at most 300 lines (`.php`, `.ts`,
   `.vue`, `.js`, `.sh`; `scripts/source-sizes.sh`). Over the limit, split along a seam: a pure
   helper, a child component, a service, one test file per behaviour group.

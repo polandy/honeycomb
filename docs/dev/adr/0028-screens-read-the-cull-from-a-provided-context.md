@@ -35,6 +35,14 @@ injection key stays private to the module.
 - Tests mount a screen with `mountInCullContext` over `fakeCullContext`
   (`tests/js/cull-context-fake.ts`): a real cull and selection, the flows recorded.
 
+## Wiring rule
+
+Two ways to hand state down, each for one case:
+
+- **Screens** take what they share through `provide`/`inject` (the `CullContext`).
+- **Flows** (`*-flow.ts`, one user task such as delete or move) take their dependencies as
+  parameters, a context object the caller builds; a flow never injects.
+
 ## Consequences
 
 - App renders `<GridScreen>` instead of the grid's six components and their 60 bindings; it

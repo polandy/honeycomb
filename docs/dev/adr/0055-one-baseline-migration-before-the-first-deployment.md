@@ -67,6 +67,26 @@ an instance that already ran it (a test server) reinstalls as above.
   (`bigint`) are added, both null. A position of a folder set keeps `file_id`; the Immich
   position (IMMICH-003, a later task) writes the other two.
 
+## From 0.2.0: migrations are append-only
+
+Once 0.2.0 is released the baseline is frozen, and every schema or data change follows these
+rules (CLAUDE.md names them in one line).
+
+- **A published migration is never changed or deleted.** Every change is a new migration class
+  and a `info.xml` version bump; the schema fixture and `SchemaTest` change with it.
+- **Idempotent:** a migration checks `hasTable`, `hasColumn` and `hasIndex` before it adds, so a
+  run that stopped half way can run again.
+- **Data moves with the `QueryBuilder`** in `preSchemaChange` or `postSchemaChange`, never with
+  entities or mappers: those describe today's schema, not the one the migration meets.
+- **Large data** is moved by an `IRepairStep` or a background job in portions (a row-id cursor in
+  the app config, as `SweepVanishedRows` does), never in one migration request.
+- **Limits of every supported database** (SQLite, MariaDB, PostgreSQL, Oracle): a table name
+  including the `oc_` prefix has at most 27 characters; a column or index name at most 30; a
+  boolean column is never `NOT NULL`; a `string` has at most 4000 characters, more is `TEXT`; every
+  table has a primary key.
+- **Changing a column** means adding the new one, copying the data in a later step and dropping
+  the old one in a later release, never an in-place `ALTER` that Oracle or SQLite cannot do.
+
 ## Options considered
 
 - **Keep the chain**: no reinstall, but every fresh install replays dropped tables and a data
