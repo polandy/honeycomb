@@ -107,7 +107,12 @@ final class DatabaseBenchTest extends DbTestCase {
 
 	/** Refreshes the planner's statistics, as the autovacuum of a running instance has. */
 	private function analyse(string $table): void {
-		$this->db->executeQuery($this->db->getDatabaseProvider() === 'sqlite' ? 'ANALYZE' : ($this->db->getDatabaseProvider() === 'mysql' ? "ANALYZE TABLE $table" : "ANALYZE $table"))->closeCursor();
+		$statement = match ($this->db->getDatabaseProvider()) {
+			'sqlite' => 'ANALYZE',
+			'mysql' => "ANALYZE TABLE $table",
+			default => "ANALYZE $table",
+		};
+		$this->db->executeQuery($statement)->closeCursor();
 	}
 
 	private static function report(string $line): void {

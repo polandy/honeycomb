@@ -46,13 +46,13 @@ are not a promise for a production host.
 ## Findings and decisions
 
 - **`readCounts` needs no index.** The unique key `(user_id, file_id)` already narrows to the user's
-  rows; the statistics call costs 8–30 ms at 60,000 rows. A narrower index saves at most 2 ms, and
+  rows; the statistics call costs 6–30 ms at 60,000 rows. A narrower index saves at most 2 ms, and
   the covering one makes SQLite slower.
 - **One transaction for a save is fine.** 60,000 cache rows take 0.4–1.0 s and 50,000 Immich
   decisions 0.5–1.8 s in one transaction; chunks of 5,000 are no faster. No change.
 - **The Immich page gains nothing from a `(connection_id, taken_at, asset_id)` index.** The times
   stay the same with it, so the join and its sort are the cost (the query plan was not read). A
-  page costs 40–150 ms at 50,000 decisions, which stays. If a library grows past several hundred
+  page costs 19–150 ms at 50,000 decisions, which stays. If a library grows past several hundred
   thousand decisions, first keep the sort key in the decisions table (a migration, so an ADR),
   once a measurement says so.
 - **`xmp_cache` per user, not shared.** A shared table would hold 1/5 of the rows for five users
