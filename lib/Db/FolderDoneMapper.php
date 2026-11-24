@@ -75,10 +75,4 @@ final class FolderDoneMapper implements FolderDoneStore {
 			->where($query->expr()->eq('user_id', $query->createNamedParameter($userId)))
 			->executeStatement();
 	}
-
-	/** A folder's done status follows it to the new file id, whoever moves it. */
-	#[\Override]
-	public function carryOver(string $userId, int $fileId, int $newFileId): void {
-		$this->carryFileRow($fileId, $newFileId);
-	}
 }

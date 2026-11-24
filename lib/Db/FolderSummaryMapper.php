@@ -86,12 +86,6 @@ final class FolderSummaryMapper implements FolderSummaryStore {
 		}, $this->db);
 	}
 
-	/** A folder's one summary follows it to the new file id, whoever scanned it. */
-	#[\Override]
-	public function carryOver(string $userId, int $fileId, int $newFileId): void {
-		$this->carryFileRow($fileId, $newFileId);
-	}
-
 	#[\Override]
 	public function clearAll(): int {
 		return $this->clearRows(null);
