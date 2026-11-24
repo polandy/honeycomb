@@ -1940,3 +1940,11 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-24: No index and no smaller transaction after measuring 60,000 `xmp_cache` rows and 50,000
   Immich decisions on SQLite, MariaDB and PostgreSQL; `xmp_cache` stays per user
   (`docs/dev/performance.md`, #187, autonomous).
+- 2026-11-24: Coverage gate for glue and Vue files is 70 % lines and branches per file instead of 80 % lines
+  on the aggregate: the owner asked for a per-file branch gate, and a per-file floor catches an untested file
+  the aggregate hid (#187, autonomous).
+- 2026-11-24: The hash, quality and XMP-cache saves update first and insert only rows that matched nothing,
+  as `StatsMapper::add` does, because a read inside the transaction made SQLite answer "database is locked";
+  `RetryOnConflict` repeats a save that meets a concurrent insert (#187, autonomous).
+- 2026-11-24: `scripts/words.sh` fails the build on picture, Retry, Done (display only) and honey frame in
+  UI text and docs; the ⋯ menu is grouped under View, Cull, Files and Picks and rejects (#187, autonomous).
