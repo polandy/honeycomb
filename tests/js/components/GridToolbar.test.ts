@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import AppIcon from '../../../src/components/AppIcon.vue'
 import FlagFilter from '../../../src/components/FlagFilter.vue'
 import { installMarkedCatalogue, TRANSLATED_MARK, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 import { mountToolbar } from './grid-toolbar-mount.ts'
@@ -36,6 +37,12 @@ describe('GridToolbar', () => {
 		expect(button.find('.grid-toolbar__badge').text()).toBe('12')
 		await button.trigger('click')
 		expect(wrapper.emitted('reviewRejects')).toHaveLength(1)
+	})
+
+	it('opens the review from a check-list icon, the delete icon comes in the dialog', () => {
+		const wrapper = mountToolbar({ paths: ['/Trip'], subfolders: false }, 1, { rejected: 2 })
+
+		expect(wrapper.find('[aria-label*="Review rejects"]').findComponent(AppIcon).props('name')).toBe('review')
 	})
 
 	// spec: SERIES-001.6

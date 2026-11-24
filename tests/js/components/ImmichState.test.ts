@@ -3,6 +3,7 @@
 // @vitest-environment happy-dom
 import { enableAutoUnmount, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
+import AppIcon from '../../../src/components/AppIcon.vue'
 import ImmichState from '../../../src/components/ImmichState.vue'
 
 const PHONE = { id: 'andy-phone', label: 'Andy · Phone', url: 'https://immich.example' }
@@ -20,6 +21,7 @@ describe('ImmichState', () => {
 		expect(wrapper.text()).toContain('Immich is unavailable because of the server configuration')
 		expect(wrapper.text()).toContain('Your Nextcloud folders work as before.')
 		expect(wrapper.findAll('button')).toHaveLength(0)
+		expect(wrapper.findComponent(AppIcon).props('name')).toBe('server')
 	})
 
 	// spec: IMMICH-001.19
