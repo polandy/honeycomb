@@ -115,4 +115,21 @@ describe('createLoadQueue', () => {
 
 		expect(loader.started).toEqual(['running', 'next'])
 	})
+
+	it('reports a settled callback that throws and goes on with the next load', async () => {
+		const loader = fakeLoader()
+		const reported: unknown[] = []
+		const queue = createLoadQueue(loader.load, 1, (error) => reported.push(error))
+		const failure = new Error('callback')
+
+		queue.enqueue('a', 0, () => {
+			throw failure
+		})
+		queue.enqueue('b', 1, ignore)
+		loader.finish('a')
+		await flushPromises()
+
+		expect(reported).toEqual([failure])
+		expect(loader.started).toEqual(['a', 'b'])
+	})
 })

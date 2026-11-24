@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\Controller\ApiResponse;
-use OCA\Honeycomb\Controller\ImmichApi;
 use OCA\Honeycomb\Controller\ImmichController;
 use OCA\Honeycomb\Controller\WriteRateLimit;
 use OCA\Honeycomb\Immich\AssetEntries;
@@ -228,7 +227,7 @@ final class ImmichControllerTest extends TestCase {
 		return new ImmichController(
 			'honeycomb',
 			$this->createStub(IRequest::class),
-			new ImmichApi(new ApiResponse($session)),
+			new ApiResponse($session),
 			new Connections($config, $this->files, new ConnectionsFileShape(), $logger),
 			new ImmichStatus($client, $filter),
 			new ImmichListing($client, $filter, $cursors, $entries, $time, $this->decisions, new DecidedPages($client, $filter, $cursors, $entries, $this->decisions)),

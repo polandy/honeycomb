@@ -10,8 +10,11 @@ namespace OCA\Honeycomb\Service;
 use OCP\App\IAppManager;
 use OCP\Files\File;
 use OCP\Files\Folder;
+use OCP\Files\GenericFileException;
+use OCP\Files\InvalidPathException;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
+use OCP\Files\StorageNotAvailableException;
 use OCP\IUser;
 use OCP\Lock\LockedException;
 use Psr\Log\LoggerInterface;
@@ -162,7 +165,8 @@ final class TrashService {
 	private function size(File $file): int {
 		try {
 			return (int)$file->getSize();
-		} catch (\Exception $e) {
+		} catch (GenericFileException|InvalidPathException|StorageNotAvailableException|NotPermittedException|LockedException|NotFoundException $e) {
+			// Statistics are best effort; the delete must not fail for them.
 			$this->logger->warning('Could not read the size of a file to count it', ['fileId' => $file->getId(), 'exception' => $e]);
 			return 0;
 		}
@@ -183,7 +187,7 @@ final class TrashService {
 			return TrashResult::Locked;
 		} catch (NotFoundException) {
 			return TrashResult::NotFound;
-		} catch (\Exception $e) {
+		} catch (GenericFileException|InvalidPathException|StorageNotAvailableException $e) {
 			$this->logger->warning('A file could not be moved to the trash bin', ['fileId' => $fileId, 'exception' => $e]);
 			return TrashResult::Failed;
 		}

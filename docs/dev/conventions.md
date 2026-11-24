@@ -58,7 +58,9 @@ is logged in [`decisions.md`](decisions.md).
 
 - **Fail loud.** Validate at the boundary (every request parameter, every path from the client,
   every XMP field read) and throw on invalid state. No empty `catch` (`no-empty`), and no catch
-  that turns an unexpected error into success.
+  that turns an unexpected error into success. A PHP `catch` names the `OCP\Files\*` or
+  `OCP\DB\Exception` types a call can throw, never `\Exception`; only a boundary (job, command,
+  `ApiResponse`) catches wider. A deliberate partial failure carries a one-line comment.
 - **Typed errors.** PHP: a domain exception per service (`PictureNotFoundException`), mapped to
   an HTTP status in the controller only; never a bare `\Exception`. TypeScript: `Error`
   subclasses or a result union for expected outcomes; check by type, never by message text.
@@ -77,8 +79,9 @@ is logged in [`decisions.md`](decisions.md).
   deleted for good is an audit line the same way (DELETE-001.14). Checked: PHPUnit
   `tests/php/Conventions/LogContextTest.php` and Vitest `tests/js/conventions/log-paths.test.ts`.
   The text of a caught exception is not checked.
-- **Promises are awaited or explicitly `void`ed** (`@typescript-eslint/no-floating-promises`,
-  `no-misused-promises`).
+- **Promises are awaited or started with `fireAndLog(work, what)`** (`src/fire-and-log.ts`), which
+  logs a rejection; `void` is not enough in `src/` (`@typescript-eslint/no-floating-promises` with
+  `ignoreVoid: false`, `no-misused-promises`).
 
 ## 4. Types and safety
 

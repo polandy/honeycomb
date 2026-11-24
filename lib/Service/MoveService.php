@@ -8,12 +8,16 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 use OCP\App\IAppManager;
+use OCP\DB\Exception as DbException;
 use OCP\Files\AlreadyExistsException;
 use OCP\Files\File;
 use OCP\Files\Folder;
+use OCP\Files\GenericFileException;
+use OCP\Files\InvalidPathException;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
+use OCP\Files\StorageNotAvailableException;
 use OCP\IUser;
 use OCP\Lock\LockedException;
 use Psr\Log\LoggerInterface;
@@ -90,15 +94,30 @@ final class MoveService {
 				$moved[$index] = $this->moveFile($userId, $userFolder, $move, $replaced);
 				$this->carryOver($userId, $move->source->getId(), $moved[$index]);
 				$outcomes[$index] = self::moved($move, $moved[$index], $replaced);
-			} catch (\Exception $e) {
+			} catch (GenericFileException|InvalidPathException|StorageNotAvailableException|AlreadyExistsException|DbException|NotPermittedException|LockedException|NotFoundException $e) {
 				$outcomes[$index] = ['result' => $this->failure($e, $move->source), 'replaced' => $replaced];
-				foreach (array_reverse($moved, true) as $back => $node) {
-					$outcomes[$back] = $this->moveBack($userId, $node, $moves[$back]) ? ['result' => MoveResult::MovedBack, 'replaced' => $outcomes[$back]['replaced']] : $outcomes[$back];
-				}
+				$outcomes = $this->rollBack($userId, $moved, $moves, $outcomes);
 				break;
+			} catch (\Throwable $e) {
+				// A bug must not strand the moved files, so they go back before it escapes.
+				$this->rollBack($userId, $moved, $moves, $outcomes);
+				throw $e;
 			}
 		}
 		return array_values($outcomes);
+	}
+
+	/**
+	 * @param array<int, Node> $moved
+	 * @param array<int, CheckedMove> $moves
+	 * @param array<int, array{result: MoveResult, replaced: bool, path?: string, newFileId?: int, etag?: string}> $outcomes
+	 * @return array<int, array{result: MoveResult, replaced: bool, path?: string, newFileId?: int, etag?: string}>
+	 */
+	private function rollBack(string $userId, array $moved, array $moves, array $outcomes): array {
+		foreach (array_reverse($moved, true) as $back => $node) {
+			$outcomes[$back] = $this->moveBack($userId, $node, $moves[$back]) ? ['result' => MoveResult::MovedBack, 'replaced' => $outcomes[$back]['replaced']] : $outcomes[$back];
+		}
+		return $outcomes;
 	}
 
 	/**
@@ -140,7 +159,7 @@ final class MoveService {
 		try {
 			$this->carryOver($userId, $node->getId(), $node->move($move->from));
 			return true;
-		} catch (\Exception $e) {
+		} catch (GenericFileException|InvalidPathException|StorageNotAvailableException|NotPermittedException|LockedException|NotFoundException|AlreadyExistsException $e) {
 			$this->logger->warning('A moved file could not be moved back', ['fileId' => $node->getId(), 'exception' => $e]);
 			return false;
 		}
@@ -155,7 +174,8 @@ final class MoveService {
 		foreach ($this->fileRows->stores() as $store) {
 			try {
 				$store->carryOver($userId, $fileId, $newFileId);
-			} catch (\Exception $e) {
+			} catch (DbException $e) {
+				// A move is not undone for a lost row.
 				$this->logger->error('A flag or a file row could not follow its file to a new file id', ['fileId' => $fileId, 'newFileId' => $newFileId, 'exception' => $e]);
 			}
 		}

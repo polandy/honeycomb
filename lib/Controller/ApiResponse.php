@@ -7,17 +7,19 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
+use OCA\Honeycomb\Immich\ImmichException;
 use OCA\Honeycomb\Service\FolderNotFoundException;
 use OCA\Honeycomb\Service\FolderNotReadableException;
 use OCA\Honeycomb\Service\ImageNotFoundException;
 use OCA\Honeycomb\Service\ImageNotReadableException;
 use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\TrashBinDisabledException;
+use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\IUser;
 use OCP\IUserSession;
 
-/** Runs a route for the logged-in user and answers each known service failure with its status. */
+/** Runs a route for the logged-in user and answers each known service failure, and an Immich failure with its code (IMMICH-001), with its status. */
 final class ApiResponse {
 	/** The error of each service failure; any other exception is a server error. */
 	private const array ERRORS = [
@@ -45,9 +47,20 @@ final class ApiResponse {
 		}
 		try {
 			return $handle($user);
+		} catch (ImmichException $failure) {
+			return $this->immichResponse($failure);
 		} catch (\Exception $failure) {
 			return $this->errorOf($failure)->response();
 		}
+	}
+
+	/** The body is `{"error": code}`, with the missing `scope` for a 403. */
+	private function immichResponse(ImmichException $failure): Response {
+		$body = ['error' => $failure->error->value];
+		if ($failure->scope !== null) {
+			$body['scope'] = $failure->scope;
+		}
+		return new JSONResponse($body, $failure->error->status());
 	}
 
 	private function errorOf(\Exception $failure): ApiError {

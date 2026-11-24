@@ -1906,3 +1906,5 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-24: first-run hints: the first-reject hint is the view-state key `reject_hint_seen`
   (like `series_hint_seen`, per user on the server), a longer toast sentence at the first reject;
   the setup page links the privacy page on GitHub, as `appinfo/info.xml` does (#187, autonomous).
+- 2026-11-24: `SidecarWriter` and `SidecarReader` catch only the `OCP\Files\*` types, so an unlisted
+  exception fails the request loudly instead of one file quietly (#187, autonomous, PR #386).

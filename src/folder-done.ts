@@ -5,6 +5,7 @@ import type { ToastAction } from './toast.ts'
 
 import { t } from '@nextcloud/l10n'
 import { readonly, shallowRef } from 'vue'
+import { fireAndLog } from './fire-and-log.ts'
 import { PLAIN_TEXT } from './l10n.ts'
 import { logger } from './logger.ts'
 import { folderName } from './logic/folder-row.ts'
@@ -42,7 +43,7 @@ export function useFolderDone(api: FolderDoneApi, options: FolderDoneOptions) {
 			return
 		}
 		changed.value = { fileId: row.fileId }
-		const undo = { label: t('honeycomb', 'Undo'), run: () => void write(row) }
+		const undo = { label: t('honeycomb', 'Undo'), run: () => fireAndLog(write(row), 'Could not write the folder done row') }
 		options.toast(t('honeycomb', 'Marked {folder} done', { folder: name }, undefined, PLAIN_TEXT), undo, undefined, [], UNDO_MS)
 	}
 

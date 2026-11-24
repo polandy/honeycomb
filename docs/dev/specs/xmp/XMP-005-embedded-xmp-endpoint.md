@@ -25,7 +25,7 @@ is not read.
 | `notFound` | Vanished, foreign, a folder or not `image/jpeg` |
 | `notPermitted` | The user may not read it |
 | `locked` | Locked by another process |
-| `failed` | Any other error, logged as a warning |
+| `failed` | Any other storage error (`OCP\Files`), logged as a warning |
 
 | Case | Answer |
 |---|---|

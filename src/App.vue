@@ -41,6 +41,7 @@ import { useCullLocation } from './cull-location.ts'
 import { useCull } from './cull.ts'
 import { flagsNotSavedText } from './decision-text.ts'
 import { useDeleteFlow } from './delete-flow.ts'
+import { fireAndLog } from './fire-and-log.ts'
 import { useFoldersHome } from './folders-home.ts'
 import { freshCheck } from './fresh-check.ts'
 import { gridHotkeys } from './grid-hotkeys.ts'
@@ -128,13 +129,12 @@ const activeTime = useActiveTime(props.clock)
 const resume = useResume(recent.positions, { folderSet: () => folderSet.value, pictures: () => pictures.value, view: () => view.value, progress: () => progress.value, decidedOf: cull.decidedOf, shown: shownInLoupe, openLoupe, takeActiveSeconds: activeTime.take }, toast.show)
 const home = useFoldersHome(props.library, { roots: () => (settingsSettled.value ? settings.value.libraryRoots : null), flush: flushWrites, toastError: toast.showError, folderSet: () => folderSet.value, listing: () => recent.listing.value, positionOf: recent.positionOf, openPosition: openRecent, openSet: (set) => openAt(set, null), saveRoots: (libraryRoots) => updateSettings({ libraryRoots }), now: props.now, toast: toast.show, setFlags: cull.setFlags })
 const finishedCard = computed(() => ({ markable: home.finishing.value !== null, onClose: cullFinished.close, onMarkDone: home.markFinished }))
-/** Opens a folder set from *Recent* at its position. */
 function openRecent(position: ResumePosition) {
-	void recent.open(position, { open: cull.open, resumeAt: resume.resumeAt, resumeOpen: () => {
+	fireAndLog(recent.open(position, { open: cull.open, resumeAt: resume.resumeAt, resumeOpen: () => {
 		pickerOpen.value = false
 		home.hide()
 		resume.resume()
-	} })
+	} }), 'Could not open the recent folder set')
 }
 recent.refresh()
 watch(pickerOpen, (open) => open && recent.refresh())
@@ -162,7 +162,7 @@ async function openAt(set: FolderSet, fileId: number | null) {
 /** Lists the open folder set again, keeping the loupe's picture (DECISIONS-002.18). */
 function reloadFolder() {
 	if (folderSet.value !== null) {
-		void openAt(folderSet.value, shownFile())
+		fireAndLog(openAt(folderSet.value, shownFile()), 'Could not open the picture of the address')
 	}
 }
 useCullLocation(props.location, { folderSet: () => folderSet.value, shownFileId: shownFile }, ({ folderSet: set, fileId }) => openAt(set, fileId))

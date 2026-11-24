@@ -57,7 +57,7 @@ The answer is `200` with `{"pictures": [[{"fileId": 7, "result": "moved", "repla
 | `notPermitted` | The user may not move it or create in the target folder |
 | `locked` | Locked by another process |
 | `exists` | The target path is taken, and not by the file `replace` names with its ETag |
-| `failed` | Any other error, logged as a warning |
+| `failed` | Any other storage error (`OCP\Files`), logged as a warning |
 | `skipped` | Not tried, because another file of the picture failed |
 | `movedBack` | Moved, then moved back because another file of the picture failed |
 | `otherStorage` | The target is on another storage than the file, see MOVE-002.11 |

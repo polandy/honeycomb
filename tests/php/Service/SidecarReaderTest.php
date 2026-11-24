@@ -15,6 +15,7 @@ use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
 use OCP\Files\File;
 use OCP\Files\Folder;
+use OCP\Files\GenericFileException;
 use OCP\Files\IRootFolder;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
@@ -78,14 +79,14 @@ final class SidecarReaderTest extends TestCase {
 		$image->method('getName')->willReturn('IMG_0001.JPG');
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('warning')->with($this->anything(), $this->callback(
-			static fn (array $context): bool => $context['fileId'] === 6 && $context['exception'] instanceof \RuntimeException,
+			static fn (array $context): bool => $context['fileId'] === 6 && $context['exception'] instanceof GenericFileException,
 		));
 		$reader = $this->reader([
 			2 => $image,
 			3 => $this->createStub(Folder::class),
 			4 => $this->sidecar(4, size: SidecarLimits::MAX_BYTES + 1),
 			5 => $this->sidecar(5, readable: false),
-			6 => $this->sidecar(6, failure: new \RuntimeException('disk')),
+			6 => $this->sidecar(6, failure: new GenericFileException('disk')),
 			7 => $this->sidecar(7, failure: new LockedException('IMG_0007.xmp')),
 			8 => $this->sidecar(8),
 		], $logger);
@@ -133,5 +134,11 @@ final class SidecarReaderTest extends TestCase {
 
 		$this->expectException(InvalidSidecarRequestException::class);
 		(new SidecarReader(new UserPhotos(new UserFolderResolver($root)), $this->createStub(LoggerInterface::class)))->lookup($this->user(), [9, 9]);
+	}
+
+	public function testAnUnexpectedFailureIsNotCaught(): void {
+		$this->expectException(\LogicException::class);
+
+		$this->reader([6 => $this->sidecar(6, failure: new \LogicException('bug'))])->lookup($this->user(), [6]);
 	}
 }

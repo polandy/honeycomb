@@ -18,6 +18,7 @@ use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
 use OCA\Honeycomb\Service\VisualHash;
 use OCP\App\IAppManager;
+use OCP\DB\Exception as DbException;
 use OCP\Files\NotPermittedException;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -86,7 +87,7 @@ final class MoveServiceCarryOverTest extends TestCase {
 	public function testAFlagThatCannotBeCarriedOverIsLoggedAndTheFileStaysMoved(): void {
 		$this->addFolder('/Out');
 		$this->newIds[2] = 20;
-		$failure = new \RuntimeException('database gone');
+		$failure = new FakeDbException(DbException::REASON_CONNECTION_LOST);
 		$flags = $this->createStub(FlagStore::class);
 		$flags->method('carryOver')->willThrowException($failure);
 		$logger = $this->createMock(LoggerInterface::class);
@@ -144,5 +145,27 @@ final class MoveServiceCarryOverTest extends TestCase {
 		$this->service()->move($this->treeUser(), self::request());
 
 		$this->assertSame(['alice' => [1 => $id, 20 => $id]], $this->series->rows);
+	}
+
+	public function testAnUnexpectedFailureWhileCarryingOverIsNotCaught(): void {
+		$this->addFolder('/Out');
+		$this->newIds[2] = 20;
+		$flags = $this->createStub(FlagStore::class);
+		$flags->method('carryOver')->willThrowException(new \LogicException('bug'));
+		$this->expectException(\LogicException::class);
+
+		$this->service($flags, $this->createStub(LoggerInterface::class))->move($this->treeUser(), self::request());
+	}
+
+	// spec: MOVE-002.4
+	public function testAnUnexpectedFailureStillMovesTheMovedFilesBackBeforeItEscapes(): void {
+		$this->moveFailures[2] = new \LogicException('bug');
+
+		try {
+			$this->service()->move($this->treeUser(), self::request());
+			$this->fail('The unexpected failure was swallowed');
+		} catch (\LogicException) {
+			$this->assertSame(['/In/A.RAF', '/In/A.JPG'], [$this->files[1], $this->files[2]]);
+		}
 	}
 }

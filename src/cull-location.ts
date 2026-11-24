@@ -5,6 +5,7 @@ import type { FolderSet } from './logic/folder-set.ts'
 import type { PictureId } from './logic/picture-id.ts'
 
 import { watch } from 'vue'
+import { fireAndLog } from './fire-and-log.ts'
 import { locationHash, parseLocation } from './logic/cull-location.ts'
 
 /** The page address, which keeps the open cull across a browser reload (DECISIONS-002.17). */
@@ -32,6 +33,6 @@ export function useCullLocation(api: LocationApi, cull: LocatedCull, restore: (l
 	if (named === null) {
 		follow()
 	} else {
-		void restore(named).finally(follow)
+		fireAndLog(restore(named).finally(follow), 'Could not open the cull the address names')
 	}
 }

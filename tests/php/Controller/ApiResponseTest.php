@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\Controller\ApiResponse;
+use OCA\Honeycomb\Immich\ImmichError;
+use OCA\Honeycomb\Immich\ImmichException;
 use OCA\Honeycomb\Service\FolderNotFoundException;
 use OCA\Honeycomb\Service\FolderNotReadableException;
 use OCA\Honeycomb\Service\ImageNotFoundException;
@@ -97,5 +99,23 @@ final class ApiResponseTest extends TestCase {
 		$this->api($this->createStub(IUser::class))->forUser(function (): Response {
 			throw new \LogicException();
 		});
+	}
+
+	public function testAnImmichFailureIsItsStatusWithItsErrorCode(): void {
+		$response = $this->api($this->createStub(IUser::class))->forUser(static function (): Response {
+			throw new ImmichException(ImmichError::Unreachable);
+		});
+
+		$this->assertSame(Http::STATUS_BAD_GATEWAY, $response->getStatus());
+		$this->assertSame(['error' => 'unreachable'], json_decode($response->render(), true));
+	}
+
+	public function testAnImmichScopeFailureNamesTheMissingScope(): void {
+		$response = $this->api($this->createStub(IUser::class))->forUser(static function (): Response {
+			throw new ImmichException(ImmichError::Scope, 'asset.read');
+		});
+
+		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+		$this->assertSame(['error' => 'scope', 'scope' => 'asset.read'], json_decode($response->render(), true));
 	}
 }

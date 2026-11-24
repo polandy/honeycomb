@@ -9,9 +9,12 @@ namespace OCA\Honeycomb\Service;
 
 use OCP\Files\File;
 use OCP\Files\Folder;
+use OCP\Files\GenericFileException;
+use OCP\Files\InvalidPathException;
 use OCP\Files\NotEnoughSpaceException;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
+use OCP\Files\StorageNotAvailableException;
 use OCP\IUser;
 use OCP\Lock\LockedException;
 use Psr\Log\LoggerInterface;
@@ -64,7 +67,7 @@ final class SidecarWriter {
 			array_push($written, ...array_map(static fn (?int $mtime): array => ['mtime' => $mtime, 'foreign' => $foreign], $previous));
 			array_push($counts, ...$sidecar->counts);
 			return ['result' => SidecarResult::Saved, 'fileId' => $saved->getId(), 'etag' => $saved->getEtag(), 'size' => $saved->getSize(), 'mtime' => $saved->getMTime()];
-		} catch (\Exception $e) {
+		} catch (GenericFileException|InvalidPathException|StorageNotAvailableException|NotEnoughSpaceException|NotPermittedException|LockedException|NotFoundException $e) {
 			return ['result' => $this->resultOf($e, $existing?->getId())];
 		}
 	}
@@ -76,7 +79,8 @@ final class SidecarWriter {
 	private function previousMTime(?File $existing): array {
 		try {
 			return [$existing?->getMTime()];
-		} catch (\Exception $e) {
+		} catch (GenericFileException|InvalidPathException|StorageNotAvailableException $e) {
+			// Statistics are best effort; the save must not fail for them.
 			$this->logger->warning('Could not read the modification time of a sidecar to count it', ['exception' => $e]);
 			return [];
 		}

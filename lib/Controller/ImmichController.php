@@ -34,7 +34,7 @@ final class ImmichController extends Controller {
 	public function __construct(
 		string $appName,
 		IRequest $request,
-		private ImmichApi $api,
+		private ApiResponse $api,
 		private Connections $connections,
 		private ImmichStatus $status,
 		private ImmichListing $listing,

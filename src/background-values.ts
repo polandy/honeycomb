@@ -3,6 +3,7 @@
 import type { ListingEntry } from './logic/listing.ts'
 
 import { computed, ref, shallowRef, triggerRef, watch } from 'vue'
+import { fireAndLog } from './fire-and-log.ts'
 import { logger } from './logger.ts'
 import { byFileId, saveQueue } from './logic/save-queue.ts'
 
@@ -54,14 +55,14 @@ export function useBackgroundValues<Value, Row extends { readonly fileId: number
 		}
 		saving = true
 		const batch = unsaved.splice(0, SAVE_BATCH)
-		void queue(batch).then((result) => {
+		fireAndLog(queue(batch).then((result) => {
 			saveFailed.value = !result.ok
 			if (!result.ok) {
 				logger.warn(job.failures.save, { error: result.error, count: batch.length })
 			}
 			saving = false
 			save()
-		})
+		}), 'Could not save the background values')
 	}
 
 	/** Computes one member; a failure is logged and the file version is not computed again. */
@@ -103,7 +104,7 @@ export function useBackgroundValues<Value, Row extends { readonly fileId: number
 	watch([shown, ready], ([list, isReady]) => {
 		pending = isReady ? list.filter((member) => stateOf(member) === 'pending') : []
 		if (!running && pending.length > 0) {
-			void drain()
+			fireAndLog(drain(), 'Could not drain the background values')
 		}
 	}, { immediate: true })
 

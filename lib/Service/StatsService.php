@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCP\DB\Exception as DbException;
 use OCP\IUser;
 use Psr\Log\LoggerInterface;
 
@@ -62,7 +63,8 @@ final readonly class StatsService {
 					RetryOnConflict::run(fn () => $this->store->add($user->getUID(), $day, StatsMetric::from($metric), $amount));
 				}
 			}
-		} catch (\Exception $e) {
+		} catch (DbException $e) {
+			// Statistics are best effort; the caller's action must not fail for them.
 			$this->logger->warning('Could not count the statistics.', ['exception' => $e]);
 		}
 	}

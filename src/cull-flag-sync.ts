@@ -9,6 +9,7 @@ import type { Picture } from './logic/pairing.ts'
 import type { PictureId } from './logic/picture-id.ts'
 import type { XmpCacheRow } from './logic/xmp-cache.ts'
 
+import { fireAndLog } from './fire-and-log.ts'
 import { logger } from './logger.ts'
 import { withRows } from './logic/decision-change.ts'
 import { FLAG_FIELDS, pictureDecision, UNDECIDED } from './logic/decision.ts'
@@ -29,7 +30,7 @@ export function syncFlags(read: readonly Picture<ListingEntry>[], fromSidecars: 
 	const rows = sync.takenOver.flatMap(({ picture, flag }) => memberIds(picture).map((fileId) => ({ fileId, ...pictureDecision(picture, state.decisions.value), ...flag })))
 	if (rows.length > 0) {
 		state.decisions.value = withRows(state.decisions.value, rows)
-		void flags.save(rows)
+		fireAndLog(flags.save(rows), 'Could not save the taken-over flags')
 	}
 	flags.record(sync.etags)
 	if (sync.plan.pictures.length > 0) {
