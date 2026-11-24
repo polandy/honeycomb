@@ -22,7 +22,7 @@ function setup(step: CullStep, seen = false) {
 		reduceSeries: () => step,
 		takeSkipped: () => [],
 	}
-	const decisions = useToastedDecisions(cull as never, show, vi.fn(), { seen: () => state.seen, dismiss: () => { state.seen = true } })
+	const decisions = useToastedDecisions(cull as never, show, vi.fn(), { seen: () => state.seen, dismiss: () => (state.seen = true) })
 	return { decisions, show, state }
 }
 

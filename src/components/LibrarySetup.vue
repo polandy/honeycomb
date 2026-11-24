@@ -8,8 +8,8 @@ import type { Folder } from '../api.ts'
 import { t } from '@nextcloud/l10n'
 import { ref } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import { PLAIN_TEXT } from '../l10n.ts'
 import LibraryRoots from './LibraryRoots.vue'
+import { PLAIN_TEXT } from '../l10n.ts'
 
 const props = defineProps<{
 	listFolders: (path: string) => Promise<Folder[]>

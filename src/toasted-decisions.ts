@@ -14,9 +14,9 @@ import type { LockedPicture } from './logic/writability.ts'
 import type { ToastAction } from './toast.ts'
 
 import { t } from '@nextcloud/l10n'
-import { TOAST_MS } from './toast.ts'
 import { changeText, redoneText, undoneText } from './decision-text.ts'
 import { lockDetails, lockedText, partialText } from './lock-text.ts'
+import { TOAST_MS } from './toast.ts'
 
 /** How long the toast with the first-reject hint stays: longer than TOAST_MS, as it carries a second sentence. */
 export const REJECT_HINT_MS = 2 * TOAST_MS
