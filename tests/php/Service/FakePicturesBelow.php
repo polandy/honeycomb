@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\PairingExtensions;
-use OCA\Honeycomb\Service\PictureCount;
-use OCA\Honeycomb\Service\PicturesBelow;
+use OCA\Honeycomb\Domain\PairingExtensions;
+use OCA\Honeycomb\Domain\PictureCount;
+use OCA\Honeycomb\Domain\Store\PicturesBelow;
 use OCP\Files\Folder;
 
 /** Picture counts by absolute folder path, or a database that fails. */

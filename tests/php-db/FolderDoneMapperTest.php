@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\DbTests;
 
 use OCA\Honeycomb\Db\FolderDoneMapper;
-use OCA\Honeycomb\Service\FolderDone;
+use OCA\Honeycomb\Domain\FolderDone;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 
 /** The done statuses table, one row per folder. */

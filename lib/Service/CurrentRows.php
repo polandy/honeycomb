@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\QualityValue;
+use OCA\Honeycomb\Domain\VisualHash;
 use OCP\IUser;
 
 /** The rows the browser computed per file version that belong to a photo the user reaches at that version. */

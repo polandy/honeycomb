@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Migration;
 
-use OCA\Honeycomb\Service\PictureTags;
-use OCA\Honeycomb\Service\SeriesStatus;
-use OCA\Honeycomb\Service\VisualHash;
+use OCA\Honeycomb\Domain\PictureTags;
+use OCA\Honeycomb\Domain\SeriesStatus;
+use OCA\Honeycomb\Domain\VisualHash;
 use OCP\DB\ISchemaWrapper;
 use OCP\DB\Types;
 use OCP\Migration\IOutput;

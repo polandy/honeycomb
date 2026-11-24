@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Db;
 
-use OCA\Honeycomb\Service\ExistingFiles;
+use OCA\Honeycomb\Domain\Store\ExistingFiles;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 

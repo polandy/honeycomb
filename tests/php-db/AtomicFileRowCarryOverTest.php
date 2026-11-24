@@ -15,14 +15,14 @@ use OCA\Honeycomb\Db\QualityMapper;
 use OCA\Honeycomb\Db\SeriesMapper;
 use OCA\Honeycomb\Db\VisualHashMapper;
 use OCA\Honeycomb\Db\XmpCacheMapper;
-use OCA\Honeycomb\Service\FileFlag;
-use OCA\Honeycomb\Service\FileRowStores;
-use OCA\Honeycomb\Service\Flag;
-use OCA\Honeycomb\Service\SeriesWrite;
-use OCA\Honeycomb\Service\XmpCacheRow;
-use OCA\Honeycomb\Service\XmpCacheStore;
-use OCA\Honeycomb\Service\XmpReadState;
-use OCA\Honeycomb\Service\XmpSource;
+use OCA\Honeycomb\Domain\FileFlag;
+use OCA\Honeycomb\Domain\Flag;
+use OCA\Honeycomb\Domain\SeriesWrite;
+use OCA\Honeycomb\Domain\Store\FileRowStores;
+use OCA\Honeycomb\Domain\Store\XmpCacheStore;
+use OCA\Honeycomb\Domain\XmpCacheRow;
+use OCA\Honeycomb\Domain\XmpReadState;
+use OCA\Honeycomb\Domain\XmpSource;
 use OCP\DB\Exception as DbException;
 
 /** The carry-over of a moved file's rows across every store, in a shared folder, against a real database. */

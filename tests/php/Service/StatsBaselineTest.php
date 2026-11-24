@@ -7,13 +7,13 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\Flag;
-use OCA\Honeycomb\Service\SeriesStatus;
+use OCA\Honeycomb\Domain\Flag;
+use OCA\Honeycomb\Domain\SeriesStatus;
+use OCA\Honeycomb\Domain\StatsMetric;
+use OCA\Honeycomb\Domain\XmpCacheRow;
+use OCA\Honeycomb\Domain\XmpReadState;
+use OCA\Honeycomb\Domain\XmpSource;
 use OCA\Honeycomb\Service\StatsBaseline;
-use OCA\Honeycomb\Service\StatsMetric;
-use OCA\Honeycomb\Service\XmpCacheRow;
-use OCA\Honeycomb\Service\XmpReadState;
-use OCA\Honeycomb\Service\XmpSource;
 use OCP\IUser;
 use PHPUnit\Framework\TestCase;
 

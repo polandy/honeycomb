@@ -7,6 +7,12 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\OrphanedSidecarRule;
+use OCA\Honeycomb\Domain\PairingExtensions;
+use OCA\Honeycomb\Domain\PhotoFiles;
+use OCA\Honeycomb\Domain\PictureCount;
+use OCA\Honeycomb\Domain\PictureTally;
+use OCA\Honeycomb\Domain\Store\PicturesBelow;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\NotFoundException;

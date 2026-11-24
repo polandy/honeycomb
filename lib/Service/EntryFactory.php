@@ -7,6 +7,12 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\FileFlag;
+use OCA\Honeycomb\Domain\QualityValue;
+use OCA\Honeycomb\Domain\Store\FlagStore;
+use OCA\Honeycomb\Domain\Store\QualityStore;
+use OCA\Honeycomb\Domain\Store\VisualHashStore;
+use OCA\Honeycomb\Domain\VisualHash;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\FilesMetadata\Exceptions\FilesMetadataException;

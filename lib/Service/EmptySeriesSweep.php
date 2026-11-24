@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\Store\SeriesStore;
 use OCP\IAppConfig;
 
 /** Removes the series left without a member row, a bounded number of chunks per run (ADR 0027). */

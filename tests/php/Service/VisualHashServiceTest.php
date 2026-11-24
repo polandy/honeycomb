@@ -7,10 +7,10 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\InvalidRequestException;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\VisualHash;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
-use OCA\Honeycomb\Service\VisualHash;
 use OCA\Honeycomb\Service\VisualHashService;
 use OCP\Files\IRootFolder;
 use OCP\Files\Node;

@@ -7,6 +7,10 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\FileIds;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\QualityValue;
+use OCA\Honeycomb\Domain\Store\QualityStore;
 use OCP\IUser;
 
 /** Stores the quality values the browser measured, each only for the current version of a photo the user reaches (ADR 0046). */

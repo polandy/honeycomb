@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
+use OCA\Honeycomb\Domain\InvalidRequestException;
 use OCA\Honeycomb\Service\FlagService;
-use OCA\Honeycomb\Service\InvalidRequestException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IUser;
 use PHPUnit\Framework\TestCase;

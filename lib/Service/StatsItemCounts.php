@@ -7,6 +7,10 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\Reason;
+use OCA\Honeycomb\Domain\StatsMetric;
+
 /** Parses the counts one item of a save carries: metric to -1, 0 or 1, as the browser counts one picture (STATS-001.16, .36). */
 final class StatsItemCounts {
 	/**

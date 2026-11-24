@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 use OCA\Honeycomb\AppInfo\Application;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\Reason;
 use OCP\Config\IUserConfig;
 use OCP\IUser;
 use stdClass;

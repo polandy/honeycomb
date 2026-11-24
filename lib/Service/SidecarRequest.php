@@ -7,6 +7,11 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\FileIds;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\Reason;
+use OCA\Honeycomb\Domain\StatsMetric;
+
 /** Parses the bodies of the sidecar endpoints; a malformed body throws before anything is touched (ADR 0017). */
 final class SidecarRequest {
 	/** The counts a sidecar item may carry (STATS-001.36). */

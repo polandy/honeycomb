@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\InvalidRequestException;
+use OCA\Honeycomb\Domain\InvalidRequestException;
 use OCA\Honeycomb\Service\TrashBinDisabledException;
 use OCP\Files\File;
 use OCP\Files\Folder;

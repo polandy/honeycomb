@@ -7,11 +7,11 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\FolderDone;
+use OCA\Honeycomb\Domain\FolderDone;
+use OCA\Honeycomb\Domain\InvalidRequestException;
 use OCA\Honeycomb\Service\FolderDoneService;
 use OCA\Honeycomb\Service\FolderNotFoundException;
 use OCA\Honeycomb\Service\FolderNotReadableException;
-use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
 use OCP\AppFramework\Utility\ITimeFactory;

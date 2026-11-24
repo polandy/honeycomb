@@ -8,12 +8,12 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\AppInfo\Application;
-use OCA\Honeycomb\Service\InvalidRequestException;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\StatsCounter;
+use OCA\Honeycomb\Domain\StatsMetric;
 use OCA\Honeycomb\Service\SettingsService;
 use OCA\Honeycomb\Service\StatsCount;
-use OCA\Honeycomb\Service\StatsCounter;
 use OCA\Honeycomb\Service\StatsDay;
-use OCA\Honeycomb\Service\StatsMetric;
 use OCA\Honeycomb\Service\StatsService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Config\IUserConfig;

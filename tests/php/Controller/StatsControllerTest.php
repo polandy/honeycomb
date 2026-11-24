@@ -12,7 +12,7 @@ use DateTimeZone;
 use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\StatsController;
-use OCA\Honeycomb\Service\SeriesStatus;
+use OCA\Honeycomb\Domain\SeriesStatus;
 use OCA\Honeycomb\Service\SettingsService;
 use OCA\Honeycomb\Service\StatsBaseline;
 use OCA\Honeycomb\Service\StatsDay;

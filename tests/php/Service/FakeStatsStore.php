@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\StatsCounter;
-use OCA\Honeycomb\Service\StatsMetric;
-use OCA\Honeycomb\Service\StatsStore;
+use OCA\Honeycomb\Domain\StatsCounter;
+use OCA\Honeycomb\Domain\StatsMetric;
+use OCA\Honeycomb\Domain\Store\StatsStore;
 
 /** Keeps the daily counters in memory, by user, day and metric; each add can be made to fail first. */
 final class FakeStatsStore implements StatsStore {

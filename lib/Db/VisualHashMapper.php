@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Db;
 
-use OCA\Honeycomb\Service\VisualHash;
-use OCA\Honeycomb\Service\VisualHashStore;
+use OCA\Honeycomb\Domain\Store\VisualHashStore;
+use OCA\Honeycomb\Domain\VisualHash;
 use OCP\AppFramework\Db\TTransactional;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;

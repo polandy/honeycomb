@@ -7,10 +7,10 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\Flag;
-use OCA\Honeycomb\Service\XmpCacheRow;
-use OCA\Honeycomb\Service\XmpCacheStore;
-use OCA\Honeycomb\Service\XmpReadState;
+use OCA\Honeycomb\Domain\Flag;
+use OCA\Honeycomb\Domain\Store\XmpCacheStore;
+use OCA\Honeycomb\Domain\XmpCacheRow;
+use OCA\Honeycomb\Domain\XmpReadState;
 
 /** Keeps XMP cache rows in memory, by user and file id. */
 final class FakeXmpCacheStore implements XmpCacheStore {

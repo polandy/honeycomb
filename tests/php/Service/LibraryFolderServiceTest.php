@@ -7,12 +7,12 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
+use OCA\Honeycomb\Domain\FolderDone;
+use OCA\Honeycomb\Domain\FolderSummary;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\LibraryFolder;
 use OCA\Honeycomb\Service\CaptureTimes;
-use OCA\Honeycomb\Service\FolderDone;
 use OCA\Honeycomb\Service\FolderNotReadableException;
-use OCA\Honeycomb\Service\FolderSummary;
-use OCA\Honeycomb\Service\InvalidRequestException;
-use OCA\Honeycomb\Service\LibraryFolder;
 use OCA\Honeycomb\Service\LibraryFolderService;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCP\AppFramework\Utility\ITimeFactory;

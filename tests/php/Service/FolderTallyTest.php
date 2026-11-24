@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
+use OCA\Honeycomb\Domain\PairingExtensions;
 use OCA\Honeycomb\Service\FolderTally;
-use OCA\Honeycomb\Service\PairingExtensions;
 use PHPUnit\Framework\TestCase;
 
 final class FolderTallyTest extends TestCase {

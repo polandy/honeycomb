@@ -7,6 +7,10 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\Store\QualityStore;
+use OCA\Honeycomb\Domain\Store\VisualHashStore;
+use OCA\Honeycomb\Domain\Store\XmpCacheStore;
+
 /** Clears what honeycomb remembers of the files it read: the XMP cache, and for every user the visual hashes and quality values (ADR 0032, ADR 0046). */
 final class CacheClear {
 	public function __construct(

@@ -7,6 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\FileFlag;
+use OCA\Honeycomb\Domain\Flag;
+
 /** The state a trash request expects of each picture's rows; the values are the wire form (ADR 0040). */
 enum TrashExpectation: string {
 	case Rejected = 'rejected';

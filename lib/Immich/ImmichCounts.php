@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Immich;
 
-use OCA\Honeycomb\Service\Flag;
+use OCA\Honeycomb\Domain\Flag;
 use OCP\AppFramework\Utility\ITimeFactory;
 
 /**

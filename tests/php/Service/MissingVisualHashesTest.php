@@ -7,13 +7,13 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\Reason;
+use OCA\Honeycomb\Domain\VisualHash;
 use OCA\Honeycomb\Service\FolderNotFoundException;
 use OCA\Honeycomb\Service\FolderNotReadableException;
-use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\MissingVisualHashes;
-use OCA\Honeycomb\Service\Reason;
 use OCA\Honeycomb\Service\UserFolderResolver;
-use OCA\Honeycomb\Service\VisualHash;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use PHPUnit\Framework\Attributes\DataProvider;

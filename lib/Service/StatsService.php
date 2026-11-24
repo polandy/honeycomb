@@ -7,6 +7,11 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\Reason;
+use OCA\Honeycomb\Domain\StatsCounter;
+use OCA\Honeycomb\Domain\StatsMetric;
+use OCA\Honeycomb\Domain\Store\StatsStore;
 use OCP\DB\Exception as DbException;
 use OCP\IUser;
 use Psr\Log\LoggerInterface;

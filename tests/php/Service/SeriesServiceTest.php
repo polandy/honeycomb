@@ -7,10 +7,10 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\InvalidRequestException;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\SeriesStatus;
+use OCA\Honeycomb\Domain\StoredSeries;
 use OCA\Honeycomb\Service\SeriesService;
-use OCA\Honeycomb\Service\SeriesStatus;
-use OCA\Honeycomb\Service\StoredSeries;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
 use OCP\DB\Exception as DbException;

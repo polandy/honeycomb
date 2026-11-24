@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Preview;
 
+use OCA\Honeycomb\Domain\UntypedRaw;
 use OCP\Files\File;
 use OCP\Files\FileInfo;
 use OCP\Files\NotPermittedException;

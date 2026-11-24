@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\Flag;
+
 /** Folds the decision rows of the files into the picked, rejected and done-but-unflagged pictures per folder (FOLDERS-005.9). */
 final class FolderDecisions {
 	/**

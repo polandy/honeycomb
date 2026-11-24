@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
+use OCA\Honeycomb\Domain\Limits;
 use OCA\Honeycomb\Service\EntryFactory;
 use OCA\Honeycomb\Service\FolderNotReadableException;
-use OCA\Honeycomb\Service\Limits;
 use OCA\Honeycomb\Service\ListingService;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCP\Constants;

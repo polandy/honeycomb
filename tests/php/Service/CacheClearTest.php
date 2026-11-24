@@ -7,10 +7,11 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
+use OCA\Honeycomb\Domain\QualityValue;
+use OCA\Honeycomb\Domain\VisualHash;
+use OCA\Honeycomb\Domain\XmpCacheRow;
 use OCA\Honeycomb\Service\CacheClear;
-use OCA\Honeycomb\Service\QualityValue;
-use OCA\Honeycomb\Service\VisualHash;
-use OCA\Honeycomb\Service\XmpCacheRow;
+use OCA\Honeycomb\Tests\Domain\XmpCacheRowTest;
 use PHPUnit\Framework\TestCase;
 
 final class CacheClearTest extends TestCase {

@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Db;
 
-use OCA\Honeycomb\Service\FileFlag;
-use OCA\Honeycomb\Service\Flag;
-use OCA\Honeycomb\Service\FlagStore;
+use OCA\Honeycomb\Domain\FileFlag;
+use OCA\Honeycomb\Domain\Flag;
+use OCA\Honeycomb\Domain\Store\FlagStore;
 use OCP\AppFramework\Db\TTransactional;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;

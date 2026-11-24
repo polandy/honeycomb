@@ -7,6 +7,11 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\FileIds;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\Limits;
+use OCA\Honeycomb\Domain\OrphanedSidecarRule;
+use OCA\Honeycomb\Domain\Reason;
 use OCP\App\IAppManager;
 use OCP\Files\File;
 use OCP\Files\GenericFileException;

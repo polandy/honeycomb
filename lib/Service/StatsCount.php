@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\StatsMetric;
+
 /** An amount to add to one metric of the day; negative takes back. */
 final readonly class StatsCount {
 	public function __construct(

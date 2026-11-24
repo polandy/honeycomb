@@ -7,6 +7,10 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\FileIds;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\Store\VisualHashStore;
+use OCA\Honeycomb\Domain\VisualHash;
 use OCP\IUser;
 
 /** Stores the visual hashes the browser computed, each only for the current version of a photo the user reaches (ADR 0024). */

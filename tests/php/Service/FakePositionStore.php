@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\PositionStore;
-use OCA\Honeycomb\Service\ResumePosition;
+use OCA\Honeycomb\Domain\ResumePosition;
+use OCA\Honeycomb\Domain\Store\PositionStore;
 
 /** Keeps resume positions in memory, by user and folder set key. */
 final class FakePositionStore implements PositionStore {

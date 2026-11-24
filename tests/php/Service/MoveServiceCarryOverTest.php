@@ -7,16 +7,16 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\FileFlag;
-use OCA\Honeycomb\Service\FileRowStores;
-use OCA\Honeycomb\Service\Flag;
-use OCA\Honeycomb\Service\FlagStore;
+use OCA\Honeycomb\Domain\FileFlag;
+use OCA\Honeycomb\Domain\Flag;
+use OCA\Honeycomb\Domain\QualityValue;
+use OCA\Honeycomb\Domain\SeriesStatus;
+use OCA\Honeycomb\Domain\Store\FileRowStores;
+use OCA\Honeycomb\Domain\Store\FlagStore;
+use OCA\Honeycomb\Domain\VisualHash;
 use OCA\Honeycomb\Service\MoveService;
-use OCA\Honeycomb\Service\QualityValue;
-use OCA\Honeycomb\Service\SeriesStatus;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
-use OCA\Honeycomb\Service\VisualHash;
 use OCP\App\IAppManager;
 use OCP\DB\Exception as DbException;
 use OCP\Files\NotPermittedException;

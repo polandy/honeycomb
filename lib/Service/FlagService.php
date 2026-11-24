@@ -7,6 +7,13 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\FileFlag;
+use OCA\Honeycomb\Domain\FileIds;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\Limits;
+use OCA\Honeycomb\Domain\SidecarEtag;
+use OCA\Honeycomb\Domain\StatsMetric;
+use OCA\Honeycomb\Domain\Store\FlagStore;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IUser;
 

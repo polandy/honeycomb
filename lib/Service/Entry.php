@@ -7,6 +7,10 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\FileFlag;
+use OCA\Honeycomb\Domain\QualityValue;
+use OCA\Honeycomb\Domain\VisualHash;
+
 /** One file of the listing with the EXIF basics Nextcloud has extracted and its flag row, `null` where it has none. */
 final class Entry implements \JsonSerializable {
 	public function __construct(

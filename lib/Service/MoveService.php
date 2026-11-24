@@ -7,6 +7,10 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\PhotoFiles;
+use OCA\Honeycomb\Domain\StatsMetric;
+use OCA\Honeycomb\Domain\Store\FileRowCarryOver;
 use OCP\App\IAppManager;
 use OCP\DB\Exception as DbException;
 use OCP\Files\AlreadyExistsException;

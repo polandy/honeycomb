@@ -7,12 +7,12 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Db;
 
+use OCA\Honeycomb\Domain\ColourLabel;
+use OCA\Honeycomb\Domain\Flag;
 use OCA\Honeycomb\Immich\AssetDecision;
 use OCA\Honeycomb\Immich\AssetKind;
 use OCA\Honeycomb\Immich\ImmichDecisionStore;
 use OCA\Honeycomb\Immich\ListingFilters;
-use OCA\Honeycomb\Service\ColourLabel;
-use OCA\Honeycomb\Service\Flag;
 use OCP\AppFramework\Db\TTransactional;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;

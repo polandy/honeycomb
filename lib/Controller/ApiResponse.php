@@ -7,12 +7,12 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
+use OCA\Honeycomb\Domain\InvalidRequestException;
 use OCA\Honeycomb\Immich\ImmichException;
 use OCA\Honeycomb\Service\FolderNotFoundException;
 use OCA\Honeycomb\Service\FolderNotReadableException;
 use OCA\Honeycomb\Service\ImageNotFoundException;
 use OCA\Honeycomb\Service\ImageNotReadableException;
-use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\TrashBinDisabledException;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\Response;

@@ -7,10 +7,10 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\InvalidRequestException;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\StatsMetric;
 use OCA\Honeycomb\Service\StatsCount;
 use OCA\Honeycomb\Service\StatsItemCounts;
-use OCA\Honeycomb\Service\StatsMetric;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

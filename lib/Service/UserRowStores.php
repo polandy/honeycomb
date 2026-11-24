@@ -7,6 +7,14 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\Store\FlagStore;
+use OCA\Honeycomb\Domain\Store\FolderDoneStore;
+use OCA\Honeycomb\Domain\Store\PositionStore;
+use OCA\Honeycomb\Domain\Store\SeriesStore;
+use OCA\Honeycomb\Domain\Store\StatsStore;
+use OCA\Honeycomb\Domain\Store\TagStore;
+use OCA\Honeycomb\Domain\Store\UserRowStore;
+use OCA\Honeycomb\Domain\Store\XmpCacheStore;
 use OCA\Honeycomb\Immich\ImmichDecisionStore;
 
 /** Every table of rows that go with a user, or name one; the shared rows stay (ADR 0040, *Who shares what*). */

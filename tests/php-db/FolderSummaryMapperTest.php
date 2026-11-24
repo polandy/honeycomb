@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\DbTests;
 
 use OCA\Honeycomb\Db\FolderSummaryMapper;
-use OCA\Honeycomb\Service\FolderSummary;
+use OCA\Honeycomb\Domain\FolderSummary;
 
 /** The folder summaries table, one row per folder whoever scanned it. */
 final class FolderSummaryMapperTest extends DbTestCase {

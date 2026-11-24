@@ -7,11 +7,11 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\FileFlag;
-use OCA\Honeycomb\Service\Flag;
+use OCA\Honeycomb\Domain\FileFlag;
+use OCA\Honeycomb\Domain\Flag;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\Limits;
 use OCA\Honeycomb\Service\FlagService;
-use OCA\Honeycomb\Service\InvalidRequestException;
-use OCA\Honeycomb\Service\Limits;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
 use OCP\AppFramework\Utility\ITimeFactory;

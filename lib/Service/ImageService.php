@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\FileIds;
+use OCA\Honeycomb\Domain\InvalidRequestException;
 use OCP\Files\File;
 use OCP\Files\NotFoundException;
 use OCP\Files\SimpleFS\ISimpleFile;

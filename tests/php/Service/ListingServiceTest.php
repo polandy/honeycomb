@@ -7,16 +7,16 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
+use OCA\Honeycomb\Domain\FileFlag;
+use OCA\Honeycomb\Domain\Flag;
+use OCA\Honeycomb\Domain\Limits;
+use OCA\Honeycomb\Domain\QualityValue;
+use OCA\Honeycomb\Domain\VisualHash;
 use OCA\Honeycomb\Service\EntryFactory;
-use OCA\Honeycomb\Service\FileFlag;
-use OCA\Honeycomb\Service\Flag;
 use OCA\Honeycomb\Service\FolderNotFoundException;
 use OCA\Honeycomb\Service\FolderNotReadableException;
-use OCA\Honeycomb\Service\Limits;
 use OCA\Honeycomb\Service\ListingService;
-use OCA\Honeycomb\Service\QualityValue;
 use OCA\Honeycomb\Service\UserFolderResolver;
-use OCA\Honeycomb\Service\VisualHash;
 use OCP\Files\File;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotPermittedException;

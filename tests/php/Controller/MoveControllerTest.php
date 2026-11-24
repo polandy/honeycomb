@@ -10,7 +10,7 @@ namespace OCA\Honeycomb\Tests\Controller;
 use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\MoveController;
-use OCA\Honeycomb\Service\FileRowStores;
+use OCA\Honeycomb\Domain\Store\FileRowStores;
 use OCA\Honeycomb\Service\MoveService;
 use OCA\Honeycomb\Service\MoveTargetService;
 use OCA\Honeycomb\Service\UserFolderResolver;

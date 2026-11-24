@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Command;
 
-use OCA\Honeycomb\Service\AppData;
+use OCA\Honeycomb\Domain\Store\AppData;
 
 final class FakeAppData implements AppData {
 	public ?\Throwable $failure = null;

@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\TagStore;
+use OCA\Honeycomb\Domain\Store\TagStore;
 
 /** Keeps the tag lists in memory, by user. */
 final class FakeTagStore implements TagStore {

@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\Store\ExistingFiles;
+use OCA\Honeycomb\Domain\Store\FileRowStore;
 use OCP\IAppConfig;
 
 /** Removes the rows of files deleted for good, a bounded number of chunks per run, going on where the last run stopped. */

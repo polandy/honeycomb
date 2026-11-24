@@ -9,7 +9,7 @@ namespace OCA\Honeycomb\DbTests;
 
 use OCA\Honeycomb\Db\FileCachePictures;
 use OCA\Honeycomb\Db\SubtreeExactness;
-use OCA\Honeycomb\Service\PairingExtensions;
+use OCA\Honeycomb\Domain\PairingExtensions;
 use OCP\Files\Folder;
 use OCP\Files\IMimeTypeLoader;
 use OCP\Files\IRootFolder;

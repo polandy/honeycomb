@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\FileFlag;
-use OCA\Honeycomb\Service\Flag;
-use OCA\Honeycomb\Service\InvalidRequestException;
+use OCA\Honeycomb\Domain\FileFlag;
+use OCA\Honeycomb\Domain\Flag;
+use OCA\Honeycomb\Domain\InvalidRequestException;
 use OCP\Files\Node;
 use OCP\Lock\LockedException;
 use PHPUnit\Framework\Attributes\DataProvider;

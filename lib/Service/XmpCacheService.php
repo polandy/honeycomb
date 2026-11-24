@@ -7,6 +7,12 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\FileIds;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\Store\TagStore;
+use OCA\Honeycomb\Domain\Store\XmpCacheStore;
+use OCA\Honeycomb\Domain\XmpCacheRow;
+use OCA\Honeycomb\Domain\XmpSource;
 use OCP\IUser;
 
 /** Looks up and stores the user's XMP cache, each row only for a file the user reaches as its kind (ADR 0032). */

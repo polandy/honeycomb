@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\ExistingFiles;
+use OCA\Honeycomb\Domain\Store\ExistingFiles;
 
 /** A file cache in memory: every file id exists except the vanished ones, and lies outside a trash bin except the trashed ones. */
 final class FakeExistingFiles implements ExistingFiles {

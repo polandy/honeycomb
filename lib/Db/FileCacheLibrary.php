@@ -7,10 +7,10 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Db;
 
-use OCA\Honeycomb\Preview\UntypedRaw;
-use OCA\Honeycomb\Service\LibraryFiles;
-use OCA\Honeycomb\Service\LibraryFolder;
-use OCA\Honeycomb\Service\SeriesStatus;
+use OCA\Honeycomb\Domain\LibraryFolder;
+use OCA\Honeycomb\Domain\SeriesStatus;
+use OCA\Honeycomb\Domain\Store\LibraryFiles;
+use OCA\Honeycomb\Domain\UntypedRaw;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\Files\Folder;
 use OCP\Files\IMimeTypeLoader;

@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Immich;
 
-use OCA\Honeycomb\Service\ColourLabel;
-use OCA\Honeycomb\Service\Flag;
-use OCA\Honeycomb\Service\UserRowStore;
+use OCA\Honeycomb\Domain\ColourLabel;
+use OCA\Honeycomb\Domain\Flag;
+use OCA\Honeycomb\Domain\Store\UserRowStore;
 
 /**
  * The decision table of Immich assets, one row per connection and asset (ADR 0043).

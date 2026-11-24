@@ -7,6 +7,15 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\FolderDone;
+use OCA\Honeycomb\Domain\FolderSummary;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\LibraryFolder;
+use OCA\Honeycomb\Domain\PairingExtensions;
+use OCA\Honeycomb\Domain\Reason;
+use OCA\Honeycomb\Domain\Store\FolderDoneStore;
+use OCA\Honeycomb\Domain\Store\FolderSummaryStore;
+use OCA\Honeycomb\Domain\Store\LibraryFiles;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Folder;
 use OCP\IUser;

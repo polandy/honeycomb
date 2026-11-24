@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\DbTests;
 
 use OCA\Honeycomb\Db\SeriesMapper;
-use OCA\Honeycomb\Service\SeriesStatus;
-use OCA\Honeycomb\Service\SeriesWrite;
+use OCA\Honeycomb\Domain\SeriesStatus;
+use OCA\Honeycomb\Domain\SeriesWrite;
 
 /**
  * A series write takes SQLite's write lock with its first statement (ProbesWriteLock).

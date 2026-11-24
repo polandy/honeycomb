@@ -7,6 +7,13 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\FileIds;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\Limits;
+use OCA\Honeycomb\Domain\SeriesLookup;
+use OCA\Honeycomb\Domain\SeriesWrite;
+use OCA\Honeycomb\Domain\StatsMetric;
+use OCA\Honeycomb\Domain\Store\SeriesStore;
 use OCP\IUser;
 
 /** Reads and writes the user's stored series, only on the user's photos (ADR 0027), and counts the series done (STATS-001.29). */

@@ -7,10 +7,10 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
+use OCA\Honeycomb\Domain\PairingExtensions;
 use OCA\Honeycomb\Service\FolderNotFoundException;
 use OCA\Honeycomb\Service\FolderNotReadableException;
 use OCA\Honeycomb\Service\FolderService;
-use OCA\Honeycomb\Service\PairingExtensions;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;

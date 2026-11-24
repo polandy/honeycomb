@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\Store\TagStore;
 use OCP\IUser;
 
 /** Reads each user's tag list (ADR 0022). */

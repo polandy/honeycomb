@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Migration;
 
-use OCA\Honeycomb\Service\AppRemoval;
+use OCA\Honeycomb\Domain\Store\AppRemoval;
 use OCP\IAppConfig;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;

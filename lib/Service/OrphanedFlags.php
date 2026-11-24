@@ -7,6 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\Store\ExistingFiles;
+use OCA\Honeycomb\Domain\Store\FlagStore;
+
 /** Removes the flags of files deleted for good or lying in a trash bin, which are throw-away data (ADR 0040). */
 final class OrphanedFlags {
 	/** Rows per chunk; also Oracle's limit of an `IN` list. */

@@ -7,13 +7,13 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\FileFlag;
-use OCA\Honeycomb\Service\FileIds;
-use OCA\Honeycomb\Service\InvalidRequestException;
+use OCA\Honeycomb\Domain\FileFlag;
+use OCA\Honeycomb\Domain\FileIds;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\PairingExtensions;
+use OCA\Honeycomb\Domain\Reason;
+use OCA\Honeycomb\Domain\VisualHash;
 use OCA\Honeycomb\Service\MoveRequest;
-use OCA\Honeycomb\Service\PairingExtensions;
-use OCA\Honeycomb\Service\Reason;
-use OCA\Honeycomb\Service\VisualHash;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

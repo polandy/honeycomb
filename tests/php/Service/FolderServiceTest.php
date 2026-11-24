@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
+use OCA\Honeycomb\Domain\PairingExtensions;
+use OCA\Honeycomb\Domain\Store\PicturesBelow;
 use OCA\Honeycomb\Service\FolderService;
-use OCA\Honeycomb\Service\PairingExtensions;
-use OCA\Honeycomb\Service\PicturesBelow;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCP\Files\FileInfo;
 use OCP\Files\Folder;

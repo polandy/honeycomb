@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Command;
 
-use OCA\Honeycomb\Service\AppData;
-use OCA\Honeycomb\Service\AppRemoval;
+use OCA\Honeycomb\Domain\Store\AppData;
+use OCA\Honeycomb\Domain\Store\AppRemoval;
 use OCA\Honeycomb\Service\OrphanedFlags;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

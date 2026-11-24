@@ -8,11 +8,11 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\DbTests;
 
 use OCA\Honeycomb\Db\ImmichDecisionMapper;
+use OCA\Honeycomb\Domain\ColourLabel;
+use OCA\Honeycomb\Domain\Flag;
 use OCA\Honeycomb\Immich\AssetDecision;
 use OCA\Honeycomb\Immich\AssetKind;
 use OCA\Honeycomb\Immich\ListingFilters;
-use OCA\Honeycomb\Service\ColourLabel;
-use OCA\Honeycomb\Service\Flag;
 use OCA\Honeycomb\Tests\Immich\DecisionFilterVectors;
 use PHPUnit\Framework\Attributes\DataProviderExternal;
 

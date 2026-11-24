@@ -9,8 +9,8 @@ namespace OCA\Honeycomb\DbTests;
 
 use OCA\Honeycomb\Db\FileCacheLookup;
 use OCA\Honeycomb\Db\FlagMapper;
-use OCA\Honeycomb\Service\FileFlag;
-use OCA\Honeycomb\Service\Flag;
+use OCA\Honeycomb\Domain\FileFlag;
+use OCA\Honeycomb\Domain\Flag;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;

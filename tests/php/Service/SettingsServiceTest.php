@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\InvalidRequestException;
-use OCA\Honeycomb\Service\Reason;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\Reason;
 use OCA\Honeycomb\Service\SettingsService;
 use OCP\Config\IUserConfig;
 use OCP\IUser;

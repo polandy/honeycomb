@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\DbTests;
 
 use OCA\Honeycomb\Db\QualityMapper;
-use OCA\Honeycomb\Service\QualityValue;
+use OCA\Honeycomb\Domain\QualityValue;
 
 /** The quality values table, one row per file whoever saved it. */
 final class QualityMapperTest extends DbTestCase {

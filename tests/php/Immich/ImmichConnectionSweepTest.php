@@ -7,12 +7,12 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Immich;
 
+use OCA\Honeycomb\Domain\Flag;
 use OCA\Honeycomb\Immich\AssetDecision;
 use OCA\Honeycomb\Immich\AssetKind;
 use OCA\Honeycomb\Immich\Connections;
 use OCA\Honeycomb\Immich\ConnectionsFileShape;
 use OCA\Honeycomb\Immich\ImmichConnectionSweep;
-use OCA\Honeycomb\Service\Flag;
 use OCP\IAppConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;

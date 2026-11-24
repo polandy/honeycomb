@@ -8,11 +8,11 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\DbTests;
 
 use OCA\Honeycomb\Db\XmpCacheMapper;
-use OCA\Honeycomb\Service\ColourLabel;
-use OCA\Honeycomb\Service\Flag;
-use OCA\Honeycomb\Service\XmpCacheRow;
-use OCA\Honeycomb\Service\XmpReadState;
-use OCA\Honeycomb\Service\XmpSource;
+use OCA\Honeycomb\Domain\ColourLabel;
+use OCA\Honeycomb\Domain\Flag;
+use OCA\Honeycomb\Domain\XmpCacheRow;
+use OCA\Honeycomb\Domain\XmpReadState;
+use OCA\Honeycomb\Domain\XmpSource;
 
 /** The XMP cache and the clearing of the visual hashes against a real database. */
 final class XmpCacheMapperTest extends DbTestCase {

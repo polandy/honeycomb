@@ -7,6 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\OrphanedSidecarRule;
+use OCA\Honeycomb\Domain\Reason;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\Node;

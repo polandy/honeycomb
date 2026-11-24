@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\PhotoFiles;
+use OCA\Honeycomb\Domain\StatsMetric;
 use OCP\Files\File;
 
 /** Sums what one trash request deleted, for the statistics: whole pictures, files and bytes, or the RAWs of Remove RAWs (STATS-001). */

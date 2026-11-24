@@ -7,6 +7,11 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\FolderSet;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\Reason;
+use OCA\Honeycomb\Domain\ResumePosition;
+use OCA\Honeycomb\Domain\Store\PositionStore;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IUser;
 

@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Db;
 
-use OCA\Honeycomb\Service\LegacyPositionKeys;
-use OCA\Honeycomb\Service\PositionStore;
-use OCA\Honeycomb\Service\ResumePosition;
+use OCA\Honeycomb\Domain\LegacyPositionKeys;
+use OCA\Honeycomb\Domain\ResumePosition;
+use OCA\Honeycomb\Domain\Store\PositionStore;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\AppFramework\Db\TTransactional;
 use OCP\DB\QueryBuilder\IQueryBuilder;

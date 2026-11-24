@@ -7,11 +7,12 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\InvalidRequestException;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\XmpCacheRow;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
-use OCA\Honeycomb\Service\XmpCacheRow;
 use OCA\Honeycomb\Service\XmpCacheService;
+use OCA\Honeycomb\Tests\Domain\XmpCacheRowTest;
 use OCP\Files\IRootFolder;
 use OCP\Files\Node;
 use PHPUnit\Framework\TestCase;

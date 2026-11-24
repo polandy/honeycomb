@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\FolderSummary;
-use OCA\Honeycomb\Service\FolderSummaryStore;
+use OCA\Honeycomb\Domain\FolderSummary;
+use OCA\Honeycomb\Domain\Store\FolderSummaryStore;
 
 /** Keeps folder summaries in memory, by the folder's file id. */
 final class FakeFolderSummaryStore implements FolderSummaryStore {

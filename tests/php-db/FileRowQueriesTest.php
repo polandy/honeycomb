@@ -8,9 +8,9 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\DbTests;
 
 use OCA\Honeycomb\Db\XmpCacheMapper;
-use OCA\Honeycomb\Service\XmpCacheRow;
-use OCA\Honeycomb\Service\XmpReadState;
-use OCA\Honeycomb\Service\XmpSource;
+use OCA\Honeycomb\Domain\XmpCacheRow;
+use OCA\Honeycomb\Domain\XmpReadState;
+use OCA\Honeycomb\Domain\XmpSource;
 
 /** The shared `FileRowQueries` SQL, through the XMP cache mapper, whose rows are per user. */
 final class FileRowQueriesTest extends DbTestCase {

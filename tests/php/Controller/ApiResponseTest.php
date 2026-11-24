@@ -8,14 +8,14 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\Controller\ApiResponse;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\Reason;
 use OCA\Honeycomb\Immich\ImmichError;
 use OCA\Honeycomb\Immich\ImmichException;
 use OCA\Honeycomb\Service\FolderNotFoundException;
 use OCA\Honeycomb\Service\FolderNotReadableException;
 use OCA\Honeycomb\Service\ImageNotFoundException;
 use OCA\Honeycomb\Service\ImageNotReadableException;
-use OCA\Honeycomb\Service\InvalidRequestException;
-use OCA\Honeycomb\Service\Reason;
 use OCA\Honeycomb\Service\TrashBinDisabledException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;

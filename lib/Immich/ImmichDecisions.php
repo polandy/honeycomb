@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Immich;
 
-use OCA\Honeycomb\Service\Limits;
+use OCA\Honeycomb\Domain\Limits;
 use OCP\AppFramework\Utility\ITimeFactory;
 
 /** Saves the user's decisions on a connection's assets; Immich is not asked (IMMICH-003). */

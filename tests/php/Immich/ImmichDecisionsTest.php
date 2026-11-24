@@ -7,14 +7,14 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Immich;
 
+use OCA\Honeycomb\Domain\ColourLabel;
+use OCA\Honeycomb\Domain\Flag;
+use OCA\Honeycomb\Domain\Limits;
 use OCA\Honeycomb\Immich\AssetDecision;
 use OCA\Honeycomb\Immich\AssetKind;
 use OCA\Honeycomb\Immich\Connection;
 use OCA\Honeycomb\Immich\ImmichDecisions;
 use OCA\Honeycomb\Immich\ImmichError;
-use OCA\Honeycomb\Service\ColourLabel;
-use OCA\Honeycomb\Service\Flag;
-use OCA\Honeycomb\Service\Limits;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;

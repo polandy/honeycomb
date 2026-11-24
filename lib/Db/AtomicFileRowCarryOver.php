@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Db;
 
-use OCA\Honeycomb\Service\FileRowCarryOver;
-use OCA\Honeycomb\Service\FileRowStores;
+use OCA\Honeycomb\Domain\Store\FileRowCarryOver;
+use OCA\Honeycomb\Domain\Store\FileRowStores;
 use OCP\AppFramework\Db\TTransactional;
 use OCP\IDBConnection;
 

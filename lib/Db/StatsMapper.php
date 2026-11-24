@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Db;
 
-use OCA\Honeycomb\Service\StatsCounter;
-use OCA\Honeycomb\Service\StatsMetric;
-use OCA\Honeycomb\Service\StatsStore;
+use OCA\Honeycomb\Domain\StatsCounter;
+use OCA\Honeycomb\Domain\StatsMetric;
+use OCA\Honeycomb\Domain\Store\StatsStore;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 

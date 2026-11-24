@@ -7,6 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\PairingExtensions;
+use OCA\Honeycomb\Domain\PictureTally;
+
 /** Sums up the photo files of one folder: pictures by the pairing rules, bytes, bursts and ages (FOLDERS-005.1 to .4). */
 final class FolderTally {
 	/** The longest gap between two shots of one burst: `BURST_GAP_SECONDS` in `src/logic/folder-score.ts`. */

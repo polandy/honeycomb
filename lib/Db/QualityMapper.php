@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Db;
 
-use OCA\Honeycomb\Service\QualityStore;
-use OCA\Honeycomb\Service\QualityValue;
+use OCA\Honeycomb\Domain\QualityValue;
+use OCA\Honeycomb\Domain\Store\QualityStore;
 use OCP\AppFramework\Db\TTransactional;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;

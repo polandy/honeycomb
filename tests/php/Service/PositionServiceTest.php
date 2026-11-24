@@ -7,10 +7,10 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\FolderSet;
-use OCA\Honeycomb\Service\InvalidRequestException;
+use OCA\Honeycomb\Domain\FolderSet;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\ResumePosition;
 use OCA\Honeycomb\Service\PositionService;
-use OCA\Honeycomb\Service\ResumePosition;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IUser;
 use PHPUnit\Framework\Attributes\DataProvider;

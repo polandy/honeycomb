@@ -7,6 +7,11 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\FileIds;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\Limits;
+use OCA\Honeycomb\Domain\Reason;
+
 /** Reads the bodies of the move endpoints and refuses a malformed one whole (ADR 0018). */
 final class MoveRequest {
 	/**

@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
+use OCA\Honeycomb\Domain\SeriesStatus;
 use OCA\Honeycomb\Service\EmptySeriesSweep;
-use OCA\Honeycomb\Service\SeriesStatus;
 use OCP\DB\Exception as DbException;
 use PHPUnit\Framework\TestCase;
 

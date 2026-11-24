@@ -7,6 +7,10 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
+use OCA\Honeycomb\Domain\StatsMetric;
+use OCA\Honeycomb\Domain\Store\SeriesStore;
+use OCA\Honeycomb\Domain\Store\StatsStore;
+use OCA\Honeycomb\Domain\Store\XmpCacheStore;
 use OCP\IUser;
 
 /** What the statistics page shows besides the counters: done series from before the counting and the pictures read so far (STATS-001.44, .45). */
