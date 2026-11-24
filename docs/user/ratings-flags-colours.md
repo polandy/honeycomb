@@ -117,9 +117,10 @@ was changed by another program, is not XMP or the storage is full, is reported w
 
 If a sidecar cannot be written — you may not change it, it is locked, or it is not valid XML —
 honeycomb says *Could not write 2 sidecars* and the reason. **Details** lists each file with the
-reason. The change is taken back for that photo, so it shows what its sidecars still hold; change
-it again to try once more. honeycomb never overwrites a sidecar it cannot read. A pick or reject
-that honeycomb cannot save is taken back the same way.
+reason. A rating, colour label or tag that cannot be saved is taken back for that photo, so it
+shows what its sidecars still hold; change it again to try once more. A pick, reject or *Keep RAW*
+is not taken back: honeycomb keeps it and tries the sidecar again the next time you open the
+folder. honeycomb never overwrites a sidecar it cannot read.
 
 A photo you may only read shows a lock on its tile; the decision buttons are greyed. *Clear
 picks/rejects* in the ⋯ menu sets every photo of the folders you may change back to *unflagged*,

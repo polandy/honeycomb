@@ -6,8 +6,8 @@ The words honeycomb uses, in brief: the ones a cull needs.
 |---|---|
 | **photo** | What you see and decide on: a pair or a single. |
 | **pair** | A RAW file and a rendered file with the same name, belonging together. |
-| **single** | A photo with only one file: *JPEG only* or *RAW only*. |
-| **member** | One file of a photo: its RAW file or its rendered file. |
+| **single** | A photo with only one image file: *JPEG only* or *RAW only*. |
+| **member** | One image file of a photo: its RAW file or its rendered file. |
 | **RAW file** | A camera RAW file, such as `.NEF` or `.CR2`; the types are a setting. |
 | **rendered file** | A camera-made image file, such as a JPEG or HEIF. Shown in the app. |
 | **sidecar** | An `.xmp` file next to one of a photo's files that holds its metadata for other programs. |
