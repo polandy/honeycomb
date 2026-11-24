@@ -91,6 +91,17 @@ Binding: `docs/dev/conventions.md`. In short:
 - Vue: `@nextcloud/vue` components, `@nextcloud/axios`, no hover-only interaction, colours from
   Nextcloud CSS variables.
 
+## Test and review quality
+
+- **A test must fail for a wrong result.** Assert the specific error (exact type or message),
+  never an assertion-free test or one that passes on an empty render.
+- **Before committing, walk the degenerate states:** empty, default values and filters, the error
+  path, multi-digit numbering (`2.10` vs `2.2`), ranges. Cover each that applies with a test.
+- **Every review suggestion is applied, or the reply says why not.** None is ignored.
+- **The first commit subject describes the whole branch**: it becomes the PR title.
+- **A review says Ready only with no open finding.** It checks that new tests could not pass for a
+  wrong result, what the change does in degenerate states, and that the title matches the diff.
+
 ## Workflow
 
 1. Understand the task; read only the docs it touches, and the spec of the feature.

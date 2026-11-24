@@ -151,6 +151,7 @@ a `TODO.md` item finished twice.
 5. **Blockers:** what must change before the merge that you could not fix.
 6. **Merge readiness:** `ready` or `not ready` — exactly one of these words on that line, which the
    orchestrator's merge gate reads. `ready` only when every gate is ✅ or `n/a` and nothing blocks.
+   No open finding either; apply the checks of CLAUDE.md "Test and review quality".
    The words `not ready` appear nowhere else in the comment, not even quoted: the gate scans the
    whole body. Never merge: the owner or the orchestrator decides.
 
