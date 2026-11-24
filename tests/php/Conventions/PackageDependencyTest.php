@@ -10,7 +10,7 @@ namespace OCA\Honeycomb\Tests\Conventions;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-/** A package of `lib/` uses only the packages it lists (docs/dev/03-coding-standards.md, Packages). */
+/** A package of `lib/` uses only the packages it lists (docs/dev/03-coding-standards.md §3.6). */
 final class PackageDependencyTest extends TestCase {
 	private const APP = 'OCA\\Honeycomb\\';
 

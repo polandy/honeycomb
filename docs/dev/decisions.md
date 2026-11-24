@@ -102,7 +102,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   start culling.* in `NcEmptyContent`, until the folder picker arrives with M2.3.
 - 2026-11-10: Vue errors reach `@nextcloud/logger` through `app.config.errorHandler`
   (`src/app/create-honeycomb-app.ts`, logger injected); `src/app/main.ts` and `src/shared/logger.ts` are wiring
-  only, left out of coverage and covered by the e2e case. `src/*.ts` and `src/**/*.vue` keep the
+  only, left out of coverage and covered by the e2e case. `src/<folder>/*.ts` and `src/**/*.vue` keep the
   80 % lines gate of `02-workflow.md` §2.3.
 - 2026-11-10: The stub catalogue of ADR 0007 marks every string with a `[de]` prefix through a `Proxy`
   in `@nextcloud/l10n`'s registry, so it needs no list of strings. Components are

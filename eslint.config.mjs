@@ -8,7 +8,7 @@ const TYPESCRIPT_FILES = ['**/*.ts', '**/*.vue']
 const LOGIC_FILES = ['src/logic/**/*.ts']
 const TEST_FILES = ['tests/**/*.ts']
 
-// The folders of src/ a folder may import besides itself and the layers (docs/dev/03-coding-standards.md, Packages).
+// The folders of src/ a folder may import besides itself and the layers (docs/dev/03-coding-standards.md §3.6).
 const LAYERS = ['logic', 'api', 'shared', 'components']
 const FOLDER_IMPORTS = {
 	logic: [],

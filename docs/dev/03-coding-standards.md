@@ -112,3 +112,18 @@ the mockup. Markdown is written by hand and checked by markdownlint (`.markdownl
 
 Every file carries an SPDX header (`AGPL-3.0-or-later`, `2026 honeycomb contributors`) or is
 listed in `REUSE.toml`. `reuse lint` in `scripts/verify.sh` checks it.
+
+## 3.6 Packages
+
+Which part of the code may use which (ADR 0059). A new dependency between two packages or
+folders is a line in the rule's list, so review sees it.
+
+- **PHP.** `lib/Domain` holds the shared values and enums and, in `Domain/Store`, the store
+  interfaces; it uses no other package. `Db` and `Immich` use no service: only `Domain` and the
+  few packages listed for them. `lib/Service` has one package per function (`Listing`, `Move`,
+  `Trash`, ...); none uses another it does not list, and no class sits in the bare `Service`
+  namespace. `ALLOWED` in `tests/php/Conventions/PackageDependencyTest.php` is the list.
+- **TypeScript.** `src/logic` (pure), `src/components` and `src/api` are layers; `src/app` is
+  the shell, `src/shared` the helpers without a domain, and every other folder is one domain
+  (`cull`, `trash`, `move`, ...). `FOLDER_IMPORTS` in `eslint.config.mjs` lists the folders each
+  may import; `app` and `components` may import every folder. Tests stay flat in `tests/js`.
