@@ -13,9 +13,15 @@ import { removeStored } from './browser-storage.ts'
 import { hashProgress } from './logic/hash-progress.ts'
 import { imageMember, smallSource } from './logic/image-tiers.ts'
 import { hashablePictures } from './logic/series.ts'
+import { VISUAL_HASH_METHOD } from './logic/visual-hash.ts'
 
 /** The browser storage key under which earlier versions kept the visual hashes (ADR 0021); removed when a cull opens. */
 export const VISUAL_HASHES_KEY = 'honeycomb.visualHashes'
+
+/** The listed hash of a member when it was taken by the current method, else null (SERIES-003.30). */
+function currentHash(member: ListingEntry): string | null {
+	return member.visualHash?.method === VISUAL_HASH_METHOD ? member.visualHash.hash : null
+}
 
 /** Computes the visual hash of a member's image. */
 export type HashImage = (member: ListingEntry) => Promise<string>
@@ -49,8 +55,8 @@ export function useVisualHashes(api: VisualHashApi, storage: BrowserStorage, pic
 		compute: api.hashImage,
 		save: api.saveVisualHashes,
 		wait: api.wait,
-		row: (member, hash) => ({ fileId: member.fileId, etag: member.etag, hash }),
-		listed: (member) => member.visualHash !== null,
+		row: (member, hash) => ({ fileId: member.fileId, etag: member.etag, method: VISUAL_HASH_METHOD, hash }),
+		listed: (member) => currentHash(member) !== null,
 		failures: { compute: 'Could not hash the preview', save: 'Could not save the visual hashes' },
 		computed: () => {
 			if (!held) {
@@ -83,7 +89,7 @@ export function useVisualHashes(api: VisualHashApi, storage: BrowserStorage, pic
 		/** The visual hash of the picture's shown member, or null while it has none. */
 		hashOf(picture: Picture<ListingEntry>) {
 			const member = imageMember(picture)
-			return member.visualHash ?? published.value.get(versionKey(member)) ?? null
+			return currentHash(member) ?? published.value.get(versionKey(member)) ?? null
 		},
 		/** Holds new hashes back from the series, as while the series compare is open, and shows them on release. */
 		hold(hold: boolean) {

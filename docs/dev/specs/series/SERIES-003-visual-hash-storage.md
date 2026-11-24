@@ -15,9 +15,9 @@ server keeps the hashes the browser computed and hands them out with the listing
 - Each listing entry (LISTING-001) has `visualHash`: the stored hash of that file as
   `{"method": 1, "hash": "…"}` when it was taken from the file's current etag, else `null`. The
   method is the version of the hash (ADR 0046); the browser treats a hash of another method as
-  missing and hashes the file again, so a changed hash needs no migration. A hash is stored per file, not per user: every
-  user who reaches the file gets it (ADR 0046). The upgrade to that key dropped the stored hashes,
-  which the next visit computes again.
+  missing and hashes the file again, so a changed hash needs no migration. A hash is stored per
+  file, not per user: every user who reaches the file gets it (ADR 0046). The upgrade to that key
+  dropped the stored hashes, which the next visit computes again.
 - `PUT /apps/honeycomb/api/v1/visual-hashes` with `{"hashes": [{"fileId": 9, "etag": "…",
   "method": 1, "hash": "…"}, ...]}`, at most 1,000 items, stores each item's hash and answers
   `{"saved": [...]}` with the file ids stored, in request order. A stored hash of the same file is
@@ -26,17 +26,18 @@ server keeps the hashes the browser computed and hands them out with the listing
   (unknown, another user's file, a folder, a sidecar) or its etag is not the file's current one.
 - `400`, nothing written, for a body that is not a list of at most 1,000 items, an item without a
   positive integer `fileId`, with an `etag` that is not a string of 1 to 40 characters, with a
-  `method` that is not an integer from 1 to 255, with a `hash` that is not 16 lower-case hex digits, or a file id given twice. `401` without a user.
+  `method` that is not an integer from 1 to 255, with a `hash` that is not 16 lower-case hex digits,
+  or a file id given twice. `401` without a user.
 - A user may save at most 300 times a minute (`#[UserRateLimit]`, ADR 0026); a save beyond that
   is answered `429` by Nextcloud, without a `Retry-After` header, and writes nothing. The cull
   waits as long as the similarity page does (SERIES-004.14) and sends the same hashes again;
   hashing goes on meanwhile and no other save is sent (SERIES-003.27).
 - The browser hashes only the hashable pictures (SERIES-001.17) whose shown member has no
-  `visualHash` of its current method, and sends what it computed with `saveVisualHashes` in `src/api.ts`: every 100
-  hashes and when no picture is left to hash; it resolves to the `saved` file ids, which the
-  grid does not use, and rejects an answer without them. A failed save is logged; the hashes
-  still count for the series of this visit. Browser storage holds no hashes; the key
-  `honeycomb.visualHashes` of earlier versions is removed when a cull opens.
+  `visualHash` of its current method, and sends what it computed with `saveVisualHashes` in
+  `src/api.ts`: every 100 hashes and when no picture is left to hash; it resolves to the `saved`
+  file ids, which the grid does not use, and rejects an answer without them. A failed save is
+  logged; the hashes still count for the series of this visit. Browser storage holds no hashes; the
+  key `honeycomb.visualHashes` of earlier versions is removed when a cull opens.
 - The browser hashes a picture's shown member from the small grid tier, the very URL the grid
   tile loads first (`smallSource`), so the browser's cache serves it: a pair by its JPEG, a
   RAW-only picture by the JPEG embedded in the RAW (IMAGES-001.6). It hashes in the Web Workers
@@ -63,7 +64,8 @@ server keeps the hashes the browser computed and hands them out with the listing
 
 - **Given** a stored visual hash of a file, taken from its current etag
 - **When** the user lists the file's folder
-- **Then** the file's entry has that hash and its method as `visualHash`; an entry without a stored hash has `null`
+- **Then** the file's entry has that hash and its method as `visualHash`; an entry without a stored
+  hash has `null`
 
 ### SERIES-003.2 – A changed file loses its hash
 

@@ -8,6 +8,7 @@ import { computed, ref, shallowRef, triggerRef } from 'vue'
 import { logger } from './logger.ts'
 import { hashProgress } from './logic/hash-progress.ts'
 import { sendLimited } from './logic/retry-after.ts'
+import { VISUAL_HASH_METHOD } from './logic/visual-hash.ts'
 
 /** How many computed hashes one save of a run carries at most (SERIES-004.5). */
 export const HASH_RUN_SAVE_BATCH = 250
@@ -132,7 +133,7 @@ export function useHashRun(seams: HashRunSeams) {
 		try {
 			const hash = await seams.hash(picture)
 			if (of === run) {
-				unsaved.push({ fileId: picture.fileId, etag: picture.etag, hash })
+				unsaved.push({ fileId: picture.fileId, etag: picture.etag, method: VISUAL_HASH_METHOD, hash })
 				mark(picture.fileId, 'hashed')
 			}
 		} catch (error) {

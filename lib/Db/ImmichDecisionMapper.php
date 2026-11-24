@@ -37,6 +37,7 @@ final class ImmichDecisionMapper implements ImmichDecisionStore {
 		'rating' => IQueryBuilder::PARAM_INT,
 		'colour_label' => IQueryBuilder::PARAM_STR,
 		'updated_at' => IQueryBuilder::PARAM_INT,
+		'updated_by' => IQueryBuilder::PARAM_STR,
 	];
 	private const array ASSET_COLUMNS = [
 		'connection_id' => IQueryBuilder::PARAM_STR,
@@ -74,6 +75,7 @@ final class ImmichDecisionMapper implements ImmichDecisionStore {
 				'rating' => $decision->rating,
 				'colour_label' => $decision->colourLabel?->value,
 				'updated_at' => $updatedAt,
+				'updated_by' => $userId,
 			], $decisions));
 			$this->insertRows(new InsertStatements(self::ASSETS, self::ASSET_COLUMNS), array_map(static fn (AssetDecision $decision): array => [
 				'connection_id' => $connectionId,

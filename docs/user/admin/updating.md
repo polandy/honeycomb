@@ -24,11 +24,11 @@ new code may read tables that do not exist yet, and saving a flag, a rating or a
 0.2.0 replaces the migrations of 0.1.0 and of every Git checkout before 2026-11-23 with one
 migration that creates all tables at once
 ([ADR 0055](../../dev/adr/0055-one-baseline-migration-before-the-first-deployment.md)). Such an
-instance cannot update: the migration stops at the first table that already exists. Install
-honeycomb again instead. This deletes what the database holds: the flags and *Keep RAW*, the tag
-lists, series, resume positions, statistics, folder summaries, done statuses and Immich
-decisions. The photos, the XMP sidecars with their ratings, colour labels and tags, and the
-users' settings stay.
+instance cannot update: the migration stops before it creates a table, names the honeycomb tables
+that exist already and points to this section. Install honeycomb again instead. This deletes what
+the database holds: the flags and *Keep RAW*, the tag lists, series, resume positions, statistics,
+folder summaries, done statuses and Immich decisions. The photos, the XMP sidecars with their
+ratings, colour labels and tags, and the users' settings stay.
 
 ```sh
 sudo -u www-data php /var/www/nextcloud/occ app:disable honeycomb

@@ -16,14 +16,14 @@ any device finds them stored and links series at once.
   user's folders to choose one; its subfolders are always included.
 - `GET /apps/honeycomb/api/v1/visual-hashes/missing?path=/Photos&cursor=<cursor>&method=1` answers
   `{"pictures": [{"fileId": 9, "etag": "…", "mtime": 1700000000, "path": "/Photos/a.jpg"}],
-  "nextCursor": "<cursor>"}`: the user's own photos (ListingService::isPhoto) in the folder and every
-  folder below it without a stored hash of their current etag and the asked method (SERIES-003). It walks the tree in name order
-  and stops after 500 photos; `nextCursor` is the path of the last photo looked at, relative to the
-  folder, or `null` when the walk ended before 500. A page may hold fewer pictures, even none,
-  while `nextCursor` is not `null`. Hidden and unreadable folders, and folders of another mount (a
-  share, a group folder, external storage), are skipped. `404` for a path that is not the user's folder,
-  `403` when it is not readable, `400` for a cursor that is not a relative path or a method that
-  is not an integer from 1 to 255.
+  "nextCursor": "<cursor>"}`: the user's own photos (ListingService::isPhoto) in the folder and
+  every folder below it without a stored hash of their current etag and the asked method
+  (SERIES-003). It walks the tree in name order and stops after 500 photos; `nextCursor` is the path
+  of the last photo looked at, relative to the folder, or `null` when the walk ended before 500. A
+  page may hold fewer pictures, even none, while `nextCursor` is not `null`. Hidden and unreadable
+  folders, and folders of another mount (a share, a group folder, external storage), are skipped.
+  `404` for a path that is not the user's folder, `403` when it is not readable, `400` for a cursor
+  that is not a relative path or a method that is not an integer from 1 to 255.
 - *Start* asks for the pages one after another and hashes their pictures, each the way the grid
   hashes it (SERIES-003.22): the same URL of the small grid tier and the same drawing and hash
   code, in Web Workers, as many as the processor's cores less one, at least one, at most eight.
@@ -57,8 +57,8 @@ any device finds them stored and links series at once.
   etag, one with a hash of an older etag, one with a hash of another method, a sidecar and a
   hidden folder
 - **When** the user asks for the missing hashes of the folder by the current method
-- **Then** the answer lists the photos without a current hash of that method, in name order through the tree,
-  each with file id, etag, mtime and path, and `nextCursor` is `null`
+- **Then** the answer lists the photos without a current hash of that method, in name order through
+  the tree, each with file id, etag, mtime and path, and `nextCursor` is `null`
 
 ### SERIES-004.2 – A page ends with a cursor
 

@@ -13,7 +13,7 @@ use OCP\AppFramework\Db\Entity;
 use OCP\DB\Types;
 
 /**
- * A row of `honeycomb_positions` (ADR 0012).
+ * A row of `honeycomb_positions` (ADR 0012); only file positions are written yet, so `fileId` is set and `assetId` and `takenAt` are null.
  * @method string getUserId()
  * @method void setUserId(string $userId)
  * @method string getFolderSetKey()
@@ -22,6 +22,8 @@ use OCP\DB\Types;
  * @method void setFolderSet(string $folderSet)
  * @method int getFileId()
  * @method void setFileId(int $fileId)
+ * @method ?string getAssetId()
+ * @method ?int getTakenAt()
  * @method int getDecided()
  * @method void setDecided(int $decided)
  * @method int getTotal()
@@ -35,6 +37,8 @@ final class Position extends Entity {
 	protected ?string $folderSetKey = null;
 	protected ?string $folderSet = null;
 	protected ?int $fileId = null;
+	protected ?string $assetId = null;
+	protected ?int $takenAt = null;
 	protected ?int $decided = null;
 	protected ?int $total = null;
 	protected ?int $updatedAt = null;
@@ -44,6 +48,8 @@ final class Position extends Entity {
 		$this->addType('folderSetKey', Types::STRING);
 		$this->addType('folderSet', Types::TEXT);
 		$this->addType('fileId', Types::BIGINT);
+		$this->addType('assetId', Types::STRING);
+		$this->addType('takenAt', Types::BIGINT);
 		$this->addType('decided', Types::INTEGER);
 		$this->addType('total', Types::INTEGER);
 		$this->addType('updatedAt', Types::BIGINT);
