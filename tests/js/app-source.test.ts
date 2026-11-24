@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// @vitest-environment happy-dom
 import type { FolderSetOpeningCull } from '../../src/app/app-source.ts'
 import type { LocationApi } from '../../src/cull/cull-location.ts'
 import type { FolderSet } from '../../src/logic/folder-set.ts'

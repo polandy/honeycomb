@@ -34,7 +34,6 @@ import ToastDetails from '../components/ToastDetails.vue'
 import UndoToast from '../components/UndoToast.vue'
 import { provideCullContext } from '../cull/cull-context.ts'
 import { useCullFinished } from '../cull/cull-finished.ts'
-import { useCullLocation } from '../cull/cull-location.ts'
 import { useCull } from '../cull/cull.ts'
 import { flagsNotSavedText } from '../cull/decision-text.ts'
 import { useTagEntryTargets } from '../cull/tag-entry-targets.ts'
@@ -55,10 +54,8 @@ import { useLoupeOpening } from '../loupe/loupe-opening.ts'
 import { useMoveFlow } from '../move/move-flow.ts'
 import { useRestOffer } from '../series/rest-offer.ts'
 import { useSeriesCompare } from '../series/series-compare.ts'
-import { cleanUpWithToast, clearCacheWithToast } from '../settings/cache-clear.ts'
 import { useSettings } from '../settings/settings.ts'
 import { readOnce, useViewState } from '../settings/view-state.ts'
-import { fireAndLog } from '../shared/fire-and-log.ts'
 import { freshCheck } from '../shared/fresh-check.ts'
 import { useHotkeys } from '../shared/hotkeys.ts'
 import { useToast } from '../shared/toast.ts'
@@ -66,10 +63,11 @@ import { useBundledSidecars } from '../sidecars/sidecar-bundle.ts'
 import { useSidecarFlow } from '../sidecars/sidecar-flow.ts'
 import { useXmpExport } from '../sidecars/xmp-export.ts'
 import { useActiveTime } from '../statistics/active-time.ts'
-import { resetStatisticsWithToast } from '../statistics/statistics-reset.ts'
 import { useYearReviewHint } from '../statistics/year-review-hint.ts'
 import { useDeleteFlow } from '../trash/delete-flow.ts'
+import { useAppDialogs } from './app-dialogs.ts'
 import { APP_SEAMS } from './app-seams.ts'
+import { useFolderSetOpening } from './app-source.ts'
 
 const props = withDefaults(defineProps<AppSeams>(), APP_SEAMS)
 
@@ -79,7 +77,8 @@ const { settings, settled: settingsSettled, update: updateSettings } = useSettin
 const viewStateApi = readOnce(props.viewState)
 const viewState = useViewState(viewStateApi, props.storage)
 const yearReviewHint = useYearReviewHint(viewStateApi, props.today)
-const settingsOpen = ref(false)
+const dialogs = useAppDialogs({ clearCache: props.clearCache, cleanUp: props.cleanUp, resetStatistics: props.resetStatistics }, toast)
+const { settingsOpen, shortcutsOpen, connectionOpen, toggleShortcuts } = dialogs
 const sidecarFlow = useSidecarFlow(props.sidecars, toast.show, toast.showError)
 const sidecars = useBundledSidecars(sidecarFlow.sync, props.schedule, props.onPageHide)
 const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveVisualHashes, measureImage: props.measureImage, saveQualityValues: props.saveQualityValues, wait: waitSeconds(props.schedule), warmPreviews: props.warmPreviews, flags: props.flags, lookupSeries: props.lookupSeries, saveSeries: props.saveSeries, tags: props.tags }, props.storage, () => settings.value, sidecars, (photos) => toast.showError(flagsNotSavedText(photos)))
@@ -95,7 +94,6 @@ const loupeScreen = useTemplateRef<InstanceType<typeof LoupeScreen>>('loupeScree
 const headerShown = ref(true)
 /** Opens the loupe on the shown picture at the index. */
 const openLoupe = (index: number) => (loupe.value = { pictures: view.value, index })
-const shortcutsOpen = ref(false)
 const selection = useSelectionMode(() => view.value, pictures)
 const { selected } = selection
 watch(cull.pairing, selection.selectNone)
@@ -127,51 +125,42 @@ const moving = useMoveFlow({ view: () => view.value, settings: () => settings.va
 const recent = useRecent(props.positions, props.listEntries, { folderSet: () => folderSet.value, progress: () => progress.value, pairing: () => cull.pairing.value }, toast.showError)
 const activeTime = useActiveTime(props.clock)
 const resume = useResume(recent.positions, { folderSet: () => folderSet.value, pictures: () => pictures.value, view: () => view.value, progress: () => progress.value, decidedOf: cull.decidedOf, shown: shownInLoupe, openLoupe, takeActiveSeconds: activeTime.take }, toast.show)
-const home = useFoldersHome(props.library, { roots: () => (settingsSettled.value ? settings.value.libraryRoots : null), flush: flushWrites, toastError: toast.showError, folderSet: () => folderSet.value, listing: () => recent.listing.value, positionOf: recent.positionOf, openPosition: openRecent, openSet: (set) => openAt(set, null), saveRoots: (libraryRoots) => updateSettings({ libraryRoots }), now: props.now, toast: toast.show, setFlags: cull.setFlags })
+const home = useFoldersHome(props.library, { roots: () => (settingsSettled.value ? settings.value.libraryRoots : null), flush: flushWrites, toastError: toast.showError, folderSet: () => folderSet.value, listing: () => recent.listing.value, positionOf: recent.positionOf, openPosition: openRecent, openSet: openFolderSetAnew, saveRoots: (libraryRoots) => updateSettings({ libraryRoots }), now: props.now, toast: toast.show, setFlags: cull.setFlags })
 const finishedCard = computed(() => ({ markable: home.finishing.value !== null, onClose: cullFinished.close, onMarkDone: home.markFinished }))
-function openRecent(position: ResumePosition) {
-	fireAndLog(recent.open(position, { open: cull.open, resumeAt: resume.resumeAt, resumeOpen: () => {
-		pickerOpen.value = false
-		home.hide()
-		resume.resume()
-	} }), 'Could not open the recent folder set')
-}
 recent.refresh()
 watch(pickerOpen, (open) => open && recent.refresh())
 
 const { immich, shown: immichShown, opened, openedStatus, onlyOffer, cull: immichCull, openConnection, checkOpened } = useImmichApp({ source: props.immich, cull: props.immichCull, storage: props.storage, viewState: viewStateApi, now: props.now, toast })
 const immichOnly = useImmichOnly({ stored: () => (settingsSettled.value ? settings.value.immichOnly : null), offer: () => onlyOffer.value, store: (chosen) => updateSettings({ immichOnly: chosen }), chooseSource: immich.choose, folderSet: () => folderSet.value, idle: () => folderSet.value === null && !recent.listing.value, pickerOpen })
-const connectionDialogOpen = ref(false)
 const IMMICH_HIDDEN_KEYS = unofferedKeys(DECISIONS_ONLY)
 
 const gridKeys = gridHotkeys({ grid: () => grid.value, view: () => view.value, selection, common: cull.common, decide, toggleFiltersOff: cull.toggleFiltersOff, openLoupe, openTags: tagEntry.open, headerShown, filtersOpen, filterBar: () => gridScreen.value?.filterBar?.$el, toggleFullscreen: () => props.toggleFullscreen(document.documentElement) })
 
 provideCullContext({ cull, selection, decide, clearFlags, reduceSeries, xmpExport, editSeries: editSelection, deleting, moving, resume, seriesCompare, unsaved: sidecars.waiting, tagEntry, headerShown, home: { fromList: home.fromList, back: home.back }, openLoupe, openSettings: () => (settingsOpen.value = true), loupe: loupeOpening, restOffer, toast: toast.show, settings, updateSettings, viewState, storage: props.storage, imageUrl: props.imageUrl })
 
-/** Opens the confirmed folder set and offers its resume position. */
-function openFolderSet(...opened: Parameters<typeof cull.open>) {
-	cull.open(...opened)
-	resume.offer()
-}
 /** The file the loupe shows, null while it is closed. */
 const shownFile = () => (shownInLoupe() === null ? null : positionFileId(shownInLoupe()!))
-/** Lists the folder set and opens it, the loupe at the picture when one is given and still there (DECISIONS-002.17, .18). */
-async function openAt(set: FolderSet, fileId: number | null) {
-	await recent.list(set, fileId === null ? openFolderSet : cull.open, () => fileId !== null && resume.resumeAt(fileId))
-}
-/** Lists the open folder set again, keeping the loupe's picture (DECISIONS-002.18). */
+const source = useFolderSetOpening(props.location, { folderSet: () => folderSet.value, shownFileId: shownFile, open: cull.open, list: recent.list, openPosition: recent.open, offer: resume.offer, resumeAt: resume.resumeAt, resume: resume.resume, leave: () => {
+	pickerOpen.value = false
+	home.hide()
+} })
+const { openFolderSet } = source
+/** Lists the open folder set again (DECISIONS-002.18). */
 function reloadFolder() {
-	if (folderSet.value !== null) {
-		fireAndLog(openAt(folderSet.value, shownFile()), 'Could not open the picture of the address')
-	}
+	source.reload()
 }
-useCullLocation(props.location, { folderSet: () => folderSet.value, shownFileId: shownFile }, ({ folderSet: set, fileId }) => openAt(set, fileId))
+/** Opens a folder set under *Recent* at its resume position. */
+function openRecent(position: ResumePosition) {
+	source.openRecent(position)
+}
+/** Lists the folder set and opens it with its resume offer. */
+function openFolderSetAnew(set: FolderSet) {
+	return source.openAt(set, null)
+}
 /** Shows or hides the file names above the grid's tiles (GRID-004.3). */
 const toggleFileNames = () => updateSettings({ showFileNames: !settings.value.showFileNames })
-/** Opens or closes the shortcut sheet. */
-const toggleShortcuts = () => (shortcutsOpen.value = !shortcutsOpen.value)
 useHotkeys(() => {
-	if (pickerOpen.value || settingsOpen.value || connectionDialogOpen.value || tagEntry.targets.value !== null || deleteDialog.value !== null || cullFinished.numbers.value !== null || sidecarFlow.open.value || moving.pictures.value !== null || moving.report.value !== null) {
+	if (pickerOpen.value || dialogs.holdsKeys() || tagEntry.targets.value !== null || deleteDialog.value !== null || cullFinished.numbers.value !== null || sidecarFlow.open.value || moving.pictures.value !== null || moving.report.value !== null) {
 		return null
 	}
 	if (immichShown.value && !shortcutsOpen.value) {
@@ -199,7 +188,7 @@ useHotkeys(() => {
 			:connectionId="opened?.id ?? null"
 			@chooseSource="immich.choose"
 			@openConnection="openConnection"
-			@connectionDetails="connectionDialogOpen = true"
+			@connectionDetails="connectionOpen = true"
 			@closeHint="yearReviewHint.close()"
 			@openFolders="home.back"
 			@chooseFolders="pickerOpen = true"
@@ -223,7 +212,7 @@ useHotkeys(() => {
 				:connection="opened"
 				:status="openedStatus"
 				@retry="checkOpened"
-				@details="connectionDialogOpen = true" />
+				@details="connectionOpen = true" />
 			<template v-else-if="home.shown.value" />
 			<GridSkeleton v-else-if="recent.listing.value" class="honeycomb__grid" :tileSize="tileSize" />
 			<GridScreen v-else-if="folderSet !== null" ref="gridScreen" />
@@ -261,15 +250,15 @@ useHotkeys(() => {
 				:check="home.check"
 				@update="updateSettings"
 				@showGestureGuide="viewState.showGestureGuide"
-				@clearCache="clearCacheWithToast(props.clearCache, toast.show, toast.showError)"
-				@cleanUp="cleanUpWithToast(props.cleanUp, toast.show, toast.showError)"
-				@resetStatistics="resetStatisticsWithToast(props.resetStatistics, toast.show, toast.showError)" />
+				@clearCache="dialogs.settingsActions.clearCache"
+				@cleanUp="dialogs.settingsActions.cleanUp"
+				@resetStatistics="dialogs.settingsActions.resetStatistics" />
 			<ImmichConnectionDialog
-				v-if="connectionDialogOpen && opened !== null"
+				v-if="connectionOpen && opened !== null"
 				:connection="opened"
 				:status="openedStatus"
 				@test="checkOpened"
-				@close="connectionDialogOpen = false" />
+				@close="connectionOpen = false" />
 			<ToastDetails v-if="toast.detailed.value !== null" :detailed="toast.detailed.value" @close="toast.closeDetails" />
 			<Teleport to="body">
 				<LoupeScreen ref="loupeScreen" />
