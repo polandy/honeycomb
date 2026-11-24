@@ -47,7 +47,7 @@ async function mountScreen() {
 		global: { stubs: { teleport: true } },
 	})
 	await flushPromises()
-	return { wrapper, assets, counts }
+	return { wrapper, assets, counts, cull }
 }
 
 describe('ImmichScreen', () => {
@@ -110,5 +110,27 @@ describe('ImmichScreen', () => {
 		expect(assets).toHaveLength(2)
 		expect(assets[1]!.cursor).toBe('c2')
 		expect(wrapper.findComponent(PhotoLoupe).props('counter')).toEqual({ position: 91, total: 3412 })
+	})
+
+	// spec: IMMICH-002.9
+	it('passes the loupe\'s decisions, toasts and settings on', async () => {
+		const { wrapper, assets, cull } = await mountScreen()
+		const decide = vi.spyOn(cull, 'decide')
+		assets[0]!.answer(page(1, 3, null))
+		await flushPromises()
+		wrapper.findComponent(PhotoGrid).vm.$emit('open', 1)
+		await flushPromises()
+		const loupe = wrapper.findComponent(PhotoLoupe)
+
+		loupe.vm.$emit('decide', { kind: 'flag', flag: 'picked' }, cull.pictures.value[1])
+		loupe.vm.$emit('toast', { text: 'Done' })
+		loupe.vm.$emit('updateSettings', { flagButtonsShown: true })
+		wrapper.findComponent(PhotoGrid).vm.$emit('update:tileSize', 200)
+		await flushPromises()
+
+		expect(decide).toHaveBeenCalledWith({ kind: 'flag', flag: 'picked' }, [cull.pictures.value[1]])
+		expect(wrapper.emitted('toast')).toEqual([[{ text: 'Done' }]])
+		expect(wrapper.emitted('updateSettings')).toEqual([[{ flagButtonsShown: true }]])
+		expect(wrapper.emitted('update:tileSize')).toEqual([[200]])
 	})
 })
