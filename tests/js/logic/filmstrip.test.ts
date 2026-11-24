@@ -49,6 +49,7 @@ describe('filmstripLayout', () => {
 		expect(filmstripLayout({ index: 3, count: 5, viewport: 0, offset: 0, tabs: [] })).toMatchObject({ centred: 0, first: 0, end: 0 })
 		expect(filmstripLayout({ index: 0, count: 0, viewport: VIEWPORT, offset: 0, tabs: [] })).toMatchObject({ first: 0, end: 0, width: 0, centred: 0 })
 	})
+
 	// spec: LOUPE-001.19
 	it('puts a tab column before each photo that opens a series run and widens the strip by it', () => {
 		expect(FILMSTRIP_TAB).toBe(44)

@@ -67,6 +67,19 @@ final class SchemaRepairTest extends TestCase {
 		$this->assertSame(['file_id' => 7, 'flag' => 'pick', 'updated_by' => null, 'sidecar_etag' => null], $this->row('SELECT file_id, flag, updated_by, sidecar_etag FROM *PREFIX*honeycomb_decisions'));
 	}
 
+	public function testAWidenedAssetIdKeepsItsValueAndASecondRunChangesNothing(): void {
+		$this->installFirstBaseline();
+		$assetId = str_repeat('a', 36);
+		$this->db->executeStatement("INSERT INTO *PREFIX*honeycomb_immich_assets (connection_id, asset_id, user_id, taken_at, kind, asset_updated_at) VALUES ('c1', ?, 'alice', 1, 'image', 't')", [$assetId]);
+
+		$this->migrate();
+		$this->db->executeStatement('DELETE FROM *PREFIX*migrations WHERE app = ? AND version <> ?', [self::APP, self::BASELINE]);
+		$this->migrate();
+
+		$this->assertSame(['asset_id' => $assetId], $this->row('SELECT asset_id FROM *PREFIX*honeycomb_immich_assets'));
+		$this->assertSame(json_encode($this->fixture(self::FIXTURE), JSON_PRETTY_PRINT), json_encode(SchemaSnapshot::live(), JSON_PRETTY_PRINT));
+	}
+
 	private function removal(): AppRemovalMapper {
 		return new AppRemovalMapper($this->db, $this->config, $this->jobs);
 	}

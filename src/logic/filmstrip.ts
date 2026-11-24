@@ -48,9 +48,18 @@ export function filmstripLayout({ index, count, viewport, offset, tabs }: Filmst
 	return { width, centred, first, end }
 }
 
-/** How many of `tabs` come at or before the photo at `index`. */
+/** How many of `tabs`, in ascending order, come at or before the photo at `index`: the first one past it by bisection. */
 function tabsUpTo(index: number, tabs: readonly number[]): number {
-	return tabs.filter((tab) => tab <= index).length
+	let [low, high] = [0, tabs.length]
+	while (low < high) {
+		const middle = Math.floor((low + high) / 2)
+		if (tabs[middle]! <= index) {
+			low = middle + 1
+		} else {
+			high = middle
+		}
+	}
+	return low
 }
 
 /** How many of the `count` photos start before `edge`, or at it too when `atEdge`: the first one past it by bisection. */
