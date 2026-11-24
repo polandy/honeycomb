@@ -84,9 +84,9 @@ final class ViewStateServiceTest extends TestCase {
 
 	// spec: LOUPE-003.2
 	public function testStoresEveryKey(): void {
-		$answer = $this->service()->save($this->user(), ['info_panel_open' => true, 'gesture_guide_seen' => true, 'series_hint_seen' => true, 'reject_hint_seen' => true, 'year_review_hint_closed' => 2026, 'immich_filters' => null]);
+		$answer = $this->service()->save($this->user(), ['info_panel_open' => true, 'gesture_guide_seen' => true, 'series_hint_seen' => true, 'reject_hint_seen' => true, 'year_review_hint_closed' => 2026, 'immich_filters' => ['phone' => ['time' => 'all']]]);
 
-		$this->assertSame(['info_panel_open' => true, 'gesture_guide_seen' => true, 'series_hint_seen' => true, 'reject_hint_seen' => true, 'year_review_hint_closed' => 2026, 'immich_filters' => null], $answer);
+		$this->assertSame(['info_panel_open' => true, 'gesture_guide_seen' => true, 'series_hint_seen' => true, 'reject_hint_seen' => true, 'year_review_hint_closed' => 2026, 'immich_filters' => ['phone' => ['time' => 'all']]], $answer);
 	}
 
 	// spec: LOUPE-003.1

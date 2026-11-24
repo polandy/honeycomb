@@ -186,7 +186,7 @@ describe('App: the Immich source', () => {
 		const requests: [string, AssetsRequest][] = []
 		const writes: ViewStatePatch[] = []
 		const immichCull: ImmichCullApi = { ...SILENT_IMMICH_CULL, assets: (id, request) => (requests.push([id, request]), new Promise(() => undefined)) }
-		const viewState = { loadViewState: async () => ({ gesture_guide_seen: true, immich_filters: { 'andy-phone': { time: 'all', kinds: ['video'] } } }), saveViewState: async (patch: ViewStatePatch) => { writes.push(patch) } }
+		const viewState = { loadViewState: async () => ({ gesture_guide_seen: true, immich_filters: { 'andy-phone': { time: 'all', kinds: ['video'] } } }), saveViewState: async (patch: ViewStatePatch) => void writes.push(patch) }
 		const { wrapper } = mountApp({ immich: immichOn({ kind: 'connections', connections: [PHONE, KIDS] }).immich, immichCull, viewState })
 		await flushPromises()
 		wrapper.findComponent(AppNavigation).vm.$emit('chooseSource', 'immich')
@@ -210,7 +210,7 @@ describe('App: the Immich source', () => {
 		const error = vi.spyOn(logger, 'error').mockReturnValue()
 		const requests: AssetsRequest[] = []
 		const immichCull: ImmichCullApi = { ...SILENT_IMMICH_CULL, assets: (_id, request) => (requests.push(request), new Promise(() => undefined)) }
-		const viewState = { loadViewState: async () => { throw new Error('offline') }, saveViewState: async () => undefined }
+		const viewState = { loadViewState: () => Promise.reject(new Error('offline')), saveViewState: async () => undefined }
 		const { wrapper } = mountApp({ immich: immichOn({ kind: 'connections', connections: [PHONE] }).immich, immichCull, viewState })
 		await flushPromises()
 		wrapper.findComponent(AppNavigation).vm.$emit('chooseSource', 'immich')

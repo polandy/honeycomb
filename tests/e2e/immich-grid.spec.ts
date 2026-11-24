@@ -147,6 +147,29 @@ test.describe('the grid and the loupe of an Immich connection', () => {
 		await expect(main).toContainText('1 decided')
 	})
 
+	// spec: IMMICH-002.30, IMMICH-002.31, IMMICH-002.32
+	test('chooses a time on the filter bar, starts over, keeps it after a reload and clears it', async ({ page }) => {
+		const main = await openFamily(page)
+		const all = main.getByRole('group', { name: 'Time' }).getByRole('button', { name: 'All phone uploads' })
+		const clear = main.getByRole('button', { name: 'Clear filters' })
+		await expect(all).toHaveAttribute('aria-pressed', 'false')
+		await expect(clear).toBeHidden()
+
+		const asked = page.waitForRequest((request) => request.url().includes('/api/v1/immich/family/assets') && request.postDataJSON().filters.takenAfter === null)
+		const saved = page.waitForResponse((response) => response.url().includes('/api/v1/view-state') && response.request().method() === 'PUT')
+		await all.click()
+		await asked
+		expect((await saved).status()).toBe(200)
+		await expect(all).toHaveAttribute('aria-pressed', 'true')
+
+		await page.reload()
+		await page.getByRole('button', { name: 'Immich', exact: true }).click()
+		await expect(all).toHaveAttribute('aria-pressed', 'true')
+		await clear.click()
+		await expect(all).toHaveAttribute('aria-pressed', 'false')
+		await expect(clear).toBeHidden()
+	})
+
 	// spec: IMMICH-003.19
 	test('takes several decisions back with Ctrl+Z in reverse order, in the loupe and in the grid', async ({ page }) => {
 		const saves: { assetId: string, rating: number, flag: string }[][] = []
