@@ -28,7 +28,7 @@ function rateLabel(value: number) {
 
 /** What a rating button shows: the count, with a star once there is one. */
 function buttonText(value: number) {
-	return value === 0 ? formatNumber(0) : `${formatNumber(value)}★`
+	return value === 0 ? t('honeycomb', 'Clear') : `${formatNumber(value)}★`
 }
 </script>
 

@@ -114,7 +114,7 @@ defineExpose({ loupe: photoLoupe })
 			class="immich-screen__empty"
 			:name="t('honeycomb', 'No pictures match. Change the time, device or flag filter.')">
 			<template #icon>
-				<AppIcon name="phone" />
+				<AppIcon name="server" />
 			</template>
 			<template v-if="filtersChanged" #action>
 				<NcButton @click="props.cull.clearFilters">

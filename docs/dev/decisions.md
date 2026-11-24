@@ -1919,6 +1919,11 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   empty folder state offers *Change folders* and hints at the *File types* setting, and the Immich
   grid's no-match state offers *Clear filters* that shows the default filters again. The hint
   reads "If your photos use other file types, add them in Settings › File types."; the settings
-  link is text, not a second button, so the state keeps one action. On the default filters (this
+  link is text, not a second button, so the state keeps one action.
+- 2026-11-24: Icons and labels (Fable review, owner-approved): the rating's first button reads
+  *Clear* instead of `0` with its aria-label unchanged, *Review rejects* takes a check-list icon
+  (the trash icon stays in the review dialog), the Immich source takes a neutral server icon
+  instead of a phone, and the tag refusal reads two plain sentences ("Separate the levels of a tag
+  with \"/\". A name cannot be empty and cannot contain \"|\"."). Wording and icons only. On the default filters (this
   month, *Picked* and *Unflagged*) the Immich *Clear filters* does not show, since it would change
   nothing, like the filter bar's *Clear filters* (IMMICH-002.31).
