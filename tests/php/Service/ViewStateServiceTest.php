@@ -86,7 +86,7 @@ final class ViewStateServiceTest extends TestCase {
 	public function testStoresEveryKey(): void {
 		$answer = $this->service()->save($this->user(), ['info_panel_open' => true, 'gesture_guide_seen' => true, 'series_hint_seen' => true, 'reject_hint_seen' => true, 'year_review_hint_closed' => 2026, 'immich_filters' => ['phone' => ['time' => 'all']]]);
 
-		$this->assertSame(['info_panel_open' => true, 'gesture_guide_seen' => true, 'series_hint_seen' => true, 'reject_hint_seen' => true, 'year_review_hint_closed' => 2026, 'immich_filters' => ['phone' => ['time' => 'all']]], $answer);
+		$this->assertEquals(['info_panel_open' => true, 'gesture_guide_seen' => true, 'series_hint_seen' => true, 'reject_hint_seen' => true, 'year_review_hint_closed' => 2026, 'immich_filters' => (object)['phone' => ['time' => 'all']]], $answer);
 	}
 
 	// spec: LOUPE-003.1
@@ -137,13 +137,18 @@ final class ViewStateServiceTest extends TestCase {
 
 	// spec: LOUPE-003.10
 	public function testMergesTheImmichFiltersOfTheConnectionsGiven(): void {
-		$this->stored['alice/honeycomb/immich_filters'] = ['phone' => ['time' => 'all'], 'tablet' => ['kinds' => ['video']]];
+		$this->storeImmichFilters(['phone' => ['time' => 'all'], 'tablet' => ['kinds' => ['video']]]);
 
 		$answer = $this->service()->save($this->user(), ['immich_filters' => ['tablet' => ['time' => 'current'], 'camera' => []]]);
 
 		$expected = ['phone' => ['time' => 'all'], 'tablet' => ['time' => 'current'], 'camera' => []];
 		$this->assertEquals((object)$expected, $answer['immich_filters']);
 		$this->assertSame($expected, $this->stored['alice/honeycomb/immich_filters']);
+	}
+
+	/** Seeds alice's stored Immich filters outside the test, so psalm does not narrow the store to them. */
+	private function storeImmichFilters(array $filters): void {
+		$this->stored['alice/honeycomb/immich_filters'] = $filters;
 	}
 
 	// spec: LOUPE-003.10

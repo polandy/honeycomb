@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 use OCA\Honeycomb\AppInfo\Application;
+use OCA\Honeycomb\Immich\ConnectionsFileShape;
 use OCP\Config\IUserConfig;
 use OCP\IUser;
 
@@ -24,7 +25,6 @@ final class ViewStateService {
 
 	private const int FIRST_YEAR = 1970;
 	private const int LAST_YEAR = 9999;
-	private const int MAX_CONNECTION_ID_LENGTH = 64;
 	private const int MAX_FILTERS_BYTES = 4096;
 	private const int MAX_CONNECTIONS = 50;
 
@@ -35,7 +35,7 @@ final class ViewStateService {
 
 	/**
 	 * Every key with its stored boolean or year, null for a key never stored.
-	 * @return array<string, bool|int|array<mixed>|null>
+	 * @return array<string, bool|int|object|null>
 	 */
 	public function get(IUser $user): array {
 		$state = [];
@@ -48,7 +48,8 @@ final class ViewStateService {
 			? $this->config->getValueInt($user->getUID(), Application::APP_ID, self::YEAR_KEY)
 			: null;
 		$state[self::IMMICH_FILTERS_KEY] = $this->config->hasKey($user->getUID(), Application::APP_ID, self::IMMICH_FILTERS_KEY)
-			? $this->config->getValueArray($user->getUID(), Application::APP_ID, self::IMMICH_FILTERS_KEY)
+			// An object, so the filters of a numeric connection id do not answer as a JSON list.
+			? (object)$this->config->getValueArray($user->getUID(), Application::APP_ID, self::IMMICH_FILTERS_KEY)
 			: null;
 		return $state;
 	}
@@ -56,7 +57,7 @@ final class ViewStateService {
 	/**
 	 * Stores the keys given and returns the whole view state.
 	 * @throws InvalidViewStateException for anything but a non-empty object of known keys with boolean values, a year for the year key, or Immich filters per connection
-	 * @return array<string, bool|int|array<mixed>|null>
+	 * @return array<string, bool|int|object|null>
 	 */
 	public function save(IUser $user, mixed $viewState): array {
 		if (!is_array($viewState) || $viewState === []) {
@@ -103,14 +104,13 @@ final class ViewStateService {
 		return in_array($key, self::KEYS, true) && is_bool($value);
 	}
 
-	/** A non-empty object of connection ids, each holding an object of filters of bounded size. */
+	/** A non-empty object of connection ids, each holding an object of filters of bounded size; a numeric id decodes as an int key. */
 	private function isImmichFilters(mixed $value): bool {
-		if (!is_array($value) || $value === [] || array_is_list($value)) {
+		if (!is_array($value) || $value === []) {
 			return false;
 		}
 		foreach ($value as $connectionId => $filters) {
-			$id = (string)$connectionId;
-			if ($id === '' || strlen($id) > self::MAX_CONNECTION_ID_LENGTH
+			if (preg_match(ConnectionsFileShape::ID, (string)$connectionId) !== 1
 				|| !is_array($filters) || ($filters !== [] && array_is_list($filters))
 				|| strlen((string)json_encode($filters)) > self::MAX_FILTERS_BYTES) {
 				return false;
