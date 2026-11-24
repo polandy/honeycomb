@@ -155,6 +155,7 @@ defineExpose({ grid, filterBar })
 			v-else
 			:reason="empty"
 			:rejected="rejected.length"
+			@changeFolders="pickerOpen = true"
 			@clearFilters="filters = DEFAULT_FILTERS"
 			@showAll="cull.setFlags(new Set())"
 			@reviewRejects="deleting.review" />

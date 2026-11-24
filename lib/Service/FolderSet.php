@@ -34,20 +34,20 @@ final readonly class FolderSet implements \JsonSerializable {
 	/**
 	 * The folder set in a request, shaped as `FolderSet` in `src/logic/folder-set.ts`.
 	 * @param array<array-key, mixed> $request
-	 * @throws InvalidPositionException for missing, malformed or too many paths
+	 * @throws InvalidRequestException for missing, malformed or too many paths
 	 */
 	public static function fromRequest(array $request): self {
 		$paths = self::folderPaths($request['paths'] ?? null);
 		$subfolders = $request['subfolders'] ?? null;
 		$excluded = self::folderPaths($request['excluded'] ?? []);
 		if ($paths === null || $paths === []) {
-			throw new InvalidPositionException('folderSet.paths must list 1 to ' . self::MAX_FOLDERS . ' folder paths without ..');
+			throw InvalidRequestException::because(Reason::BadPath, 'folderSet.paths must list 1 to ' . self::MAX_FOLDERS . ' folder paths without ..');
 		}
 		if (!is_bool($subfolders)) {
-			throw new InvalidPositionException('folderSet.subfolders must be true or false');
+			throw InvalidRequestException::because(Reason::BadValue, 'folderSet.subfolders must be true or false');
 		}
 		if ($excluded === null) {
-			throw new InvalidPositionException('folderSet.excluded must list at most ' . self::MAX_FOLDERS . ' folder paths without ..');
+			throw InvalidRequestException::because(Reason::BadPath, 'folderSet.excluded must list at most ' . self::MAX_FOLDERS . ' folder paths without ..');
 		}
 		return new self($paths, $subfolders, $excluded);
 	}

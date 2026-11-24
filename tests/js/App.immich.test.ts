@@ -1,13 +1,14 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { ImmichCullApi } from '../../src/immich-cull.ts'
+import type { AssetsRequest, ImmichCullApi } from '../../src/immich-cull.ts'
 import type { ImmichApi } from '../../src/immich-source.ts'
 import type { DecisionRow } from '../../src/logic/immich-asset.ts'
 import type { ConnectionStatus, ImmichAvailability } from '../../src/logic/immich-connections.ts'
+import type { ViewStatePatch } from '../../src/logic/view-state.ts'
 
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import AppNavigation from '../../src/components/AppNavigation.vue'
 import FolderPicker from '../../src/components/FolderPicker.vue'
 import GridToolbar from '../../src/components/GridToolbar.vue'
@@ -15,6 +16,7 @@ import ImmichConnectionDialog from '../../src/components/ImmichConnectionDialog.
 import ImmichScreen from '../../src/components/ImmichScreen.vue'
 import ImmichState from '../../src/components/ImmichState.vue'
 import { IMMICH_CONNECTION_KEY } from '../../src/immich-source.ts'
+import { logger } from '../../src/logger.ts'
 import { fakeStorage, mountApp, openCull, shownNames, SILENT_IMMICH_CULL } from './app-cull.ts'
 import { immichEntry } from './logic/immich-fixtures.ts'
 
@@ -178,5 +180,45 @@ describe('App: the Immich source', () => {
 		await flushPromises()
 
 		expect(saved.map((rows) => rows.map(({ flag }) => flag))).toEqual([['picked'], ['unflagged'], ['picked']])
+	})
+	// spec: IMMICH-002.32, LOUPE-003.10
+	it('opens each connection on its filters from the view state and writes a change for that connection only', async () => {
+		const requests: [string, AssetsRequest][] = []
+		const writes: ViewStatePatch[] = []
+		const immichCull: ImmichCullApi = { ...SILENT_IMMICH_CULL, assets: (id, request) => (requests.push([id, request]), new Promise(() => undefined)) }
+		const viewState = { loadViewState: async () => ({ gesture_guide_seen: true, immich_filters: { 'andy-phone': { time: 'all', kinds: ['video'] } } }), saveViewState: async (patch: ViewStatePatch) => void writes.push(patch) }
+		const { wrapper } = mountApp({ immich: immichOn({ kind: 'connections', connections: [PHONE, KIDS] }).immich, immichCull, viewState })
+		await flushPromises()
+		wrapper.findComponent(AppNavigation).vm.$emit('chooseSource', 'immich')
+		await flushPromises()
+		expect(requests.at(-1)).toEqual(['andy-phone', expect.objectContaining({ filters: expect.objectContaining({ takenAfter: null, kinds: ['video'] }) })])
+
+		const cull = wrapper.findComponent(ImmichScreen).props('cull')
+		cull.setFilters({ ...cull.filters.value, kinds: new Set(['photo']) })
+		expect(writes).toEqual([{ immich_filters: { 'andy-phone': expect.objectContaining({ time: 'all', kinds: ['photo'] }) } }])
+
+		wrapper.findComponent(AppNavigation).vm.$emit('openConnection', 'kids')
+		await flushPromises()
+		expect(requests.at(-1)).toEqual(['kids', expect.objectContaining({ filters: expect.objectContaining({ kinds: [] }) })])
+		wrapper.findComponent(AppNavigation).vm.$emit('openConnection', 'andy-phone')
+		await flushPromises()
+		expect(requests.at(-1)).toEqual(['andy-phone', expect.objectContaining({ filters: expect.objectContaining({ takenAfter: null, kinds: ['photo'] }) })])
+	})
+
+	// spec: IMMICH-002.32
+	it('opens on the default filters when the view state cannot be read', async () => {
+		const error = vi.spyOn(logger, 'error').mockReturnValue()
+		const requests: AssetsRequest[] = []
+		const immichCull: ImmichCullApi = { ...SILENT_IMMICH_CULL, assets: (_id, request) => (requests.push(request), new Promise(() => undefined)) }
+		const viewState = { loadViewState: () => Promise.reject(new Error('offline')), saveViewState: async () => undefined }
+		const { wrapper } = mountApp({ immich: immichOn({ kind: 'connections', connections: [PHONE] }).immich, immichCull, viewState })
+		await flushPromises()
+		wrapper.findComponent(AppNavigation).vm.$emit('chooseSource', 'immich')
+		await flushPromises()
+
+		expect(requests).toHaveLength(1)
+		expect(requests[0]!.filters.kinds).toEqual([])
+		expect(error).toHaveBeenCalledWith('Could not read the stored Immich filters; the defaults apply.', expect.anything())
+		error.mockRestore()
 	})
 })

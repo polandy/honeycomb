@@ -56,6 +56,11 @@ export function formatDay(day: string, style: Intl.DateTimeFormatOptions = { dat
 	return new Intl.DateTimeFormat(getCanonicalLocale(), { ...style, timeZone: 'UTC' }).format(Date.parse(day))
 }
 
+/** A month, counted from 1, in the user's locale, e.g. "November 2026". */
+export function formatMonth(year: number, month: number): string {
+	return new Intl.DateTimeFormat(getCanonicalLocale(), { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(Date.UTC(year, month - 1, 1))
+}
+
 /** The days from `from` to `to` in the user's locale, e.g. "Oct 24 – 30". */
 export function formatDayRange(from: string, to: string): string {
 	return new Intl.DateTimeFormat(getCanonicalLocale(), { month: 'short', day: 'numeric', timeZone: 'UTC' }).formatRange(Date.parse(from), Date.parse(to))

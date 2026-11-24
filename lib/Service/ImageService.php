@@ -79,10 +79,10 @@ final class ImageService {
 	/**
 	 * Renders every tier of the user's files into the preview cache, skipping what it cannot render.
 	 * @param array<array-key, mixed> $fileIds
-	 * @throws InvalidPreviewRequestException for a malformed request; nothing is rendered
+	 * @throws InvalidRequestException for a malformed request; nothing is rendered
 	 */
 	public function warm(IUser $user, array $fileIds): void {
-		$fileIds = FileIds::parse($fileIds, self::WARM_LIMIT, InvalidPreviewRequestException::class);
+		$fileIds = FileIds::parse($fileIds, self::WARM_LIMIT);
 		$specifications = array_map(
 			static fn (int $tier): array => ['width' => $tier, 'height' => $tier, 'crop' => false, 'mode' => IPreview::MODE_FILL],
 			self::TIERS,

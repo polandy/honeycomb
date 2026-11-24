@@ -33,13 +33,13 @@ final readonly class PairingExtensions {
 
 	/**
 	 * The lists a request sent, each left out one the default.
-	 * @throws InvalidListingRequestException for an empty list, an invalid extension or one in both lists
+	 * @throws InvalidRequestException for an empty list, an invalid extension or one in both lists
 	 */
 	public static function fromRequest(mixed $raw, mixed $rendered): self {
 		$roles = array_fill_keys(self::listed($raw ?? self::RAW_EXTENSIONS), 'raw');
 		foreach (self::listed($rendered ?? self::RENDERED_EXTENSIONS) as $extension) {
 			if (isset($roles[$extension])) {
-				throw new InvalidListingRequestException("the extension $extension is in both lists");
+				throw InvalidRequestException::because(Reason::Conflict, "the extension $extension is in both lists");
 			}
 			$roles[$extension] = 'rendered';
 		}
@@ -53,15 +53,15 @@ final readonly class PairingExtensions {
 
 	/**
 	 * @return list<string> the lower-case extensions of `$value`
-	 * @throws InvalidListingRequestException unless it is a non-empty list of valid extensions
+	 * @throws InvalidRequestException unless it is a non-empty list of valid extensions
 	 */
 	private static function listed(mixed $value): array {
 		if (!is_array($value) || $value === [] || !array_is_list($value)) {
-			throw new InvalidListingRequestException('an extension list must be a non-empty list');
+			throw InvalidRequestException::because(Reason::NotAList, 'an extension list must be a non-empty list');
 		}
 		return array_map(static function (mixed $extension): string {
 			if (!is_string($extension) || preg_match(self::EXTENSION, $extension) !== 1 || strtolower($extension) === self::SIDECAR) {
-				throw new InvalidListingRequestException('an extension must be letters and digits, not xmp');
+				throw InvalidRequestException::because(Reason::BadValue, 'an extension must be letters and digits, not xmp');
 			}
 			return strtolower($extension);
 		}, $value);

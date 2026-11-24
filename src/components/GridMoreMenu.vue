@@ -90,7 +90,7 @@ const emit = defineEmits<{
 				:disabled="rejected === 0"
 				@click="emit('reviewRejects')">
 				<template #icon>
-					<AppIcon name="trash" />
+					<AppIcon name="review" />
 				</template>
 				{{ t('honeycomb', 'Review rejects') }}
 				<span class="grid-more-menu__count">{{ formatNumber(rejected) }}</span>

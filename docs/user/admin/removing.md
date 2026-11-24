@@ -108,7 +108,7 @@ sudo -u www-data php /var/www/nextcloud/occ app:remove honeycomb
 ```
 
 The dry run names the tables it would drop. The drop removes them, also those of older releases,
-and honeycomb's rows in `oc_migrations`, `oc_preferences`, `oc_jobs` and `oc_appconfig`
-([ADR 0053](../../dev/adr/0053-app-data-on-removal.md)); `--drop` needs `--all`. It is not one
+and honeycomb's rows in `oc_migrations`, `oc_preferences`, `oc_jobs` and `oc_appconfig`;
+`--drop` needs `--all`. It is not one
 transaction: if the database fails, it names the failure and exits non-zero, and running it again
 removes the rest. Instead of `app:remove`, `occ app:enable honeycomb` installs honeycomb fresh.

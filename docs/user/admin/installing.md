@@ -1,7 +1,7 @@
 # Installing honeycomb
 
 For Nextcloud admins. Nothing is released yet; this is how honeycomb will be installed. It needs
-Nextcloud 35 and PHP 8.3 or newer ([target versions](../../dev/plan.md#target-versions)).
+Nextcloud 35 and PHP 8.3 or newer.
 
 ## Recommended apps
 
@@ -57,7 +57,7 @@ decisions and tags again. What stays and how to delete it: [removing](removing.m
 ## Signing
 
 Once the app's App Store certificate exists, release tarballs carry `appinfo/signature.json`,
-made with it (`occ integrity:sign-app`); until then they are unsigned and on GitHub only
-([releasing](../../dev/releasing.md)). Nextcloud's code integrity check verifies it and warns in
+made with it (`occ integrity:sign-app`); until then they are unsigned and on GitHub only.
+Nextcloud's code integrity check verifies it and warns in
 *Administration settings → Overview* when a file was changed, added or removed; do not edit an
 installed release. A Git checkout has no signature and is not checked.

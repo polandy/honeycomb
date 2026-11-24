@@ -9,7 +9,7 @@ namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\FileFlag;
 use OCA\Honeycomb\Service\Flag;
-use OCA\Honeycomb\Service\InvalidTrashRequestException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCP\Files\Node;
 use OCP\Lock\LockedException;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -149,7 +149,7 @@ final class TrashServiceExpectTest extends TestCase {
 	#[DataProvider('malformedExpectations')]
 	public function testAMalformedExpectationTouchesNothing(mixed $expect): void {
 		$this->flag(Flag::Rejected, false, 1, 3);
-		$this->expectException(InvalidTrashRequestException::class);
+		$this->expectException(InvalidRequestException::class);
 
 		try {
 			$this->service($this->pair(1))->trash($this->user(), [self::picture(1, 2, 3)], $expect);

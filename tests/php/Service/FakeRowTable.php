@@ -68,6 +68,6 @@ final class FakeRowTable implements FileRowStore {
 	}
 
 	#[\Override]
-	public function carryOver(string $userId, int $fileId, int $newFileId): void {
+	public function carryOver(int $fileId, int $newFileId): void {
 	}
 }

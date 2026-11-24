@@ -1,12 +1,13 @@
 # Ratings, flags and colour labels in other programs
 
 honeycomb keeps your decisions — stars, flags and colour labels — and writes them into the XMP
-sidecar files next to your photos (`IMG_0001.NEF.xmp` or `IMG_0001.xmp`). honeycomb rates only what
-it can write, so a photo in a folder you may only read cannot be rated. Setting anything on a photo
-updates the sidecars it already has, and a file without one gets a new `IMG_0001.NEF.xmp`. A photo
-you have not touched gets none. digiKam, darktable and Lightroom Classic read those files, so a
-photo you rated on a tablet shows the same stars on your desktop. When you open a folder for the
-first time, honeycomb also picks up what these programs have already written.
+sidecar files next to your photos (`IMG_0001.NEF.xmp` or `IMG_0001.xmp`). You can rate a photo
+only when you may change its folder; a photo in a folder you may only read cannot be rated. Setting
+anything on a photo updates the sidecars it already has, and a file without one gets a new
+`IMG_0001.NEF.xmp`. A photo you have not touched gets none. digiKam, darktable and Lightroom
+Classic read those files, so a photo you rated on a tablet shows the same stars on your desktop.
+When you open a folder for the first time, honeycomb also picks up what these programs have already
+written.
 
 While you stay on a photo, honeycomb collects your changes and writes them once you move on, or
 after two seconds without a change. Until then the grid tile shows a small white ring next to the
@@ -21,18 +22,15 @@ again and copied into the JPEG's own sidecar, with the rating, colour label, tag
 programs such as digiKam stored there (face regions, for example), so nothing is lost; the pick or
 reject and *Keep RAW* stay in honeycomb. If that sidecar cannot be read or written, the RAW stays.
 
-The technical details are in [`../06-xmp-interop.md`](../dev/06-xmp-interop.md).
-
-**Changing in the next release** ([ADR 0040](../dev/adr/0040-flags-per-picture-in-the-database.md)).
-Writing needs no setting any more; stars, colour labels, flags and *Keep RAW* go into the
-sidecars at once, and a pick you change in digiKam is taken over at the next visit ([ADR 0056](../dev/adr/0056-flags-written-to-xmp-by-default.md)).
-With *Write picks, rejects and Keep RAW to XMP sidecars* off, flags and *Keep RAW* go only through
-*Write picks/rejects to XMP* in the ⋯ menu, and until then digiKam may still show an old pick of
-its own.
+Flags (pick, reject) and *Keep RAW* are kept by honeycomb itself, one per photo for everyone who
+reaches it, and by default written into the sidecars at once; a pick you change in digiKam is taken
+over at the next visit. With *Write picks, rejects and Keep RAW to XMP sidecars* off, flags and
+*Keep RAW* go only through *Write picks/rejects to XMP* in the ⋯ menu, and until then digiKam may
+still show an old pick of its own.
 
 Flags and *Keep RAW* belong to the file's Nextcloud file ID, not to its name or content. A photo
-you upload again or that a rescan registers under a new ID loses its flag; the sidecar stays the
-truth, so write flags to XMP to keep them with the photo.
+you upload again or that a rescan registers under a new ID loses its flag; the sidecar still holds
+it, and honeycomb takes it over again when it first sees the new file.
 
 ## What each program sees
 
@@ -119,9 +117,10 @@ was changed by another program, is not XMP or the storage is full, is reported w
 
 If a sidecar cannot be written — you may not change it, it is locked, or it is not valid XML —
 honeycomb says *Could not write 2 sidecars* and the reason. **Details** lists each file with the
-reason. The change is taken back for that photo, so it shows what its sidecars still hold; change
-it again to try once more. honeycomb never overwrites a sidecar it cannot read. A pick or reject
-that honeycomb cannot save is taken back the same way.
+reason. A rating, colour label or tag that cannot be saved is taken back for that photo, so it
+shows what its sidecars still hold; change it again to try once more. A pick, reject or *Keep RAW*
+is not taken back: honeycomb keeps it and tries the sidecar again the next time you open the
+folder. honeycomb never overwrites a sidecar it cannot read.
 
 A photo you may only read shows a lock on its tile; the decision buttons are greyed. *Clear
 picks/rejects* in the ⋯ menu sets every photo of the folders you may change back to *unflagged*,

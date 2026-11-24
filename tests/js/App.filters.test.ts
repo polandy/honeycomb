@@ -100,13 +100,15 @@ describe('App: decisions, flag filter, filters and sort', () => {
 	})
 
 	// spec: GRID-002.11
-	it('says when the folders hold no photos', async () => {
+	it('says when the folders hold no photos and offers a way out', async () => {
 		const { wrapper } = mountApp()
 
 		await openCull(wrapper, SET, [])
 
 		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(false)
 		expect(wrapper.text()).toContain(`${MARK}No photos in these folders`)
+		expect(wrapper.text()).toContain(`${MARK}If your photos use other file types, add them in Settings › File types.`)
+		expect(wrapper.findAll('button').map((button) => button.text())).toContain(`${MARK}Change folders`)
 	})
 
 	// spec: GRID-002.11

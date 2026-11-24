@@ -2,7 +2,7 @@
 
 honeycomb counts what you do per day: photos decided, moved to the trash bin or deleted for good,
 sidecars written, series done, and your active time. It keeps no file names and nothing leaves
-your Nextcloud ([ADR 0039](../dev/adr/0039-statistics-as-daily-counters.md)).
+your Nextcloud.
 
 ## Open the statistics
 

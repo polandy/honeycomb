@@ -62,7 +62,7 @@ final class VisualHashMapperTest extends DbTestCase {
 	// spec: SERIES-003.15
 	public function testCarriesTheRowOverWhoeverMovesTheFile(): void {
 		$this->save([7]);
-		$this->hashes->carryOver('bob', 7, 20);
+		$this->hashes->carryOver(7, 20);
 
 		$this->assertEquals([20 => self::row(20, 'etag-7')], $this->hashes->find([7, 20]));
 	}

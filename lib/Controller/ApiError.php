@@ -34,8 +34,11 @@ enum ApiError: string {
 		};
 	}
 
-	/** The answer: the status and the body `{"error": code}`. */
-	public function response(): JSONResponse {
-		return new JSONResponse(['error' => $this->value], $this->status());
+	/**
+	 * The answer: the status and the body `{"error": code}` plus the route's own fields.
+	 * @param array<string, string> $fields
+	 */
+	public function response(array $fields = []): JSONResponse {
+		return new JSONResponse(['error' => $this->value, ...$fields], $this->status());
 	}
 }

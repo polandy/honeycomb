@@ -45,7 +45,7 @@ const description = computed(() => {
 		:name="props.connection === null ? t('honeycomb', 'Immich is unavailable because of the server configuration') : connectionLine(props.connection, props.status)"
 		:description="description">
 		<template #icon>
-			<AppIcon name="phone" />
+			<AppIcon name="server" />
 		</template>
 		<template v-if="props.connection === null || props.status !== null" #action>
 			<div class="immich-state__actions">

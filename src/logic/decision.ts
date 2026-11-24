@@ -9,8 +9,11 @@ export const COLOUR_LABELS = ['red', 'orange', 'yellow', 'green', 'blue', 'magen
 /** One of the nine colour labels. */
 export type ColourLabel = typeof COLOUR_LABELS[number]
 
+/** Every flag a picture can carry. */
+export const FLAGS = ['picked', 'rejected', 'unflagged'] as const
+
 /** A picture's flag; picked and rejected are decided. */
-export type Flag = 'picked' | 'rejected' | 'unflagged'
+export type Flag = typeof FLAGS[number]
 
 /** Rating, colour label, flag and Keep RAW of one picture. */
 export interface Decision {

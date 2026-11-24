@@ -79,7 +79,7 @@ final class FakeFlagStore implements FlagStore {
 	}
 
 	#[\Override]
-	public function carryOver(string $userId, int $fileId, int $newFileId): void {
+	public function carryOver(int $fileId, int $newFileId): void {
 		if (isset($this->rows[$fileId])) {
 			$row = $this->rows[$fileId];
 			unset($this->rows[$fileId]);

@@ -144,7 +144,7 @@ function onKeydown(event: KeyboardEvent) {
 			@input="onInput"
 			@keydown="onKeydown">
 		<p v-if="refused" class="tag-entry__refused" role="alert">
-			{{ props.filter ? t('honeycomb', 'Pick a known tag') : t('honeycomb', 'A tag needs names, separated by "/", without "|"') }}
+			{{ props.filter ? t('honeycomb', 'Pick a known tag') : t('honeycomb', 'Separate the levels of a tag with "/". A name cannot be empty and cannot contain "|".') }}
 		</p>
 		<ul :id="LISTBOX_ID" class="tag-entry__matches" role="listbox">
 			<li

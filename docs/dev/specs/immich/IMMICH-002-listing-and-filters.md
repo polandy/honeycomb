@@ -33,6 +33,14 @@ what is on screen is loaded, and every number comes from the server.
   device (camera models and *No camera data*, any number), kind (*Photos*, *Motion photos*,
   *Videos*, any number) and the flag filter of GRID-002 with its rating filter. Groups
   combine with AND, chips in a group with OR. Changing a filter starts the listing over.
+- **The filter bar** shows the time, device and kind options as chips in the style of the
+  folder filter bar (GRID-002), each with its count once the counts arrive; while they are asked
+  again the device chips of the last answer stay. *Clear filters* shows only while a filter
+  differs from its default and brings back every default, the flag filter's included.
+- **Kept per connection:** the chosen filters are stored in the view state (LOUPE-003.10) and come
+  back when the connection opens again, on any device. A time left on the current month follows
+  the calendar; a stored month no longer among the time options, or a value the app cannot read,
+  falls back to its default.
 - **Decision filters:** when the filter admits undecided assets, the listing pages Immich and
   leaves out the decided ones it refuses. When it admits decided assets only (*Picked* or
   *Rejected* alone, a rating above 0, a colour label), the listing pages the matching decisions by
@@ -55,7 +63,9 @@ what is on screen is loaded, and every number comes from the server.
   year under a URL that names the asset's `updatedAt`.
 - **Capabilities off:** no series, similarity, tags, delete, move, *Remove RAWs*, *Keep RAW* or
   XMP for an Immich source; their buttons, keys and menu entries do not show.
-- **Empty view:** "No photos match. Change the time, device or flag filter."
+- **Empty view:** "No photos match. Change the time, device or flag filter." with *Clear filters*,
+  which shows the default filters again from the listing's start; on the default filters it does
+  not show, since it would change nothing.
 - **A failed page** keeps the pages already shown and offers *Try again* at the end of the grid;
   the error names the state (IMMICH-001), never Immich's text.
 
@@ -181,7 +191,9 @@ what is on screen is loaded, and every number comes from the server.
 
 - **Given** filters no upload passes
 - **When** the counts say 0
-- **Then** the grid says "No photos match. Change the time, device or flag filter."
+- **Then** the grid says "No photos match. Change the time, device or flag filter." and offers
+  *Clear filters*, which shows the default filters again from the listing's start; on the default
+  filters (the rating comparison aside) it offers no *Clear filters*
 
 ### IMMICH-002.19 – A failed page (gap)
 
@@ -257,3 +269,41 @@ what is on screen is loaded, and every number comes from the server.
   and a decision, as the shared vectors in `tests/fixtures/decision-filter/vectors.json` list them
 - **When** the grid's filter, the server's check and the decision query each judge the decision
 - **Then** all three admit it or all three refuse it, as the vector says
+
+### IMMICH-002.30 – The filter bar
+
+- **Given** counts with two camera models, uploads without camera data and every kind
+- **When** the filter bar renders
+- **Then** it shows the shown time options, *Pixel 9 Pro*, *SM-S918B* and *No camera data*, and
+  *Photos*, *Motion photos* and *Videos*, each with its count; choosing *October 2026* or ticking
+  a chip starts the listing over with that filter in the request
+
+### IMMICH-002.31 – Clear filters
+
+- **Given** the default filters
+- **When** the filter bar renders
+- **Then** *Clear filters* does not show; once a device, kind, time or flag differs from its
+  default it shows, and pressing it brings back every default and starts the listing over
+
+### IMMICH-002.32 – Filters kept per connection
+
+- **Given** *Videos* and *October 2026* chosen for one connection
+- **When** the connection opens again, in another browser
+- **Then** both apply from the first request; another connection opens on its own stored filters
+  or the defaults; a stored current month is the new current month once the month changed; a
+  month older than the time options, an unknown kind or a malformed value falls back to its
+  default; a failed read opens on the defaults
+
+### IMMICH-002.33 – Filter options at the edges
+
+- **Given** no uploads at all, a chosen camera model the counts no longer list, and a chosen month
+  counted 0
+- **When** the counts arrive
+- **Then** no device chip shows but the chosen model, counted 0 and still able to be unticked;
+  every kind counts 0; the chosen month stays with 0; while the counts are asked no number shows
+
+## History
+
+| Date | Change |
+|---|---|
+| 2026-11-24 | The empty view offers *Clear filters*, hidden on the default filters (#380, owner) |

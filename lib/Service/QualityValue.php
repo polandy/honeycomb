@@ -25,11 +25,11 @@ final readonly class QualityValue {
 
 	/**
 	 * The value in a request item, every field required.
-	 * @throws InvalidQualityValueException for a missing or malformed field
+	 * @throws InvalidRequestException for a missing or malformed field
 	 */
 	public static function fromRequest(mixed $item): self {
 		if (!is_array($item)) {
-			throw new InvalidQualityValueException('A quality value item must be an object');
+			throw InvalidRequestException::because(Reason::NotAnObject, 'A quality value item must be an object');
 		}
 		$fileId = $item['fileId'] ?? null;
 		$etag = $item['etag'] ?? null;
@@ -37,19 +37,19 @@ final readonly class QualityValue {
 		$sharpness = $item['sharpness'] ?? null;
 		$focusTile = $item['focusTile'] ?? null;
 		if (!is_int($fileId) || $fileId < 1) {
-			throw new InvalidQualityValueException('fileId must be a positive integer');
+			throw InvalidRequestException::because(Reason::BadFileId, 'fileId must be a positive integer');
 		}
 		if (!is_string($etag) || $etag === '' || strlen($etag) > VisualHash::MAX_ETAG_LENGTH) {
-			throw new InvalidQualityValueException("etag of file $fileId must be 1 to " . VisualHash::MAX_ETAG_LENGTH . ' characters');
+			throw InvalidRequestException::because(Reason::BadEtag, "etag of file $fileId must be 1 to " . VisualHash::MAX_ETAG_LENGTH . ' characters');
 		}
 		if (!is_int($method) || $method < 1 || $method > self::MAX_METHOD) {
-			throw new InvalidQualityValueException("method of file $fileId must be an integer from 1 to " . self::MAX_METHOD);
+			throw InvalidRequestException::because(Reason::BadValue, "method of file $fileId must be an integer from 1 to " . self::MAX_METHOD);
 		}
 		if (!(is_int($sharpness) || is_float($sharpness)) || !is_finite((float)$sharpness) || $sharpness < 0) {
-			throw new InvalidQualityValueException("sharpness of file $fileId must be a number of at least 0");
+			throw InvalidRequestException::because(Reason::BadValue, "sharpness of file $fileId must be a number of at least 0");
 		}
 		if (!is_int($focusTile) || $focusTile < 0 || $focusTile > self::MAX_FOCUS_TILE) {
-			throw new InvalidQualityValueException("focusTile of file $fileId must be an integer from 0 to " . self::MAX_FOCUS_TILE);
+			throw InvalidRequestException::because(Reason::BadValue, "focusTile of file $fileId must be an integer from 0 to " . self::MAX_FOCUS_TILE);
 		}
 		return new self($fileId, $etag, $method, (float)$sharpness, $focusTile);
 	}

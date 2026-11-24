@@ -26,14 +26,14 @@ final class FolderDoneService {
 
 	/**
 	 * Marks the folder done by the user, replacing an earlier status, and counts it.
-	 * @throws InvalidLibraryRequestException for a `$photos` that is no whole number from 0
+	 * @throws InvalidRequestException for a `$photos` that is no whole number from 0
 	 * @throws FolderNotFoundException when `$fileId` is no folder of the user's own files
 	 * @throws FolderNotReadableException when the user may not read or rate the folder
 	 * @throws \OCP\DB\Exception
 	 */
 	public function mark(IUser $user, int $fileId, mixed $photos): FolderDone {
 		if (!is_int($photos) || $photos < 0) {
-			throw new InvalidLibraryRequestException('photos must be a whole number from 0');
+			throw InvalidRequestException::because(Reason::BadValue, 'photos must be a whole number from 0');
 		}
 		$this->checkRateable($user, $fileId);
 		$done = new FolderDone($fileId, $user->getUID(), $this->time->getTime(), $photos);

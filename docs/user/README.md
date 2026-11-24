@@ -15,8 +15,11 @@ privacy](your-files-and-privacy.md).
 - **Loupe.** Full-screen view for one picture: swipe or tap the photo's edges to page, pinch to
   zoom, 100 % view, and a view without chrome.
 - **Deciding.** Stars, colour labels, Pick and Reject by large buttons, by swipe gestures or by
-  [keys](keyboard-shortcuts.md), with undo and redo. Decisions are stored on the server per user,
-  so a cull stops on one device and goes on at the same place on another.
+  [keys](keyboard-shortcuts.md), with undo and redo. For a photo in your Nextcloud folders, your
+  stars, colour labels and tags go into its XMP sidecar, and a Pick, Reject or *Keep RAW* is kept
+  in honeycomb's database, one per photo for everyone who reaches it; an Immich upload's whole
+  decision stays in the database. Where you stopped is kept per user on the server, so a cull stops
+  on one device and goes on at the same place on another.
 - **Selection.** Select many pictures in the grid and rate, label or flag them in one step.
 - **Deleting.** Review the rejects once more, rescue single pictures, then move every file of the
   rejected pictures (JPEG, RAW and sidecars) into the Nextcloud trash bin after a summary.
@@ -28,7 +31,7 @@ privacy](your-files-and-privacy.md).
   at once ([similarity](similarity.md)).
 
 The words the app uses (Pick, Reject, Unflag, series and more) are in the
-[glossary](../dev/04-glossary.md).
+[glossary](glossary.md).
 
 ## Pages
 
@@ -38,6 +41,7 @@ The words the app uses (Pick, Reject, Unflag, series and more) are in the
 | [Culling a shoot](culling.md) | One pass from start to end: folders, grid, loupe, series, deleting, moving |
 | [Cleaning up the library](cleaning-up-the-library.md) | Folders: library roots, Suggested, Mark done and Reopen, new photos, the library progress |
 | [Choosing folders](choosing-folders.md) | The folder tree: expanding, ticking several folders, subfolders |
+| [Culling Immich uploads](immich.md) | The Immich source: the grid of a connection's uploads, its filters and how they are kept |
 | [Keyboard shortcuts](keyboard-shortcuts.md) | Every key in the grid, the loupe and the series compare |
 | [Ratings, flags and colour labels](ratings-flags-colours.md) | How digiKam, darktable and Lightroom show honeycomb's decisions |
 | [Deleting photos](deleting.md) | Deleting every rejected photo, or the ones you choose |
@@ -48,4 +52,5 @@ The words the app uses (Pick, Reject, Unflag, series and more) are in the
 | [Similarity](similarity.md) | How similar pictures are grouped into series |
 | [Statistics](statistics.md) | The statistics page: periods, tiles, bars, library progress, switching it off |
 | [Clearing the cache](cache.md) | For admins: `occ honeycomb:cache:clear` for one user or every user |
+| [Glossary](glossary.md) | The words honeycomb uses, in brief |
 | [Administering honeycomb](admin/README.md) | For Nextcloud admins: installing, updating, removing |

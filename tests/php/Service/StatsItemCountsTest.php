@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\InvalidSidecarRequestException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\StatsCount;
 use OCA\Honeycomb\Service\StatsItemCounts;
 use OCA\Honeycomb\Service\StatsMetric;
@@ -19,12 +19,12 @@ final class StatsItemCountsTest extends TestCase {
 
 	// spec: STATS-001.36
 	public function testNoCountsAreNone(): void {
-		$this->assertSame([], StatsItemCounts::parse(null, self::TAKES, InvalidSidecarRequestException::class));
+		$this->assertSame([], StatsItemCounts::parse(null, self::TAKES));
 	}
 
 	// spec: STATS-001.16
 	public function testEachValueIsCappedAtPlusOrMinusOne(): void {
-		$counts = StatsItemCounts::parse(['ratings_set' => 7, 'tags_set' => -4], self::TAKES, InvalidSidecarRequestException::class);
+		$counts = StatsItemCounts::parse(['ratings_set' => 7, 'tags_set' => -4], self::TAKES);
 
 		$this->assertEquals([new StatsCount(StatsMetric::RatingsSet, 1), new StatsCount(StatsMetric::TagsSet, -1)], $counts);
 	}
@@ -43,8 +43,8 @@ final class StatsItemCountsTest extends TestCase {
 	// spec: STATS-001.16
 	#[DataProvider('malformed')]
 	public function testMalformedCountsAreRejected(mixed $counts): void {
-		$this->expectException(InvalidSidecarRequestException::class);
+		$this->expectException(InvalidRequestException::class);
 
-		StatsItemCounts::parse($counts, self::TAKES, InvalidSidecarRequestException::class);
+		StatsItemCounts::parse($counts, self::TAKES);
 	}
 }

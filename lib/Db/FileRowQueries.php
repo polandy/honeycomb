@@ -23,12 +23,11 @@ trait FileRowQueries {
 	abstract public function getTableName(): string;
 
 	#[\Override]
-	public function carryOver(string $userId, int $fileId, int $newFileId): void {
+	public function carryOver(int $fileId, int $newFileId): void {
 		$query = $this->db->getQueryBuilder();
 		$query->update($this->getTableName())
 			->set('file_id', $query->createNamedParameter($newFileId, IQueryBuilder::PARAM_INT))
-			->where($query->expr()->eq('user_id', $query->createNamedParameter($userId)))
-			->andWhere($query->expr()->eq('file_id', $query->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)))
+			->where($query->expr()->eq('file_id', $query->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)))
 			->executeStatement();
 	}
 
@@ -61,15 +60,6 @@ trait FileRowQueries {
 				->executeStatement();
 		}
 		return $removed;
-	}
-
-	/** Moves the row of `$fileId`, whoever's it is, to `$newFileId`: for a table with one row per file. */
-	private function carryFileRow(int $fileId, int $newFileId): void {
-		$query = $this->db->getQueryBuilder();
-		$query->update($this->getTableName())
-			->set('file_id', $query->createNamedParameter($newFileId, IQueryBuilder::PARAM_INT))
-			->where($query->expr()->eq('file_id', $query->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)))
-			->executeStatement();
 	}
 
 	/**
