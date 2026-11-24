@@ -14,16 +14,18 @@ file versions and the trash bin apply.
   `trashbin_size`) is deleted for good only after a warning that names it; cancelled, its picture
   stays ([deleting photos](deleting.md)).
 - **Moving** renames and moves the files of a picture into the folder you choose, by a name
-  template ([name templates](../dev/05-name-templates.md)). A picture is moved whole or not at
+  template (see [settings](settings.md#moving-photos)). A picture is moved whole or not at
   all, and the move can be undone. A *Replace* goes to the trash bin; a file it would not keep is
   replaced for good only after a warning that names it. It stays on its storage: honeycomb does
   not move files out of or into a share, a group folder or external storage.
-- **XMP sidecars** (`<file>.xmp`) receive your decisions, so digiKam, darktable and Lightroom
-  see them. An existing sidecar is merged, so what other programs wrote stays, and it is only
-  replaced while Nextcloud's file versions are on. When and what honeycomb writes:
+- **XMP sidecars** (`<file>.xmp`) receive your stars, colour labels and tags, and by default the
+  flag and *Keep RAW* too, so digiKam, darktable and Lightroom see them. An existing sidecar is
+  merged, so what other programs wrote stays, and it is only replaced while Nextcloud's file
+  versions are on. When and what honeycomb writes:
   [sidecars and digiKam](sidecars.md). The photos themselves are never modified.
-- **Everything else** (decisions, tags, positions, similarity) lives in honeycomb's own tables,
-  not in your files.
+- **Everything else** lives in honeycomb's own tables, not in your files: the master copies of
+  the flag and *Keep RAW* (mirrored into the sidecars by default), series, positions, similarity
+  and statistics.
 
 ## Back up first
 
@@ -34,20 +36,23 @@ photo is not safe there for ever. The [licence](../../LICENSE) excludes any warr
 
 ## Privacy
 
-honeycomb sends nothing out: no telemetry and no outgoing requests. It stores, per user, in
-the Nextcloud database:
+honeycomb sends nothing out: no telemetry and no outgoing requests. It stores in the Nextcloud
+database:
 
-- ratings, flags, colour labels and *Keep RAW* per picture, tags, and the position where you
-  stopped a cull;
-- series of your pictures (for similarity);
-- your settings and view state.
+- for photos in your Nextcloud folders: flags and *Keep RAW* per picture, one set for everyone who
+  reaches it;
+- for an Immich upload, per user: the whole decision (rating, colour label, flag and *Keep RAW*)
+  with its capture time and camera model;
+- per user: what honeycomb read from your photos' sidecars and embedded XMP — ratings, colour
+  labels, tags, the flag and *Keep RAW* — your tag list, the position where you stopped a cull,
+  your series, settings and view state.
 
-For every user who reaches a picture it stores the picture's visual hash and, for a picture in a
-series, its sharpness; deleting a user leaves them while the picture exists.
+For every user who reaches a photo in a Nextcloud folder it stores the photo's visual hash and, for
+a photo in a series, its sharpness; deleting a user leaves them while the photo exists.
 
-It stores file ids, not file names. The Nextcloud log can contain full file paths when a sidecar
-cannot be saved, so remove them before you share a log. Deleting a user deletes their honeycomb
-data. There is no per-user export. `occ app:remove` leaves the tables in place; see
-[removing](admin/removing.md) to delete them.
+It stores file ids and Immich asset ids, not file names. The Nextcloud log can contain full file
+paths when a sidecar cannot be saved, so remove them before you share a log. Deleting a user
+deletes their honeycomb data. There is no per-user export. `occ app:remove` leaves the tables in
+place; see [removing](admin/removing.md) to delete them.
 
 Report a security problem privately: [`SECURITY.md`](../../SECURITY.md).
