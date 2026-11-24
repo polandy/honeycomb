@@ -15,6 +15,7 @@ import { useImmichCull } from '../../../src/immich-cull.ts'
 import { logger } from '../../../src/logger.ts'
 import { DEFAULT_SETTINGS } from '../../../src/logic/settings.ts'
 import { fakeStorage, fakeViewState } from '../app-cull.ts'
+import { installMarkedCatalogue, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 import { immichEntry, NOW, UTC_CALENDAR } from '../logic/immich-fixtures.ts'
 
 afterEach(() => {
@@ -65,14 +66,48 @@ describe('ImmichScreen', () => {
 	})
 
 	// spec: IMMICH-002.18
-	it('says no picture matches when the counts say 0', async () => {
+	it('says no picture matches when the counts say 0 and clears the filters on request', async () => {
+		const { wrapper, cull, assets, counts } = await mountScreen()
+		cull.setFilters({ ...cull.filters.value, kinds: new Set(['video']) })
+		assets[1]!.answer(page(1, 0, null))
+		counts[1]!({ ...COUNTS, matching: 0 })
+		await flushPromises()
+
+		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(false)
+		expect(wrapper.text()).toContain('No pictures match. Change the time, device or flag filter.')
+		const clear = wrapper.find('.immich-screen__empty').findAll('button').find((each) => each.text() === 'Clear filters')
+		expect(clear).toBeDefined()
+
+		await clear!.trigger('click')
+
+		expect(cull.filters.value.kinds.size).toBe(0)
+		expect(cull.filters.value.flags).toEqual(new Set(['picked', 'unflagged']))
+	})
+
+	// spec: IMMICH-002.18
+	it('offers no Clear filters when nothing matches the default filters', async () => {
 		const { wrapper, assets, counts } = await mountScreen()
 		assets[0]!.answer(page(1, 0, null))
 		counts[0]!({ ...COUNTS, matching: 0 })
 		await flushPromises()
 
-		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(false)
 		expect(wrapper.text()).toContain('No pictures match. Change the time, device or flag filter.')
+		expect(wrapper.find('.immich-screen__empty').findAll('button')).toHaveLength(0)
+	})
+
+	// spec: APP-001.4
+	it('renders no empty-state text that bypasses the catalogue', async () => {
+		installMarkedCatalogue()
+		try {
+			const { wrapper, assets, counts } = await mountScreen()
+			assets[0]!.answer(page(1, 0, null))
+			counts[0]!({ ...COUNTS, matching: 0 })
+			await flushPromises()
+
+			expect(untranslatedText(wrapper.find('.immich-screen__empty').element)).toEqual([])
+		} finally {
+			uninstallMarkedCatalogue()
+		}
 	})
 
 	// spec: IMMICH-002.19

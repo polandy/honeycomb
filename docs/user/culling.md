@@ -31,6 +31,10 @@ are one photo. The toolbar shows the progress (*x of y decided*) and the flag ch
 filter bar for rating, colour label, pairing, *Keep RAW*, tags and folder. The ⋯ menu sets the
 thumbnail size and the sort order (*File name* or *Capture time*).
 
+An empty grid says why and offers a way out: *Change folders* when the folders hold no photos,
+with a pointer to the *File types* setting, *Clear filters* when a filter hides every photo, and
+*Show all* when only the flag filter does.
+
 A tile shows its stars, colour label and flag once you decided it, and badges for a photo without
 a partner (*JPG only*) and a pair marked *Keep RAW*.
 
