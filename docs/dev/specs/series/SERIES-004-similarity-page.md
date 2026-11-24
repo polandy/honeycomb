@@ -16,7 +16,7 @@ any device finds them stored and links series at once.
   user's folders to choose one; its subfolders are always included.
 - `GET /apps/honeycomb/api/v1/visual-hashes/missing?path=/Photos&cursor=<cursor>&method=1` answers
   `{"pictures": [{"fileId": 9, "etag": "…", "mtime": 1700000000, "path": "/Photos/a.jpg"}],
-  "nextCursor": "<cursor>"}`: the user's own photos (ListingService::isPhoto) in the folder and
+  "nextCursor": "<cursor>"}`: the user's own photos (PhotoFiles::isPhoto) in the folder and
   every folder below it without a stored hash of their current etag and the asked method
   (SERIES-003). It walks the tree in name order and stops after 500 photos; `nextCursor` is the path
   of the last photo looked at, relative to the folder, or `null` when the walk ended before 500. A

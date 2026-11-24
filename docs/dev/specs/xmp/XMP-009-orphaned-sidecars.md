@@ -14,7 +14,7 @@ without changing anything, and moves them to the trash bin only after the user c
 ## Behaviour
 
 - An **orphaned sidecar** is an `.xmp` file with no media file in its own folder that it belongs
-  to. A media file is a photo (ListingService::isPhoto: an `image/` type or a RAW extension) or a
+  to. A media file is a photo (PhotoFiles::isPhoto: an `image/` type or a RAW extension) or a
   video (a `video/` type). Hidden files count as well. The sidecar `<stem>.xmp` belongs to a media
   file whose name is `<stem>` (the digiKam and darktable form, `IMG_0001.CR2.xmp`), whose name
   without its last extension is `<stem>` (the Adobe form, `IMG_0001.xmp`), or, for a darktable
