@@ -8,22 +8,6 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service\Move;
 
 use OCA\Honeycomb\Domain\InvalidRequestException;
-use OCA\Honeycomb\Domain\Store\FileRowStores;
-use OCA\Honeycomb\Service\Files\UserFolderResolver;
-use OCA\Honeycomb\Service\Files\UserPhotos;
-use OCA\Honeycomb\Service\Move\MoveService;
-use OCA\Honeycomb\Service\Trash\TrashBinDisabledException;
-use OCA\Honeycomb\Tests\Service\FakeFileRowCarryOver;
-use OCA\Honeycomb\Tests\Service\FakeFlagStore;
-use OCA\Honeycomb\Tests\Service\FakeFolderDoneStore;
-use OCA\Honeycomb\Tests\Service\FakeFolderSummaryStore;
-use OCA\Honeycomb\Tests\Service\FakeQualityStore;
-use OCA\Honeycomb\Tests\Service\FakeSeriesStore;
-use OCA\Honeycomb\Tests\Service\FakeTree;
-use OCA\Honeycomb\Tests\Service\FakeVisualHashStore;
-use OCA\Honeycomb\Tests\Service\FakeXmpCacheStore;
-use OCA\Honeycomb\Tests\Service\StatsFixture;
-use OCP\App\IAppManager;
 use OCP\Files\AlreadyExistsException;
 use OCP\Files\GenericFileException;
 use OCP\Files\NotFoundException;
@@ -34,52 +18,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 final class MoveServiceTest extends TestCase {
-	use StatsFixture;
-	use FakeTree;
-
-	private function service(bool $trashBin = true, ?LoggerInterface $logger = null, string $trashBinSize = '-1'): MoveService {
-		$apps = $this->createStub(IAppManager::class);
-		$apps->method('isEnabledForUser')->willReturnCallback(static fn (string $app): bool => $app === 'files_trashbin' && $trashBin);
-		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FakeFileRowCarryOver(new FileRowStores(new FakeFlagStore(), new FakeVisualHashStore(), new FakeSeriesStore(), new FakeXmpCacheStore(), new FakeQualityStore(), new FakeFolderSummaryStore(), new FakeFolderDoneStore())), $logger ?? $this->createStub(LoggerInterface::class), $this->stats(), $this->treeTrashBin($trashBinSize));
-	}
-
-	/** A RAW, its JPEG and the RAW's sidecar in `/In`, and a single JPEG. */
-	private function pair(): void {
-		$this->addFiles([1 => '/In/A.RAF', 2 => '/In/A.JPG', 3 => '/In/A.RAF.xmp', 4 => '/In/B.JPG']);
-	}
-
-	/** @return array{fileId: int, etag: string, path: string, replace?: array{fileId: int, etag: string}} the request form of a file: its id, listed ETag and new path */
-	private static function to(int $fileId, string $path): array {
-		return ['fileId' => $fileId, 'etag' => "etag-$fileId", 'path' => $path];
-	}
-
-	/**
-	 * The pair's files to `/Out/2026`, the sidecar first, and the single JPEG to `/Out/B.JPG`.
-	 * @return list<list<array{fileId: int, etag: string, path: string, replace?: array{fileId: int, etag: string}}>>
-	 */
-	private static function request(): array {
-		return [
-			[self::to(3, '/Out/2026/X.RAF.xmp'), self::to(1, '/Out/2026/X.RAF'), self::to(2, '/Out/2026/X.JPG')],
-			[self::to(4, '/Out/B.JPG')],
-		];
-	}
-
-	/** @return list<list<array<string, mixed>>> */
-	private static function results(array $pictures): array {
-		/** @var list<list<array<string, mixed>>> */
-		return json_decode(json_encode($pictures, JSON_THROW_ON_ERROR), true, flags: JSON_THROW_ON_ERROR);
-	}
-
-	/** @return array{fileId: int, result: string, replaced: bool, path: string, newFileId: int, etag: string} */
-	private static function moved(int $fileId, string $path, ?int $newFileId = null, bool $replaced = false): array {
-		$newFileId ??= $fileId;
-		return ['fileId' => $fileId, 'result' => 'moved', 'replaced' => $replaced, 'path' => $path, 'newFileId' => $newFileId, 'etag' => "etag-$newFileId"];
-	}
-
-	/** @return array{fileId: int, result: string, replaced: bool} */
-	private static function failedFile(int $fileId, string $result, bool $replaced = false): array {
-		return ['fileId' => $fileId, 'result' => $result, 'replaced' => $replaced];
-	}
+	use MoveFixture;
 
 	// spec: MOVE-002.2
 	public function testMovesEveryFileOfEachPictureIntoCreatedFoldersWithTheSidecarsLast(): void {
@@ -197,105 +136,6 @@ final class MoveServiceTest extends TestCase {
 		$this->assertSame([[self::failedFile(3, 'notPermitted'), self::moved(1, '/Out/2026/X.RAF', 10), self::failedFile(2, 'movedBack')]], self::results($results));
 		$this->assertSame(['/Out/2026/X.RAF', '/In/A.JPG'], [$this->files[10], $this->files[2]]);
 	}
-
-	// spec: MOVE-002.5
-	public function testReplaceSendsTheTargetToTheTrashBin(): void {
-		$this->pair();
-		$this->addFiles([9 => '/Out/2026/X.JPG', 8 => '/Out/B.JPG']);
-		$request = self::request();
-		$request[0][2]['replace'] = ['fileId' => 9, 'etag' => 'etag-9'];
-		$request[1][0]['replace'] = ['fileId' => 8, 'etag' => 'etag-old'];
-
-		$results = $this->service()->move($this->treeUser(), $request);
-
-		$this->assertSame([
-			[self::moved(3, '/Out/2026/X.RAF.xmp'), self::moved(1, '/Out/2026/X.RAF'), self::moved(2, '/Out/2026/X.JPG', replaced: true)],
-			[self::failedFile(4, 'exists')],
-		], self::results($results));
-		$this->assertSame([9], $this->trashed);
-		$this->assertSame('/Out/B.JPG', $this->files[8]);
-	}
-
-	// spec: MOVE-002.5
-	public function testReplaceOfAnotherFileOrAFreePathIsNoReplace(): void {
-		$this->pair();
-		$this->addFiles([9 => '/Out/X.JPG', 8 => '/Other/Y.JPG']);
-		$jpeg = self::to(2, '/Out/X.JPG') + ['replace' => ['fileId' => 8, 'etag' => 'etag-8']];
-		$single = self::to(4, '/Out/B.JPG') + ['replace' => ['fileId' => 8, 'etag' => 'etag-8']];
-
-		$results = $this->service()->move($this->treeUser(), [[$jpeg], [$single]]);
-
-		$this->assertSame([[self::failedFile(2, 'exists')], [self::moved(4, '/Out/B.JPG')]], self::results($results));
-		$this->assertSame([], $this->trashed);
-	}
-
-	// spec: MOVE-002.5
-	public function testAReplacedFileStaysInTheTrashBinWhenThePictureMovesBack(): void {
-		$this->pair();
-		$this->addFiles([9 => '/Out/2026/X.RAF']);
-		$this->moveFailures[2] = new NotPermittedException();
-		$request = self::request();
-		$request[0][1]['replace'] = ['fileId' => 9, 'etag' => 'etag-9'];
-
-		$results = $this->service()->move($this->treeUser(), [$request[0]]);
-
-		$this->assertSame([[self::failedFile(3, 'skipped'), self::failedFile(1, 'movedBack', replaced: true), self::failedFile(2, 'notPermitted')]], self::results($results));
-		$this->assertSame([9], $this->trashed);
-	}
-
-	// spec: MOVE-002.5
-	public function testAReplaceTheTrashBinWouldNotKeepLeavesThePictureUntouched(): void {
-		$this->pair();
-		$this->addFiles([9 => '/Out/2026/X.JPG', 8 => '/Out/B.JPG']);
-		$this->noTrashBin[9] = true;
-		$request = self::request();
-		$request[0][2]['replace'] = ['fileId' => 9, 'etag' => 'etag-9'];
-		$request[1][0]['replace'] = ['fileId' => 8, 'etag' => 'etag-8'];
-
-		$results = $this->service(trashBinSize: '800')->move($this->treeUser(), $request);
-
-		$this->assertSame([
-			[self::failedFile(3, 'skipped'), self::failedFile(1, 'skipped'), self::failedFile(2, 'noTrashBin')],
-			[self::failedFile(4, 'tooLarge')],
-		], self::results($results));
-		$this->assertSame([], $this->trashed);
-		$this->assertSame([], $this->log);
-		$this->assertSame(['/Out/2026/X.JPG', '/Out/B.JPG'], [$this->files[9], $this->files[8]]);
-	}
-
-	// spec: MOVE-002.6
-	public function testAFileAlreadyAtItsPathStays(): void {
-		$this->pair();
-
-		$results = $this->service()->move($this->treeUser(), [[self::to(2, '/In/A.JPG')]]);
-
-		$this->assertSame([[self::moved(2, '/In/A.JPG')]], self::results($results));
-		$this->assertSame([], $this->log);
-	}
-
-	// spec: MOVE-002.7
-	public function testWithoutTheTrashBinAReplaceTouchesNothing(): void {
-		$this->pair();
-		$this->addFiles([9 => '/Out/X.JPG']);
-		$this->expectException(TrashBinDisabledException::class);
-
-		try {
-			$this->service(trashBin: false)->move($this->treeUser(), [[self::to(4, '/Out/B.JPG')], [self::to(2, '/Out/X.JPG') + ['replace' => ['fileId' => 9, 'etag' => 'etag-9']]]]);
-		} finally {
-			$this->assertSame([], $this->log);
-			$this->assertSame([], $this->trashed);
-		}
-	}
-
-	// spec: MOVE-002.7
-	public function testWithoutTheTrashBinAMoveWithoutReplaceGoesAhead(): void {
-		$this->pair();
-
-		$results = $this->service(trashBin: false)->move($this->treeUser(), [self::request()[1]]);
-
-		$this->assertSame([[self::moved(4, '/Out/B.JPG')]], self::results($results));
-	}
-
 	// spec: MOVE-002.8
 	public function testAMalformedRequestTouchesNothing(): void {
 		$this->pair();
