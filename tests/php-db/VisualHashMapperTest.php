@@ -40,6 +40,17 @@ final class VisualHashMapperTest extends DbTestCase {
 		$this->assertEquals([7 => self::row(7, 'etag-new', 2), 8 => self::row(8)], $this->hashes->find([7, 8, 9]));
 	}
 
+	public function testASaveUpdatesTheRowInPlaceAndInsertsTheNewOnes(): void {
+		$this->save([7, 8]);
+		$before = $this->rowIds('honeycomb_hashes');
+		$this->hashes->replace([self::row(7, 'etag-new', 2), self::row(9)]);
+
+		$after = $this->rowIds('honeycomb_hashes');
+		$this->assertSame($before[7], $after[7]);
+		$this->assertSame($before[8], $after[8]);
+		$this->assertSame([7, 8, 9], array_keys($after));
+	}
+
 	public function testFindsAndReplacesMoreFileIdsThanOneInListTakes(): void {
 		$fileIds = range(1, self::BEYOND_CHUNK);
 		$this->save(array_reverse($fileIds));
