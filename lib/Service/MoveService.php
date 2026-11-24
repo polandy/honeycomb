@@ -24,7 +24,7 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Moves whole pictures to the paths the client rendered, within their storage: each checked whole, moved file by file
- * and moved back when one of its files fails (ADR 0018); a file is replaced into the trash bin, or for good once the user confirmed (ADR 0036, ADR 0048); the flag and the visual hash follow a new file id (MOVE-002.10);
+ * and moved back when one of its files fails (ADR 0018); a file is replaced into the trash bin, or for good once the user confirmed (ADR 0036, ADR 0048); every user's rows follow a new file id in one transaction (MOVE-002.10);
  * the pictures moved whole are counted (STATS-001.31).
  *
  * @psalm-type Outcome = array{fileId: int, result: MoveResult, replaced: bool, path?: string, newFileId?: int, etag?: string}
@@ -33,7 +33,7 @@ final class MoveService {
 	public function __construct(
 		private UserPhotos $photos,
 		private IAppManager $appManager,
-		private FileRowStores $fileRows,
+		private FileRowCarryOver $fileRows,
 		private LoggerInterface $logger,
 		private StatsService $stats,
 		private TrashBinGuard $trashBin,
@@ -92,15 +92,15 @@ final class MoveService {
 			$replaced = false;
 			try {
 				$moved[$index] = $this->moveFile($userId, $userFolder, $move, $replaced);
-				$this->carryOver($userId, $move->source->getId(), $moved[$index]);
+				$this->carryOver($move->source->getId(), $moved[$index]);
 				$outcomes[$index] = self::moved($move, $moved[$index], $replaced);
 			} catch (GenericFileException|InvalidPathException|StorageNotAvailableException|AlreadyExistsException|DbException|NotPermittedException|LockedException|NotFoundException $e) {
 				$outcomes[$index] = ['result' => $this->failure($e, $move->source), 'replaced' => $replaced];
-				$outcomes = $this->rollBack($userId, $moved, $moves, $outcomes);
+				$outcomes = $this->rollBack($moved, $moves, $outcomes);
 				break;
 			} catch (\Throwable $e) {
 				// A bug must not strand the moved files, so they go back before it escapes.
-				$this->rollBack($userId, $moved, $moves, $outcomes);
+				$this->rollBack($moved, $moves, $outcomes);
 				throw $e;
 			}
 		}
@@ -113,9 +113,9 @@ final class MoveService {
 	 * @param array<int, array{result: MoveResult, replaced: bool, path?: string, newFileId?: int, etag?: string}> $outcomes
 	 * @return array<int, array{result: MoveResult, replaced: bool, path?: string, newFileId?: int, etag?: string}>
 	 */
-	private function rollBack(string $userId, array $moved, array $moves, array $outcomes): array {
+	private function rollBack(array $moved, array $moves, array $outcomes): array {
 		foreach (array_reverse($moved, true) as $back => $node) {
-			$outcomes[$back] = $this->moveBack($userId, $node, $moves[$back]) ? ['result' => MoveResult::MovedBack, 'replaced' => $outcomes[$back]['replaced']] : $outcomes[$back];
+			$outcomes[$back] = $this->moveBack($node, $moves[$back]) ? ['result' => MoveResult::MovedBack, 'replaced' => $outcomes[$back]['replaced']] : $outcomes[$back];
 		}
 		return $outcomes;
 	}
@@ -152,12 +152,12 @@ final class MoveService {
 		return $node instanceof Folder ? $node : throw new AlreadyExistsException("$name is not a folder");
 	}
 
-	private function moveBack(string $userId, Node $node, CheckedMove $move): bool {
+	private function moveBack(Node $node, CheckedMove $move): bool {
 		if ($move->stays) {
 			return true;
 		}
 		try {
-			$this->carryOver($userId, $node->getId(), $node->move($move->from));
+			$this->carryOver($node->getId(), $node->move($move->from));
 			return true;
 		} catch (GenericFileException|InvalidPathException|StorageNotAvailableException|NotPermittedException|LockedException|NotFoundException|AlreadyExistsException $e) {
 			$this->logger->warning('A moved file could not be moved back', ['fileId' => $node->getId(), 'exception' => $e]);
@@ -165,19 +165,17 @@ final class MoveService {
 		}
 	}
 
-	/** Carries the file's flag and the user's file rows over when the move gave the file a new id; a failure is logged and the file stays moved. */
-	private function carryOver(string $userId, int $fileId, Node $node): void {
+	/** Carries every user's rows of the file over when the move gave it a new id; a failure leaves them all, is logged and the file stays moved. */
+	private function carryOver(int $fileId, Node $node): void {
 		$newFileId = $node->getId();
 		if ($newFileId === $fileId) {
 			return;
 		}
-		foreach ($this->fileRows->stores() as $store) {
-			try {
-				$store->carryOver($userId, $fileId, $newFileId);
-			} catch (DbException $e) {
-				// A move is not undone for a lost row.
-				$this->logger->error('A flag or a file row could not follow its file to a new file id', ['fileId' => $fileId, 'newFileId' => $newFileId, 'exception' => $e]);
-			}
+		try {
+			$this->fileRows->carryOver($fileId, $newFileId);
+		} catch (DbException $e) {
+			// A move is not undone for lost rows.
+			$this->logger->error('The rows of a file could not follow it to a new file id', ['fileId' => $fileId, 'newFileId' => $newFileId, 'exception' => $e]);
 		}
 	}
 

@@ -44,7 +44,7 @@ final class MoveServiceCarryOverTest extends TestCase {
 	private function service(?FlagStore $flags = null, ?LoggerInterface $logger = null): MoveService {
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturn(true);
-		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FileRowStores($flags ?? $this->flags, $this->hashes, $this->series, new FakeXmpCacheStore(), $this->quality, new FakeFolderSummaryStore(), new FakeFolderDoneStore()), $logger ?? $this->createStub(LoggerInterface::class), $this->stats(), $this->treeTrashBin());
+		return new MoveService(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new FakeFileRowCarryOver(new FileRowStores($flags ?? $this->flags, $this->hashes, $this->series, new FakeXmpCacheStore(), $this->quality, new FakeFolderSummaryStore(), new FakeFolderDoneStore())), $logger ?? $this->createStub(LoggerInterface::class), $this->stats(), $this->treeTrashBin());
 	}
 
 	private static function flag(int $fileId): FileFlag {
@@ -100,7 +100,7 @@ final class MoveServiceCarryOverTest extends TestCase {
 	}
 
 	// spec: MOVE-002.10
-	public function testTheUsersOtherRowsFollowAndAnotherUsersStay(): void {
+	public function testEveryUsersOtherRowsFollow(): void {
 		$this->addFolder('/Out');
 		$this->newIds[2] = 20;
 		$this->series->add('alice', SeriesStatus::Open, 2);
@@ -110,7 +110,7 @@ final class MoveServiceCarryOverTest extends TestCase {
 		$this->service()->move($this->treeUser(), self::request());
 
 		$this->assertSame([20], array_keys($this->series->rows['alice']));
-		$this->assertSame([2], array_keys($this->series->rows['bob']));
+		$this->assertSame([20], array_keys($this->series->rows['bob']));
 		$this->assertEquals([20 => self::flag(20)], $this->flags->rows);
 	}
 

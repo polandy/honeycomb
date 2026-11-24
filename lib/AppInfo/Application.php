@@ -9,6 +9,7 @@ namespace OCA\Honeycomb\AppInfo;
 
 use OCA\Honeycomb\Db\AppDataMapper;
 use OCA\Honeycomb\Db\AppRemovalMapper;
+use OCA\Honeycomb\Db\AtomicFileRowCarryOver;
 use OCA\Honeycomb\Db\FileCacheLibrary;
 use OCA\Honeycomb\Db\FileCacheLookup;
 use OCA\Honeycomb\Db\FileCachePictures;
@@ -35,6 +36,7 @@ use OCA\Honeycomb\Service\AppData;
 use OCA\Honeycomb\Service\AppRemoval;
 use OCA\Honeycomb\Service\CorePreviewLock;
 use OCA\Honeycomb\Service\ExistingFiles;
+use OCA\Honeycomb\Service\FileRowCarryOver;
 use OCA\Honeycomb\Service\FlagStore;
 use OCA\Honeycomb\Service\FolderDoneStore;
 use OCA\Honeycomb\Service\FolderSummaryStore;
@@ -69,6 +71,7 @@ final class Application extends App implements IBootstrap {
 	#[\Override]
 	public function register(IRegistrationContext $context): void {
 		$context->registerServiceAlias(JpegDecoder::class, OcpJpegDecoder::class);
+		$context->registerServiceAlias(FileRowCarryOver::class, AtomicFileRowCarryOver::class);
 		$context->registerServiceAlias(FlagStore::class, FlagMapper::class);
 		$context->registerServiceAlias(PositionStore::class, PositionMapper::class);
 		$context->registerServiceAlias(SeriesStore::class, SeriesMapper::class);
