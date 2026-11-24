@@ -72,6 +72,9 @@ Every tool result is re-read, and paid for, on each later turn.
 10. **Spec and code stay in sync** (ADR 0015). A behaviour change updates its spec in
     `docs/dev/specs/` in the same PR, or the PR description says `Spec-Unchanged: <reason>`. A test
     that proves a criterion is marked `// spec: <ID>.<n>`. `scripts/specs.sh` checks.
+11. **Migrations are append-only from 0.2.0:** never change or delete a published one; each change
+    is a new migration plus an `info.xml` bump, idempotent, data through the `QueryBuilder`, with
+    the database limits of ADR 0055.
 
 ## Code style
 

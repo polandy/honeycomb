@@ -99,3 +99,11 @@ describes:
     'port' => 0,
 ],
 ```
+
+## Before changing the storage or rebuilding the file cache
+
+Before you move the data directory, change the primary storage or rebuild the file cache, have
+each user run *Write picks/rejects to XMP* in the ⋯ menu. honeycomb keeps picks and rejects in
+its database, and its daily sweep deletes a row whose file has no entry in the file cache at
+once, without a grace period; the XMP sidecars are then the only copy
+([Sidecars](../sidecars.md)).
