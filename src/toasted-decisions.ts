@@ -16,6 +16,24 @@ import type { ToastAction } from './toast.ts'
 import { t } from '@nextcloud/l10n'
 import { changeText, redoneText, undoneText } from './decision-text.ts'
 import { lockDetails, lockedText, partialText } from './lock-text.ts'
+import { TOAST_MS } from './toast.ts'
+
+/** How long the toast with the first-reject hint stays: longer than TOAST_MS, as it carries a second sentence. */
+export const REJECT_HINT_MS = 2 * TOAST_MS
+
+/** Whether the user was told that rejected photos are hidden, and the way to record it (LOUPE-003.9). */
+export interface RejectHint {
+	seen: () => boolean
+	dismiss: () => void
+}
+
+/** The hint of the first reject. */
+const REJECT_HINT_TEXT = () => t('honeycomb', 'Rejected photos are hidden; show them with the Rejected chip.')
+
+/** Whether a step rejected pictures. */
+function rejects(step: CullStep): boolean {
+	return step.kind === 'pickRest' || step.kind === 'reduction' || (step.kind === 'decision' && 'flag' in step.change && step.change.flag === 'rejected')
+}
 
 /** The cull's recording actions; each returns the step it recorded, whatever its kind, or null. */
 interface Decisions {
@@ -35,7 +53,7 @@ interface Decisions {
 }
 
 /** Decide, pick-rest, tag, the series edits, undo and redo that each say in a toast what changed and which photos were locked. */
-export function useToastedDecisions(cull: Decisions, show: (message: string, action?: ToastAction | null, offer?: ToastAction, details?: readonly string[]) => void, showError: (message: string, action?: ToastAction | null, details?: readonly string[]) => void) {
+export function useToastedDecisions(cull: Decisions, show: (message: string, action?: ToastAction | null, offer?: ToastAction, details?: readonly string[], duration?: number) => void, showError: (message: string, action?: ToastAction | null, details?: readonly string[]) => void, rejectHint?: RejectHint) {
 	const { undo, redo } = useToastedUndo(cull, show)
 
 	/** Decides the pictures and says what changed, with Undo and the offer `offer` makes once they are decided. */
@@ -92,7 +110,12 @@ export function useToastedDecisions(cull: Decisions, show: (message: string, act
 	function toastChange(entry: CullStep | null, offer: () => ToastAction | null = () => null) {
 		const skipped = cull.takeSkipped()
 		if (entry !== null) {
-			show(partialText(changeText(entry), skipped), { label: t('honeycomb', 'Undo'), run: undo }, offer() ?? undefined, lockDetails(skipped))
+			const hinted = rejectHint !== undefined && !rejectHint.seen() && rejects(entry)
+			const text = partialText(changeText(entry), skipped)
+			show(hinted ? `${text}. ${REJECT_HINT_TEXT()}` : text, { label: t('honeycomb', 'Undo'), run: undo }, offer() ?? undefined, lockDetails(skipped), hinted ? REJECT_HINT_MS : undefined)
+			if (hinted) {
+				rejectHint.dismiss()
+			}
 		} else if (skipped.length > 0) {
 			showError(lockedText(), null, lockDetails(skipped))
 		}
