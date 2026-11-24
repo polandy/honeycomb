@@ -126,7 +126,7 @@ final class AppRemovalMapperTest extends TestCase {
 
 	// spec: DECISIONS-001.38
 	public function testAFailedDropKeepsTheAppConfigSoTheCommandRunsAgain(): void {
-		$connection = $this->createMock(IDBConnection::class);
+		$connection = $this->createStub(IDBConnection::class);
 		$connection->method('getQueryBuilder')->willReturnCallback(fn (): IQueryBuilder => $this->db->getQueryBuilder());
 		$connection->method('tableExists')->willReturnCallback(fn (string $table): bool => $this->db->tableExists($table));
 		$connection->method('dropTable')->willThrowException(new \RuntimeException('connection lost'));
