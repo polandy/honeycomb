@@ -8,15 +8,16 @@
 ## Purpose
 
 Keeps whether the loupe's info panel is open and whether the gesture guide, the first-series
-hint and the first-reject hint were dismissed per user on the server, so both follow the user to every device and browser.
+hint and the first-reject hint were dismissed per user on the server, so all follow the user to
+every device and browser.
 
 ## Behaviour
 
 The view state is four booleans and one year per user behind `GET` and
 `PUT /apps/honeycomb/api/v1/view-state`: `info_panel_open`, `gesture_guide_seen`,
-`series_hint_seen`, `reject_hint_seen` and `year_review_hint_closed`, the year (1970 to 9999) whose year-in-review hint
-the user closed (STATS-001.26), each `null` while it was never stored. A write names only
-the keys it changes. The info panel's width and the Nextcloud navigation toggle stay in browser
+`series_hint_seen`, `reject_hint_seen` and `year_review_hint_closed`, the year (1970 to 9999)
+whose year-in-review hint the user closed (STATS-001.26), each `null` while it was never
+stored. A write names only the keys it changes. The info panel's width and the Nextcloud navigation toggle stay in browser
 storage (LOUPE-001), since they depend on the device's screen.
 
 The app reads the view state once when it starts. Until the answer arrives neither the gesture
@@ -31,8 +32,8 @@ an older version left in browser storage is taken over once.
 - **Given** a user with some, all or none of the keys stored
 - **When** the client reads the view state
 - **Then** the answer is `{"viewState": {"info_panel_open": …, "gesture_guide_seen": …,
-  "series_hint_seen": …, "reject_hint_seen": …, "year_review_hint_closed": …}}` with each stored boolean or year, `null` for
-  a key never stored
+  "series_hint_seen": …, "reject_hint_seen": …, "year_review_hint_closed": …}}` with each stored
+  boolean or year, `null` for a key never stored
 
 ### LOUPE-003.2 – Write only the keys given
 

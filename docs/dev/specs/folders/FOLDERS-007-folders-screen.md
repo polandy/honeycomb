@@ -18,11 +18,12 @@ roots worth culling and the library's progress, and opens a folder's cull and re
   (IMMICH-001.23).
 - **Library setup** (*Where is your library?*): the sentence of the folder picker (decisions save
   as you go and can be undone; deleting only moves files to the trash bin; decisions go to XMP
-  sidecars next to the photos), an example path and a link to *Your files and privacy*; a folder tree that chooses one folder, *Add as
-  root*, the chosen roots each with *Remove*, and *Show folders*, disabled without a root. A root is
-  added only when FOLDERS-004 accepts it and `GET /library/folders` accepts it as `root` (the home
-  storage, FOLDERS-005); a refusal is said in a line of its own. *Show folders* saves the roots as
-  the setting `libraryRoots` and shows the list.
+  sidecars next to the photos), an example path and a link to *Your files and privacy*; a folder
+  tree that chooses one folder, *Add as root*, the chosen roots each with *Remove*, and *Show
+  folders*, disabled without a root. A root is added only when FOLDERS-004 accepts it and `GET
+  /library/folders` accepts it as `root` (the home storage, FOLDERS-005); a refusal is said in a
+  line of its own. *Show folders* saves the roots as the setting `libraryRoots` and shows the
+  list.
 - **The list's data.** For each root the screen reads every page of `GET /library/folders`. While
   a root answers `scanning`, it calls `POST /library/scan` for that root until every folder is
   fresh or a call brings no progress, shows *Updating n folders* (n: the folders not yet fresh)
