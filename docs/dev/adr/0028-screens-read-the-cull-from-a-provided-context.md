@@ -40,7 +40,8 @@ injection key stays private to the module.
 Two ways to hand state down, each for one case:
 
 - **Screens** take what they share through `provide`/`inject` (the `CullContext`).
-- **Flows** (`*-flow.ts`, one user task such as delete or move) take their dependencies as
+- **Flows** (`*-flow.ts` for a task the user starts, such as delete or move; `*-run.ts` for a
+  run that walks many items, such as the hash run) take their dependencies as
   parameters, a context object the caller builds; a flow never injects.
 
 ## Consequences

@@ -68,8 +68,9 @@ defined. The sections below hold the amended text.
 - **An exception to ADR 0012 and 0025:** `FileCacheLibrary` joins `oc_filecache` in hand-written
   queries, which those ADRs avoid because they break on a sharded file cache. The folder list
   needs the grouping in one query, and phase 1 lists the home storage only, which is not sharded.
-  The raw SQL on `oc_filecache` is a known dependency on Nextcloud's schema: a canary test runs
-  the queries against every Nextcloud version CI covers, so a changed column fails there first.
+  The raw SQL on `oc_filecache` is a known dependency on Nextcloud's schema: a canary test, still to
+  be written, will run the queries against every Nextcloud version CI covers, so a changed column
+  fails there first.
 - **Fallback:** if the live query exceeds 0.5 s for 60,000 photos, flag, series and delete writes
   mark the parent folders dirty and the counts are cached again. Measured with the summaries
   (`tests/php-db/LibraryFolderBenchTest.php`): one page of 200 folders takes 13 to 23 ms on
