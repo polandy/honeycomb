@@ -26,27 +26,27 @@ final readonly class VisualHash {
 
 	/**
 	 * The hash in a request item, all four fields required.
-	 * @throws InvalidVisualHashException for a missing or malformed field
+	 * @throws InvalidRequestException for a missing or malformed field
 	 */
 	public static function fromRequest(mixed $item): self {
 		if (!is_array($item)) {
-			throw new InvalidVisualHashException('A visual hash item must be an object');
+			throw InvalidRequestException::because(Reason::NotAnObject, 'A visual hash item must be an object');
 		}
 		$fileId = $item['fileId'] ?? null;
 		$etag = $item['etag'] ?? null;
 		$method = $item['method'] ?? null;
 		$hash = $item['hash'] ?? null;
 		if (!is_int($fileId) || $fileId < 1) {
-			throw new InvalidVisualHashException('fileId must be a positive integer');
+			throw InvalidRequestException::because(Reason::BadFileId, 'fileId must be a positive integer');
 		}
 		if (!is_string($etag) || $etag === '' || strlen($etag) > self::MAX_ETAG_LENGTH) {
-			throw new InvalidVisualHashException("etag of file $fileId must be 1 to " . self::MAX_ETAG_LENGTH . ' characters');
+			throw InvalidRequestException::because(Reason::BadEtag, "etag of file $fileId must be 1 to " . self::MAX_ETAG_LENGTH . ' characters');
 		}
 		if (!self::isMethod($method)) {
-			throw new InvalidVisualHashException("method of file $fileId must be an integer from 1 to " . self::MAX_METHOD);
+			throw InvalidRequestException::because(Reason::BadValue, "method of file $fileId must be an integer from 1 to " . self::MAX_METHOD);
 		}
 		if (!is_string($hash) || preg_match(self::HASH_PATTERN, $hash) !== 1) {
-			throw new InvalidVisualHashException("hash of file $fileId must be 16 lower-case hex digits");
+			throw InvalidRequestException::because(Reason::BadValue, "hash of file $fileId must be 16 lower-case hex digits");
 		}
 		return new self($fileId, $etag, $method, $hash);
 	}

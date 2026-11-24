@@ -21,10 +21,10 @@ final class SeriesService {
 	/**
 	 * The user's series with members among `$fileIds`, and the kept-out files among them.
 	 * @param array<array-key, mixed> $fileIds
-	 * @throws InvalidSeriesException for anything but a list of positive file ids within the limit
+	 * @throws InvalidRequestException for anything but a list of positive file ids within the limit
 	 */
 	public function lookup(IUser $user, array $fileIds): SeriesLookup {
-		return $this->store->find($user->getUID(), FileIds::parse($fileIds, ListingService::ENTRY_LIMIT, InvalidSeriesException::class));
+		return $this->store->find($user->getUID(), FileIds::parse($fileIds, ListingService::ENTRY_LIMIT));
 	}
 
 	/**
@@ -33,7 +33,7 @@ final class SeriesService {
 	 * @param array<array-key, mixed> $keptOut
 	 * @param array<array-key, mixed> $released
 	 * @return array{ids: list<int>, saved: list<int>} each series item's id and the file ids written
-	 * @throws InvalidSeriesException for a malformed body, with nothing written
+	 * @throws InvalidRequestException for a malformed body, with nothing written
 	 */
 	public function save(IUser $user, array $series, array $keptOut, array $released): array {
 		$write = SeriesWrite::fromRequest($series, $keptOut, $released);

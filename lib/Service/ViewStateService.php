@@ -46,17 +46,17 @@ final class ViewStateService {
 
 	/**
 	 * Stores the keys given and returns the whole view state.
-	 * @throws InvalidViewStateException for anything but a non-empty object of known keys with boolean values, or a year for the year key
+	 * @throws InvalidRequestException for anything but a non-empty object of known keys with boolean values, or a year for the year key
 	 * @return array<string, bool|int|null>
 	 */
 	public function save(IUser $user, mixed $viewState): array {
 		if (!is_array($viewState) || $viewState === []) {
-			throw new InvalidViewStateException('viewState must be an object with at least one key');
+			throw InvalidRequestException::because(Reason::NotAnObject, 'viewState must be an object with at least one key');
 		}
 		/** @var array<string, bool|int> $valid */
 		$valid = array_filter($viewState, fn (mixed $value, int|string $key): bool => $this->isValid($key, $value), ARRAY_FILTER_USE_BOTH);
 		if (count($valid) !== count($viewState)) {
-			throw new InvalidViewStateException('viewState takes only ' . implode(', ', self::KEYS) . ', each a boolean, and ' . self::YEAR_KEY . ', a year');
+			throw InvalidRequestException::because(Reason::BadValue, 'viewState takes only ' . implode(', ', self::KEYS) . ', each a boolean, and ' . self::YEAR_KEY . ', a year');
 		}
 		foreach ($valid as $key => $value) {
 			if (is_int($value)) {

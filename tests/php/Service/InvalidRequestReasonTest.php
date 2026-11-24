@@ -21,14 +21,14 @@ final class InvalidRequestReasonTest extends TestCase {
 	/** @return array<string, array{Reason, \Closure}> */
 	public static function refusals(): array {
 		return [
-			'not an object' => [Reason::NotAnObject, static fn () => FileFlag::fromRequest('picked', 0)],
+			'not an object' => [Reason::NotAnObject, static fn () => FileFlag::fromRequest('picked', 0, 'u')],
 			'not a list' => [Reason::NotAList, static fn () => FileIds::items(['a' => 1], 5)],
 			'too many' => [Reason::TooMany, static fn () => FileIds::items([1, 2, 3], 2)],
 			'bad file id' => [Reason::BadFileId, static fn () => FileIds::parse([0], 5)],
 			'bad etag' => [Reason::BadEtag, static fn () => VisualHash::fromRequest(['fileId' => 1, 'etag' => '', 'hash' => '0000000000000000'])],
 			'duplicate' => [Reason::Duplicate, static fn () => FileIds::eachOnce([1, 1])],
 			'conflict' => [Reason::Conflict, static fn () => PairingExtensions::fromRequest(['cr2'], ['cr2'])],
-			'bad value' => [Reason::BadValue, static fn () => FileFlag::fromRequest(['fileId' => 1, 'flag' => 'starred', 'keepRaw' => true], 0)],
+			'bad value' => [Reason::BadValue, static fn () => FileFlag::fromRequest(['fileId' => 1, 'flag' => 'starred', 'keepRaw' => true], 0, 'u')],
 			'bad path' => [Reason::BadPath, static fn () => MoveRequest::folders(['no/slash'])],
 		];
 	}

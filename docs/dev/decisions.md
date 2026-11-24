@@ -1908,3 +1908,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   the setup page links the privacy page on GitHub, as `appinfo/info.xml` does (#187, autonomous).
 - 2026-11-24: `SidecarWriter` and `SidecarReader` catch only the `OCP\Files\*` types, so an unlisted
   exception fails the request loudly instead of one file quietly (#187, autonomous, PR #386).
+- 2026-11-24: The 17 empty `Invalid*Exception` classes are gone; `InvalidRequestException::because(Reason)`
+  names the reason in the 400 body next to `error: "request"` (ADR 0057, #187, autonomous). Twelve coarse
+  reasons, one per kind of malformed part, not one per field; the free-text detail stays in the log.

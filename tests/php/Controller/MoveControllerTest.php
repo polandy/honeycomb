@@ -76,7 +76,7 @@ final class MoveControllerTest extends TestCase {
 	public function testAMalformedRequestIsABadRequest(): void {
 		foreach ([$this->controller()->move([[['fileId' => 7, 'etag' => 'etag-7', 'path' => 'Out']]]), $this->controller()->targets(['Out'])] as $response) {
 			$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
-			$this->assertSame(['error' => 'request'], json_decode($response->render(), true));
+			$this->assertSame(['error' => 'request', 'reason' => 'bad-path'], json_decode($response->render(), true));
 		}
 	}
 

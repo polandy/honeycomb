@@ -26,7 +26,7 @@ final class MoveTargetService {
 	 * @param array<array-key, mixed> $folders
 	 * @param array<array-key, mixed> $sources
 	 * @return array{folders: list<array{path: string, storage: string, children: list<array{name: string, fileId: int, etag: string}>}>, sources: list<array{path: string, storage: string}>}
-	 * @throws InvalidMoveRequestException
+	 * @throws InvalidRequestException
 	 */
 	public function targets(IUser $user, array $folders, array $sources = []): array {
 		$folders = MoveRequest::folders($folders);

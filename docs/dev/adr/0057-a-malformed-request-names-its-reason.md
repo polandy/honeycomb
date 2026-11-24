@@ -13,7 +13,8 @@ one per kind of request, that nothing told apart: the controller mapped the pare
 
 ## Decision
 
-- **Reason.** `InvalidRequestException` is final and built with `InvalidRequestException::because(Reason, detail)`.
+- **Reason.** `InvalidRequestException` is final and built with
+  `InvalidRequestException::because(Reason, detail)`.
   `Reason` is an enum of twelve kebab-case codes: `not-an-object`, `not-a-list`, `too-many`,
   `bad-file-id`, `bad-etag`, `duplicate`, `conflict`, `bad-value`, `bad-path`, `bad-cursor`,
   `too-large`, `unknown-name`. The detail is free text for the log and never reaches the browser.

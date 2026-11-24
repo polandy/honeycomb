@@ -34,32 +34,32 @@ final readonly class XmpCacheRow implements \JsonSerializable {
 
 	/**
 	 * The row in a request item, every field required.
-	 * @throws InvalidXmpCacheException for a missing or malformed field
+	 * @throws InvalidRequestException for a missing or malformed field
 	 */
 	public static function fromRequest(mixed $item): self {
 		if (!is_array($item) || array_diff(self::FIELDS, array_keys($item)) !== []) {
-			throw new InvalidXmpCacheException('A cache row must be an object with ' . implode(', ', self::FIELDS));
+			throw InvalidRequestException::because(Reason::NotAnObject, 'A cache row must be an object with ' . implode(', ', self::FIELDS));
 		}
 		$fileId = $item['fileId'];
 		if (!is_int($fileId) || $fileId < 1) {
-			throw new InvalidXmpCacheException('fileId must be a positive integer');
+			throw InvalidRequestException::because(Reason::BadFileId, 'fileId must be a positive integer');
 		}
 		$etag = $item['etag'];
 		if (!is_string($etag) || $etag === '' || strlen($etag) > VisualHash::MAX_ETAG_LENGTH) {
-			throw new InvalidXmpCacheException("etag of file $fileId must be 1 to " . VisualHash::MAX_ETAG_LENGTH . ' characters');
+			throw InvalidRequestException::because(Reason::BadEtag, "etag of file $fileId must be 1 to " . VisualHash::MAX_ETAG_LENGTH . ' characters');
 		}
 		$reader = $item['reader'];
 		if (!is_int($reader) || $reader < 1) {
-			throw new InvalidXmpCacheException("reader of file $fileId must be a positive integer");
+			throw InvalidRequestException::because(Reason::BadValue, "reader of file $fileId must be a positive integer");
 		}
 		$state = self::caseOf(XmpReadState::class, $item['state'], "state of file $fileId");
 		$rating = $item['rating'];
 		if ($rating !== null && (!is_int($rating) || $rating < 0 || $rating > self::MAX_RATING)) {
-			throw new InvalidXmpCacheException("rating of file $fileId must be 0 to " . self::MAX_RATING . ' or null');
+			throw InvalidRequestException::because(Reason::BadValue, "rating of file $fileId must be 0 to " . self::MAX_RATING . ' or null');
 		}
 		$keepRaw = $item['keepRaw'];
 		if ($keepRaw !== null && !is_bool($keepRaw)) {
-			throw new InvalidXmpCacheException("keepRaw of file $fileId must be a boolean or null");
+			throw InvalidRequestException::because(Reason::BadValue, "keepRaw of file $fileId must be a boolean or null");
 		}
 		return new self(
 			$fileId,
@@ -103,16 +103,16 @@ final readonly class XmpCacheRow implements \JsonSerializable {
 	 */
 	private static function caseOf(string $enum, mixed $value, string $field): \BackedEnum {
 		$case = is_string($value) ? $enum::tryFrom($value) : null;
-		return $case ?? throw new InvalidXmpCacheException("$field is not one of its values");
+		return $case ?? throw InvalidRequestException::because(Reason::BadValue, "$field is not one of its values");
 	}
 
 	/** A refusal has a reason, every other state none. */
 	private static function reasonOf(int $fileId, XmpReadState $state, mixed $reason): ?string {
 		if ($state !== XmpReadState::Refused) {
-			return $reason === null ? null : throw new InvalidXmpCacheException("reason of file $fileId is only for a refused row");
+			return $reason === null ? null : throw InvalidRequestException::because(Reason::BadValue, "reason of file $fileId is only for a refused row");
 		}
 		if (!is_string($reason) || preg_match(self::REASON_PATTERN, $reason) !== 1) {
-			throw new InvalidXmpCacheException("reason of file $fileId must be 1 to 32 lower-case letters, digits or dashes");
+			throw InvalidRequestException::because(Reason::BadValue, "reason of file $fileId must be 1 to 32 lower-case letters, digits or dashes");
 		}
 		return $reason;
 	}
@@ -121,8 +121,8 @@ final readonly class XmpCacheRow implements \JsonSerializable {
 	private static function tagsOf(int $fileId, mixed $tags): array {
 		try {
 			return PictureTags::fromRequest(['fileId' => $fileId, 'tags' => $tags])->tags;
-		} catch (InvalidTagsException $e) {
-			throw new InvalidXmpCacheException($e->getMessage(), 0, $e);
+		} catch (InvalidRequestException $e) {
+			throw InvalidRequestException::because($e->reason, $e->getMessage(), $e);
 		}
 	}
 }

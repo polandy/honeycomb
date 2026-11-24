@@ -137,7 +137,7 @@ final class ImageServiceTest extends TestCase {
 	public static function previewFailures(): array {
 		return [
 			'no provider' => [new NotFoundException()],
-			'an invalid image' => [new \InvalidRequestException()],
+			'an invalid image' => [new \InvalidArgumentException()],
 		];
 	}
 
