@@ -1954,6 +1954,7 @@ function dlgTags(d){
 const tagRefocus = () => { const f = $('tgField'); f && f.focus(); };
 function tagReset(d){ d.base = ''; d.picked = -1; $('tgField').value = ''; }
 function tagCommit(text){
+  if (text.trim() === '') return;
   const d = S.dlg, tag = tagNorm(text), msgs = tagMsgs();
   if (d.mode === 'filter'){
     const known = knownTags().find(k => sameTag(k, tag));
