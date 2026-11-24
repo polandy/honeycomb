@@ -139,7 +139,7 @@ describe('GridToolbar More menu', () => {
 	it('groups the More menu under headings, one separator between the groups', () => {
 		const menu = mountToolbar({ paths: ['/A', '/B'], subfolders: false }, 2, { resumeName: 'IMG_9' }).find('.grid-more-menu')
 		const groups = menu.findAll('[role="group"]')
-		const itemsOf = (group: (typeof groups)[number]) => group.findAll('button').map((button) => button.text().replaceAll(MARK, '').replace(/ \d+$/, ''))
+		const itemsOf = (group: (typeof groups)[number]) => group.findAll('button').map((button) => button.text().replaceAll(MARK, '').replace(/\s\d.*$/, ''))
 
 		expect(groups.map((group) => group.find('h3').text().replaceAll(MARK, ''))).toEqual(['View', 'Cull', 'Files', 'Picks and rejects'])
 		expect(itemsOf(groups[1]!)).toEqual(['Resume at IMG_9', 'Review rejects', 'Compare series', 'Reduce series to the sharpest…'])
@@ -147,7 +147,7 @@ describe('GridToolbar More menu', () => {
 		expect(itemsOf(groups[3]!)).toEqual(['Clear picks/rejects', 'Write picks/rejects to XMP'])
 		expect(menu.findAll('hr')).toHaveLength(4)
 		expect(menu.findAll('hr').every((rule) => rule.element.previousElementSibling?.getAttribute('role') === 'group' && rule.element.nextElementSibling !== null)).toBe(true)
-		expect(menu.element.lastElementChild!.textContent!.replaceAll(MARK, '')).toBe('Settings')
+		expect(menu.element.lastElementChild!.textContent!.replaceAll(MARK, '').trim()).toBe('Settings')
 	})
 
 	// spec: GRID-001.21
