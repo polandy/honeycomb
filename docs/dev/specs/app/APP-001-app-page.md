@@ -175,6 +175,14 @@ stays the same.
 - **Then** it goes after that duration; every other success toast goes after 5.2 s, and after a
   hold it runs its own full duration again
 
+### APP-001.20 – The gesture guide and the tag entry are modal
+
+- **Given** the gesture guide or the tag entry open
+- **When** the user presses `Tab`, `Shift+Tab` or `Esc`, or a screen reader walks the page
+- **Then** the dialog is marked modal and the rest of the page is inert while it is open, so the
+  focus stays inside it and wraps from its last control to its first and back; `Esc` closes it
+  alone (the guide as *Got it*) and the page behind is live again once it is gone
+
 ## Out of scope
 
 - The folder picker itself: LISTING-003.
@@ -196,4 +204,5 @@ stays the same.
 | 2026-11-20 | A dialog opens without motion under reduced motion (APP-001.17) |
 | 2026-11-22 | Every toast has *Close* and goes by a sideways swipe; a toast may stay longer (APP-001.18, .19; M12 PR 6) |
 | 2026-11-20 | *Escape* closes a confirm dialog also from a switch or a checkbox, which `NcModal` leaves to the field (APP-001.16) |
+| 2026-11-24 | The gesture guide and the tag entry are modal: inert page, focus trap, `Esc` (APP-001.20; Fable review) |
 | 2026-11-22 | The page starts on *Folders* or the library setup, the picker no longer opens by itself (APP-001.3, M12 PR 5) |

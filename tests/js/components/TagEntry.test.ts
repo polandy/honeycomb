@@ -180,4 +180,19 @@ describe('TagEntry', () => {
 			expect(wrapper.find('[role="alert"]').text()).toBe('Pick a known tag')
 		})
 	})
+
+	// spec: APP-001.20
+	it('is a modal dialog that makes the page behind inert and closes on Escape from a chip button', async () => {
+		document.body.innerHTML = '<main id="page"></main>'
+		const wrapper = mountEntry([['Natur']])
+
+		expect(wrapper.find('[role="dialog"]').attributes('aria-modal')).toBe('true')
+		expect(document.getElementById('page')!.hasAttribute('inert')).toBe(true)
+
+		await wrapper.find('.tag-entry__remove').trigger('keydown', { key: 'Escape' })
+
+		expect(wrapper.emitted('close')).toHaveLength(1)
+		wrapper.unmount()
+		expect(document.getElementById('page')!.hasAttribute('inert')).toBe(false)
+	})
 })
