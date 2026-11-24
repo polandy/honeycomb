@@ -131,3 +131,4 @@ The filter toggle key (KEYS-001), the decisions themselves (DECISIONS-001).
 |---|---|
 | 2026-11-10 | Written from the merged M2.5 (#43) |
 | 2026-11-11 | The scope control becomes a combinable flag filter (owner) |
+| 2026-11-24 | Empty folders offer *Change folders* and a *File types* hint (#380, owner) |

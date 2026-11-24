@@ -24,7 +24,7 @@ import { decisionsByFileId } from './logic/decision.ts'
 import { GRID_TIERS, imageMember } from './logic/image-tiers.ts'
 import { assetDecision, assetPicture, decisionRow } from './logic/immich-asset.ts'
 import { countsAfterDecision } from './logic/immich-counts.ts'
-import { countsRequest, defaultImmichFilters, requestFilters, timeOptions } from './logic/immich-filters.ts'
+import { countsRequest, defaultImmichFilters, isDefaultImmichFilters, requestFilters, timeOptions } from './logic/immich-filters.ts'
 import { EMPTY_LIST, pageArrived, pageAsked, pageFailed, shownList, wantsNext } from './logic/immich-paging.ts'
 import { saveQueue } from './logic/save-queue.ts'
 import { undoEntry } from './logic/undo.ts'
@@ -65,6 +65,7 @@ export function useImmichCull(context: ImmichCullContext) {
 	const { api, now, calendar } = context
 	const connectionId = ref<string | null>(null)
 	const filters = shallowRef<ImmichFilters>(defaultImmichFilters(now(), calendar))
+	const filtersAreDefault = computed(() => isDefaultImmichFilters(filters.value, now(), calendar))
 	// The loaded pages; `list` shows them without the pictures the decisions last settled let the filters refuse.
 	const loaded = shallowRef(EMPTY_LIST)
 	const counts = shallowRef<ImmichCounts | null>(null)
@@ -260,5 +261,5 @@ export function useImmichCull(context: ImmichCullContext) {
 		}
 	}
 
-	return { connectionId: readonly(connectionId), filters, list, counts, pictures, open, setFilters, resetFilters, loadNext, retry, hold, decisionOf, imageUrl, decide, undo, redo }
+	return { connectionId: readonly(connectionId), filters, filtersAreDefault, list, counts, pictures, open, setFilters, resetFilters, loadNext, retry, hold, decisionOf, imageUrl, decide, undo, redo }
 }

@@ -4,7 +4,7 @@ import type { ColourLabel, Flag } from './decision.ts'
 import type { ImmichKind } from './immich-asset.ts'
 import type { DecisionFilters, RatingComparison } from './picture-filter.ts'
 
-import { DEFAULT_FILTERS } from './picture-filter.ts'
+import { DEFAULT_FILTERS, isDefaultFlags } from './picture-filter.ts'
 
 /** A choice of the time filter; `month` counts from 1. */
 export type TimeOption
@@ -113,6 +113,15 @@ export function shownTimeOptions(options: readonly TimeOption[], counts: readonl
 	return options
 		.map((option, index) => ({ option, count: counts?.[index] ?? null }))
 		.filter(({ option, count }) => option.kind !== 'month' || count !== 0 || sameTimeOption(option, chosen) || sameTimeOption(option, current))
+}
+
+/** Whether the filters are the defaults, so *Clear filters* would change nothing; the comparison alone filters nothing. */
+export function isDefaultImmichFilters(filters: ImmichFilters, now: number, calendar: Calendar): boolean {
+	const sets = [filters.devices, filters.kinds, filters.colourLabels]
+	return sameTimeOption(filters.time, defaultImmichFilters(now, calendar).time)
+		&& sets.every((chips) => chips.size === 0)
+		&& filters.rating === DEFAULT_FILTERS.rating
+		&& isDefaultFlags(filters.flags)
 }
 
 /** Whether two time options are the same choice. */

@@ -53,7 +53,8 @@ what is on screen is loaded, and every number comes from the server.
 - **Capabilities off:** no series, similarity, tags, delete, move, *Remove RAWs*, *Keep RAW* or
   XMP for an Immich source; their buttons, keys and menu entries do not show.
 - **Empty view:** "No pictures match. Change the time, device or flag filter." with *Clear filters*,
-  which shows the default filters again from the listing's start.
+  which shows the default filters again from the listing's start; on the default filters it does
+  not show, since it would change nothing.
 - **A failed page** keeps the pages already shown and offers *Try again* at the end of the grid;
   the error names the state (IMMICH-001), never Immich's text.
 
@@ -180,7 +181,8 @@ what is on screen is loaded, and every number comes from the server.
 - **Given** filters no upload passes
 - **When** the counts say 0
 - **Then** the grid says "No pictures match. Change the time, device or flag filter." and offers
-  *Clear filters*, which shows the default filters again from the listing's start
+  *Clear filters*, which shows the default filters again from the listing's start; on the default
+  filters (the rating comparison aside) it offers no *Clear filters*
 
 ### IMMICH-002.19 – A failed page (gap)
 
@@ -249,3 +251,9 @@ what is on screen is loaded, and every number comes from the server.
 - **Then** the grid no longer shows it, without a new listing request, and *Rejected* counts one
   more; while the loupe was open the picture stayed in the filmstrip; an undo brings it back in
   its place, and with *Rejected* pressed it shows
+
+## History
+
+| Date | Change |
+|---|---|
+| 2026-11-24 | The empty view offers *Clear filters*, hidden on the default filters (#380, owner) |

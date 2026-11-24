@@ -109,7 +109,7 @@ defineExpose({ loupe: photoLoupe })
 			<template #icon>
 				<AppIcon name="phone" />
 			</template>
-			<template #action>
+			<template v-if="!props.cull.filtersAreDefault.value" #action>
 				<NcButton @click="props.cull.resetFilters">
 					{{ t('honeycomb', 'Clear filters') }}
 				</NcButton>

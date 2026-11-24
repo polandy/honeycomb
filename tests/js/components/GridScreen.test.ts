@@ -170,7 +170,7 @@ describe('GridScreen', () => {
 	})
 
 	// spec: GRID-002.11
-	it('opens the folder picker from the empty state\'s Change folders', async () => {
+	it('opens the folder picker when the empty state asks to change folders', async () => {
 		const { wrapper, context } = await mountScreen(({ context }) => context.cull.setFlags(new Set(['rejected'])))
 
 		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(false)

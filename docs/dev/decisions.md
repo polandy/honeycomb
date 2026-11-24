@@ -1912,4 +1912,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   empty folder state offers *Change folders* and hints at the *File types* setting, and the Immich
   grid's no-match state offers *Clear filters* that shows the default filters again. The hint
   reads "If your photos use other file types, add them in Settings › File types."; the settings
-  link is text, not a second button, so the state keeps one action.
+  link is text, not a second button, so the state keeps one action. On the default filters (this
+  month, *Picked* and *Unflagged*) the Immich *Clear filters* does not show, since it would change
+  nothing; the mockup disables it there too.

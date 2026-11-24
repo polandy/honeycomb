@@ -136,6 +136,6 @@ function chosen<T>(chips: ReadonlySet<T>, value: T): boolean {
 }
 
 /** Whether the flag filter is the default one. */
-function isDefaultFlags(flags: ReadonlySet<Flag>): boolean {
+export function isDefaultFlags(flags: ReadonlySet<Flag>): boolean {
 	return flags.size === DEFAULT_FILTERS.flags.size && [...flags].every((flag) => DEFAULT_FILTERS.flags.has(flag))
 }
