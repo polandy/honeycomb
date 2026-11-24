@@ -27,8 +27,9 @@ export function cullOn() {
 		imageUrl: (id, assetId, size, version) => `${id}/${assetId}/${size}?v=${version}`,
 	}
 	const toast = { show: vi.fn(), showError: vi.fn() }
-	const cull = useImmichCull({ api, now: () => NOW, calendar: UTC_CALENDAR, dayLabel: (seconds) => `day ${seconds}`, toast })
-	return { cull, assets, counts, saves, toast }
+	const saveFilters = vi.fn()
+	const cull = useImmichCull({ api, now: () => NOW, calendar: UTC_CALENDAR, dayLabel: (seconds) => `day ${seconds}`, toast, saveFilters })
+	return { cull, assets, counts, saves, toast, saveFilters }
 }
 
 /** The asset ids of the cull's pictures. */
