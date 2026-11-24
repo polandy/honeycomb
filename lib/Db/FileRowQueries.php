@@ -87,19 +87,14 @@ trait FileRowQueries {
 
 	/**
 	 * Saves `$rows` by file id: a file's existing row is updated in place, any other row inserted.
+	 * Updates first, so SQLite takes its write lock at once; `RetryOnConflict` repeats a save that met a row inserted meanwhile.
 	 * @param non-empty-array<string, int|string> $columns each column's `IQueryBuilder::PARAM_*` type, with `file_id`
 	 * @param list<array<string, scalar|null>> $rows each row's value of every column
 	 */
 	private function upsertFileRows(?string $userId, array $columns, array $rows): void {
-		$existing = [];
-		foreach ($this->findFileRows($userId, array_map(static fn (array $row): int => (int)$row['file_id'], $rows)) as $found) {
-			$existing[(int)$found['file_id']] = true;
-		}
 		$fresh = [];
 		foreach ($rows as $row) {
-			if (isset($existing[(int)$row['file_id']])) {
-				$this->updateFileRow($userId, $columns, $row);
-			} else {
+			if ($this->updateFileRow($userId, $columns, $row) === 0) {
 				$fresh[] = $row;
 			}
 		}
@@ -110,7 +105,7 @@ trait FileRowQueries {
 	 * @param array<string, int|string> $columns
 	 * @param array<string, scalar|null> $row
 	 */
-	private function updateFileRow(?string $userId, array $columns, array $row): void {
+	private function updateFileRow(?string $userId, array $columns, array $row): int {
 		$query = $this->db->getQueryBuilder();
 		$query->update($this->getTableName());
 		foreach ($columns as $name => $type) {
@@ -119,7 +114,7 @@ trait FileRowQueries {
 			}
 		}
 		$query->where($query->expr()->eq('file_id', $query->createNamedParameter($row['file_id'], IQueryBuilder::PARAM_INT)));
-		$this->ofUser($query, $userId)->executeStatement();
+		return $this->ofUser($query, $userId)->executeStatement();
 	}
 
 	/**
