@@ -43,9 +43,11 @@ and honeycomb's rows in `oc_migrations`, so the update creates the tables empty.
 the `reinstall` value; on 0.2.0 or later the value drops nothing. After a failed update Nextcloud
 keeps the maintenance mode on; turn it off with `occ maintenance:mode --off`.
 
-A test server that ran a later Git checkout with an older form of the baseline cannot use the
-value, since it is already at 0.2.0. Drop everything with
-`occ honeycomb:cleanup --all --drop` and install honeycomb fresh with `occ app:enable honeycomb`.
+A test server that ran a Git checkout of the first form of the baseline, from 2026-11-23, keeps its
+data: the update adds the columns and indexes the baseline gained before 0.2.0. A schema of any
+other checkout cannot use the `reinstall` value, since it is already at 0.2.0. Drop everything
+with `occ honeycomb:cleanup --all --drop` and install honeycomb fresh with
+`occ app:enable honeycomb`.
 
 ## Supported Nextcloud versions
 

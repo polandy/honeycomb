@@ -1969,3 +1969,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-25: The filmstrip's series tab is a 44 px column before the frame's first photo, the
   same with every pointer, instead of a band above the photos with a finger: the frame hugs the
   photo row and the strip stays 56 px high (owner, iPad, lane c).
+- 2026-11-25: The flag and visual hash saves on nc-test failed because it kept the first form of
+  the 0.2.0 baseline; a new idempotent migration adds what the baseline gained since, instead of a
+  reinstall, and `SchemaRepairTest` proves it on every database. `info.xml` goes to 0.1.1 so
+  Nextcloud runs it (owner, lane c).
