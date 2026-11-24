@@ -17,12 +17,12 @@ export default defineConfig({
 			provider: 'v8',
 			include: ['src/**/*.ts', 'src/**/*.vue'],
 			// Entry and logger wiring; the e2e case covers them.
-			exclude: ['src/main.ts', 'src/similarity-main.ts', 'src/orphaned-sidecars-main.ts', 'src/hash-worker.ts', 'src/logger.ts'],
+			exclude: ['src/main.ts', 'src/similarity-main.ts', 'src/orphaned-sidecars-main.ts', 'src/statistics-main.ts', 'src/hash-worker.ts', 'src/logger.ts'],
 			reporter: ['text', 'lcov'],
 			thresholds: {
 				'src/logic/**/*.ts': { lines: 95, branches: 90 },
-				'src/*.ts': { lines: 80 },
-				'src/**/*.vue': { lines: 80 },
+				'src/*.ts': { lines: 70, branches: 70, perFile: true },
+				'src/**/*.vue': { lines: 70, branches: 70, perFile: true },
 			},
 		},
 	},

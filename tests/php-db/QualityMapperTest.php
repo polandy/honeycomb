@@ -40,6 +40,17 @@ final class QualityMapperTest extends DbTestCase {
 		$this->assertEquals([7 => self::row(7, 'etag-new'), 8 => self::row(8)], $this->quality->find([7, 8, 9]));
 	}
 
+	public function testASaveUpdatesTheRowInPlaceAndInsertsTheNewOnes(): void {
+		$this->save([7, 8]);
+		$before = $this->rowIds('honeycomb_quality');
+		$this->quality->replace([self::row(7, 'etag-new'), self::row(9)]);
+
+		$after = $this->rowIds('honeycomb_quality');
+		$this->assertSame($before[7], $after[7]);
+		$this->assertSame($before[8], $after[8]);
+		$this->assertSame([7, 8, 9], array_keys($after));
+	}
+
 	public function testFindsAndReplacesMoreFileIdsThanOneInListTakes(): void {
 		$fileIds = range(1, self::BEYOND_CHUNK);
 		$this->save(array_reverse($fileIds));

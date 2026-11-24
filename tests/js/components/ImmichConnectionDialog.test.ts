@@ -58,7 +58,7 @@ describe('ImmichConnectionDialog', () => {
 	})
 
 	// spec: IMMICH-001.13
-	it('asks the status again on Test connection and shows its result, Done closes it', async () => {
+	it('asks the status again on Test connection and shows its result, Close closes it', async () => {
 		const { wrapper, text, button } = mountDialog(null)
 		expect(text()).toContain('Checking the connection…')
 
@@ -68,7 +68,7 @@ describe('ImmichConnectionDialog', () => {
 		await wrapper.setProps({ status: { ...OK, state: 'refused' } })
 		expect(document.body.querySelector('[role="alert"]')?.textContent).toContain('The API key is refused')
 
-		button('Done')!.click()
+		button('Close')!.click()
 		expect(wrapper.emitted('close')).toHaveLength(1)
 	})
 })

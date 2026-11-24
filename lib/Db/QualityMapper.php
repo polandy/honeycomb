@@ -54,8 +54,7 @@ final class QualityMapper implements QualityStore {
 	public function replace(array $values): void {
 		usort($values, static fn (QualityValue $a, QualityValue $b): int => $a->fileId <=> $b->fileId);
 		$this->atomic(function () use ($values): void {
-			$this->deleteFileRows(null, array_map(static fn (QualityValue $value): int => $value->fileId, $values));
-			$this->insertRows(new InsertStatements(self::TABLE, self::COLUMNS), array_map(static fn (QualityValue $value): array => [
+			$this->upsertFileRows(null, self::COLUMNS, array_map(static fn (QualityValue $value): array => [
 				'file_id' => $value->fileId,
 				'etag' => $value->etag,
 				'method' => $value->method,

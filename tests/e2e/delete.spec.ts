@@ -51,7 +51,7 @@ test('reviews the rejects, rescues one and moves the rest to the Nextcloud trash
 	}
 	await page.getByRole('button', { name: 'Reject', exact: true }).click()
 	await expect(grid).toBeHidden()
-	await page.getByRole('dialog', { name: 'Cull finished' }).getByRole('button', { name: 'Done' }).click()
+	await page.getByRole('dialog', { name: 'Cull finished' }).getByRole('button', { name: 'Close' }).click()
 	await page.getByRole('button', { name: 'Done' }).click()
 
 	await page.getByRole('button', { name: 'Review rejects: 3' }).click()
@@ -138,7 +138,7 @@ test('skips a reject another user picked meanwhile and reports it, but deletes o
 
 	const report = page.getByRole('dialog', { name: 'Some photos were skipped' })
 	await expect(report.getByRole('list', { name: 'Photos skipped' })).toContainText('IMG_0002.jpgNo longer rejected')
-	await expect(report.getByRole('button', { name: 'Retry failed files' })).toBeDisabled()
+	await expect(report.getByRole('button', { name: 'Try failed files again' })).toBeDisabled()
 	await expect(page.getByRole('status').filter({ hasText: 'Moved 1 photo · 2 files' }).filter({ hasText: '1 photo skipped' })).toBeVisible()
 	const locations = await trashLocations(page)
 	for (const file of ['IMG_0001.jpg', 'IMG_0001.jpg.xmp']) {

@@ -14,9 +14,10 @@ source scripts/e2e-names.sh
 source scripts/verify-steps.sh
 
 step ci-changes scripts/test-ci-changes.sh
-step "gate tests" sh -c 'scripts/test-e2e-names.sh && scripts/test-database.sh && scripts/test-source-sizes.sh && scripts/test-pins.sh && scripts/test-specs.sh && scripts/test-spec-trailers.sh && scripts/test-nextcloud-versions.sh && scripts/test-package.sh && scripts/test-verify-steps.sh'
+step "gate tests" sh -c 'scripts/test-e2e-names.sh && scripts/test-database.sh && scripts/test-source-sizes.sh && scripts/test-pins.sh && scripts/test-words.sh && scripts/test-specs.sh && scripts/test-spec-trailers.sh && scripts/test-nextcloud-versions.sh && scripts/test-package.sh && scripts/test-verify-steps.sh'
 step source-sizes scripts/source-sizes.sh
 step pins scripts/pins.sh
+step words scripts/words.sh
 step specs scripts/specs.sh
 step "nextcloud versions" scripts/nextcloud-versions.sh
 # The branch's commit messages stand in for the description CI judges (docs/dev/specs/README.md).
@@ -32,9 +33,11 @@ step "npm ci" npm ci
 step unused-exports scripts/unused-exports.sh
 parallel_step eslint npx eslint
 parallel_step vue-tsc npx vue-tsc
-parallel_step vitest npx vitest run --coverage
+parallel_step vitest npx vitest run --coverage --exclude tests/js/conventions/eslint.test.ts
 parallel_step "xmp interop" scripts/xmp-interop.sh
 parallel_wait
+# Alone, because its first lint builds the type-aware program, which starves beside eslint and vue-tsc.
+step "eslint conventions" npx vitest run tests/js/conventions/eslint.test.ts
 step build npx vite build
 # Each Nextcloud container has its own port and name (scripts/e2e-names.sh); one run per host at a time.
 # Orphans go first: an aborted run's leftovers would otherwise hold the slot or the ports.

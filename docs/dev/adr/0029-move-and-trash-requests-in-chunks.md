@@ -32,7 +32,7 @@ The options:
 - **One after another:** the next request is sent when the last is answered. The dialog shows how
   many of the photos were sent.
 - **A later request fails:** sending stops. What earlier requests did is kept and shown; the files
-  not sent count as `failed` in the report, so *Retry failed files* and the move's *Undo* work as
+  not sent count as `failed` in the report, so *Try failed files again* and the move's *Undo* work as
   for any failed file. When the first request fails, nothing changed, as before.
 
 ## Consequences

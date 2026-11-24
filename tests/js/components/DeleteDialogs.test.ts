@@ -93,7 +93,7 @@ describe('DeleteSummary', () => {
 
 describe('DeleteReport', () => {
 	// spec: DELETE-002.9, DELETE-002.10
-	it('lists the failed files with their reasons and offers Close and Retry failed files', async () => {
+	it('lists the failed files with their reasons and offers Close and Try failed files again', async () => {
 		const report = trashReport(wholePictures([PAIR!]), [[{ fileId: 2, result: 'trashed' }, { fileId: 1, result: 'locked' }, { fileId: 3, result: 'skipped' }]])
 		const wrapper = mount(DeleteReport, { props: { report, skipped: [], folderSet: SET, busy: false }, global })
 
@@ -103,7 +103,7 @@ describe('DeleteReport', () => {
 			'CR3A/IMG_1.CR3File is locked (another process is writing to it)2 kB',
 			'XMPA/IMG_1.xmpNot tried, because another file of this photo failed1 kB',
 		])
-		expect(buttons(wrapper)).toEqual(['Close', 'Retry failed files'])
+		expect(buttons(wrapper)).toEqual(['Close', 'Try failed files again'])
 		await wrapper.findAll('button')[1]!.trigger('click')
 		await wrapper.findAll('button')[0]!.trigger('click')
 		expect(wrapper.emitted('retry')).toHaveLength(1)
@@ -198,7 +198,7 @@ describe('RawRemovalSummary', () => {
 
 		expect([summary({ busy: true }), deleteSummary({ busy: true }), deleteReport({ busy: true })].map(label)).toEqual(['Checking the photos…', 'Checking the photos…', 'Checking the photos…'])
 		expect([summary({ busy: true, progress }), deleteSummary({ busy: true, progress }), deleteReport({ busy: true, progress })].map(label)).toEqual(['Moving to trash…', 'Moving to trash…', 'Moving to trash…'])
-		expect([summary({ busy: false }), deleteSummary({ busy: false }), deleteReport({ busy: false })].map(label)).toEqual(['Move 2 files to trash', 'Move 3 files to trash', 'Retry failed files'])
+		expect([summary({ busy: false }), deleteSummary({ busy: false }), deleteReport({ busy: false })].map(label)).toEqual(['Move 2 files to trash', 'Move 3 files to trash', 'Try failed files again'])
 	})
 
 	// spec: DELETE-003.5

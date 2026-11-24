@@ -40,6 +40,17 @@ final class XmpCacheMapperTest extends DbTestCase {
 		$this->assertSame([], $this->cache->find('bob', [7, 8]));
 	}
 
+	public function testASaveUpdatesTheRowInPlaceAndInsertsTheNewOnes(): void {
+		$this->cache->replace('alice', [self::stated(7), self::stated(8)]);
+		$before = $this->rowIds('honeycomb_xmp_cache');
+		$this->cache->replace('alice', [self::silent(7), self::stated(9)]);
+
+		$after = $this->rowIds('honeycomb_xmp_cache');
+		$this->assertSame($before[7], $after[7]);
+		$this->assertSame($before[8], $after[8]);
+		$this->assertSame([7, 8, 9], array_keys($after));
+	}
+
 	// spec: XMP-006.2
 	public function testASaveReplacesTheWholeRow(): void {
 		$this->cache->replace('alice', [self::stated(7)]);
