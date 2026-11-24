@@ -15,6 +15,9 @@ import { listingEntry } from './logic/listing-entries.ts'
 
 type FolderPicture = Picture<ListingEntry>
 
+const RATED_1 = { ...UNDECIDED, rating: 1 }
+const PICKED = { ...RATED_1, flag: 'picked' } as const
+
 /** The steps of a folder cull over the pair a (JPEG 1, RAW 2) and the single b (3); the pictures start rated 1. */
 function stepsOn() {
 	const writes: CullWrite[] = []
@@ -24,9 +27,6 @@ function stepsOn() {
 	const pictures = prepareCull([listingEntry(1, '/P/a.jpg'), listingEntry(2, '/P/a.dng'), listingEntry(3, '/P/b.jpg')], pairingSettings(DEFAULT_SETTINGS)).pictures
 	return { steps, writes, effects, pair: pictures[0]!, single: pictures[1]! }
 }
-
-const RATED_1 = { ...UNDECIDED, rating: 1 }
-const PICKED = { ...RATED_1, flag: 'picked' } as const
 
 describe('useCullSteps', () => {
 	it('shows a decision on every member at once and hands its rows and the decisions before to the write', () => {
