@@ -20,13 +20,18 @@ function inertBackground(dialog: HTMLElement): () => void {
 	return () => changed.forEach((element) => element.removeAttribute('inert'))
 }
 
-/** Keeps the focus and the page's keys inside a dialog that is not an `NcModal`: inert page, `Tab` wraps, `Escape` closes. */
+/** Keeps the focus and the page's keys inside a dialog that is not an `NcModal`: inert page, `Tab` wraps, `Escape` closes, the focus returns to the opener. */
 export function useModalDialog(root: Readonly<Ref<HTMLElement | null>>, close: () => void) {
 	let restore = () => {}
+	let opener: HTMLElement | null = null
 	onMounted(() => {
+		opener = document.activeElement instanceof HTMLElement ? document.activeElement : null
 		restore = inertBackground(root.value!)
 	})
-	onBeforeUnmount(() => restore())
+	onBeforeUnmount(() => {
+		restore()
+		opener?.focus()
+	})
 
 	/** Wraps `Tab` at the ends of the dialog and closes on `Escape`. */
 	function onKeydown(event: KeyboardEvent) {

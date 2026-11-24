@@ -181,7 +181,8 @@ stays the same.
 - **When** the user presses `Tab`, `Shift+Tab` or `Esc`, or a screen reader walks the page
 - **Then** the dialog is marked modal and the rest of the page is inert while it is open, so the
   focus stays inside it and wraps from its last control to its first and back; `Esc` closes it
-  alone (the guide as *Got it*) and the page behind is live again once it is gone
+  alone (the guide as *Got it*); once it is gone the page behind is live again and the focus is back
+  on the control that opened it
 
 ### APP-001.21 – The page opts in to the whole screen and keeps its controls clear of the cutouts
 
