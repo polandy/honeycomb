@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Listener;
 
-use OCA\Honeycomb\Service\UserRowStores;
+use OCA\Honeycomb\Service\Lifecycle\UserRowStores;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\User\Events\UserDeletedEvent;

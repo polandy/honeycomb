@@ -12,7 +12,7 @@ use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\CleanupController;
 use OCA\Honeycomb\Domain\FileFlag;
 use OCA\Honeycomb\Domain\Flag;
-use OCA\Honeycomb\Service\OrphanedFlags;
+use OCA\Honeycomb\Service\Lifecycle\OrphanedFlags;
 use OCA\Honeycomb\Tests\Service\FakeExistingFiles;
 use OCA\Honeycomb\Tests\Service\FakeFlagStore;
 use OCP\AppFramework\Http;

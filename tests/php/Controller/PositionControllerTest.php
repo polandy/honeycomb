@@ -10,7 +10,7 @@ namespace OCA\Honeycomb\Tests\Controller;
 use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\PositionController;
-use OCA\Honeycomb\Service\PositionService;
+use OCA\Honeycomb\Service\Folder\PositionService;
 use OCA\Honeycomb\Tests\Service\FakePositionStore;
 use OCA\Honeycomb\Tests\Service\StatsFixture;
 use OCP\AppFramework\Http;

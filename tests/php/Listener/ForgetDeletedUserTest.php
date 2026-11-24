@@ -19,7 +19,7 @@ use OCA\Honeycomb\Domain\XmpCacheRow;
 use OCA\Honeycomb\Immich\AssetDecision;
 use OCA\Honeycomb\Immich\AssetKind;
 use OCA\Honeycomb\Listener\ForgetDeletedUser;
-use OCA\Honeycomb\Service\UserRowStores;
+use OCA\Honeycomb\Service\Lifecycle\UserRowStores;
 use OCA\Honeycomb\Tests\Domain\XmpCacheRowTest;
 use OCA\Honeycomb\Tests\Immich\FakeImmichDecisionStore;
 use OCA\Honeycomb\Tests\Service\FakeFlagStore;

@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
-use OCA\Honeycomb\Service\CacheClear;
-use OCA\Honeycomb\Service\XmpCacheService;
+use OCA\Honeycomb\Service\Lifecycle\CacheClear;
+use OCA\Honeycomb\Service\Xmp\XmpCacheService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;

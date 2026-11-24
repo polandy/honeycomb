@@ -9,10 +9,10 @@ namespace OCA\Honeycomb\BackgroundJob;
 
 use OCA\Honeycomb\Domain\Store\FileRowStores;
 use OCA\Honeycomb\Immich\ImmichConnectionSweep;
-use OCA\Honeycomb\Service\BackgroundJobName;
-use OCA\Honeycomb\Service\EmptySeriesSweep;
-use OCA\Honeycomb\Service\JobRuns;
-use OCA\Honeycomb\Service\VanishedFileSweep;
+use OCA\Honeycomb\Service\Lifecycle\BackgroundJobName;
+use OCA\Honeycomb\Service\Lifecycle\EmptySeriesSweep;
+use OCA\Honeycomb\Service\Lifecycle\JobRuns;
+use OCA\Honeycomb\Service\Lifecycle\VanishedFileSweep;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
 use OCP\BackgroundJob\TimedJob;

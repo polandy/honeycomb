@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\TrashBinGuard;
+use OCA\Honeycomb\Service\Trash\TrashBinGuard;
 use OCP\Config\IUserConfig;
 use OCP\Files\File;
 use OCP\Files\FileInfo;

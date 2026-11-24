@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
-use OCA\Honeycomb\Service\ImageService;
+use OCA\Honeycomb\Service\Image\ImageService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;

@@ -13,7 +13,7 @@ use OCA\Honeycomb\Domain\InvalidRequestException;
 use OCA\Honeycomb\Domain\PairingExtensions;
 use OCA\Honeycomb\Domain\Reason;
 use OCA\Honeycomb\Domain\VisualHash;
-use OCA\Honeycomb\Service\MoveRequest;
+use OCA\Honeycomb\Service\Move\MoveRequest;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

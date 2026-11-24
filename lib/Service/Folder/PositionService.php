@@ -1,0 +1,68 @@
+<?php
+
+// SPDX-FileCopyrightText: 2026 honeycomb contributors
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+declare(strict_types=1);
+
+namespace OCA\Honeycomb\Service\Folder;
+
+use OCA\Honeycomb\Domain\FolderSet;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\Reason;
+use OCA\Honeycomb\Domain\ResumePosition;
+use OCA\Honeycomb\Domain\Store\PositionStore;
+use OCA\Honeycomb\Service\Stats\StatsService;
+use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\IUser;
+
+/** Keeps each user's resume position per folder set, the most recent ones only (ADR 0012). */
+final class PositionService {
+	/** How many folder sets *Recent* lists. */
+	public const int RECENT_LIMIT = 20;
+
+	public function __construct(
+		private PositionStore $store,
+		private ITimeFactory $time,
+		private StatsService $stats,
+	) {
+	}
+
+	/**
+	 * The user's positions, the latest saved first.
+	 * @return list<ResumePosition>
+	 */
+	public function recent(IUser $user): array {
+		return $this->store->all($user->getUID());
+	}
+
+	/**
+	 * Stores where the user stands in the folder set, forgets all but the most recent sets and counts the active time the save carries (STATS-001.39).
+	 * @param array<array-key, mixed> $folderSet
+	 * @throws InvalidRequestException for a malformed folder set, file id or count
+	 */
+	public function save(IUser $user, array $folderSet, int $fileId, int $decided, int $total, int $activeSeconds = 0): ResumePosition {
+		if ($fileId < 1 || $decided < 0 || $decided > $total) {
+			throw InvalidRequestException::because(Reason::BadFileId, 'fileId must be positive and decided 0 to total');
+		}
+		$position = new ResumePosition(FolderSet::fromRequest($folderSet), $fileId, $decided, $total, $this->time->getTime());
+		$since = $this->savedAt($user, $position->folderSet);
+		$this->store->save($user->getUID(), $position);
+		$stale = array_slice($this->store->all($user->getUID()), self::RECENT_LIMIT);
+		if ($stale !== []) {
+			$this->store->forget($user->getUID(), array_map(static fn (ResumePosition $old): string => $old->folderSet->key(), $stale));
+		}
+		$this->stats->countActiveSeconds($user, $activeSeconds, $position->updatedAt, $since);
+		return $position;
+	}
+
+	/** When the folder set's position was saved last, null without one. */
+	private function savedAt(IUser $user, FolderSet $folderSet): ?int {
+		foreach ($this->store->all($user->getUID()) as $stored) {
+			if ($stored->folderSet->key() === $folderSet->key()) {
+				return $stored->updatedAt;
+			}
+		}
+		return null;
+	}
+}

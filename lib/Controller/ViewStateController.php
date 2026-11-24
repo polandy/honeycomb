@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
-use OCA\Honeycomb\Service\ViewStateService;
+use OCA\Honeycomb\Service\Settings\ViewStateService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;

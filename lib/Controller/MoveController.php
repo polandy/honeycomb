@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
-use OCA\Honeycomb\Service\MoveService;
-use OCA\Honeycomb\Service\MoveTargetService;
+use OCA\Honeycomb\Service\Move\MoveService;
+use OCA\Honeycomb\Service\Move\MoveTargetService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;

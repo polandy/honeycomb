@@ -7,11 +7,11 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\TrashBinGuard;
-use OCA\Honeycomb\Service\TrashNameSpacing;
-use OCA\Honeycomb\Service\TrashService;
-use OCA\Honeycomb\Service\UserFolderResolver;
-use OCA\Honeycomb\Service\UserPhotos;
+use OCA\Honeycomb\Service\Files\UserFolderResolver;
+use OCA\Honeycomb\Service\Files\UserPhotos;
+use OCA\Honeycomb\Service\Trash\TrashBinGuard;
+use OCA\Honeycomb\Service\Trash\TrashNameSpacing;
+use OCA\Honeycomb\Service\Trash\TrashService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Config\IUserConfig;

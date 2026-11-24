@@ -10,7 +10,7 @@ namespace OCA\Honeycomb\Tests\Command;
 use OCA\Honeycomb\Command\ClearCache;
 use OCA\Honeycomb\Domain\VisualHash;
 use OCA\Honeycomb\Domain\XmpCacheRow;
-use OCA\Honeycomb\Service\CacheClear;
+use OCA\Honeycomb\Service\Lifecycle\CacheClear;
 use OCA\Honeycomb\Tests\Domain\XmpCacheRowTest;
 use OCA\Honeycomb\Tests\Service\FakeQualityStore;
 use OCA\Honeycomb\Tests\Service\FakeVisualHashStore;

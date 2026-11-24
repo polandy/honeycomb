@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
-use OCA\Honeycomb\Service\OrphanedFlags;
+use OCA\Honeycomb\Service\Lifecycle\OrphanedFlags;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\UserRateLimit;

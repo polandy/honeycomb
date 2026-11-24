@@ -27,7 +27,7 @@ spec=docs/dev/specs/grid/GRID-001-grid.md
 expect nothing pass ''
 expect docs-only pass '' docs/dev/plan.md
 expect code-without-spec fail '' src/logic/cull.ts
-expect php-without-spec fail '' lib/Service/TrashService.php
+expect php-without-spec fail '' lib/Service/Trash/TrashService.php
 expect code-with-spec pass '' src/logic/cull.ts "$spec"
 expect code-with-trailer pass $'refactor\n\nSpec-Unchanged: pure rename' src/logic/cull.ts
 expect empty-trailer fail $'Spec-Unchanged:' src/logic/cull.ts

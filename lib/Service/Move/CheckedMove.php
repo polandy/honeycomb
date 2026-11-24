@@ -1,0 +1,25 @@
+<?php
+
+// SPDX-FileCopyrightText: 2026 honeycomb contributors
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+declare(strict_types=1);
+
+namespace OCA\Honeycomb\Service\Move;
+
+use OCP\Files\File;
+
+/** A file that passed its check: where it goes, the file it replaces there and whether for good (ADR 0048), or that it is already there. */
+final readonly class CheckedMove {
+	public string $from;
+
+	public function __construct(
+		public File $source,
+		public string $path,
+		public ?File $replace,
+		public bool $stays,
+		public bool $replacesForGood = false,
+	) {
+		$this->from = $source->getPath();
+	}
+}

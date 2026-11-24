@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\DbTests;
 
-use OCA\Honeycomb\Service\SidecarResult;
-use OCA\Honeycomb\Service\SidecarWriter;
+use OCA\Honeycomb\Service\Sidecar\SidecarResult;
+use OCA\Honeycomb\Service\Sidecar\SidecarWriter;
 use OCP\App\IAppManager;
 use OCP\Constants;
 use OCP\Files\File;

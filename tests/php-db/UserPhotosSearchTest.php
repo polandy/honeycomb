@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\DbTests;
 
-use OCA\Honeycomb\Service\UserPhotos;
+use OCA\Honeycomb\Service\Files\UserPhotos;
 use OCP\Constants;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;

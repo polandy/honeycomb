@@ -10,7 +10,7 @@ namespace OCA\Honeycomb\Tests\Controller;
 use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\SettingsController;
-use OCA\Honeycomb\Service\SettingsService;
+use OCA\Honeycomb\Service\Settings\SettingsService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;

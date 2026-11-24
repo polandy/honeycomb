@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\SettingsService;
-use OCA\Honeycomb\Service\StatsDay;
-use OCA\Honeycomb\Service\StatsService;
+use OCA\Honeycomb\Service\Settings\SettingsService;
+use OCA\Honeycomb\Service\Stats\StatsDay;
+use OCA\Honeycomb\Service\Stats\StatsService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Config\IUserConfig;
 use OCP\DB\Exception as DbException;

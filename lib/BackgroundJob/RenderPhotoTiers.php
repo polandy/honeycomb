@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\BackgroundJob;
 
-use OCA\Honeycomb\Service\BackgroundJobName;
-use OCA\Honeycomb\Service\ImageService;
-use OCA\Honeycomb\Service\JobRuns;
+use OCA\Honeycomb\Service\Image\ImageService;
+use OCA\Honeycomb\Service\Lifecycle\BackgroundJobName;
+use OCA\Honeycomb\Service\Lifecycle\JobRuns;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\QueuedJob;
 use OCP\IUserManager;

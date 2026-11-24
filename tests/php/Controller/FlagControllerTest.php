@@ -11,7 +11,7 @@ use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\FlagController;
 use OCA\Honeycomb\Controller\WriteRateLimit;
-use OCA\Honeycomb\Service\FlagService;
+use OCA\Honeycomb\Service\Decision\FlagService;
 use OCA\Honeycomb\Tests\Service\FakeFlagStore;
 use OCA\Honeycomb\Tests\Service\FakeUserPhotos;
 use OCA\Honeycomb\Tests\Service\StatsFixture;

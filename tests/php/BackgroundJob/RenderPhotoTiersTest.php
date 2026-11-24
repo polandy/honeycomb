@@ -8,11 +8,11 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\BackgroundJob;
 
 use OCA\Honeycomb\BackgroundJob\RenderPhotoTiers;
-use OCA\Honeycomb\Service\BackgroundJobName;
-use OCA\Honeycomb\Service\ImageService;
-use OCA\Honeycomb\Service\JobRuns;
-use OCA\Honeycomb\Service\UserFolderResolver;
-use OCA\Honeycomb\Service\UserPhotos;
+use OCA\Honeycomb\Service\Files\UserFolderResolver;
+use OCA\Honeycomb\Service\Files\UserPhotos;
+use OCA\Honeycomb\Service\Image\ImageService;
+use OCA\Honeycomb\Service\Lifecycle\BackgroundJobName;
+use OCA\Honeycomb\Service\Lifecycle\JobRuns;
 use OCA\Honeycomb\Tests\Service\AppConfigStub;
 use OCA\Honeycomb\Tests\Service\FakePreviewLock;
 use OCP\AppFramework\Utility\ITimeFactory;

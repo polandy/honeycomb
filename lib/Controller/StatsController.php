@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
-use OCA\Honeycomb\Service\StatsBaseline;
-use OCA\Honeycomb\Service\StatsService;
+use OCA\Honeycomb\Service\Stats\StatsBaseline;
+use OCA\Honeycomb\Service\Stats\StatsService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
