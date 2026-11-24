@@ -17,6 +17,11 @@ const props = defineProps<{
 	connectionId: string | null
 }>()
 
+const emit = defineEmits<{
+	open: [connectionId: string]
+	details: []
+}>()
+
 /** The icon of each state, so the colour is not the only sign. */
 const MARKS = { working: 'check', failed: 'close', asked: 'minus' } as const
 
@@ -24,11 +29,6 @@ const MARKS = { working: 'check', failed: 'close', asked: 'minus' } as const
 function markState(working: boolean | null): keyof typeof MARKS {
 	return working === null ? 'asked' : working ? 'working' : 'failed'
 }
-
-const emit = defineEmits<{
-	open: [connectionId: string]
-	details: []
-}>()
 </script>
 
 <template>

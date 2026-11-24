@@ -10,8 +10,8 @@ import { computed, onMounted, ref, useTemplateRef } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
 import { PLAIN_TEXT } from '../l10n.ts'
-import { useModalDialog } from '../modal-dialog.ts'
 import { cycleMatch, knownTag, tagChips, tagMatches, typedTag } from '../logic/tag-entry.ts'
+import { useModalDialog } from '../modal-dialog.ts'
 
 const props = withDefaults(defineProps<{
 	/** The tags of each picture the entry changes. */

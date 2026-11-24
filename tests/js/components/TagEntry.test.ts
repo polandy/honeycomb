@@ -183,7 +183,9 @@ describe('TagEntry', () => {
 
 	// spec: APP-001.20
 	it('is a modal dialog that makes the page behind inert and closes on Escape from a chip button', async () => {
-		document.body.innerHTML = '<main id="page"></main>'
+		const page = document.createElement('main')
+		page.id = 'page'
+		document.body.replaceChildren(page)
 		const wrapper = mountEntry([['Natur']])
 
 		expect(wrapper.find('[role="dialog"]').attributes('aria-modal')).toBe('true')

@@ -6,14 +6,21 @@ import { optInToEdgeToEdge } from '../../src/edge-to-edge.ts'
 
 const viewport = () => document.head.querySelector('meta[name="viewport"]')?.getAttribute('content')
 
+function setViewport(content: string): void {
+	const meta = document.createElement('meta')
+	meta.name = 'viewport'
+	meta.content = content
+	document.head.replaceChildren(meta)
+}
+
 describe('optInToEdgeToEdge', () => {
 	beforeEach(() => {
-		document.head.innerHTML = ''
+		document.head.replaceChildren()
 	})
 
 	// spec: APP-001.21
 	it('adds viewport-fit=cover to the viewport Nextcloud set', () => {
-		document.head.innerHTML = '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
+		setViewport('width=device-width, initial-scale=1.0')
 
 		optInToEdgeToEdge(document)
 
@@ -22,7 +29,7 @@ describe('optInToEdgeToEdge', () => {
 
 	// spec: APP-001.21
 	it('adds it once and replaces another viewport-fit', () => {
-		document.head.innerHTML = '<meta name="viewport" content="width=device-width, viewport-fit=auto">'
+		setViewport('width=device-width, viewport-fit=auto')
 
 		optInToEdgeToEdge(document)
 		optInToEdgeToEdge(document)

@@ -20,7 +20,18 @@ const Dialog = defineComponent({
 
 /** The dialog beside two page siblings, one already inert, attached so the focus works. */
 function mountDialog() {
-	document.body.innerHTML = '<main id="page"><p id="text">page</p></main><aside id="already" inert></aside><section id="host"></section>'
+	const page = document.createElement('main')
+	page.id = 'page'
+	const text = document.createElement('p')
+	text.id = 'text'
+	text.textContent = 'page'
+	page.append(text)
+	const already = document.createElement('aside')
+	already.id = 'already'
+	already.inert = true
+	const host = document.createElement('section')
+	host.id = 'host'
+	document.body.replaceChildren(page, already, host)
 	const wrapper = mount(Dialog, { attachTo: document.getElementById('host')! })
 	return wrapper
 }
@@ -30,7 +41,7 @@ const press = (wrapper: ReturnType<typeof mountDialog>, key: string, shiftKey = 
 describe('useModalDialog', () => {
 	afterEach(() => {
 		close.mockClear()
-		document.body.innerHTML = ''
+		document.body.replaceChildren()
 	})
 
 	// spec: APP-001.20
