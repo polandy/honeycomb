@@ -10,9 +10,9 @@ namespace OCA\Honeycomb\Tests\Service;
 use OCA\Honeycomb\Service\SettingsService;
 use OCA\Honeycomb\Service\StatsDay;
 use OCA\Honeycomb\Service\StatsService;
-use OCP\DB\Exception as DbException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Config\IUserConfig;
+use OCP\DB\Exception as DbException;
 use Psr\Log\LoggerInterface;
 
 /** A `StatsService` over an in-memory store, statistics on, at 1 March 2026, 23:30 UTC, for the tests of the services that count. */

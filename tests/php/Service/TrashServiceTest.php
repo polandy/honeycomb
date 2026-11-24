@@ -7,11 +7,11 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCP\Files\GenericFileException;
 use OCA\Honeycomb\Service\InvalidTrashRequestException;
 use OCA\Honeycomb\Service\TrashBinDisabledException;
 use OCP\Files\File;
 use OCP\Files\Folder;
+use OCP\Files\GenericFileException;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;

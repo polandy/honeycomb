@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCP\Files\GenericFileException;
 use OCA\Honeycomb\Service\InvalidSidecarRequestException;
 use OCA\Honeycomb\Service\SidecarLimits;
 use OCA\Honeycomb\Service\SidecarReader;
@@ -16,6 +15,7 @@ use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
 use OCP\Files\File;
 use OCP\Files\Folder;
+use OCP\Files\GenericFileException;
 use OCP\Files\IRootFolder;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;

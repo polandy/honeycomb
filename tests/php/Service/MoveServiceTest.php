@@ -7,7 +7,6 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCP\Files\GenericFileException;
 use OCA\Honeycomb\Service\FileRowStores;
 use OCA\Honeycomb\Service\InvalidMoveRequestException;
 use OCA\Honeycomb\Service\MoveService;
@@ -16,6 +15,7 @@ use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
 use OCP\App\IAppManager;
 use OCP\Files\AlreadyExistsException;
+use OCP\Files\GenericFileException;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\Lock\LockedException;
