@@ -9,7 +9,7 @@ import { t } from '@nextcloud/l10n'
 import { computed, ref } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
-import { connectionLine } from '../immich-text.ts'
+import { connectionLine, IMMICH_SCOPES_URL } from '../immich-text.ts'
 import { formatNumber } from '../l10n.ts'
 
 const props = defineProps<{
@@ -90,6 +90,9 @@ function test() {
 			{{ t('honeycomb', 'Your Nextcloud admin sets up the Immich connections. To add an account, change its API key or remove it, ask your admin.') }}
 		</p>
 		<template #actions>
+			<NcButton variant="tertiary" :href="IMMICH_SCOPES_URL" target="_blank">
+				{{ t('honeycomb', 'Help for your admin') }}
+			</NcButton>
 			<NcButton variant="tertiary" @click="test">
 				{{ t('honeycomb', 'Test connection') }}
 			</NcButton>
