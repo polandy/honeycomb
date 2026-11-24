@@ -1913,6 +1913,8 @@ function renderDlg(){
 const tagMsgs = () => ({unknown:t('Pick a known tag'), bad:t('Separate the levels of a tag with "/". A name cannot be empty and cannot contain "|".')});
 function tagTargets(it){ const files = [it.jpg, it.raw].filter(Boolean).map(f => it.xmp && !it.xmp.shared ? it.xmp.name : f.name + '.xmp'); return [...new Set(files)].join(', '); }
 const tagNorm = text => text.split('/').map(x => x.trim()).filter(Boolean).join('/');
+/* The typed tag with each name trimmed, or null for an empty name or a "|", as the app's tagOf does. */
+const tagOf = text => { const names = text.split('/').map(x => x.trim()); return names.every(x => x && !x.includes('|')) ? names.join('/') : null; };
 function openTags(ids, mode = 'assign'){
   if (mode === 'assign' && !ids.length){ toast(t('Select photos first')); return; }
   openDlg({type:'tags', mode, ids, base:'', picked:-1, msg:'', refocus:'#tgField'});
@@ -1922,7 +1924,8 @@ function tagRows(d){
   const typed = tagNorm(d.base), q = typed.toLowerCase(), its = tagIts(d);
   const open = k => d.mode === 'filter' ? !S.filters.tags.includes(k) : !its.every(i => hasExactTag(i, k));
   const rows = knownTags().filter(k => open(k) && k.toLowerCase().includes(q)).map(tag => ({tag, create:false}));
-  if (d.mode === 'assign' && typed && !knownTags().some(k => sameTag(k, typed))) rows.push({tag:typed, create:true});
+  const create = d.mode === 'assign' ? tagOf(d.base) : null;
+  if (create !== null && !knownTags().some(k => sameTag(k, create))) rows.push({tag:create, create:true});
   return rows;
 }
 function tagChips(d){
@@ -1957,8 +1960,9 @@ function tagCommit(text){
     if (!known) d.msg = msgs.unknown; else { d.msg = ''; if (!S.filters.tags.includes(known)) S.filters.tags.push(known); refreshView(); tagReset(d); }
     tagLists(d); return;
   }
-  if (!tag || tag.includes('|')){ d.msg = msgs.bad; tagLists(d); return; }
-  d.msg = ''; const path = knownTags().find(k => sameTag(k, tag)) || tag;
+  const typed = tagOf(text);
+  if (typed === null){ d.msg = msgs.bad; tagLists(d); return; }
+  d.msg = ''; const path = knownTags().find(k => sameTag(k, typed)) || typed;
   if (!S.tagList.some(k => sameTag(k, path))) S.tagList.push(path);
   const its = tagIts(d).filter(i => !hasExactTag(i, path));
   if (its.length) tagChange(its, path, true);
