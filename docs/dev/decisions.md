@@ -1927,9 +1927,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   (the trash stays with the delete action); the Immich source takes a neutral server icon
   instead of a phone; and the tag refusal reads two plain sentences ("Separate the levels of a
   tag with \"/\". A name cannot be empty and cannot contain \"|\"."). Wording and icons only.
-- 2026-11-24: The 17 empty `Invalid*Exception` classes are gone; `InvalidRequestException::because(Reason)`
-  names the reason in the 400 body next to `error: "request"` (ADR 0057, #187, autonomous). Twelve coarse
-  reasons, one per kind of malformed part, not one per field; the free-text detail stays on the exception.
 - 2026-11-24: The user docs drop every link into `docs/dev` (ADRs, the glossary, the name-template
   tokens, the interop and tags notes) and carry a short glossary of their own
   (`docs/user/glossary.md`); the *Changing in the next release* boxes are gone, since ADR 0040 and
@@ -1937,3 +1934,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   tags go into the sidecars while flags and *Keep RAW* live in the database (Fable review,
   owner-approved). A user cannot open the dev docs, and the boxes described a state that had
   already landed (#384).
+- 2026-11-24: The 17 empty `Invalid*Exception` classes are gone; `InvalidRequestException::because(Reason)`
+  names the reason in the 400 body next to `error: "request"` (ADR 0057, #187, autonomous). Twelve coarse
+  reasons, one per kind of malformed part, not one per field; the free-text detail stays on the exception.
