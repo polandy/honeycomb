@@ -30,7 +30,7 @@ async function taggedCull(stored: StoredTags[], tagList: () => Promise<Tag[]> = 
 		tags: { loadTagList: tagList },
 	}, fakeStorage(), () => DEFAULT_SETTINGS, {
 		...NO_SIDECARS,
-		read: async (pictures) => ({ decided: [], tagged: pictures.map((picture) => ({ picture, tags: sortedTags(stored.filter((row) => memberIds(picture).includes(row.fileId)).flatMap((row) => row.tags)) })).filter(({ tags }) => tags.length > 0) }),
+		read: async (pictures) => ({ decided: [], rows: new Map(), tagged: pictures.map((picture) => ({ picture, tags: sortedTags(stored.filter((row) => memberIds(picture).includes(row.fileId)).flatMap((row) => row.tags)) })).filter(({ tags }) => tags.length > 0) }),
 		writeTags: async (pictures, change) => {
 			written.push({ names: pictures.map((picture) => picture.baseName), change })
 			return { written: pictures.length, failed: [] }

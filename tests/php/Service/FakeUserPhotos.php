@@ -24,8 +24,13 @@ trait FakeUserPhotos {
 
 	/** The given file ids are photos, `TEXT_FILE` is a text file, every other id is out of reach. */
 	private function userPhotos(int ...$photos): UserPhotos {
+		return $this->userPhotosWith(array_fill_keys($photos, Constants::PERMISSION_ALL));
+	}
+
+	/** @param array<int, int> $photos the permissions of each photo's folder, by file id */
+	private function userPhotosWith(array $photos): UserPhotos {
 		$byId = fn (int $id): ?Node => match (true) {
-			in_array($id, $photos, true) => $this->fakeFile($id, "IMG_$id.JPG", 'image/jpeg'),
+			isset($photos[$id]) => $this->fakeFile($id, "IMG_$id.JPG", 'image/jpeg', $photos[$id]),
 			$id === self::TEXT_FILE => $this->fakeFile($id, 'notes.txt', 'text/plain'),
 			default => null,
 		};
@@ -37,14 +42,14 @@ trait FakeUserPhotos {
 		return new UserPhotos(new UserFolderResolver($root));
 	}
 
-	private function fakeFile(int $id, string $name, string $mime): File {
+	private function fakeFile(int $id, string $name, string $mime, int $permissions = Constants::PERMISSION_ALL): File {
 		$file = $this->createStub(File::class);
 		$file->method('getId')->willReturn($id);
 		$file->method('getName')->willReturn($name);
 		$file->method('getMimetype')->willReturn($mime);
 		$file->method('getPath')->willReturn("/alice/files/Photos/$name");
 		$folder = $this->createStub(Folder::class);
-		$folder->method('getPermissions')->willReturn(Constants::PERMISSION_ALL);
+		$folder->method('getPermissions')->willReturn($permissions);
 		$file->method('getParent')->willReturn($folder);
 		return $file;
 	}

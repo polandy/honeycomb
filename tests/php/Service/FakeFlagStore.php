@@ -43,8 +43,22 @@ final class FakeFlagStore implements FlagStore {
 	public function save(array $flags): void {
 		$this->write();
 		foreach ($flags as $flag) {
-			$this->rows[$flag->fileId] = $flag;
+			$this->rows[$flag->fileId] = new FileFlag($flag->fileId, $flag->flag, $flag->keepRaw, $flag->updatedAt, $flag->updatedBy, $this->rows[$flag->fileId]->sidecarEtag ?? null);
 		}
+	}
+
+	#[\Override]
+	public function setSidecarEtags(array $etags): array {
+		$this->write();
+		$set = [];
+		foreach ($etags as $fileId => $etag) {
+			if (isset($this->rows[$fileId])) {
+				$row = $this->rows[$fileId];
+				$this->rows[$fileId] = new FileFlag($fileId, $row->flag, $row->keepRaw, $row->updatedAt, $row->updatedBy, $etag);
+				$set[] = $fileId;
+			}
+		}
+		return $set;
 	}
 
 	#[\Override]
@@ -69,13 +83,13 @@ final class FakeFlagStore implements FlagStore {
 		if (isset($this->rows[$fileId])) {
 			$row = $this->rows[$fileId];
 			unset($this->rows[$fileId]);
-			$this->rows[$newFileId] = new FileFlag($newFileId, $row->flag, $row->keepRaw, $row->updatedAt, $row->updatedBy);
+			$this->rows[$newFileId] = new FileFlag($newFileId, $row->flag, $row->keepRaw, $row->updatedAt, $row->updatedBy, $row->sidecarEtag);
 		}
 	}
 
 	#[\Override]
 	public function forgetUser(string $userId): void {
-		$this->rows = array_map(static fn (FileFlag $row): FileFlag => $row->updatedBy === $userId ? new FileFlag($row->fileId, $row->flag, $row->keepRaw, $row->updatedAt) : $row, $this->rows);
+		$this->rows = array_map(static fn (FileFlag $row): FileFlag => $row->updatedBy === $userId ? new FileFlag($row->fileId, $row->flag, $row->keepRaw, $row->updatedAt, null, $row->sidecarEtag) : $row, $this->rows);
 	}
 
 	#[\Override]
