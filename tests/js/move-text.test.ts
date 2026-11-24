@@ -4,9 +4,9 @@
 import type { MoveFailure, MoveReport } from '../../src/logic/move-report.ts'
 
 import { describe, expect, it } from 'vitest'
-import { RequestTimeoutError, TrashBinOffError } from '../../src/api.ts'
+import { RequestTimeoutError, TrashBinOffError } from '../../src/api/index.ts'
 import { filesOf } from '../../src/logic/delete-summary.ts'
-import { movedBackText, movedText, moveFailedText, moveFailureReason, moveNote, namingProblemText } from '../../src/move-text.ts'
+import { movedBackText, movedText, moveFailedText, moveFailureReason, moveNote, namingProblemText } from '../../src/move/move-text.ts'
 import { listingEntry, pictureOf } from './logic/listing-entries.ts'
 
 const FAILURES: MoveFailure[] = ['notFound', 'changed', 'notPermitted', 'locked', 'exists', 'failed', 'skipped', 'movedBack', 'otherStorage', 'noTrashBin', 'tooLarge']

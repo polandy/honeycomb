@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 const read = (path: string) => readFileSync(new URL(`../../../src/${path}`, import.meta.url), 'utf8')
-const FILLS = read('flag-fills.css')
+const FILLS = read('cull/flag-fills.css')
 const MIN_CONTRAST = 4.5
 
 /** The WCAG relative luminance of a #rrggbb colour. */

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { MissingPicture } from '../../../src/hash-run.ts'
+import type { MissingPicture } from '../../../src/hashes/hash-run.ts'
 import type { StoredVisualHash } from '../../../src/logic/visual-hash.ts'
 
 import { flushPromises, mount } from '@vue/test-utils'
@@ -10,7 +10,7 @@ import FolderTree from '../../../src/components/FolderTree.vue'
 import SimilarityPage from '../../../src/components/SimilarityPage.vue'
 import { RateLimitedError } from '../../../src/logic/retry-after.ts'
 
-vi.mock('../../../src/logger.ts', () => ({ logger: { warn: vi.fn() } }))
+vi.mock('../../../src/shared/logger.ts', () => ({ logger: { warn: vi.fn() } }))
 
 const picture = (fileId: number): MissingPicture => ({ fileId, etag: `etag-${fileId}`, mtime: 1, path: `/Photos/IMG_${fileId}.jpg` })
 

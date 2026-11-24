@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
-use OCA\Honeycomb\Service\FolderDoneService;
-use OCA\Honeycomb\Service\LibraryFolderService;
+use OCA\Honeycomb\Service\Folder\FolderDoneService;
+use OCA\Honeycomb\Service\Folder\LibraryFolderService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;

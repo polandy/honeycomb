@@ -10,7 +10,7 @@ import type { Series } from '../logic/series.ts'
 
 import { useTemplateRef } from 'vue'
 import PhotoLoupe from './PhotoLoupe.vue'
-import { useCullContext } from '../cull-context.ts'
+import { useCullContext } from '../cull/cull-context.ts'
 import { assertListedSeries, listedPicture } from '../logic/listing.ts'
 
 const { cull, decide, deleting, moving, seriesCompare, unsaved, tagEntry, loupe, restOffer, toast, settings, updateSettings, viewState, storage, imageUrl } = useCullContext()

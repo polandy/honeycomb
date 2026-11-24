@@ -10,7 +10,7 @@ import { computed, nextTick, onMounted, useTemplateRef } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import ProgressBar from './ProgressBar.vue'
-import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
+import { formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
 
 const props = defineProps<{
 	/** The dialog's heading. */

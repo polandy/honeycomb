@@ -7,9 +7,10 @@
 ## Context
 
 A cull's source is a closed union, `OpenedSource = FolderSource | ImmichSource`
-(`src/logic/opened-source.ts`), and each kind has its own cull: `useCull` (`src/cull.ts`) holds the
+(`src/logic/opened-source.ts`), and each kind has its own cull: `useCull` (`src/cull/cull.ts`)
+holds the
 whole listing client side and decides through flags, sidecars, tags and series; `useImmichCull`
-(`src/immich-cull.ts`) pages the server's listing and keeps its own decided map, counts, undo
+(`src/immich/immich-cull.ts`) pages the server's listing and keeps its own decided map, counts, undo
 history and save queue with roll back. Deciding, undo, saving with roll back and moving the counts
 along exist twice, and a third source (an Immich album, ADR 0049 phase 2) would add a third cull.
 The review of 2026-11-24 asked for an adapter per source and one cull core; the owner approved the
@@ -22,10 +23,10 @@ measure on 2026-11-24.
   `capabilities` (the existing `SourceCapabilities`), `list(query, cursor)` returning a page,
   `counts(query)`, `imageUrl(entry, size)` and `decide(rows)` (save the decision rows).
   The folder adapter answers `list` with one page holding the folder set's whole listing and counts
-  client side; the Immich adapter (`src/immich-picture-source.ts`) pages and counts on the server
+  client side; the Immich adapter (`src/immich/immich-picture-source.ts`) pages and counts on the server
   (ADR 0044).
-- **One cull core** (`useCullCore`, `src/cull-core.ts`) owns the decided map, the undo history of
-  decision steps, saving with roll back of what no later save stored, and tells the cull each
+- **One cull core** (`useCullCore`, `src/cull/cull-core.ts`) owns the decided map, the undo history
+  of decision steps, saving with roll back of what no later save stored, and tells the cull each
   shown decision so it moves its counts along. Source-specific stay the listing, its paging and
   filters, and the image URL; the folder-only steps (tags, series, sidecar write-through, access
   gate) hang on the core where `capabilities` allow them.

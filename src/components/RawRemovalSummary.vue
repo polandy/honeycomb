@@ -16,10 +16,10 @@ import ConfirmDialog from './ConfirmDialog.vue'
 import DeleteStats from './DeleteStats.vue'
 import PictureThumbs from './PictureThumbs.vue'
 import TrashFileList from './TrashFileList.vue'
-import { imageUrl as apiImageUrl } from '../api.ts'
-import { formatFileSize, formatNumber, PLAIN_TEXT } from '../l10n.ts'
+import { imageUrl as apiImageUrl } from '../api/index.ts'
 import { rawFilesOf } from '../logic/raw-removal.ts'
-import { runningText, trashBinNote } from '../trash-text.ts'
+import { formatFileSize, formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
+import { runningText, trashBinNote } from '../trash/trash-text.ts'
 
 const props = withDefaults(defineProps<{
 	removal: RawRemoval

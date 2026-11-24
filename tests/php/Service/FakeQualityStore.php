@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\QualityStore;
-use OCA\Honeycomb\Service\QualityValue;
+use OCA\Honeycomb\Domain\QualityValue;
+use OCA\Honeycomb\Domain\Store\QualityStore;
 use OCP\DB\Exception as DbException;
 
 /** Keeps quality values in memory, by file id. */

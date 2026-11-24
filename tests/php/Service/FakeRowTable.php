@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\FileRowStore;
+use OCA\Honeycomb\Domain\Store\FileRowStore;
 
 /** A table of file rows in memory, by row id, that counts its reads. */
 final class FakeRowTable implements FileRowStore {

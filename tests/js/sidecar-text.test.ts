@@ -4,7 +4,7 @@
 import type { SidecarFailureReason } from '../../src/logic/sidecar-sync.ts'
 
 import { describe, expect, it } from 'vitest'
-import { notWrittenText, sidecarFailureReason } from '../../src/sidecar-text.ts'
+import { notWrittenText, sidecarFailureReason } from '../../src/sidecars/sidecar-text.ts'
 
 const REASONS: SidecarFailureReason[] = ['malformed', 'not-utf-8', 'doctype', 'conflict', 'not-xmp', 'notFound', 'tooLarge', 'notPermitted', 'locked', 'changed', 'noSpace', 'unreachable', 'failed']
 

@@ -9,9 +9,9 @@ import { t } from '@nextcloud/l10n'
 import { computed, onMounted, useTemplateRef } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
-import { keyCap } from '../hotkeys.ts'
 import { DEFAULT_SWIPES } from '../logic/loupe-gesture.ts'
-import { useModalDialog } from '../modal-dialog.ts'
+import { keyCap } from '../shared/hotkeys.ts'
+import { useModalDialog } from '../shared/modal-dialog.ts'
 
 const props = withDefaults(defineProps<{
 	/** What each swipe sets, from the settings. */

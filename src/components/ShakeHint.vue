@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import { t } from '@nextcloud/l10n'
 import AppIcon from './AppIcon.vue'
-import { tip } from '../tooltip.ts'
+import { tip } from '../shared/tooltip.ts'
 
 defineProps<{
 	/** Whether the tile's selection check takes the corner, so the icon moves left of it. */

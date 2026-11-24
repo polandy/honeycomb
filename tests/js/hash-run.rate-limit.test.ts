@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
-import { useHashRun } from '../../src/hash-run.ts'
+import { useHashRun } from '../../src/hashes/hash-run.ts'
 import { RateLimitedError } from '../../src/logic/retry-after.ts'
 import { deferred, pictures, seams, TWO_PAGES } from './hash-run-fakes.ts'
 
-vi.mock('../../src/logger.ts', () => ({ logger: { warn: vi.fn() } }))
+vi.mock('../../src/shared/logger.ts', () => ({ logger: { warn: vi.fn() } }))
 
 const ids = (calls: readonly (readonly [readonly { fileId: number }[]])[]) => calls.map(([batch]) => batch.map((each) => each.fileId).sort((a, b) => a - b))
 

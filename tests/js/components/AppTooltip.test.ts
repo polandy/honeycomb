@@ -5,7 +5,7 @@ import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, ref } from 'vue'
 import AppTooltip from '../../../src/components/AppTooltip.vue'
-import { tip, TIP_ID } from '../../../src/tooltip.ts'
+import { tip, TIP_ID } from '../../../src/shared/tooltip.ts'
 import { fakeScheduler } from '../fake-scheduler.ts'
 
 /** A page with the tooltip, a control with a key, one without, a tile and a scrolling list. */

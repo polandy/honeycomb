@@ -4,9 +4,9 @@
 import type { SavedSidecar, SidecarLookupAnswer, SidecarSaveAnswer, SidecarSaveItem } from '../../src/logic/sidecar-sync.ts'
 
 import { describe, expect, it, vi } from 'vitest'
-import { logger } from '../../src/logger.ts'
 import { readXmp } from '../../src/logic/xmp/parse.ts'
-import { useSidecarSync } from '../../src/sidecar-sync.ts'
+import { logger } from '../../src/shared/logger.ts'
+import { useSidecarSync } from '../../src/sidecars/sidecar-sync.ts'
 import { listingEntry, pictureOf } from './logic/listing-entries.ts'
 import { read, xmp } from './logic/sidecar-answers.ts'
 import { CANONICAL_TIME, key, textOf } from './logic/xmp/xmp-builders.ts'

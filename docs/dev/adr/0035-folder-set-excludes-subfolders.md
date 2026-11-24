@@ -22,7 +22,7 @@ ADR 0012) and its key (ADR 0034). The options for the listing:
 ## Decision
 
 - **Shape:** `FolderSet` gets an optional `excluded` list of folder paths, in TypeScript
-  (`src/logic/folder-set.ts`) and PHP (`lib/Service/FolderSet.php`). An excluded folder leaves
+  (`src/logic/folder-set.ts`) and PHP (`lib/Domain/FolderSet.php`). An excluded folder leaves
   out itself and everything below it, except ticked folders inside it and what they take along.
   Exclusions only count with *Include subfolders* on and below a ticked folder; others are kept
   but leave nothing out.

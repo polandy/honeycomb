@@ -4,9 +4,9 @@ import type { OrphanedSidecar, OrphanedSidecarAnswer } from '../../src/logic/orp
 
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
-import { ORPHANED_SIDECARS_TRASH_BATCH, useOrphanedSidecars } from '../../src/orphaned-sidecars-run.ts'
+import { ORPHANED_SIDECARS_TRASH_BATCH, useOrphanedSidecars } from '../../src/trash/orphaned-sidecars-run.ts'
 
-vi.mock('../../src/logger.ts', () => ({ logger: { error: vi.fn() } }))
+vi.mock('../../src/shared/logger.ts', () => ({ logger: { error: vi.fn() } }))
 
 const sidecar = (fileId: number, folder = '/P'): OrphanedSidecar => ({ fileId, etag: `etag-${fileId}`, path: `${folder}/s${fileId}.xmp`, size: 10 })
 

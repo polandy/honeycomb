@@ -16,15 +16,15 @@ import AppIcon from './AppIcon.vue'
 import FlagMark from './FlagMark.vue'
 import ShakeHint from './ShakeHint.vue'
 import StarRating from './StarRating.vue'
-import { imageUrl as apiImageUrl } from '../api.ts'
-import { COLOUR_LABEL_SWATCHES, colourLabelName } from '../colour-labels.ts'
-import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
+import { imageUrl as apiImageUrl } from '../api/index.ts'
+import { COLOUR_LABEL_SWATCHES, colourLabelName } from '../cull/colour-labels.ts'
 import { isDecided, UNDECIDED } from '../logic/decision.ts'
 import { GRID_TIERS, imageMember, loadPriority, sharpTier, smallSource, tierSource } from '../logic/image-tiers.ts'
 import { nameParts } from '../logic/name-bar.ts'
 import { pairBadge } from '../logic/pair-badge.ts'
 import { pictureShakeRisk } from '../logic/shake-risk.ts'
-import { tip } from '../tooltip.ts'
+import { formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
+import { tip } from '../shared/tooltip.ts'
 
 const props = withDefaults(defineProps<{
 	picture: Picture<SourceEntry>
@@ -295,6 +295,6 @@ onBeforeUnmount(() => {
 	</div>
 </template>
 
-<style src="../skeleton-tile.css" />
+<style src="../grid/skeleton-tile.css" />
 
 <style scoped src="./photo-tile.css" />

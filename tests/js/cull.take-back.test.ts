@@ -5,7 +5,7 @@ import type { SidecarFailureReason } from '../../src/logic/sidecar-sync.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
-import { logger } from '../../src/logger.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { ENTRIES, SET, stored } from './app-cull.ts'
 import { access, cullWith } from './cull-sidecars-fake.ts'
 

@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Listener;
 
 use OCA\Honeycomb\BackgroundJob\RenderPhotoTiers;
-use OCA\Honeycomb\Service\AppVisits;
-use OCA\Honeycomb\Service\ListingService;
+use OCA\Honeycomb\Domain\PhotoFiles;
+use OCA\Honeycomb\Service\App\AppVisits;
 use OCP\BackgroundJob\IJobList;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -37,7 +37,7 @@ final class RenderWrittenPhotos implements IEventListener {
 			return;
 		}
 		$node = $event->getNode();
-		if (!$node instanceof File || !ListingService::isPhoto($node) || preg_match(self::USER_FILES, $node->getPath(), $match) !== 1) {
+		if (!$node instanceof File || !PhotoFiles::isPhoto($node) || preg_match(self::USER_FILES, $node->getPath(), $match) !== 1) {
 			return;
 		}
 		$argument = ['userId' => $match[1], 'fileId' => $node->getId()];

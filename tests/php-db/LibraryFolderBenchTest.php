@@ -9,10 +9,10 @@ namespace OCA\Honeycomb\DbTests;
 
 use OCA\Honeycomb\Db\FileCacheLibrary;
 use OCA\Honeycomb\Db\FlagMapper;
-use OCA\Honeycomb\Service\FileFlag;
-use OCA\Honeycomb\Service\Flag;
-use OCA\Honeycomb\Service\LibraryFolder;
-use OCA\Honeycomb\Service\LibraryFolderService;
+use OCA\Honeycomb\Domain\FileFlag;
+use OCA\Honeycomb\Domain\Flag;
+use OCA\Honeycomb\Domain\LibraryFolder;
+use OCA\Honeycomb\Service\Folder\LibraryFolderService;
 use OCP\Constants;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\Files\Folder;

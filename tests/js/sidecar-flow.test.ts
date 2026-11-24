@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import type { SidecarSaveAnswer, SidecarSaveItem } from '../../src/logic/sidecar-sync.ts'
-import type { ToastAction } from '../../src/toast.ts'
+import type { ToastAction } from '../../src/shared/toast.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { UNDECIDED } from '../../src/logic/decision.ts'
 import { serializeXmp } from '../../src/logic/xmp/serialize.ts'
-import { useSidecarFlow } from '../../src/sidecar-flow.ts'
+import { useSidecarFlow } from '../../src/sidecars/sidecar-flow.ts'
 import { listingEntry, pictureOf } from './logic/listing-entries.ts'
 import { CANONICAL_TIME, packetOf } from './logic/xmp/xmp-builders.ts'
 

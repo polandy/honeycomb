@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\InvalidRequestException;
-use OCA\Honeycomb\Service\Reason;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\Reason;
 
 /** The reason a call refuses its request for, or null when it refuses nothing. */
 final class ReasonOf {

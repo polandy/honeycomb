@@ -8,7 +8,7 @@ import { shallowRef } from 'vue'
 import { UNDECIDED } from '../../src/logic/decision.ts'
 import { findSeries } from '../../src/logic/series.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
-import { useSeriesCompare } from '../../src/series-compare.ts'
+import { useSeriesCompare } from '../../src/series/series-compare.ts'
 
 export interface Shot { readonly name: string }
 

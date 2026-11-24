@@ -101,9 +101,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-10: The skeleton shows the mockup's empty state *No folder chosen* / *Pick a folder to
   start culling.* in `NcEmptyContent`, until the folder picker arrives with M2.3.
 - 2026-11-10: Vue errors reach `@nextcloud/logger` through `app.config.errorHandler`
-  (`src/create-honeycomb-app.ts`, logger injected); `src/main.ts` and `src/logger.ts` are wiring
-  only, left out of coverage and covered by the e2e case. `src/*.ts` and `src/**/*.vue` keep the
-  80 % lines gate of `02-workflow.md` §2.3.
+  (`src/app/create-honeycomb-app.ts`, logger injected); `src/app/main.ts` and
+  `src/shared/logger.ts` are wiring
+  only, left out of coverage and covered by the e2e case. `src/<folder>/*.ts` and `src/**/*.vue`
+  keep the 80 % lines gate of `02-workflow.md` §2.3.
 - 2026-11-10: The stub catalogue of ADR 0007 marks every string with a `[de]` prefix through a `Proxy`
   in `@nextcloud/l10n`'s registry, so it needs no list of strings. Components are
   shallow-mounted, so `@nextcloud/vue`'s own English stays out and the props of the stubs, which
@@ -200,7 +201,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-10: Tapping the pressed star chip turns the rating filter off, like *Any*, as in the
   mockup.
 - 2026-11-10: The colour swatches use the mockup's fixed palette, not Nextcloud variables, since
-  a label's colour is data; names and colours sit in `src/colour-labels.ts` until the shared
+  a label's colour is data; names and colours sit in `src/cull/colour-labels.ts` until the shared
   `ColourLabels` component exists.
 - 2026-11-10: The empty states name the reason and offer *Show all* or *Clear filters*; the
   mockup's counts and *Review rejects* come with the reject review (M4).
@@ -217,7 +218,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-10: The tile overlays (stars, colour dot, flag mark, *Keep RAW* badge, selection check)
   land with M2.6 so a bulk change is visible in the grid.
 - 2026-11-10: The colour palette opens inline above its button, not in an `NcPopover`; the label
-  names and swatches stay in `src/colour-labels.ts`, which `ColourLabels` and `PhotoTile` share.
+  names and swatches stay in `src/cull/colour-labels.ts`, which `ColourLabels` and `PhotoTile` share.
 - 2026-11-10: M2.6 brings only Ctrl+A, Ctrl+D and Escape; the decision keys (P, X, U, 0–5, the
   label keys) come with M3.3, and *Move…* and *Delete…* join the action bar with M4 and M7.
 - 2026-11-10: Leaving selection mode selects nothing; Ctrl+A enters selection mode, and a
@@ -440,7 +441,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-10: The series viewer is built from the loupe's stage, action bar, navigation buttons,
   flag button toggle, idle timer and prefetch; the stage keeps its zoom across paging by a
   `keepZoom` prop, and a double-tap in the middle toggles 100 % instead of the chrome-free mode.
-- 2026-11-10: The series viewer's state lives in `src/series-viewer.ts`: it shows the series
+- 2026-11-10: The series viewer's state lives in `src/series/series-viewer.ts`: it shows the series
   without its rejected pictures and tracks the shown picture by identity, so a reject shows the
   next photo (the previous after the last) and an undo that brings a photo back shows it.
 - 2026-11-10: Fewer than two photos left close the series viewer and the compare shows the next
@@ -497,7 +498,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-10: `moveFavourites` and `moveRecent` (the 5 last targets) live in the settings blob
   (SETTINGS-001.15).
 - 2026-11-10: With a *Replace* chosen, the move summary's note adds that replaced files stay in the
-  Nextcloud trash bin; the move texts live in `src/move-text.ts`.
+  Nextcloud trash bin; the move texts live in `src/move/move-text.ts`.
 - 2026-11-10: Failed files open a move report without retry; a failed probe or move closes the
   dialog with a toast, and a 409 says the Nextcloud trash bin is off.
 - 2026-11-10: The move summary shows the name template without a "change it in Settings" hint.
@@ -510,7 +511,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   browser, since they depend on the device's screen.
 - 2026-11-10: A local view-state value other than `true` or `false` is ignored and left alone; a
   failed migration save is only logged and the local keys stay, so the next visit tries again.
-- 2026-11-10: Opening the loupe moves from `App.vue` to `src/loupe-opening.ts`, which kept
+- 2026-11-10: Opening the loupe moves from `App.vue` to `src/loupe/loupe-opening.ts`, which kept
   `App.vue` under 300 lines.
 - 2026-11-10: The e2e tests reset the shared admin's view state after each page load, so server
   state never leaks between tests.
@@ -597,7 +598,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   owner's call; the Playwright run and the component tests stand in until it exists.
 - 2026-11-10: The TypeScript unused-export gate is glissando's `unused-exports` analyser, ported
   and taught Vue script blocks, not knip: it needs no new dependency (it parses with the
-  `typescript` package already locked) and so no ADR. It judges `src/` except `src/main.ts`;
+  `typescript` package already locked) and so no ADR. It judges `src/` except `src/app/main.ts`;
   tests, scripts and config count only as importers, and a component's own exports are not
   judged.
 - 2026-11-10: The no-raw-error-text gate is a local ESLint rule on `src/`, not a selector: it
@@ -738,7 +739,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   field, creating the tag if new; the entry stays open; Backspace in the empty field and a chip's
   `×` remove, from all selected pictures. A tag on only some of them shows as a partial chip.
 - 2026-11-12: UX H1 — pressed Pick and Reject use the app tokens `--honeycomb-pick-fill` and
-  `--honeycomb-reject-fill` (`src/flag-fills.css`) with a white icon, because Nextcloud 35's success
+  `--honeycomb-reject-fill` (`src/cull/flag-fills.css`) with a white icon, because Nextcloud 35's success
   and error colours are pale tints.
 - 2026-11-12: UX H2 — a tile's flag mark, stars and colour dot sit in one row on a fixed dark
   bottom gradient with white stars (GRID-001.16), because the photo, not the theme, is their
@@ -992,7 +993,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   compare and its viewer mount inside the loupe (`.photo-loupe`), since the loupe sits above the
   page's dialogs; the viewer's title stays "Series 1 of 1" from the loupe, unchanged.
 - 2026-11-14: *Pick this, reject the rest* in the loupe (LOUPE-002.15, concept step 9) reuses the
-  compare's pick-and-land step (`pickRestAndLand` in `src/series-compare.ts`), so the loupe, the
+  compare's pick-and-land step (`pickRestAndLand` in `src/series/series-compare.ts`), so the loupe,
+  the
   compare and its viewer land after the series by one rule; the shortcut sheet's `Shift+K` row reads
   "Series: pick this, reject the rest", since the key now works in the loupe as well.
 - 2026-11-14: *Reject the other N* in the undo toast (LOUPE-002.16, SERIES-002.11, concept step 10)
@@ -1151,7 +1153,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   member with one (RAW first), else kept out when a member is; stored members without a capture
   time sort last, by name; a stored series never shows "may still change" while hashes are
   pending; its members are still hashed for the similarity page (#185 PR 2).
-- 2026-11-14: The series lookup lives in `src/series-api.ts`, because `api.ts` is at the
+- 2026-11-14: The series lookup lives in `src/series/series-api.ts`, because `api.ts` is at the
   300-line limit; it shares `API` and `isRecord` with `api.ts` (#185 PR 2).
 - 2026-11-15: The grid screen reads the cull from a context App provides (ADR 0028, review R8a):
   one `CullContext` holding the cull and the selection whole and each flow as a `Pick` of what a
@@ -1532,7 +1534,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   dialog would come back.
 - 2026-11-19: Error toasts come from a separate `showError` and flows take a required `error`
   callback, so a failure path cannot forget the kind; the details dialog has no e2e (it needs a
-  read-only share), Vitest covers it. Easy to redo: `src/toast.ts`.
+  read-only share), Vitest covers it. Easy to redo: `src/shared/toast.ts`.
 - 2026-11-19: The server counts statistics only for what succeeded (STATS-001, PR #289): a picture
   with a file deleted for good counts as deleted, its files by where each went; *Remove RAWs*
   counts the RAWs only; a picture counts only when all its files went; an unreadable size or
@@ -1727,7 +1729,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-20: The cull's flag saves and sidecar writes move from `cull.ts` into `cull-writes.ts`,
   so the cull keeps the state and the Nextcloud writes sit in one module. Easy to redo.
 - 2026-11-20: Under reduced motion every dialog opens and closes without a transition or an
-  animation (`src/reduced-motion.css`, APP-001.17), since `NcModal` ignores the setting and its
+  animation (`src/app/reduced-motion.css`, APP-001.17), since `NcModal` ignores the setting and its
   fade and zoom never settled on a starved WebKit renderer, so Playwright's stability check in
   `delete.spec.ts` stalled. Easy to redo: one stylesheet.
 - 2026-11-20: The e2e loupe budget waits for the stage's `data-decoded` (LOUPE-001.12), not for the
@@ -1953,7 +1955,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   (`docs/dev/performance.md`, #187, autonomous).
 - 2026-11-24: The picture source adapter (ADR 0058) lands in three PRs; the owner chose it in this
   pane over one PR and over TypeScript only (#187). Step 1 keeps `PAGE_SIZE` and `ImmichCullApi`
-  exported from `src/immich-cull.ts` too, so its importers stay as they are.
+  exported from `src/immich/immich-cull.ts` too, so its importers stay as they are.
 - 2026-11-24: Coverage gate for glue and Vue files is 70 % lines and branches per file instead of
   80 % lines on the aggregate: the owner asked for a per-file branch gate, and a per-file floor
   catches an untested file the aggregate hid (#187, autonomous).

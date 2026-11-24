@@ -10,7 +10,7 @@ namespace OCA\Honeycomb\Tests\Controller;
 use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\TagController;
-use OCA\Honeycomb\Service\TagService;
+use OCA\Honeycomb\Service\Decision\TagService;
 use OCA\Honeycomb\Tests\Service\FakeTagStore;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;

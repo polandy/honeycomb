@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import { describe, expect, it, vi } from 'vitest'
-import { hotkeyListener, keyCap } from '../../src/hotkeys.ts'
+import { hotkeyListener, keyCap } from '../../src/shared/hotkeys.ts'
 
 /** Dispatches a key on `target` (the body unless given) and returns whether it was handled. */
 function press(listener: (event: KeyboardEvent) => void, key: string, fields: KeyboardEventInit = {}, target: HTMLElement = document.body) {

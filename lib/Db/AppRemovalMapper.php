@@ -9,7 +9,7 @@ namespace OCA\Honeycomb\Db;
 
 use OCA\Honeycomb\BackgroundJob\RenderPhotoTiers;
 use OCA\Honeycomb\BackgroundJob\SweepVanishedRows;
-use OCA\Honeycomb\Service\AppRemoval;
+use OCA\Honeycomb\Domain\Store\AppRemoval;
 use OCP\BackgroundJob\IJobList;
 use OCP\IAppConfig;
 use OCP\IDBConnection;

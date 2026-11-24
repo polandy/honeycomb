@@ -1,14 +1,14 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { LibraryPage, LibraryScanning } from '../../src/api.ts'
-import type { LibraryApi } from '../../src/folders.ts'
+import type { LibraryPage, LibraryScanning } from '../../src/api/index.ts'
+import type { LibraryApi } from '../../src/folders/folders.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
-import { useFolders } from '../../src/folders.ts'
-import { logger } from '../../src/logger.ts'
+import { useFolders } from '../../src/folders/folders.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { row } from './logic/folder-fixtures.ts'
 
 const A = row({ fileId: 1, root: '/Photos', path: '/Photos/a' })

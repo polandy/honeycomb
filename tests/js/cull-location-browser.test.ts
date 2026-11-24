@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest'
-import { browserLocation } from '../../src/cull-location.ts'
+import { browserLocation } from '../../src/cull/cull-location.ts'
 
 describe('browserLocation', () => {
 	// spec: DECISIONS-002.17

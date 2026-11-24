@@ -10,7 +10,7 @@ import { computed } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import AppIcon from './AppIcon.vue'
-import { connectionFacts, connectionLine, stateHelp } from '../immich-text.ts'
+import { connectionFacts, connectionLine, stateHelp } from '../immich/immich-text.ts'
 
 const props = defineProps<{
 	/** The opened connection, none with a broken connections file. */

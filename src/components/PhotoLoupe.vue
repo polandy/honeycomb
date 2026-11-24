@@ -3,9 +3,9 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { HotkeyHandlers } from '../hotkeys.ts'
 import type { Writability } from '../logic/writability.ts'
-import type { PhotoLoupeEmits, PhotoLoupeProps } from '../photo-loupe-props.ts'
+import type { PhotoLoupeEmits, PhotoLoupeProps } from '../loupe/photo-loupe-props.ts'
+import type { HotkeyHandlers } from '../shared/hotkeys.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, onMounted, ref, useTemplateRef, watch } from 'vue'
@@ -18,20 +18,20 @@ import LoupeStage from './LoupeStage.vue'
 import LoupeTitleRow from './LoupeTitleRow.vue'
 import PanelDivider from './PanelDivider.vue'
 import PickRestButton from './PickRestButton.vue'
-import { imageUrl as apiImageUrl } from '../api.ts'
-import { browserSchedule } from '../browser-schedule.ts'
-import { toggleBrowserFullscreen } from '../fullscreen.ts'
-import { LOUPE_IDLE_MS, useIdle } from '../idle.ts'
+import { imageUrl as apiImageUrl } from '../api/index.ts'
 import { FILMSTRIP_TAB_BAND, FILMSTRIP_THUMB } from '../logic/filmstrip.ts'
 import { imageMember, isEmbeddedPreview, loupeSources } from '../logic/image-tiers.ts'
 import { EVERYTHING } from '../logic/opened-source.ts'
 import { DIVIDER_WIDTH, FLAG_RAIL, INFO_PANEL } from '../logic/panel-width.ts'
-import { useLoupeDecisions } from '../loupe-decisions.ts'
-import { useLoupePanels } from '../loupe-panels.ts'
-import { decodeSource, usePrefetch } from '../loupe-prefetch.ts'
-import { useLoupeSeries } from '../loupe-series.ts'
-import { observeElementSize } from '../observe-size.ts'
-import { useSeriesHint } from '../series-hint.ts'
+import { useLoupeDecisions } from '../loupe/loupe-decisions.ts'
+import { useLoupePanels } from '../loupe/loupe-panels.ts'
+import { decodeSource, usePrefetch } from '../loupe/loupe-prefetch.ts'
+import { useLoupeSeries } from '../series/loupe-series.ts'
+import { useSeriesHint } from '../series/series-hint.ts'
+import { browserSchedule } from '../shared/browser-schedule.ts'
+import { toggleBrowserFullscreen } from '../shared/fullscreen.ts'
+import { LOUPE_IDLE_MS, useIdle } from '../shared/idle.ts'
+import { observeElementSize } from '../shared/observe-size.ts'
 
 const props = withDefaults(defineProps<PhotoLoupeProps>(), {
 	seriesOf: () => new Map(),

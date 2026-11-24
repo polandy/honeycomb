@@ -1,14 +1,14 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { MissingPicture } from '../../src/hash-run.ts'
+import type { MissingPicture } from '../../src/hashes/hash-run.ts'
 import type { StoredVisualHash } from '../../src/logic/visual-hash.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
-import { HASH_RUN_SAVE_BATCH, useHashRun } from '../../src/hash-run.ts'
+import { HASH_RUN_SAVE_BATCH, useHashRun } from '../../src/hashes/hash-run.ts'
 import { deferred, hashOf, pictures, seams, TWO_PAGES } from './hash-run-fakes.ts'
 
-vi.mock('../../src/logger.ts', () => ({ logger: { warn: vi.fn() } }))
+vi.mock('../../src/shared/logger.ts', () => ({ logger: { warn: vi.fn() } }))
 
 describe('useHashRun', () => {
 	// spec: SERIES-004.5

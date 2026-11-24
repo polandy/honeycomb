@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { ImmichCullApi } from '../../../src/immich-cull.ts'
+import type { ImmichCullApi } from '../../../src/immich/immich-cull.ts'
 import type { ImmichCounts } from '../../../src/logic/immich-counts.ts'
 import type { Page } from '../../../src/logic/immich-paging.ts'
 
@@ -12,9 +12,9 @@ import ImmichFilterBar from '../../../src/components/ImmichFilterBar.vue'
 import ImmichScreen from '../../../src/components/ImmichScreen.vue'
 import PhotoGrid from '../../../src/components/PhotoGrid.vue'
 import PhotoLoupe from '../../../src/components/PhotoLoupe.vue'
-import { useImmichCull } from '../../../src/immich-cull.ts'
-import { logger } from '../../../src/logger.ts'
+import { useImmichCull } from '../../../src/immich/immich-cull.ts'
 import { DEFAULT_SETTINGS } from '../../../src/logic/settings.ts'
+import { logger } from '../../../src/shared/logger.ts'
 import { fakeStorage, fakeViewState } from '../app-cull.ts'
 import { installMarkedCatalogue, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
 import { immichEntry, NOW, UTC_CALENDAR } from '../logic/immich-fixtures.ts'

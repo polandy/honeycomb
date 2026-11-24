@@ -31,11 +31,12 @@ guide below has you prepare a small throw-away folder; nothing on the server nee
   hashes), `:54` `linked`; a run is one series however long (2026-11-13).
 - Spec: `docs/dev/specs/series/SERIES-001-series-compare.md` (criteria .1–.21),
   `SERIES-002-series-viewer.md` (badge, viewer); decision: `docs/dev/adr/0021-series-by-capture-time-and-visual-hash.md`.
-- Fingerprint source: `src/visual-hashes.ts:28-41` draws the small grid preview onto a 9 × 8
+- Fingerprint source: `src/hashes/visual-hashes.ts:28-41` draws the small grid preview onto a 9 × 8
   canvas; hashes only pictures with a same-camera shot within 30 s (`hashablePictures`,
   `src/logic/series.ts`), one at a time, and saved on the server per file id and etag
   (SERIES-003, ADR 0024); the listing delivers the stored hashes as `visualHash`.
-- EXIF source: `lib/Service/EntryFactory.php:16-21` reads Nextcloud file metadata written by the
+- EXIF source: `lib/Service/Listing/EntryFactory.php:16-21` reads Nextcloud file metadata written
+  by the
   **Photos app's** metadata providers (`photos-original_date_time`, `photos-ifd0` for make and
   model). Missing values are `null` (LISTING-001.3); a picture without capture time is never in a
   series (SERIES-001.3). The RAW member's time and camera win over the JPEG's

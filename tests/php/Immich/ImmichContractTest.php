@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Immich;
 
+use OCA\Honeycomb\Domain\Flag;
 use OCA\Honeycomb\Immich\AssetDecision;
 use OCA\Honeycomb\Immich\AssetEntries;
 use OCA\Honeycomb\Immich\AssetKind;
@@ -18,7 +19,6 @@ use OCA\Honeycomb\Immich\ImmichListing;
 use OCA\Honeycomb\Immich\ImmichSearchFilter;
 use OCA\Honeycomb\Immich\ImmichStatus;
 use OCA\Honeycomb\Immich\ListingCursors;
-use OCA\Honeycomb\Service\Flag;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Security\ICrypto;
 use PHPUnit\Framework\Attributes\DataProvider;

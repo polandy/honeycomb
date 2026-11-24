@@ -1059,10 +1059,13 @@ honeycomb/
 │   │                           Decision, Tag, Position, ViewState, Settings, Trash, Move,
 │   │                           Sidecar, EmbeddedXmp, VisualHash; `ApiResponse` maps the
 │   │                           missing user and the service exceptions to HTTP status codes
-│   ├── Service/                one service per resource (`ListingService`, `DecisionService`,
-│   │                           `TrashService`, `MoveService`, ...), its request and result
-│   │                           values, and one typed `Invalid*Exception` per request kind
-│   ├── Db/                     entities, `QBMapper` classes and the `FileRowQueries` trait
+│   ├── Domain/                 the values and enums every package shares, and in `Store/` the
+│   │                           store interfaces; it uses no other package (ADR 0059)
+│   ├── Service/                one package per function (`Listing/`, `Decision/`, `Trash/`,
+│   │                           `Move/`, ...), each with its services, request and result values;
+│   │                           `PackageDependencyTest` holds which package may use which
+│   ├── Db/                     entities, `QBMapper` classes and the `FileRowQueries` trait;
+│   │                           it implements the stores of `Domain/Store/`
 │   ├── Preview/                RAW preview provider and the embedded JPEG decoder
 │   ├── BackgroundJob/          `SweepVanishedRows`, the sweep of rows of deleted files
 │   ├── Listener/               `ForgetDeletedUser`
@@ -1071,17 +1074,16 @@ honeycomb/
 │   ├── logic/                  pure TypeScript, no DOM or network (ADR 0006): pairing, series,
 │   │                           filter, sort, name templates, xmp, undo, gestures, hotkeys, ...
 │   ├── components/             Vue components and their CSS; there is no `views/` folder
-│   ├── main.ts, similarity-main.ts   the two entry points: cull app, similarity page
-│   ├── App.vue                 the cull app: grid, loupe and series viewer in one tree; it
-│   │                           provides the screens their `CullContext` (ADR 0028)
-│   ├── cull.ts                 the cull's state as one composable; no Pinia, no store folder
-│   ├── view-options.ts         how the cull is shown (filters, sort, grouping, tile size,
-│   │                           panels); `cull.ts` hands it on unchanged
-│   ├── series.ts               the cull's series, stored and automatic, their sizes and the
-│   │                           visual hashes they are formed by; `cull.ts` hands it on unchanged
-│   ├── stored-series.ts        the stored series rows of the open cull (ADR 0027)
-│   └── *.ts                    feature modules beside it: `api.ts` and `series-api.ts` (every request),
-│                               `*-flow.ts`, `*-seams.ts`, `hash-*.ts`, `loupe-*.ts`, ...
+│   ├── api/                    `index.ts`, the only code that sends requests
+│   ├── app/                    the app shell: `main.ts`, `App.vue` (grid, loupe and series viewer
+│   │                           in one tree, providing the screens their `CullContext`, ADR 0028),
+│   │                           its source opening, dialogs and the seams tests replace
+│   ├── shared/                 browser helpers without a domain: toast, hotkeys, logger, storage
+│   ├── cull/                   the cull's state as one composable (`cull.ts`); no Pinia, no store
+│   ├── folders/, grid/, loupe/, series/, hashes/, move/, trash/, sidecars/, settings/,
+│   │   statistics/, immich/    one domain folder each; an entry point beside its page
+│   │                           (`hashes/similarity-main.ts`, ...); `eslint.config.mjs` lists which
+│   │                           folder may import which (ADR 0059)
 ├── templates/                  `main.php` mounts the cull app, `similarity.php` the other page
 ├── tests/php/, tests/js/       PHPUnit, Vitest
 ├── tests/e2e/                  Playwright against a Nextcloud container
@@ -1113,9 +1115,9 @@ honeycomb/
   interfaces. `FileRowStores` and `UserRowStores` register them once; the sweep, the user
   clean-up and the move iterate that registry.
 - **Retries:** `RetryOnConflict` repeats a save that lost a race on a unique key or a lock.
-- **Frontend state** is composables and plain modules, not a store: the `cull*.ts` files hold
-  it, `api.ts` is the only code that sends requests, and `app-seams.ts` and `cull-seams.ts`
-  name what tests replace (the API calls and the hash workers).
+- **Frontend state** is composables and plain modules, not a store: the `src/cull/cull*.ts` files
+  hold it, `src/api/` is the only code that sends requests, and `src/app/app-seams*.ts` and
+  `src/cull/cull-seams.ts` name what tests replace (the API calls and the hash workers).
 
 ## Target versions
 

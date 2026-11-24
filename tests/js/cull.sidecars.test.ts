@@ -5,8 +5,8 @@ import type { Decision } from '../../src/logic/decision.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
-import { logger } from '../../src/logger.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { ENTRIES, SET, stored } from './app-cull.ts'
 import { access, cullWith, THREE_REJECTED } from './cull-sidecars-fake.ts'
 

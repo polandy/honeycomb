@@ -9,7 +9,7 @@ namespace OCA\Honeycomb\Tests\Listener;
 
 use OCA\Honeycomb\BackgroundJob\RenderPhotoTiers;
 use OCA\Honeycomb\Listener\RenderWrittenPhotos;
-use OCA\Honeycomb\Service\AppVisits;
+use OCA\Honeycomb\Service\App\AppVisits;
 use OCP\BackgroundJob\IJobList;
 use OCP\Config\IUserConfig;
 use OCP\EventDispatcher\Event;

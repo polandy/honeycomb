@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\FileFlag;
-use OCA\Honeycomb\Service\FlagStore;
+use OCA\Honeycomb\Domain\FileFlag;
+use OCA\Honeycomb\Domain\Store\FlagStore;
 use OCP\DB\Exception as DbException;
 
 /** Keeps the flags in memory by file id; a row's id is its file id. */

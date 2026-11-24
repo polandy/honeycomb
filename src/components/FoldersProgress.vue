@@ -8,8 +8,8 @@ import type { FolderProgress } from '../logic/folder-progress.ts'
 import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
 import ProgressBar from './ProgressBar.vue'
-import { progressTexts, summaryText } from '../folders-text.ts'
-import { PLAIN_TEXT } from '../l10n.ts'
+import { progressTexts, summaryText } from '../folders/folders-text.ts'
+import { PLAIN_TEXT } from '../shared/l10n.ts'
 
 const props = defineProps<{
 	/** The chosen root, null for the whole library. */

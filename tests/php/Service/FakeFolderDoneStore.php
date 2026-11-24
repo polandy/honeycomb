@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\FolderDone;
-use OCA\Honeycomb\Service\FolderDoneStore;
+use OCA\Honeycomb\Domain\FolderDone;
+use OCA\Honeycomb\Domain\Store\FolderDoneStore;
 
 /** Keeps the done statuses in memory, by the folder's file id. */
 final class FakeFolderDoneStore implements FolderDoneStore {

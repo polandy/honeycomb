@@ -6,8 +6,8 @@ import type { SeriesLookup } from '../../src/logic/stored-series.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { logger } from '../../src/logger.ts'
-import { useStoredSeries } from '../../src/stored-series.ts'
+import { useStoredSeries } from '../../src/series/stored-series.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { ENTRIES } from './app-cull.ts'
 import { picturesOf } from './logic/listing-entries.ts'
 

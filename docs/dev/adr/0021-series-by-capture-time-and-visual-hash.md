@@ -20,7 +20,7 @@ a new heavy dependency and would read the files a second time.
   that is brighter (luminance) than its right neighbour. It is cheap, needs no library and
   tolerates scaling, exposure shifts and JPEG noise; small reframing changes few bits. pHash would
   be more robust to rotation but needs a DCT for no gain on bursts. The pure code lives in
-  `src/logic/visual-hash.ts`, the canvas drawing in `src/visual-hashes.ts` (ADR 0006).
+  `src/logic/visual-hash.ts`, the canvas drawing in `src/hashes/visual-hashes.ts` (ADR 0006).
 - **Link rule.** Two neighbouring shots of one camera, in capture-time order, belong to one series
   when both have a hash, they lie at most **30 seconds** apart and their hashes differ in at most
   **10 of 64 bits**; while either has no hash, the old rule applies (at most 3 seconds). The

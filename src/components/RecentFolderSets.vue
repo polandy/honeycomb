@@ -7,8 +7,8 @@ import type { RecentFolderSet } from '../logic/recent.ts'
 import type { ResumePosition } from '../logic/resume-position.ts'
 
 import NcListItem from '@nextcloud/vue/components/NcListItem'
-import { decidedText } from '../decision-text.ts'
-import { folderSetName } from '../recent-text.ts'
+import { decidedText } from '../cull/decision-text.ts'
+import { folderSetName } from '../folders/recent-text.ts'
 
 const props = defineProps<{
 	items: readonly RecentFolderSet[]

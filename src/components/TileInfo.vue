@@ -10,10 +10,10 @@ import type { Box, TipPlacement } from '../logic/tooltip.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, onMounted, ref, useTemplateRef } from 'vue'
-import { formatDateTimeSeconds, PLAIN_TEXT } from '../l10n.ts'
 import { imageMember } from '../logic/image-tiers.ts'
 import { ratingStars, tileInfoMembers } from '../logic/tile-info.ts'
 import { placeTip } from '../logic/tooltip.ts'
+import { formatDateTimeSeconds, PLAIN_TEXT } from '../shared/l10n.ts'
 
 const props = defineProps<{
 	picture: Picture<SourceEntry>

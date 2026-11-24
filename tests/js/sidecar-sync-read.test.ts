@@ -8,11 +8,11 @@ import type { SidecarLookupAnswer } from '../../src/logic/sidecar-sync.ts'
 import type { XmpCacheRow } from '../../src/logic/xmp-cache.ts'
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { logger } from '../../src/logger.ts'
 import { UNDECIDED } from '../../src/logic/decision.ts'
 import { sidecarRow } from '../../src/logic/xmp-cache.ts'
 import { serializeXmp } from '../../src/logic/xmp/serialize.ts'
-import { useSidecarSync } from '../../src/sidecar-sync.ts'
+import { logger } from '../../src/shared/logger.ts'
+import { useSidecarSync } from '../../src/sidecars/sidecar-sync.ts'
 import { listingEntry, pictureOf } from './logic/listing-entries.ts'
 import { CANONICAL_TIME, packetOf, seq } from './logic/xmp/xmp-builders.ts'
 

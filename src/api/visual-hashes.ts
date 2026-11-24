@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { MissingPage, MissingPicture } from '../hash-run.ts'
+import type { MissingPage, MissingPicture } from '../hashes/hash-run.ts'
 import type { StoredVisualHash } from '../logic/visual-hash.ts'
 
 import axios from '@nextcloud/axios'

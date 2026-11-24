@@ -200,7 +200,7 @@ it flags, moves, deletes and writes nothing.
 
 ### SERIES-006.22 – Quality measures are registered
 
-- **Given** the registry of quality measures (`src/quality-measures.ts`), whose first entry
+- **Given** the registry of quality measures (`src/hashes/quality-measures.ts`), whose first entry
   is the sharpness
 - **When** the cull, the worker or the info panel's label needs a measure
 - **Then** it finds it by `id` in the registry, which gives each entry its `id`, stored `method`,

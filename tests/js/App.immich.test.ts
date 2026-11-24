@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { AssetsRequest, ImmichCullApi } from '../../src/immich-cull.ts'
-import type { ImmichApi } from '../../src/immich-source.ts'
+import type { AssetsRequest, ImmichCullApi } from '../../src/immich/immich-cull.ts'
+import type { ImmichApi } from '../../src/immich/immich-source.ts'
 import type { DecisionRow } from '../../src/logic/immich-asset.ts'
 import type { ConnectionStatus, ImmichAvailability } from '../../src/logic/immich-connections.ts'
 import type { ViewStatePatch } from '../../src/logic/view-state.ts'
@@ -15,8 +15,8 @@ import GridToolbar from '../../src/components/GridToolbar.vue'
 import ImmichConnectionDialog from '../../src/components/ImmichConnectionDialog.vue'
 import ImmichScreen from '../../src/components/ImmichScreen.vue'
 import ImmichState from '../../src/components/ImmichState.vue'
-import { IMMICH_CONNECTION_KEY } from '../../src/immich-source.ts'
-import { logger } from '../../src/logger.ts'
+import { IMMICH_CONNECTION_KEY } from '../../src/immich/immich-source.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { fakeStorage, mountApp, openCull, shownNames, SILENT_IMMICH_CULL } from './app-cull.ts'
 import { immichEntry } from './logic/immich-fixtures.ts'
 

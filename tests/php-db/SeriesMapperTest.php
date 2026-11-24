@@ -8,10 +8,10 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\DbTests;
 
 use OCA\Honeycomb\Db\SeriesMapper;
-use OCA\Honeycomb\Service\SeriesLookup;
-use OCA\Honeycomb\Service\SeriesStatus;
-use OCA\Honeycomb\Service\SeriesWrite;
-use OCA\Honeycomb\Service\StoredSeries;
+use OCA\Honeycomb\Domain\SeriesLookup;
+use OCA\Honeycomb\Domain\SeriesStatus;
+use OCA\Honeycomb\Domain\SeriesWrite;
+use OCA\Honeycomb\Domain\StoredSeries;
 
 /**
  * The series SQL against a real database.

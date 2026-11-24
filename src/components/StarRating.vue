@@ -4,8 +4,8 @@
 -->
 <script setup lang="ts">
 import { n, t } from '@nextcloud/l10n'
-import { formatNumber } from '../l10n.ts'
-import { tip } from '../tooltip.ts'
+import { formatNumber } from '../shared/l10n.ts'
+import { tip } from '../shared/tooltip.ts'
 
 const props = withDefaults(defineProps<{
 	/** The rating, or undefined where a selection's ratings differ. */

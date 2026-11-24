@@ -9,8 +9,8 @@ import { t } from '@nextcloud/l10n'
 import { computed, nextTick, ref, useTemplateRef } from 'vue'
 import AppIcon from './AppIcon.vue'
 import TagEntry from './TagEntry.vue'
-import { PLAIN_TEXT } from '../l10n.ts'
 import { changedTags, sortedTags } from '../logic/tag.ts'
+import { PLAIN_TEXT } from '../shared/l10n.ts'
 
 const props = defineProps<{
 	/** The chosen tags; a picture needs every one. */

@@ -8,11 +8,11 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Command;
 
 use OCA\Honeycomb\Command\Cleanup;
-use OCA\Honeycomb\Service\AppData;
-use OCA\Honeycomb\Service\AppRemoval;
-use OCA\Honeycomb\Service\FileFlag;
-use OCA\Honeycomb\Service\Flag;
-use OCA\Honeycomb\Service\OrphanedFlags;
+use OCA\Honeycomb\Domain\FileFlag;
+use OCA\Honeycomb\Domain\Flag;
+use OCA\Honeycomb\Domain\Store\AppData;
+use OCA\Honeycomb\Domain\Store\AppRemoval;
+use OCA\Honeycomb\Service\Lifecycle\OrphanedFlags;
 use OCA\Honeycomb\Tests\Service\FakeExistingFiles;
 use OCA\Honeycomb\Tests\Service\FakeFlagStore;
 use PHPUnit\Framework\TestCase;

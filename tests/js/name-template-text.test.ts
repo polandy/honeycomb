@@ -4,7 +4,7 @@ import type { TemplateProblem } from '../../src/logic/name-template/parse.ts'
 
 import { describe, expect, it } from 'vitest'
 import { parseNameTemplate } from '../../src/logic/name-template/parse.ts'
-import { templateProblemText } from '../../src/name-template-text.ts'
+import { templateProblemText } from '../../src/move/name-template-text.ts'
 
 /** The words for the problem of an invalid template. */
 function wordsFor(template: string): string {

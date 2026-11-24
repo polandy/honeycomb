@@ -8,7 +8,7 @@ import { describe, expect, it, vi } from 'vitest'
 import FolderTree from '../../../src/components/FolderTree.vue'
 import OrphanedSidecarsPage from '../../../src/components/OrphanedSidecarsPage.vue'
 
-vi.mock('../../../src/logger.ts', () => ({ logger: { error: vi.fn() } }))
+vi.mock('../../../src/shared/logger.ts', () => ({ logger: { error: vi.fn() } }))
 
 const sidecar = (fileId: number, path: string, size: number): OrphanedSidecar => ({ fileId, etag: `etag-${fileId}`, path, size })
 

@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { BracketAttributes } from '../grid-series.ts'
+import type { BracketAttributes } from '../series/grid-series.ts'
 
 defineProps<{
 	/** The brackets of one grid row (SERIES-002.12). */

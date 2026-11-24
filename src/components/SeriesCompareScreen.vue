@@ -3,12 +3,12 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { HotkeyHandlers } from '../hotkeys.ts'
+import type { HotkeyHandlers } from '../shared/hotkeys.ts'
 
 import { computed, useTemplateRef } from 'vue'
 import SeriesCompare from './SeriesCompare.vue'
 import SeriesViewer from './SeriesViewer.vue'
-import { useCullContext } from '../cull-context.ts'
+import { useCullContext } from '../cull/cull-context.ts'
 
 const { cull, seriesCompare: flow, tagEntry } = useCullContext()
 const viewer = useTemplateRef<InstanceType<typeof SeriesViewer>>('viewer')

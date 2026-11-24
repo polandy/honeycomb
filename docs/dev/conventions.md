@@ -24,8 +24,9 @@ is logged in [`decisions.md`](decisions.md).
 - **Glue beside logic:** a file in `src/` that wires a pure module of `src/logic/` to the DOM or
   the network and would share its name takes a suffix, `-flow` or `-run`, so a name means one file.
 - **Small units.** A function does one thing; a source file has at most 300 lines (`.php`, `.ts`,
-  `.vue`, `.js`, `.sh`; `scripts/source-sizes.sh`). Over the limit, split along a seam: a pure
-  helper, a child component, a service, one test file per behaviour group.
+  `.vue`, `.js`, `.sh`; `scripts/source-sizes.sh`), and it warns from 251 lines so the split is
+  planned, not forced at the gate. Split along a seam: a pure helper, a child component, a
+  service, one test file per behaviour group.
 - **DRY.** One owner per rule, constant and string: the shared components and key map of
   [`plan.md`](plan.md#shared-ui-components) before a new one, one module per concept, no logic
   duplicated between grid, loupe and series compare. Docs point to each other instead of
@@ -79,7 +80,8 @@ is logged in [`decisions.md`](decisions.md).
   deleted for good is an audit line the same way (DELETE-001.14). Checked: PHPUnit
   `tests/php/Conventions/LogContextTest.php` and Vitest `tests/js/conventions/log-paths.test.ts`.
   The text of a caught exception is not checked.
-- **Promises are awaited or started with `fireAndLog(work, what)`** (`src/fire-and-log.ts`), which
+- **Promises are awaited or started with `fireAndLog(work, what)`** (`src/shared/fire-and-log.ts`),
+  which
   logs a rejection; `void` is not enough in `src/` (`@typescript-eslint/no-floating-promises` with
   `ignoreVoid: false`, `no-misused-promises`).
 

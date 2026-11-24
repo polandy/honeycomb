@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
-use OCA\Honeycomb\Service\OrphanedSidecarScan;
-use OCA\Honeycomb\Service\OrphanedSidecarTrash;
+use OCA\Honeycomb\Service\Trash\OrphanedSidecarScan;
+use OCA\Honeycomb\Service\Trash\OrphanedSidecarTrash;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;

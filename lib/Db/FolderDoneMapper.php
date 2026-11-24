@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Db;
 
-use OCA\Honeycomb\Service\FolderDone;
-use OCA\Honeycomb\Service\FolderDoneStore;
+use OCA\Honeycomb\Domain\FolderDone;
+use OCA\Honeycomb\Domain\Store\FolderDoneStore;
 use OCP\AppFramework\Db\TTransactional;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;

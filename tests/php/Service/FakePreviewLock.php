@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\PreviewLock;
+use OCA\Honeycomb\Service\Image\PreviewLock;
 
 /** A lock that records which file it holds while a render runs. */
 final class FakePreviewLock implements PreviewLock {

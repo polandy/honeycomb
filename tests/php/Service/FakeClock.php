@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\Pause;
+use OCA\Honeycomb\Service\Support\Pause;
 
 /** A clock in whole seconds whose pause moves it on instead of sleeping. */
 final class FakeClock implements Pause {

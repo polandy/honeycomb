@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
-use OCA\Honeycomb\Service\MissingVisualHashes;
-use OCA\Honeycomb\Service\VisualHashService;
+use OCA\Honeycomb\Service\Hash\MissingVisualHashes;
+use OCA\Honeycomb\Service\Hash\VisualHashService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;

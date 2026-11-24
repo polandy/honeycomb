@@ -3,9 +3,9 @@
 // @vitest-environment happy-dom
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { logger } from '../../src/logger.ts'
 import { DEFAULT_SETTINGS, storedSettings } from '../../src/logic/settings.ts'
-import { useSettings } from '../../src/settings.ts'
+import { useSettings } from '../../src/settings/settings.ts'
+import { logger } from '../../src/shared/logger.ts'
 
 afterEach(() => {
 	vi.restoreAllMocks()

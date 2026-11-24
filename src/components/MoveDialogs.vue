@@ -3,9 +3,9 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { Folder } from '../api.ts'
+import type { Folder } from '../api/index.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
-import type { MoveFlow } from '../move-flow.ts'
+import type { MoveFlow } from '../move/move-flow.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
@@ -14,12 +14,12 @@ import DeleteStats from './DeleteStats.vue'
 import FolderTree from './FolderTree.vue'
 import MoveSummary from './MoveSummary.vue'
 import TrashFileList from './TrashFileList.vue'
-import { listFolders as apiListFolders } from '../api.ts'
-import { fireAndLog } from '../fire-and-log.ts'
-import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
+import { listFolders as apiListFolders } from '../api/index.ts'
 import { folderName, parentName } from '../logic/move-targets.ts'
-import { moveFailureReason } from '../move-text.ts'
-import { unkeptReason } from '../trash-text.ts'
+import { moveFailureReason } from '../move/move-text.ts'
+import { fireAndLog } from '../shared/fire-and-log.ts'
+import { formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
+import { unkeptReason } from '../trash/trash-text.ts'
 
 const props = withDefaults(defineProps<{
 	flow: MoveFlow

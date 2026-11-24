@@ -1,14 +1,14 @@
-// SPDX-FileCopyrightText: 2026 honeycomb contributors
-// SPDX-License-Identifier: AGPL-3.0-or-later
-// @vitest-environment happy-dom
-import type { FreshCheck } from '../../src/delete-flow.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
 import type { TrashResponseFile } from '../../src/logic/trash-report.ts'
+// SPDX-FileCopyrightText: 2026 honeycomb contributors
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// @vitest-environment happy-dom
+import type { FreshCheck } from '../../src/trash/delete-flow.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { logger } from '../../src/logger.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { allTrashed, flow, OTHER, PAIR, SINGLE } from './delete-fixtures.ts'
 
 const ONE_PICTURE = { pictures: 1, files: 500 }

@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanUpWithToast, clearCacheWithToast } from '../../src/cache-clear.ts'
-import { logger } from '../../src/logger.ts'
+import { cleanUpWithToast, clearCacheWithToast } from '../../src/settings/cache-clear.ts'
+import { logger } from '../../src/shared/logger.ts'
 
 afterEach(() => {
 	vi.restoreAllMocks()

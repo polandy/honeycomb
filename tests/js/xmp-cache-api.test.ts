@@ -4,8 +4,8 @@ import type { XmpCacheRow } from '../../src/logic/xmp-cache.ts'
 
 import axios from '@nextcloud/axios'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ApiResponseError } from '../../src/api.ts'
-import { clearCache, lookupXmpCache, saveXmpCache } from '../../src/xmp-cache-api.ts'
+import { ApiResponseError } from '../../src/api/index.ts'
+import { clearCache, lookupXmpCache, saveXmpCache } from '../../src/sidecars/xmp-cache-api.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { delete: vi.fn(), post: vi.fn(), put: vi.fn() } }))
 vi.mock('@nextcloud/router', () => ({ generateUrl: (url: string) => `/index.php${url}` }))

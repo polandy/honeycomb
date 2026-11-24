@@ -3,10 +3,10 @@
 // @vitest-environment happy-dom
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
-import { logger } from '../../src/logger.ts'
-import { useYearReviewHint } from '../../src/year-review-hint.ts'
+import { logger } from '../../src/shared/logger.ts'
+import { useYearReviewHint } from '../../src/statistics/year-review-hint.ts'
 
-vi.mock('../../src/logger.ts', () => ({ logger: { error: vi.fn() } }))
+vi.mock('../../src/shared/logger.ts', () => ({ logger: { error: vi.fn() } }))
 
 function hintOn(today: string, answer: () => Promise<unknown>, save: () => Promise<void> = async () => undefined) {
 	const saved: unknown[] = []

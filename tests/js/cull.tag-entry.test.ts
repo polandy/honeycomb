@@ -5,11 +5,11 @@ import type { StoredTags, Tag, TagChange } from '../../src/logic/tag.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { useCull } from '../../src/cull.ts'
-import { logger } from '../../src/logger.ts'
+import { useCull } from '../../src/cull/cull.ts'
 import { memberIds } from '../../src/logic/pairing.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
 import { sortedTags } from '../../src/logic/tag.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { ENTRIES, fakeFlags, fakeStorage, NO_SERIES, NO_SIDECARS, SAVED_SERIES, SET } from './app-cull.ts'
 
 afterEach(() => vi.restoreAllMocks())

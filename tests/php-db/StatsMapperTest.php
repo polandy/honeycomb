@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\DbTests;
 
 use OCA\Honeycomb\Db\StatsMapper;
-use OCA\Honeycomb\Service\StatsCounter;
-use OCA\Honeycomb\Service\StatsMetric;
+use OCA\Honeycomb\Domain\StatsCounter;
+use OCA\Honeycomb\Domain\StatsMetric;
 use OCP\DB\Exception as DbException;
 
 /** The daily counters against a real database. */

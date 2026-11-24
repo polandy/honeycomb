@@ -4,7 +4,7 @@
 import { enableAutoUnmount, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 import CullFinished from '../../../src/components/CullFinished.vue'
-import { pageUrl } from '../../../src/navigation-items.ts'
+import { pageUrl } from '../../../src/folders/navigation-items.ts'
 
 const NUMBERS = {
 	decided: 3,

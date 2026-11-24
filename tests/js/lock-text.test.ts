@@ -4,7 +4,7 @@
 import type { LockedPicture } from '../../src/logic/writability.ts'
 
 import { describe, expect, it } from 'vitest'
-import { lockDetails, lockedText, partialText } from '../../src/lock-text.ts'
+import { lockDetails, lockedText, partialText } from '../../src/cull/lock-text.ts'
 import { listingEntry, pictureOf } from './logic/listing-entries.ts'
 
 const locked = (name: string, reason: LockedPicture['reason']): LockedPicture => ({ picture: pictureOf(listingEntry(1, `/P/${name}.JPG`)), reason })

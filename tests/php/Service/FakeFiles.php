@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\Listing;
+use OCA\Honeycomb\Service\Listing\Listing;
 use OCP\Constants;
 use OCP\Files\File;
 use OCP\Files\Folder;

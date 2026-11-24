@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Conventions;
 
-use OCA\Honeycomb\Service\UserRowStore;
+use OCA\Honeycomb\Domain\Store\UserRowStore;
 use PHPUnit\Framework\TestCase;
 
 /** A mapper that writes a `user_id` column is a UserRowStore, so a deleted user's rows go (ADR 0040). */

@@ -8,7 +8,7 @@ import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import GridToolbar from '../../src/components/GridToolbar.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
-import { logger } from '../../src/logger.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { decidedFlags, decidedRows, mountApp, openCull, stored } from './app-cull.ts'
 
 enableAutoUnmount(afterEach)

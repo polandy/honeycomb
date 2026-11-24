@@ -192,4 +192,26 @@ describe('eslint conventions', { timeout: 30_000 }, () => {
 
 		expect(await ruleIds(code, LOGIC_FILE)).toContain('jsdoc/require-jsdoc')
 	})
+
+	it.each([
+		['a domain folder on one it does not list', 'src/trash/example.ts', '../move/move-flow.ts'],
+		['a domain folder on the app shell', 'src/cull/example.ts', '../app/app-seams.ts'],
+		['the shared folder on a domain folder', 'src/shared/example.ts', '../cull/cull.ts'],
+		['the logic layer on a domain folder', LOGIC_FILE, '../cull/cull.ts'],
+	])('forbids %s', async (_name, file, specifier) => {
+		const code = `import { a } from '${specifier}'\n\n/** Reads it. */\nexport const read = (): unknown => a\n`
+
+		expect(await ruleIds(code, file)).toContain('no-restricted-imports')
+	})
+
+	it.each([
+		['a domain folder on one it lists', 'src/move/example.ts', '../trash/delete-flow.ts'],
+		['a domain folder on the shared folder', 'src/trash/example.ts', '../shared/toast.ts'],
+		['a domain folder on itself', 'src/trash/example.ts', './trash-text.ts'],
+		['the app shell on a domain folder', 'src/app/example.ts', '../trash/delete-flow.ts'],
+	])('accepts %s', async (_name, file, specifier) => {
+		const code = `import { a } from '${specifier}'\n\n/** Reads it. */\nexport const read = (): unknown => a\n`
+
+		expect(await ruleIds(code, file)).not.toContain('no-restricted-imports')
+	})
 })

@@ -4,7 +4,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { defineComponent, h } from 'vue'
-import { useCullContext } from '../../src/cull-context.ts'
+import { useCullContext } from '../../src/cull/cull-context.ts'
 import { fakeCullContext, mountInCullContext } from './cull-context-fake.ts'
 
 /** A screen that shows how many pictures the cull of its context holds. */

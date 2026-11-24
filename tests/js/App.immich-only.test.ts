@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { ImmichApi } from '../../src/immich-source.ts'
+import type { ImmichApi } from '../../src/immich/immich-source.ts'
 import type { ConnectionStatus, ImmichAvailability } from '../../src/logic/immich-connections.ts'
 
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
@@ -10,7 +10,7 @@ import AppNavigation from '../../src/components/AppNavigation.vue'
 import FolderPicker from '../../src/components/FolderPicker.vue'
 import FoldersHome from '../../src/components/FoldersHome.vue'
 import ImmichScreen from '../../src/components/ImmichScreen.vue'
-import { logger } from '../../src/logger.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { mountApp, openCull } from './app-cull.ts'
 
 enableAutoUnmount(afterEach)

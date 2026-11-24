@@ -12,13 +12,13 @@ import { computed, ref, watch } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import AppIcon from './AppIcon.vue'
-import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { folderName, toggleFavourite } from '../logic/move-targets.ts'
 import { NAME_TEMPLATE_PRESETS, presetOf } from '../logic/name-template/presets.ts'
 import { templatePreview } from '../logic/name-template/preview.ts'
-import { namingProblemText } from '../move-text.ts'
-import { templateProblemText } from '../name-template-text.ts'
-import { tip } from '../tooltip.ts'
+import { namingProblemText } from '../move/move-text.ts'
+import { templateProblemText } from '../move/name-template-text.ts'
+import { formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
+import { tip } from '../shared/tooltip.ts'
 
 const props = defineProps<{
 	settings: Settings

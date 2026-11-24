@@ -5,13 +5,13 @@ import type { FolderSet } from '../../src/logic/folder-set.ts'
 import type { ListingEntry } from '../../src/logic/listing.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
 import type { ResumePosition } from '../../src/logic/resume-position.ts'
-import type { ToastAction } from '../../src/toast.ts'
+import type { ToastAction } from '../../src/shared/toast.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, ref, shallowRef } from 'vue'
-import { logger } from '../../src/logger.ts'
-import { useResume } from '../../src/resume.ts'
+import { useResume } from '../../src/folders/resume.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { listingEntry, pictureOf } from './logic/listing-entries.ts'
 
 afterEach(() => {

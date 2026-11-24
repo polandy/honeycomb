@@ -10,8 +10,8 @@ import { computed } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import ConfirmDialog from './ConfirmDialog.vue'
 import DeleteStats from './DeleteStats.vue'
-import { formatDuration, formatFileSize, formatNumber, PLAIN_TEXT } from '../l10n.ts'
-import { pageUrl } from '../navigation-items.ts'
+import { pageUrl } from '../folders/navigation-items.ts'
+import { formatDuration, formatFileSize, formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
 
 const props = defineProps<{
 	numbers: SessionNumbers

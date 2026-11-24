@@ -41,7 +41,7 @@ The options for paging:
 - **Browser:** a page `/apps/honeycomb/similarity` with its own Vite entry, so the cull's bundle
   does not grow. Its content security policy allows workers from `'self'`. The hashing runs in
   Web Workers, the cores less one, at least one, at most eight; each fetches the URL of the
-  grid's small tier and draws it with the grid's drawing code (`src/hash-drawing.ts`) on an
+  grid's small tier and draws it with the grid's drawing code (`src/hashes/hash-drawing.ts`) on an
   `OffscreenCanvas`. Hashes are saved with the endpoint of ADR 0024 in batches of 250.
 
 ## Consequences

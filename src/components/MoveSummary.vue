@@ -7,18 +7,18 @@ import type { PictureFile } from '../logic/delete-summary.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
 import type { ConflictChoice, PlannedPicture } from '../logic/move-plan.ts'
 import type { RenderedFile } from '../logic/name-template/render.ts'
-import type { MoveFlow } from '../move-flow.ts'
+import type { MoveFlow } from '../move/move-flow.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed } from 'vue'
 import ConflictChoiceGroup from './ConflictChoiceGroup.vue'
 import DeleteStats from './DeleteStats.vue'
-import { formatFileSize, formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { addedSuffix } from '../logic/move-candidates.ts'
 import { folderName } from '../logic/move-targets.ts'
 import { badgeExtension } from '../logic/pair-badge.ts'
-import { leavesStorageText, moveNote, namingProblemText } from '../move-text.ts'
+import { leavesStorageText, moveNote, namingProblemText } from '../move/move-text.ts'
+import { formatFileSize, formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
 
 const props = defineProps<{
 	flow: MoveFlow

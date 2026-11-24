@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Immich;
 
-use OCA\Honeycomb\Service\Flag;
+use OCA\Honeycomb\Domain\Flag;
 
 /**
  * Maps Immich's assets to listing entries; an asset of another shape is the version state (IMMICH-002.4, IMMICH-001.16).

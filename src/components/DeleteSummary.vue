@@ -13,10 +13,10 @@ import { computed } from 'vue'
 import ConfirmDialog from './ConfirmDialog.vue'
 import DeleteStats from './DeleteStats.vue'
 import TrashFileList from './TrashFileList.vue'
-import { formatFileSize, formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { deleteSummary, filesOf } from '../logic/delete-summary.ts'
-import { runningText, trashBinNote } from '../trash-text.ts'
+import { formatFileSize, formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
+import { runningText, trashBinNote } from '../trash/trash-text.ts'
 
 const props = defineProps<{
 	/** The pictures to delete, each with all of its files. */

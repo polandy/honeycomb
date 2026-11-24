@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { describe, expect, it, vi } from 'vitest'
-import { listEntries, movePictures, probeTargets, RequestTimeoutError, trashPictures } from '../../src/api.ts'
+import { listEntries, movePictures, probeTargets, RequestTimeoutError, trashPictures } from '../../src/api/index.ts'
 import { fakeScheduler } from './fake-scheduler.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn() } }))

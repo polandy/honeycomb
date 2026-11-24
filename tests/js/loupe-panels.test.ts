@@ -5,7 +5,7 @@ import type { ViewState } from '../../src/logic/view-state.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
-import { INFO_WIDTH_KEY, NAVIGATION_SHOWN_KEY, useLoupePanels } from '../../src/loupe-panels.ts'
+import { INFO_WIDTH_KEY, NAVIGATION_SHOWN_KEY, useLoupePanels } from '../../src/loupe/loupe-panels.ts'
 import { fakeStorage, fakeViewState } from './app-cull.ts'
 
 describe('useLoupePanels', () => {

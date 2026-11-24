@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { CullStep } from '../../src/cull.ts'
+import type { CullStep } from '../../src/cull/cull.ts'
 
 import { describe, expect, it, vi } from 'vitest'
-import { REJECT_HINT_MS, useToastedDecisions } from '../../src/toasted-decisions.ts'
+import { REJECT_HINT_MS, useToastedDecisions } from '../../src/cull/toasted-decisions.ts'
 
 const HINT = 'Rejected photos are hidden; show them with the Rejected chip.'
 

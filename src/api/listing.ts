@@ -5,13 +5,13 @@ import type { TreeFolder } from '../logic/folder-tree.ts'
 import type { Schedule } from '../logic/long-press.ts'
 import type { PairingSettings } from '../logic/pairing.ts'
 import type { PictureId } from '../logic/picture-id.ts'
-import type { WarmOptions } from '../preview-warmer.ts'
+import type { WarmOptions } from '../shared/preview-warmer.ts'
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { browserSchedule } from '../browser-schedule.ts'
 import { LISTING_TIMEOUT_MS, withTimeout } from '../logic/timed-request.ts'
 import { listedFolders } from '../logic/writability.ts'
+import { browserSchedule } from '../shared/browser-schedule.ts'
 import { API, ApiResponseError, isRecord } from './core.ts'
 
 /** A child folder as the folder endpoint returns it (ADR 0011). */

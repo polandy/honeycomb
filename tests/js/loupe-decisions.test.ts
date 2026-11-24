@@ -4,12 +4,12 @@
 import type { DecisionIntent } from '../../src/logic/decision-change.ts'
 import type { Decision } from '../../src/logic/decision.ts'
 import type { SwipeSetting } from '../../src/logic/loupe-gesture.ts'
-import type { Toast } from '../../src/toast.ts'
+import type { Toast } from '../../src/shared/toast.ts'
 
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../src/logic/decision.ts'
 import { DEFAULT_SWIPES } from '../../src/logic/loupe-gesture.ts'
-import { useLoupeDecisions } from '../../src/loupe-decisions.ts'
+import { useLoupeDecisions } from '../../src/loupe/loupe-decisions.ts'
 import { listingEntry, picturesOf } from './logic/listing-entries.ts'
 
 const PICTURES = picturesOf([1, 2, 3].map((id) => listingEntry(id, `/P/IMG_${id}.JPG`)))

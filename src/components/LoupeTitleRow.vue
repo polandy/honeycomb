@@ -11,10 +11,10 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
 import FlagButtonsToggle from './FlagButtonsToggle.vue'
 import SeriesHint from './SeriesHint.vue'
-import { useFullscreenState } from '../fullscreen.ts'
-import { keyCap } from '../hotkeys.ts'
-import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
-import { tip } from '../tooltip.ts'
+import { useFullscreenState } from '../shared/fullscreen.ts'
+import { keyCap } from '../shared/hotkeys.ts'
+import { formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
+import { tip } from '../shared/tooltip.ts'
 
 const props = withDefaults(defineProps<{
 	name: string

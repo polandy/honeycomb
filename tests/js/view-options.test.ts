@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { ref } from 'vue'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
 import { DEFAULT_TILE_SIZE } from '../../src/logic/tile-size.ts'
-import { useViewOptions } from '../../src/view-options.ts'
+import { useViewOptions } from '../../src/settings/view-options.ts'
 import { fakeStorage } from './app-cull.ts'
 
 /** View options over a folder count the test changes, with the given stored values. */

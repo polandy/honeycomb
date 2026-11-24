@@ -7,12 +7,12 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Db;
 
-use OCA\Honeycomb\Service\SeriesItem;
-use OCA\Honeycomb\Service\SeriesLookup;
-use OCA\Honeycomb\Service\SeriesStatus;
-use OCA\Honeycomb\Service\SeriesStore;
-use OCA\Honeycomb\Service\SeriesWrite;
-use OCA\Honeycomb\Service\StoredSeries;
+use OCA\Honeycomb\Domain\SeriesItem;
+use OCA\Honeycomb\Domain\SeriesLookup;
+use OCA\Honeycomb\Domain\SeriesStatus;
+use OCA\Honeycomb\Domain\SeriesWrite;
+use OCA\Honeycomb\Domain\Store\SeriesStore;
+use OCA\Honeycomb\Domain\StoredSeries;
 use OCP\AppFramework\Db\TTransactional;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;

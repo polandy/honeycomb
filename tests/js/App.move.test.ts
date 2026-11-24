@@ -3,7 +3,7 @@
 // @vitest-environment happy-dom
 import type { StoredDecision } from '../../src/logic/decision.ts'
 import type { MoveRequestFile, Probe } from '../../src/logic/move-plan.ts'
-import type { MoveFlow } from '../../src/move-flow.ts'
+import type { MoveFlow } from '../../src/move/move-flow.ts'
 import type { AppWrapper } from './app-cull.ts'
 
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
@@ -15,7 +15,7 @@ import MoveDialogs from '../../src/components/MoveDialogs.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
 import UndoToast from '../../src/components/UndoToast.vue'
-import { TrashBinOffError } from '../../src/api.ts'
+import { TrashBinOffError } from '../../src/api/index.ts'
 import { DEFAULT_FILTERS } from '../../src/logic/picture-filter.ts'
 import { decidedRows, mountApp, openCull, shownNames, stored, toolbarProps } from './app-cull.ts'
 import { DialogStub } from './components/stubs.ts'

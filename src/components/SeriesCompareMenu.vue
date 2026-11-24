@@ -6,7 +6,7 @@
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { Series } from '../logic/series.ts'
-import type { MergeDirection } from '../series-compare.ts'
+import type { MergeDirection } from '../series/series-compare.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
@@ -16,10 +16,10 @@ import NcActions from '@nextcloud/vue/components/NcActions'
 import NcActionSeparator from '@nextcloud/vue/components/NcActionSeparator'
 import ActionIcon from './ActionIcon.vue'
 import AppIcon from './AppIcon.vue'
-import { formatNumber, formatTime, PLAIN_TEXT } from '../l10n.ts'
 import { captureTime } from '../logic/picture-order.ts'
-import { useReportedMenu } from '../reported-menu.ts'
-import { tip } from '../tooltip.ts'
+import { formatNumber, formatTime, PLAIN_TEXT } from '../shared/l10n.ts'
+import { useReportedMenu } from '../shared/reported-menu.ts'
+import { tip } from '../shared/tooltip.ts'
 
 const props = defineProps<{
 	/** The shown series. */

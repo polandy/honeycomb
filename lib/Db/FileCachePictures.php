@@ -7,11 +7,11 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Db;
 
-use OCA\Honeycomb\Preview\UntypedRaw;
-use OCA\Honeycomb\Service\PairingExtensions;
-use OCA\Honeycomb\Service\PictureCount;
-use OCA\Honeycomb\Service\PicturesBelow;
-use OCA\Honeycomb\Service\PictureTally;
+use OCA\Honeycomb\Domain\PairingExtensions;
+use OCA\Honeycomb\Domain\PictureCount;
+use OCA\Honeycomb\Domain\PictureTally;
+use OCA\Honeycomb\Domain\Store\PicturesBelow;
+use OCA\Honeycomb\Domain\UntypedRaw;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\Files\Folder;
 use OCP\Files\IMimeTypeLoader;

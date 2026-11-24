@@ -6,8 +6,8 @@
 import type { FolderFilter, FolderSort } from '../logic/folder-list.ts'
 
 import { t } from '@nextcloud/l10n'
-import { filterLabel, sortLabel } from '../folders-text.ts'
-import { formatNumber } from '../l10n.ts'
+import { filterLabel, sortLabel } from '../folders/folders-text.ts'
+import { formatNumber } from '../shared/l10n.ts'
 
 /** The chosen root, null for *All roots*. */
 const root = defineModel<string | null>('root', { required: true })

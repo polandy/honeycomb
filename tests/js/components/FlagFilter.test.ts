@@ -7,7 +7,7 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import AppIcon from '../../../src/components/AppIcon.vue'
 import FlagFilter from '../../../src/components/FlagFilter.vue'
-import { FLAG_ICONS } from '../../../src/flag-icons.ts'
+import { FLAG_ICONS } from '../../../src/cull/flag-icons.ts'
 
 const mountFilter = (flags: Flag[]) => mount(FlagFilter, { props: { flags: new Set(flags) } })
 const chip = (wrapper: ReturnType<typeof mountFilter>, name: string) => wrapper.find(`button[aria-label="${name}"]`)

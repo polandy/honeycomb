@@ -7,9 +7,9 @@ import type { Flag } from '../logic/decision.ts'
 
 import { t } from '@nextcloud/l10n'
 import AppIcon from './AppIcon.vue'
-import { FLAG_ICONS } from '../flag-icons.ts'
-import { formatNumber } from '../l10n.ts'
+import { FLAG_ICONS } from '../cull/flag-icons.ts'
 import { toggleChip } from '../logic/picture-filter.ts'
+import { formatNumber } from '../shared/l10n.ts'
 
 const props = withDefaults(defineProps<{
 	flags: ReadonlySet<Flag>

@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\LibraryFiles;
-use OCA\Honeycomb\Service\LibraryFolder;
+use OCA\Honeycomb\Domain\LibraryFolder;
+use OCA\Honeycomb\Domain\Store\LibraryFiles;
 use OCP\Files\Folder;
 
 /** A file cache in memory: the library folders below any root, their photo files and the decision rows per user. */

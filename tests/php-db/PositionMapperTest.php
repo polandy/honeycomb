@@ -9,8 +9,8 @@ namespace OCA\Honeycomb\DbTests;
 
 use OCA\Honeycomb\Db\Position;
 use OCA\Honeycomb\Db\PositionMapper;
-use OCA\Honeycomb\Service\FolderSet;
-use OCA\Honeycomb\Service\ResumePosition;
+use OCA\Honeycomb\Domain\FolderSet;
+use OCA\Honeycomb\Domain\ResumePosition;
 
 /** The resume positions, and the re-keying of rows stored under the older folder set key, against a real database. */
 final class PositionMapperTest extends DbTestCase {

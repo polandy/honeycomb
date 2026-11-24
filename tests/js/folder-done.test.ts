@@ -1,14 +1,14 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { FolderDoneApi } from '../../src/folder-done.ts'
+import type { FolderDoneApi } from '../../src/folders/folder-done.ts'
 import type { FolderDone } from '../../src/logic/folder-row.ts'
-import type { ToastAction } from '../../src/toast.ts'
+import type { ToastAction } from '../../src/shared/toast.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
-import { UNDO_MS, useFolderDone } from '../../src/folder-done.ts'
-import { logger } from '../../src/logger.ts'
+import { UNDO_MS, useFolderDone } from '../../src/folders/folder-done.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { doneRow, row } from './logic/folder-fixtures.ts'
 
 const TRIP = row({ fileId: 7, path: '/Photos/2019/Trip', photos: 412, undecided: 0, picked: 412, rejected: 0 })

@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Command;
 
-use OCA\Honeycomb\Service\AppRemoval;
+use OCA\Honeycomb\Domain\Store\AppRemoval;
 
 final class FakeAppRemoval implements AppRemoval {
 	public ?\Throwable $failure = null;

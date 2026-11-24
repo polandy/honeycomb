@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { ToolbarFolders, ToolbarProgress, ToolbarSelection, ToolbarTasks, ToolbarView } from '../grid-toolbar.ts'
+import type { ToolbarFolders, ToolbarProgress, ToolbarSelection, ToolbarTasks, ToolbarView } from '../grid/grid-toolbar.ts'
 import type { Flag } from '../logic/decision.ts'
 import type { SortOrder } from '../logic/picture-order.ts'
 
@@ -15,9 +15,9 @@ import AppIcon from './AppIcon.vue'
 import CullProgress from './CullProgress.vue'
 import FlagFilter from './FlagFilter.vue'
 import GridMoreMenu from './GridMoreMenu.vue'
-import { keyCap } from '../hotkeys.ts'
-import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
-import { tip } from '../tooltip.ts'
+import { keyCap } from '../shared/hotkeys.ts'
+import { formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
+import { tip } from '../shared/tooltip.ts'
 
 const props = defineProps<{
 	folders: ToolbarFolders

@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
-use OCA\Honeycomb\Service\SidecarReader;
-use OCA\Honeycomb\Service\SidecarWriter;
+use OCA\Honeycomb\Service\Sidecar\SidecarReader;
+use OCA\Honeycomb\Service\Sidecar\SidecarWriter;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;

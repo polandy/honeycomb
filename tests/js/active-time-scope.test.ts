@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest'
-import { useActiveTime } from '../../src/active-time.ts'
+import { useActiveTime } from '../../src/statistics/active-time.ts'
 
 describe('useActiveTime outside a scope', () => {
 	// spec: STATS-001.39

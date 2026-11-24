@@ -6,9 +6,9 @@
 import { t } from '@nextcloud/l10n'
 import { onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import { keyCap } from '../hotkeys.ts'
-import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
 import { placeUnderAnchor } from '../logic/anchored-card.ts'
+import { keyCap } from '../shared/hotkeys.ts'
+import { formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
 
 const props = defineProps<{
 	/** The series' count. */

@@ -7,8 +7,8 @@ import type { ReadPictures } from '../logic/statistics.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
-import { formatPercent, PLAIN_TEXT } from '../l10n.ts'
 import { readShares } from '../logic/statistics.ts'
+import { formatPercent, PLAIN_TEXT } from '../shared/l10n.ts'
 
 const props = defineProps<{ read: ReadPictures }>()
 

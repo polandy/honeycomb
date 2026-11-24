@@ -7,7 +7,7 @@ import type { YearReview } from '../logic/year-review.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed } from 'vue'
-import { formatDay, formatDuration, formatFileSize, formatNumber, PLAIN_TEXT } from '../l10n.ts'
+import { formatDay, formatDuration, formatFileSize, formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
 
 const props = defineProps<{ review: YearReview }>()
 

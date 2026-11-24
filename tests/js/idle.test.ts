@@ -4,7 +4,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { defineComponent } from 'vue'
-import { LOUPE_IDLE_MS, useIdle } from '../../src/idle.ts'
+import { LOUPE_IDLE_MS, useIdle } from '../../src/shared/idle.ts'
 import { fakeScheduler } from './fake-scheduler.ts'
 
 /** The overlays' idle state in a mounted host, so unmounting stops the timer. */

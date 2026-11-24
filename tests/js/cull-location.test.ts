@@ -3,11 +3,11 @@
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { effectScope, ref } from 'vue'
-import { useCullLocation } from '../../src/cull-location.ts'
-import { logger } from '../../src/logger.ts'
+import { useCullLocation } from '../../src/cull/cull-location.ts'
 import { locationHash } from '../../src/logic/cull-location.ts'
+import { logger } from '../../src/shared/logger.ts'
 
-vi.mock('../../src/logger.ts', () => ({ logger: { error: vi.fn() } }))
+vi.mock('../../src/shared/logger.ts', () => ({ logger: { error: vi.fn() } }))
 
 afterEach(() => vi.clearAllMocks())
 

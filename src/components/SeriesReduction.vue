@@ -14,9 +14,9 @@ import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import ConfirmDialog from './ConfirmDialog.vue'
 import DeleteStats from './DeleteStats.vue'
 import PictureThumbs from './PictureThumbs.vue'
-import { imageUrl as apiImageUrl } from '../api.ts'
-import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
+import { imageUrl as apiImageUrl } from '../api/index.ts'
 import { reductionCounts, withoutSeries } from '../logic/series-reduction.ts'
+import { formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
 
 const props = withDefaults(defineProps<{
 	/** The series the reduction would decide when the dialog opened. */

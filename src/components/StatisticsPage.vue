@@ -20,12 +20,12 @@ import StatisticsBars from './StatisticsBars.vue'
 import StatisticsLibrary from './StatisticsLibrary.vue'
 import StatisticsRead from './StatisticsRead.vue'
 import YearReview from './YearReview.vue'
-import { formatDay, formatDuration, formatFileSize, formatNumber, formatPercent, PLAIN_TEXT } from '../l10n.ts'
-import { logger } from '../logger.ts'
 import { folderProgress } from '../logic/folder-progress.ts'
 import { parseSettings } from '../logic/settings.ts'
 import { periodNumbers, streak } from '../logic/statistics.ts'
 import { reviewYear, yearReview } from '../logic/year-review.ts'
+import { formatDay, formatDuration, formatFileSize, formatNumber, formatPercent, PLAIN_TEXT } from '../shared/l10n.ts'
+import { logger } from '../shared/logger.ts'
 
 /** How the page reads the counters, the library's folders below a root and the settings. */
 export interface StatisticsSeams {
@@ -187,7 +187,7 @@ onMounted(async () => {
 	</NcContent>
 </template>
 
-<style src="../coarse-controls.css" />
+<style src="../shared/coarse-controls.css" />
 
 <style scoped>
 .statistics-page {

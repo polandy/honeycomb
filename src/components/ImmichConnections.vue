@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { ConnectionLine } from '../immich-text.ts'
+import type { ConnectionLine } from '../immich/immich-text.ts'
 
 import { t } from '@nextcloud/l10n'
 import NcAppNavigationCaption from '@nextcloud/vue/components/NcAppNavigationCaption'

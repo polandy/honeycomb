@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\FileRowCarryOver;
-use OCA\Honeycomb\Service\FileRowStores;
+use OCA\Honeycomb\Domain\Store\FileRowCarryOver;
+use OCA\Honeycomb\Domain\Store\FileRowStores;
 
 /** Carries the rows over store by store, without a transaction; the database tests prove the rollback. */
 final readonly class FakeFileRowCarryOver implements FileRowCarryOver {

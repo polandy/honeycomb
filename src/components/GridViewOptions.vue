@@ -8,8 +8,8 @@ import type { SortOrder } from '../logic/picture-order.ts'
 import { t } from '@nextcloud/l10n'
 import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
 import GridMoreGroup from './GridMoreGroup.vue'
-import { keyCap } from '../hotkeys.ts'
 import { MAX_TILE_SIZE, MIN_TILE_SIZE } from '../logic/tile-size.ts'
+import { keyCap } from '../shared/hotkeys.ts'
 
 defineProps<{
 	/** How many folders the cull's pictures are in. */

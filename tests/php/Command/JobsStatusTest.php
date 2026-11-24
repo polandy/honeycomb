@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Command;
 
 use OCA\Honeycomb\Command\JobsStatus;
-use OCA\Honeycomb\Service\BackgroundJobName;
-use OCA\Honeycomb\Service\JobRuns;
+use OCA\Honeycomb\Service\Lifecycle\BackgroundJobName;
+use OCA\Honeycomb\Service\Lifecycle\JobRuns;
 use OCA\Honeycomb\Tests\Service\AppConfigStub;
 use OCA\Honeycomb\Tests\Service\FakeDbException;
 use OCP\AppFramework\Utility\ITimeFactory;

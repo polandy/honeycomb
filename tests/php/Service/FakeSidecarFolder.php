@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\SidecarWriter;
-use OCA\Honeycomb\Service\UserFolderResolver;
-use OCA\Honeycomb\Service\UserPhotos;
+use OCA\Honeycomb\Service\Files\UserFolderResolver;
+use OCA\Honeycomb\Service\Files\UserPhotos;
+use OCA\Honeycomb\Service\Sidecar\SidecarWriter;
 use OCP\Files\File;
 use OCP\Files\FileInfo;
 use OCP\Files\Folder;

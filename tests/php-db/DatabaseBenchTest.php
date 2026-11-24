@@ -9,14 +9,14 @@ namespace OCA\Honeycomb\DbTests;
 
 use OCA\Honeycomb\Db\ImmichDecisionMapper;
 use OCA\Honeycomb\Db\XmpCacheMapper;
+use OCA\Honeycomb\Domain\ColourLabel;
+use OCA\Honeycomb\Domain\Flag;
+use OCA\Honeycomb\Domain\XmpCacheRow;
+use OCA\Honeycomb\Domain\XmpReadState;
+use OCA\Honeycomb\Domain\XmpSource;
 use OCA\Honeycomb\Immich\AssetDecision;
 use OCA\Honeycomb\Immich\AssetKind;
 use OCA\Honeycomb\Immich\ListingFilters;
-use OCA\Honeycomb\Service\ColourLabel;
-use OCA\Honeycomb\Service\Flag;
-use OCA\Honeycomb\Service\XmpCacheRow;
-use OCA\Honeycomb\Service\XmpReadState;
-use OCA\Honeycomb\Service\XmpSource;
 use PHPUnit\Framework\Attributes\Group;
 
 /** Measures, without a time limit, the XMP cache and the Immich listing at the scale of docs/dev/performance.md; `scripts/php-db-tests.sh --group bench` runs it. */

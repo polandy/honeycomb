@@ -3,8 +3,8 @@
 // @vitest-environment happy-dom
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { logger } from '../../src/logger.ts'
 import { RateLimitedError } from '../../src/logic/retry-after.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { listingEntry, picturesOf } from './logic/listing-entries.ts'
 import { BURST, setUp } from './visual-hash-fakes.ts'
 

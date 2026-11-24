@@ -7,11 +7,11 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\SeriesLookup;
-use OCA\Honeycomb\Service\SeriesStatus;
-use OCA\Honeycomb\Service\SeriesStore;
-use OCA\Honeycomb\Service\SeriesWrite;
-use OCA\Honeycomb\Service\StoredSeries;
+use OCA\Honeycomb\Domain\SeriesLookup;
+use OCA\Honeycomb\Domain\SeriesStatus;
+use OCA\Honeycomb\Domain\SeriesWrite;
+use OCA\Honeycomb\Domain\Store\SeriesStore;
+use OCA\Honeycomb\Domain\StoredSeries;
 use OCP\DB\Exception as DbException;
 
 /** Keeps stored series in memory: member rows by user and file id, series by id. */

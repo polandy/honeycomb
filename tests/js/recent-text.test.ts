@@ -3,7 +3,7 @@
 import type { FolderSet } from '../../src/logic/folder-set.ts'
 
 import { describe, expect, it } from 'vitest'
-import { folderSetName } from '../../src/recent-text.ts'
+import { folderSetName } from '../../src/folders/recent-text.ts'
 
 describe('folderSetName', () => {
 	it.each<[FolderSet, string]>([

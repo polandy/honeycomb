@@ -1,0 +1,124 @@
+// SPDX-FileCopyrightText: 2026 honeycomb contributors
+// SPDX-License-Identifier: AGPL-3.0-or-later
+import type { FolderSet } from '../logic/folder-set.ts'
+import type { ListingEntry } from '../logic/listing.ts'
+import type { Picture } from '../logic/pairing.ts'
+import type { ResumePosition } from '../logic/resume-position.ts'
+import type { ToastAction } from '../shared/toast.ts'
+
+import { t } from '@nextcloud/l10n'
+import { computed, ref, watch } from 'vue'
+import { parsePositions, pictureHolding, positionFileId, positionOf, resumeIndex } from '../logic/resume-position.ts'
+import { saveQueue } from '../logic/save-queue.ts'
+import { fireAndLog } from '../shared/fire-and-log.ts'
+import { logger } from '../shared/logger.ts'
+
+/** The server seams of the resume position (ADR 0012). */
+export interface ResumeApi {
+	loadPositions(): Promise<unknown>
+	savePosition(position: ResumePosition, activeSeconds: number): Promise<void>
+}
+
+/** What the resume flow reads from the open cull and how it opens the loupe. */
+export interface ResumeCull {
+	readonly folderSet: () => FolderSet | null
+	readonly pictures: () => readonly Picture<ListingEntry>[]
+	readonly view: () => readonly Picture<ListingEntry>[]
+	readonly progress: () => { decided: number, total: number }
+	/** Whether the picture counts as decided (SERIES-005.14). */
+	readonly decidedOf: (picture: Picture<ListingEntry>) => boolean
+	/** The picture the loupe shows, null while it is closed. */
+	readonly shown: () => Picture<ListingEntry> | null
+	readonly openLoupe: (index: number) => void
+	/** The whole active seconds since the last take (STATS-001.39). */
+	readonly takeActiveSeconds: () => number
+}
+
+/** Saves where the user stands in the open cull and offers to continue at the stored position (DECISIONS-002.7). */
+export function useResume(api: ResumeApi, cull: ResumeCull, toast: (message: string, action: ToastAction) => () => void) {
+	const fileId = ref<number | null>(null)
+	let closeOffer = () => {}
+	let tracking = false
+	let opening = 0
+	let sent = ''
+	// One key: only the latest position is worth sending.
+	const queue = saveQueue<ResumePosition, null>(async (positions) => {
+		await Promise.all(positions.map((position) => api.savePosition(position, cull.takeActiveSeconds())))
+	}, { key: () => null })
+
+	/** Sends the position, or keeps it as the latest to send once the save in flight settles. */
+	function save(position: ResumePosition) {
+		fireAndLog(queue([position]).then((result) => {
+			if (!result.ok) {
+				logger.error('Could not save the resume position.', { error: result.error })
+			}
+		}), 'Could not save the resume position')
+	}
+
+	watch(() => {
+		const shown = cull.shown()
+		return [shown === null ? null : positionFileId(shown), cull.folderSet(), cull.progress().decided, cull.progress().total] as const
+	}, ([shownId, folderSet, decided, total]) => {
+		if (shownId !== null) {
+			fileId.value = shownId
+			tracking = true
+			dismiss()
+		}
+		const position = tracking && folderSet !== null && fileId.value !== null ? { folderSet, fileId: fileId.value, decided, total } : null
+		if (position !== null && JSON.stringify(position) !== sent) {
+			sent = JSON.stringify(position)
+			save(position)
+		}
+	})
+
+	/** Reads the stored position of the folder set just opened and offers it while the user has not moved on. */
+	function offer() {
+		const opened = ++opening
+		fileId.value = null
+		tracking = false
+		sent = ''
+		api.loadPositions().then((answer) => {
+			const set = cull.folderSet()
+			const position = set === null ? null : positionOf(parsePositions(answer), set)
+			if (opened !== opening || tracking || position === null || pictureHolding(cull.pictures(), position.fileId) === null) {
+				return
+			}
+			fileId.value = position.fileId
+			closeOffer = toast(t('honeycomb', 'Continue where you left off'), { label: t('honeycomb', 'Resume'), run: resume })
+		}).catch((error: unknown) => logger.error('Could not read the resume positions.', { error }))
+	}
+
+	/** Opens the loupe at the file of the folder set just opened from *Recent*, without the offer (DECISIONS-002.8). */
+	function resumeAt(stored: number) {
+		opening++
+		tracking = false
+		sent = ''
+		fileId.value = pictureHolding(cull.pictures(), stored) === null ? null : stored
+		resume()
+	}
+
+	/** Closes the offer's toast, if it is still shown (DECISIONS-002.14). */
+	function dismiss() {
+		closeOffer()
+		closeOffer = () => {}
+	}
+
+	const picture = computed(() => (fileId.value === null ? null : pictureHolding(cull.pictures(), fileId.value)))
+
+	/** Opens the loupe at the stored picture (DECISIONS-002.9). */
+	function resume() {
+		const index = picture.value === null ? -1 : resumeIndex(cull.view(), picture.value, cull.decidedOf)
+		if (index >= 0) {
+			cull.openLoupe(index)
+		}
+	}
+
+	return {
+		dismiss,
+		offer,
+		resume,
+		resumeAt,
+		/** The base name of the picture *Resume* opens, null when there is none. */
+		resumeName: computed(() => picture.value?.baseName ?? null),
+	}
+}

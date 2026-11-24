@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest'
-import { pageUrl, useNavigationItems } from '../../src/navigation-items.ts'
+import { pageUrl, useNavigationItems } from '../../src/folders/navigation-items.ts'
 
 describe('useNavigationItems', () => {
 	// spec: STATS-001.40

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it, vi } from 'vitest'
 import { SHARPNESS_METHOD } from '../../src/logic/sharpness.ts'
-import { useLoupeSeries } from '../../src/loupe-series.ts'
+import { useLoupeSeries } from '../../src/series/loupe-series.ts'
 
 type Shown = Parameters<Parameters<typeof useLoupeSeries>[0]['compare']>[1]
 

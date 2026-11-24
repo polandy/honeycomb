@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
-import { usePrefetch } from '../../src/loupe-prefetch.ts'
+import { usePrefetch } from '../../src/loupe/loupe-prefetch.ts'
 
 /** A decoder whose loads the test settles by hand. */
 function fakeDecoder() {

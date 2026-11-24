@@ -5,7 +5,7 @@ import type { Answer } from './move-fixtures.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { logger } from '../../src/logger.ts'
+import { logger } from '../../src/shared/logger.ts'
 import { allMoved, moveFlow } from './move-fixtures.ts'
 
 const ONE_PICTURE = { pictures: 1, files: 500 }

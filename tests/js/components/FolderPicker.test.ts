@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { Folder } from '../../../src/api.ts'
+import type { Folder } from '../../../src/api/index.ts'
 import type { FolderSet } from '../../../src/logic/folder-set.ts'
 import type { ListingEntry } from '../../../src/logic/listing.ts'
 import type { PairingSettings } from '../../../src/logic/pairing.ts'

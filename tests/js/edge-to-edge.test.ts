@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest'
-import { optInToEdgeToEdge } from '../../src/edge-to-edge.ts'
+import { optInToEdgeToEdge } from '../../src/shared/edge-to-edge.ts'
 
 const viewport = () => document.head.querySelector('meta[name="viewport"]')?.getAttribute('content')
 

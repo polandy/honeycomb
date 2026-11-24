@@ -7,9 +7,9 @@ import type { Schedule } from '../logic/long-press.ts'
 import type { Box, TipPlacement } from '../logic/tooltip.ts'
 
 import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
-import { browserSchedule } from '../browser-schedule.ts'
 import { placeTip } from '../logic/tooltip.ts'
-import { TIP_ID, useTooltip } from '../tooltip.ts'
+import { browserSchedule } from '../shared/browser-schedule.ts'
+import { TIP_ID, useTooltip } from '../shared/tooltip.ts'
 
 const props = withDefaults(defineProps<{
 	/** The timer of the hover delay and the long-press. */

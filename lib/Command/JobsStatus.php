@@ -7,9 +7,9 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Command;
 
-use OCA\Honeycomb\Service\BackgroundJobName;
-use OCA\Honeycomb\Service\JobRuns;
-use OCA\Honeycomb\Service\JobStatus;
+use OCA\Honeycomb\Service\Lifecycle\BackgroundJobName;
+use OCA\Honeycomb\Service\Lifecycle\JobRuns;
+use OCA\Honeycomb\Service\Lifecycle\JobStatus;
 use OCP\AppFramework\Utility\ITimeFactory;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;

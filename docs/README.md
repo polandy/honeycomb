@@ -7,7 +7,7 @@ users and Nextcloud admins, [`dev/`](dev/README.md) for everyone who builds hone
 |---|---|
 | [`dev/01-requirements.md`](dev/01-requirements.md) | What we build: the owner's brief in English, incl. the 2026-11-09 update |
 | [`dev/02-workflow.md`](dev/02-workflow.md) | Branch, test, pull request, review, screenshots, owner decisions |
-| [`dev/03-coding-standards.md`](dev/03-coding-standards.md) | PHP, TypeScript and Vue idioms, tools, formatting |
+| [`dev/03-coding-standards.md`](dev/03-coding-standards.md) | PHP, TypeScript and Vue idioms, tools, formatting, which package may use which |
 | [`dev/conventions.md`](dev/conventions.md) | Rules for every language: design, names, constants, comments, errors, logging, tests, and the gate that checks each |
 | [`dev/04-glossary.md`](dev/04-glossary.md) | The words we use for pairs, flags, labels and actions, and the UI conventions |
 | [`dev/05-name-templates.md`](dev/05-name-templates.md) | Name templates for moved pictures: syntax, tokens, sanitising, collisions |

@@ -6,7 +6,7 @@ import type { SidecarSaveAnswer, SidecarSaveItem } from '../../src/logic/sidecar
 import { describe, expect, it } from 'vitest'
 import { DECISION_FIELDS, UNDECIDED } from '../../src/logic/decision.ts'
 import { serializeXmp } from '../../src/logic/xmp/serialize.ts'
-import { useSidecarSync } from '../../src/sidecar-sync.ts'
+import { useSidecarSync } from '../../src/sidecars/sidecar-sync.ts'
 import { listingEntry, pictureOf } from './logic/listing-entries.ts'
 import { CANONICAL_TIME, packetOf } from './logic/xmp/xmp-builders.ts'
 

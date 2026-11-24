@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { CompareLanding } from '../../src/series-compare.ts'
+import type { CompareLanding } from '../../src/series/series-compare.ts'
 import type { Shot } from './series-compare-fixture.ts'
 
 import { describe, expect, it } from 'vitest'

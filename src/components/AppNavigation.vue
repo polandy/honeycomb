@@ -3,11 +3,11 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { BrowserStorage } from '../browser-storage.ts'
-import type { SourceKind } from '../immich-source.ts'
-import type { ConnectionLine } from '../immich-text.ts'
+import type { SourceKind } from '../immich/immich-source.ts'
+import type { ConnectionLine } from '../immich/immich-text.ts'
 import type { RecentFolderSet } from '../logic/recent.ts'
 import type { ResumePosition } from '../logic/resume-position.ts'
+import type { BrowserStorage } from '../shared/browser-storage.ts'
 
 import { emit as emitEvent } from '@nextcloud/event-bus'
 import { t } from '@nextcloud/l10n'
@@ -20,8 +20,8 @@ import AppIcon from './AppIcon.vue'
 import ImmichConnections from './ImmichConnections.vue'
 import RecentFolderSets from './RecentFolderSets.vue'
 import SourceSwitcher from './SourceSwitcher.vue'
-import { useNavigationChoice } from '../navigation-choice.ts'
-import { useNavigationItems } from '../navigation-items.ts'
+import { useNavigationChoice } from '../folders/navigation-choice.ts'
+import { useNavigationItems } from '../folders/navigation-items.ts'
 
 const props = withDefaults(defineProps<{
 	items: readonly RecentFolderSet[]

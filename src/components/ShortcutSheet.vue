@@ -8,8 +8,8 @@ import type { KeymapGroup } from '../logic/hotkeys.ts'
 import { t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
-import { isMac } from '../hotkeys.ts'
 import { formatCaps, KEYMAP } from '../logic/hotkeys.ts'
+import { isMac } from '../shared/hotkeys.ts'
 
 const props = defineProps<{
 	/** The element the dialog opens in; the loupe's while it is open, as it lies above the page. */

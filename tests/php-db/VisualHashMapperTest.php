@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\DbTests;
 
 use OCA\Honeycomb\Db\VisualHashMapper;
-use OCA\Honeycomb\Service\VisualHash;
+use OCA\Honeycomb\Domain\VisualHash;
 
 /** The visual hashes table, one row per file whoever saved it. */
 final class VisualHashMapperTest extends DbTestCase {

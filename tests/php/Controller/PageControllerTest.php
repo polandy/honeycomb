@@ -9,8 +9,8 @@ namespace OCA\Honeycomb\Tests\Controller;
 
 use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Controller\PageController;
-use OCA\Honeycomb\Service\AppVisits;
-use OCA\Honeycomb\Service\ScriptManifest;
+use OCA\Honeycomb\Service\App\AppVisits;
+use OCA\Honeycomb\Service\App\ScriptManifest;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;

@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { HashRunSeams, MissingPicture } from '../../src/hash-run.ts'
+import type { HashRunSeams, MissingPicture } from '../../src/hashes/hash-run.ts'
 import type { StoredVisualHash } from '../../src/logic/visual-hash.ts'
 
 import { vi } from 'vitest'

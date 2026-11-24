@@ -6,13 +6,13 @@ import type { MoveResponseFile } from '../../src/logic/move-report.ts'
 import type { Picture } from '../../src/logic/pairing.ts'
 import type { ChunkLimits } from '../../src/logic/request-chunks.ts'
 import type { Settings } from '../../src/logic/settings.ts'
-import type { ToastAction } from '../../src/toast.ts'
+import type { ToastAction } from '../../src/shared/toast.ts'
 
 import { ref, shallowRef } from 'vue'
 import { DEFAULT_PAIRING_SETTINGS, pairPictures } from '../../src/logic/pairing.ts'
 import { DEFAULT_SETTINGS } from '../../src/logic/settings.ts'
 import { withoutFiles } from '../../src/logic/trash-report.ts'
-import { useMoveFlow } from '../../src/move-flow.ts'
+import { useMoveFlow } from '../../src/move/move-flow.ts'
 import { listingEntry } from './logic/listing-entries.ts'
 
 const ENTRIES = [

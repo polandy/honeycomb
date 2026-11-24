@@ -3,11 +3,11 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { Folder } from '../api.ts'
-import type { DeleteFlow } from '../delete-flow.ts'
+import type { Folder } from '../api/index.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
-import type { MoveFlow } from '../move-flow.ts'
-import type { SidecarFlow } from '../sidecar-flow.ts'
+import type { MoveFlow } from '../move/move-flow.ts'
+import type { SidecarFlow } from '../sidecars/sidecar-flow.ts'
+import type { DeleteFlow } from '../trash/delete-flow.ts'
 
 import DeleteDialogs from './DeleteDialogs.vue'
 import MoveDialogs from './MoveDialogs.vue'

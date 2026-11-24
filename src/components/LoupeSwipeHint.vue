@@ -6,7 +6,7 @@
 import type { SwipeHint } from '../logic/loupe-gesture.ts'
 
 import AppIcon from './AppIcon.vue'
-import { FLAG_ICONS, flagLabel } from '../flag-icons.ts'
+import { FLAG_ICONS, flagLabel } from '../cull/flag-icons.ts'
 
 const props = defineProps<{ hint: SwipeHint }>()
 </script>

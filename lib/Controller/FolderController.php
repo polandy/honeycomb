@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
-use OCA\Honeycomb\Service\FolderService;
-use OCA\Honeycomb\Service\PairingExtensions;
+use OCA\Honeycomb\Domain\PairingExtensions;
+use OCA\Honeycomb\Service\Folder\FolderService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;

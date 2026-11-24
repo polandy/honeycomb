@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Command;
 
-use OCA\Honeycomb\Service\CacheClear;
+use OCA\Honeycomb\Service\Lifecycle\CacheClear;
 use OCP\IUserManager;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;

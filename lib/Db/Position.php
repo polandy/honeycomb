@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Db;
 
-use OCA\Honeycomb\Service\FolderSet;
-use OCA\Honeycomb\Service\ResumePosition;
+use OCA\Honeycomb\Domain\FolderSet;
+use OCA\Honeycomb\Domain\ResumePosition;
 use OCP\AppFramework\Db\Entity;
 use OCP\DB\Types;
 

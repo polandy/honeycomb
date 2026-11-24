@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\VisualHash;
-use OCA\Honeycomb\Service\VisualHashStore;
+use OCA\Honeycomb\Domain\Store\VisualHashStore;
+use OCA\Honeycomb\Domain\VisualHash;
 use OCP\DB\Exception as DbException;
 
 /** Keeps visual hashes in memory, by file id. */

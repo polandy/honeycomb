@@ -7,10 +7,10 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
-use OCA\Honeycomb\Service\FolderSet;
-use OCA\Honeycomb\Service\InvalidRequestException;
-use OCA\Honeycomb\Service\ListingService;
-use OCA\Honeycomb\Service\Reason;
+use OCA\Honeycomb\Domain\FolderSet;
+use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\Reason;
+use OCA\Honeycomb\Service\Listing\ListingService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;

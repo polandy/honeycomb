@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Db;
 
-use OCA\Honeycomb\Service\FolderSummary;
-use OCA\Honeycomb\Service\FolderSummaryStore;
+use OCA\Honeycomb\Domain\FolderSummary;
+use OCA\Honeycomb\Domain\Store\FolderSummaryStore;
 use OCP\AppFramework\Db\TTransactional;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;

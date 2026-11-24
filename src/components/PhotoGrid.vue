@@ -3,20 +3,17 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
+import type { PhotoGridEmits, PhotoGridProps } from '../grid/photo-grid-props.ts'
 import type { FocusMove } from '../logic/grid-layout.ts'
-import type { PhotoGridEmits, PhotoGridProps } from '../photo-grid-props.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, useSlots, useTemplateRef, watch } from 'vue'
 import PhotoTile from './PhotoTile.vue'
 import SeriesBrackets from './SeriesBrackets.vue'
 import TileInfo from './TileInfo.vue'
-import { browserFrame } from '../auto-scroll.ts'
-import { browserSchedule } from '../browser-schedule.ts'
-import { useGridPinch } from '../grid-pinch.ts'
-import { useGridSeries } from '../grid-series.ts'
-import { formatNumber } from '../l10n.ts'
-import { logger } from '../logger.ts'
+import { useGridPinch } from '../grid/grid-pinch.ts'
+import { useTileInfo } from '../grid/tile-info.ts'
+import { useTileSelection } from '../grid/tile-selection.ts'
 import { isAppended } from '../logic/appended.ts'
 import { autoScrollStep } from '../logic/auto-scroll.ts'
 import { folderLabel } from '../logic/cull.ts'
@@ -26,10 +23,13 @@ import { IMAGE_LOADS_IN_FLIGHT, imageMember } from '../logic/image-tiers.ts'
 import { createLoadQueue } from '../logic/load-queue.ts'
 import { groupByFolder as folderGroups } from '../logic/picture-order.ts'
 import { NO_SELECTION } from '../logic/selection.ts'
-import { decodeSource } from '../loupe-prefetch.ts'
-import { observeElementSize } from '../observe-size.ts'
-import { useTileInfo } from '../tile-info.ts'
-import { useTileSelection } from '../tile-selection.ts'
+import { decodeSource } from '../loupe/loupe-prefetch.ts'
+import { useGridSeries } from '../series/grid-series.ts'
+import { browserFrame } from '../shared/auto-scroll.ts'
+import { browserSchedule } from '../shared/browser-schedule.ts'
+import { formatNumber } from '../shared/l10n.ts'
+import { logger } from '../shared/logger.ts'
+import { observeElementSize } from '../shared/observe-size.ts'
 
 const props = withDefaults(defineProps<PhotoGridProps>(), {
 	observeSize: observeElementSize,
