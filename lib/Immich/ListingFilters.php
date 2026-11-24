@@ -14,7 +14,6 @@ use OCA\Honeycomb\Service\Flag;
 final class ListingFilters {
 	public const int MAX_DEVICES = 20;
 	private const array KEYS = ['takenAfter', 'takenBefore', 'devices', 'kinds', 'flags', 'rating', 'colourLabels'];
-	private const array RATING_OPS = ['atLeast', 'atMost', 'exactly'];
 	private const int MAX_RATING = 5;
 
 	public readonly ?int $takenAfter;
@@ -23,12 +22,13 @@ final class ListingFilters {
 	public readonly array $devices;
 	/** @var list<AssetKind> */
 	public readonly array $kinds;
+	public readonly DecisionFilter $decisions;
 	/** @var list<Flag> */
-	public readonly array $flags;
+	private readonly array $flags;
 	/** @var ?array{op: string, value: int} */
-	public readonly ?array $rating;
+	private readonly ?array $rating;
 	/** @var list<ColourLabel> */
-	public readonly array $colourLabels;
+	private readonly array $colourLabels;
 
 	/** @param array<array-key, mixed> $raw the request's `filters` */
 	public function __construct(
@@ -44,6 +44,7 @@ final class ListingFilters {
 		$this->flags = array_map(static fn (string $flag): Flag => Flag::tryFrom($flag) ?? throw self::malformed(), self::strings($raw['flags'] ?? []));
 		$this->rating = self::rating($raw['rating'] ?? null);
 		$this->colourLabels = array_map(static fn (string $label): ColourLabel => ColourLabel::tryFrom($label) ?? throw self::malformed(), self::strings($raw['colourLabels'] ?? []));
+		$this->decisions = new DecisionFilter($this->flags, $this->rating, $this->colourLabels);
 	}
 
 	/**
@@ -56,13 +57,7 @@ final class ListingFilters {
 
 	/** Whether a picture of this decision passes the flag, rating and colour label filters. */
 	public function admits(Flag $flag, int $rating, ?ColourLabel $colourLabel): bool {
-		$ratingPasses = $this->rating === null || match ($this->rating['op']) {
-			'atLeast' => $rating >= $this->rating['value'],
-			'atMost' => $rating <= $this->rating['value'],
-			default => $rating === $this->rating['value'],
-		};
-		return ($this->flags === [] || in_array($flag, $this->flags, true)) && $ratingPasses
-			&& ($this->colourLabels === [] || ($colourLabel !== null && in_array($colourLabel, $this->colourLabels, true)));
+		return $this->decisions->admits($flag, $rating, $colourLabel);
 	}
 
 	/** Whether a picture without a decision passes the decision filters. */
@@ -135,7 +130,7 @@ final class ListingFilters {
 		$op = $value['op'] ?? null;
 		/** @var mixed $stars */
 		$stars = $value['value'] ?? null;
-		if (!is_string($op) || !in_array($op, self::RATING_OPS, true) || !is_int($stars) || $stars < 0 || $stars > self::MAX_RATING) {
+		if (!is_string($op) || !array_key_exists($op, DecisionFilter::RATING_OPERATORS) || !is_int($stars) || $stars < 0 || $stars > self::MAX_RATING) {
 			throw self::malformed();
 		}
 		return ['op' => $op, 'value' => $stars];

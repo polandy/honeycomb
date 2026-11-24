@@ -3,7 +3,7 @@
 import type { Decision } from '../../../src/logic/decision.ts'
 
 import { describe, expect, it } from 'vitest'
-import { countsAsDecided, decisionsByFileId, isDecided, isOpen, isPicked, isRejected, nextUndecided, pictureDecision, UNDECIDED } from '../../../src/logic/decision.ts'
+import { countsAsDecided, DECISION_FIELD_STORES, DECISION_FIELDS, decisionsByFileId, FLAG_FIELDS, isDecided, isOpen, isPicked, isRejected, nextUndecided, pictureDecision, UNDECIDED } from '../../../src/logic/decision.ts'
 import { listingEntry, pictureOf } from './listing-entries.ts'
 
 const picked = { rating: 4, colourLabel: 'red', flag: 'picked', keepRaw: true } as const
@@ -94,5 +94,21 @@ describe('countsAsDecided', () => {
 		['rejected', true, true],
 	] as const)('counts %s with a done series %s as %s', (flag, seriesDone, expected) => {
 		expect(countsAsDecided({ ...UNDECIDED, flag }, seriesDone)).toBe(expected)
+	})
+})
+
+describe('DECISION_FIELDS', () => {
+	it('names every field of a decision once, in its order', () => {
+		expect(DECISION_FIELDS).toEqual(Object.keys(UNDECIDED))
+		expect(Object.keys(DECISION_FIELD_STORES)).toEqual(Object.keys(UNDECIDED))
+	})
+
+	it('keeps the flag and Keep RAW of a folder picture in the database, rating and colour label in its sidecars', () => {
+		expect(FLAG_FIELDS).toEqual(['flag', 'keepRaw'])
+		expect(DECISION_FIELDS.filter((field) => DECISION_FIELD_STORES[field].folders === 'sidecar')).toEqual(['rating', 'colourLabel'])
+	})
+
+	it('keeps every field of an Immich asset in the database', () => {
+		expect(DECISION_FIELDS.filter((field) => DECISION_FIELD_STORES[field].immich === 'database')).toEqual(DECISION_FIELDS)
 	})
 })
