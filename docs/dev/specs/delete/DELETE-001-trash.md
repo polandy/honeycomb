@@ -43,7 +43,7 @@ sent. `result` is one of:
 | `noTrashBin` | Its storage has no trash bin, so deleting it would be for good |
 | `tooLarge` | It is at least as large as the trash bin size, so deleting it would be for good |
 | `locked` | Locked by another process |
-| `failed` | Any other error, logged as a warning |
+| `failed` | Any other storage error (`OCP\Files`), logged as a warning |
 | `decisionChanged` | Its picture's rows no longer say what `expect` asked |
 | `skipped` | Not tried, because another file of the picture failed |
 
@@ -102,7 +102,7 @@ waits (ADR 0037).
 
 ### DELETE-001.4 – Storage errors are logged
 
-- **Given** a file whose trashing throws an unexpected error
+- **Given** a file whose trashing throws a storage error
 - **When** the client posts its picture
 - **Then** the file reports `failed` and a warning with the file id and the exception is logged
 

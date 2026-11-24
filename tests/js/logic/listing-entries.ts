@@ -25,6 +25,7 @@ export function listingEntry(fileId: number, path: string, fields: Partial<Listi
 		flag: null,
 		keepRaw: null,
 		flagUpdated: null,
+		sidecarEtag: null,
 		...fields,
 	}
 }

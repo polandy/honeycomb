@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\SidecarResult;
+use OCP\Files\GenericFileException;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\Lock\LockedException;
@@ -91,10 +92,10 @@ final class SidecarWriterTest extends TestCase {
 			'not permitted while replacing' => ['putContent', new NotPermittedException('quota'), SidecarResult::NotPermitted],
 			'locked while replacing' => ['putContent', new LockedException('IMG_0001.NEF.xmp'), SidecarResult::Locked],
 			'vanished while replacing' => ['putContent', new NotFoundException('IMG_0001.NEF.xmp'), SidecarResult::NotFound],
-			'storage error while replacing' => ['putContent', new \RuntimeException('disk'), SidecarResult::Failed],
+			'storage error while replacing' => ['putContent', new GenericFileException('disk'), SidecarResult::Failed],
 			'not permitted while creating' => ['newFile', new NotPermittedException('quota'), SidecarResult::NotPermitted],
 			'locked while creating' => ['newFile', new LockedException('IMG_0002.JPG.xmp'), SidecarResult::Locked],
-			'storage error while creating' => ['newFile', new \RuntimeException('disk'), SidecarResult::Failed],
+			'storage error while creating' => ['newFile', new GenericFileException('disk'), SidecarResult::Failed],
 		];
 	}
 
@@ -113,12 +114,19 @@ final class SidecarWriterTest extends TestCase {
 
 	// spec: XMP-002.6
 	public function testAStorageErrorIsLoggedWithTheFileIdButNotThePath(): void {
-		$this->failures['putContent'] = new \RuntimeException('disk');
+		$this->failures['putContent'] = new GenericFileException('disk');
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('warning')->with($this->anything(), $this->callback(
-			static fn (array $context): bool => $context['fileId'] === 9 && !array_key_exists('path', $context) && $context['exception'] instanceof \RuntimeException,
+			static fn (array $context): bool => $context['fileId'] === 9 && !array_key_exists('path', $context) && $context['exception'] instanceof GenericFileException,
 		));
 
 		$this->writer($logger)->save($this->user(), [$this->existing('new')]);
+	}
+
+	public function testAnUnexpectedFailureIsNotCaught(): void {
+		$this->failures['putContent'] = new \LogicException('bug');
+		$this->expectException(\LogicException::class);
+
+		$this->writer()->save($this->user(), [$this->existing('new')]);
 	}
 }

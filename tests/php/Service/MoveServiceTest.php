@@ -15,6 +15,7 @@ use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
 use OCP\App\IAppManager;
 use OCP\Files\AlreadyExistsException;
+use OCP\Files\GenericFileException;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
 use OCP\Lock\LockedException;
@@ -141,7 +142,7 @@ final class MoveServiceTest extends TestCase {
 			'a lock' => [new LockedException('A.JPG'), 'locked'],
 			'vanished meanwhile' => [new NotFoundException(), 'notFound'],
 			'taken meanwhile' => [new AlreadyExistsException(), 'exists'],
-			'a storage error' => [new \RuntimeException('disk full'), 'failed'],
+			'a storage error' => [new GenericFileException('disk full'), 'failed'],
 		];
 	}
 
@@ -163,7 +164,7 @@ final class MoveServiceTest extends TestCase {
 	// spec: MOVE-002.4
 	public function testAStorageErrorIsLogged(): void {
 		$this->pair();
-		$failure = new \RuntimeException('disk full');
+		$failure = new GenericFileException('disk full');
 		$this->moveFailures[3] = $failure;
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('warning')->with($this->anything(), ['fileId' => 3, 'exception' => $failure]);

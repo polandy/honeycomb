@@ -5,6 +5,7 @@ import type { ConnectionStatus, ImmichAvailability } from './logic/immich-connec
 
 import { computed, ref } from 'vue'
 import { readStored, writeStored } from './browser-storage.ts'
+import { fireAndLog } from './fire-and-log.ts'
 import { logger } from './logger.ts'
 import { FAILED_STATUS, NO_IMMICH, offersImmich, openedConnection } from './logic/immich-connections.ts'
 
@@ -60,7 +61,7 @@ export function useImmichSource(api: ImmichApi, storage: BrowserStorage) {
 	function choose(kind: SourceKind) {
 		source.value = kind
 		if (kind === 'immich') {
-			connections.value.forEach(({ id }) => void check(id))
+			connections.value.forEach(({ id }) => fireAndLog(check(id), 'Could not check the Immich connection'))
 		}
 	}
 

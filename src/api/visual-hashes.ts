@@ -5,6 +5,7 @@ import type { StoredVisualHash } from '../logic/visual-hash.ts'
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
+import { VISUAL_HASH_METHOD } from '../logic/visual-hash.ts'
 import { API, ApiResponseError, isRecord } from './core.ts'
 import { putSavedRows } from './saved-rows.ts'
 
@@ -16,9 +17,9 @@ export async function saveVisualHashes(hashes: readonly StoredVisualHash[]): Pro
 	return putSavedRows('visual-hashes', { hashes }, 'visual hashes')
 }
 
-/** The next page of the user's photos below `path` without a hash of their current version, after the `cursor` (ADR 0025). */
+/** The next page of the user's photos below `path` without a hash of their current version and method, after the `cursor` (ADR 0025). */
 export async function listMissingVisualHashes(path: string, cursor: string): Promise<MissingPage> {
-	const { data } = await axios.get<unknown>(generateUrl(`${API}/visual-hashes/missing`), { params: { path, cursor } })
+	const { data } = await axios.get<unknown>(generateUrl(`${API}/visual-hashes/missing`), { params: { path, cursor, method: VISUAL_HASH_METHOD } })
 	if (!isRecord(data) || !Array.isArray(data.pictures) || !data.pictures.every(isMissingPicture) || !(data.nextCursor === null || typeof data.nextCursor === 'string')) {
 		throw new ApiResponseError('The missing visual hashes came without a pictures array and nextCursor; check the server\'s version.')
 	}

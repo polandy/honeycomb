@@ -7,13 +7,14 @@ import type { Picture } from './logic/pairing.ts'
 import type { OnPageHide } from './page-hide.ts'
 
 import { getCurrentScope, onScopeDispose, shallowRef } from 'vue'
+import { fireAndLog } from './fire-and-log.ts'
 import { pictureBundle } from './logic/picture-bundle.ts'
 
 /** The cull's sidecar writes bundled per picture: written when the user leaves the picture, after the idle time or when the page hides (XMP-003.25–.29, ADR 0032). */
 export function useBundledSidecars(sidecars: SidecarWrites, schedule: Schedule, onHide: OnPageHide) {
 	const waiting = shallowRef<Picture<ListingEntry> | null>(null)
 	const bundle = pictureBundle<Picture<ListingEntry>>(schedule, (picture) => (waiting.value = picture))
-	const stop = onHide(() => void bundle.flush())
+	const stop = onHide(() => fireAndLog(bundle.flush(), 'Could not flush the sidecar writes'))
 	if (getCurrentScope() !== undefined) {
 		onScopeDispose(stop)
 	}

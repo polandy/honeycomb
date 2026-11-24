@@ -1897,6 +1897,17 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-23: `honeycomb_tag_list` keeps `UNIQUE(user_id, tag)` against ADR 0022's collation
   concern, as Nextcloud creates MySQL tables as `utf8mb4_bin`; a folding `mysql.collation`
   override is accepted as unsupported (#187, autonomous).
+- 2026-11-24: ADR 0053 takes option B: no uninstall step; `occ honeycomb:cleanup --all --drop`
+  drops the tables and deletes the `oc_migrations`, `oc_preferences`, `oc_jobs` and `oc_appconfig`
+  rows; the reinstall before 0.2.0 is an opt-in pre-migration repair step (`reinstall = yes`),
+  as no app command runs before the update (#187, autonomous).
+- 2026-11-24: a glue file in `src/` that would share its name with a `src/logic` file takes the
+  suffix `-flow` or `-run`; existing clashes are renamed in a later PR (#187, autonomous).
+- 2026-11-24: first-run hints: the first-reject hint is the view-state key `reject_hint_seen`
+  (like `series_hint_seen`, per user on the server), a longer toast sentence at the first reject;
+  the setup page links the privacy page on GitHub, as `appinfo/info.xml` does (#187, autonomous).
+- 2026-11-24: `SidecarWriter` and `SidecarReader` catch only the `OCP\Files\*` types, so an unlisted
+  exception fails the request loudly instead of one file quietly (#187, autonomous, PR #386).
 - 2026-11-24: The empty states get a way out (#380, Fable review, owner-approved): the file grid's
   empty folder state offers *Change folders* and hints at the *File types* setting, and the Immich
   grid's no-match state offers *Clear filters* that shows the default filters again. The hint

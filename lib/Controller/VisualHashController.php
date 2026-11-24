@@ -43,10 +43,10 @@ final class VisualHashController extends Controller {
 		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(['saved' => $this->service->save($user, $hashes)]));
 	}
 
-	/** The next page of the user's photos below `$path` without a hash of their current etag (ADR 0025). */
+	/** The next page of the user's photos below `$path` without a hash of their current etag and `$method` (ADR 0025). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/api/v1/visual-hashes/missing')]
-	public function missing(string $path = '', string $cursor = ''): Response {
-		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->missing->page($user, $path, $cursor)));
+	public function missing(string $path = '', string $cursor = '', int $method = 0): Response {
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->missing->page($user, $path, $cursor, $method)));
 	}
 }

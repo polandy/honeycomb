@@ -22,7 +22,7 @@ describe('useHashRun', () => {
 		expect(fake.listMissing.mock.calls).toEqual([['/Photos', ''], ['/Photos', '3.jpg']])
 		expect(fake.hash.mock.calls.map(([each]) => each.fileId).sort()).toEqual([1, 2, 3, 4, 5])
 		expect(fake.save.mock.calls.flatMap(([hashes]) => hashes)).toHaveLength(5)
-		expect(fake.save.mock.calls[0]![0]).toContainEqual({ fileId: 1, etag: 'etag-1', hash: hashOf(1) })
+		expect(fake.save.mock.calls[0]![0]).toContainEqual({ fileId: 1, etag: 'etag-1', method: 1, hash: hashOf(1) })
 		expect(run.status.value).toBe('done')
 		expect(run.progress.value).toEqual({ phase: 'done', hashed: 5, failed: 0, total: 5 })
 	})

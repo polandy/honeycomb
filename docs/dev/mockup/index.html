@@ -1055,6 +1055,8 @@ const DE = {
   'Flag buttons hidden, and no swipe decides: the flag at the top shows them': 'Markierungsknöpfe ausgeblendet, und keine Wischgeste entscheidet: die Fahne oben zeigt sie wieder',
   'Flag buttons hidden · swipe to decide, the flag at the top shows them': 'Markierungsknöpfe ausgeblendet · per Wischen entscheiden, die Fahne oben zeigt sie wieder',
   'Keyboard': 'Tastatur', 'Vi keys': 'Vi-Tasten',
+  'XMP sidecars': 'XMP-Sidecars', 'Write picks, rejects and Keep RAW to XMP sidecars': 'Picks, Rejects und RAW behalten in XMP-Sidecars schreiben',
+  'digiKam sees them at once, and a pick or reject changed in digiKam is taken over on the next visit. Stars, colour labels and tags are written either way.': 'digiKam sieht sie sofort, und ein in digiKam geänderter Pick oder Reject wird beim nächsten Besuch übernommen. Sterne, Farbmarkierungen und Tags werden immer geschrieben.',
   'h j k l switch photos, g g and Shift + G go to the first and last, / opens the filters. g no longer opens the grid: Esc does.': 'h j k l wechseln das Foto, g g und Umschalt + G springen zum ersten und letzten, / öffnet die Filter. g öffnet dann nicht mehr das Raster, sondern Esc.',
   'First photo, last photo': 'Erstes Foto, letztes Foto', 'First photo': 'Erstes Foto', 'Last photo': 'Letztes Foto', 'Previous photo, next photo': 'Vorheriges Foto, nächstes Foto',
   'Vi keys (Settings › Keyboard)': 'Vi-Tasten (Einstellungen › Tastatur)', 'Open the filter bar': 'Filterleiste öffnen', 'Back to the grid (g starts g g)': 'Zurück zum Raster (g beginnt g g)',
@@ -1240,7 +1242,7 @@ const TPL_SAMPLES = [
 
 /* ---------- state ---------- */
 const DEF_SETTINGS = () => ({rawExt:['NEF','CR3','ARW','RAF','DNG'], renderedExt:['JPG','JPEG','HEIC','HEIF','HIF'], folderMode:'same', rawFolder:'RAW', jpgFolder:'JPG',
-  showSingles:true, swipeUp:'pick', swipeDown:'reject', autoAdvance:true, flagButtons:true, viKeys:false, moveTemplate:TPL_PRESETS[0][1]});
+  showSingles:true, swipeUp:'pick', swipeDown:'reject', autoAdvance:true, flagButtons:true, viKeys:false, writeFlagsToXmp:true, moveTemplate:TPL_PRESETS[0][1]});
 const DEF_FLAGS = ['pick', 'none'];
 const flagsDefault = f => f.flags.size === DEF_FLAGS.length && DEF_FLAGS.every(v => f.flags.has(v));
 const DEF_FILTERS = () => ({ratingOp:'gte', rating:null, labels:new Set(), flags:new Set(DEF_FLAGS), pairs:new Set(), keepRaw:new Set(), folders:new Set(), tags:[]});
@@ -2260,6 +2262,8 @@ function dlgSettings(){
     <div id="tplPv">${tplPreview(tplCur)}</div>
     <p class="hint" style="margin-top:8px">${t('Tokens: <span class="mono">{date:%Y %m %d %j %H %M %S}</span>, <span class="mono">{camera}</span>, <span class="mono">{make}</span>, <span class="mono">{name}</span>, <span class="mono">{number:N}</span>, <span class="mono">{ext}</span>; <span class="mono">:lower</span> and <span class="mono">:upper</span> on text tokens. Only letters, digits, <span class="mono">. _ -</span> and <span class="mono">/</span>, never spaces.')}</p>
     <div style="margin:10px 0 8px"><b style="font-size:13px">${t('Favourite folders')}</b></div><div class="chiprow">${S.moveFav.map(p => `<span class="ext">★ ${esc(p.split('/').pop())}<button data-act="favDel" data-path="${esc(p)}" aria-label="${esc(t('Remove favourite {path}', {path:p}))}" ${tip(t('Remove favourite {path}', {path:p}))}>✕</button></span>`).join('') || `<span class="hint">${t('None yet: add one in the move dialog.')}</span>`}</div></div>
+  <div class="sec"><h3>${t('XMP sidecars')}</h3>
+    ${sw('writeFlagsToXmp', 'Write picks, rejects and Keep RAW to XMP sidecars', 'digiKam sees them at once, and a pick or reject changed in digiKam is taken over on the next visit. Stars, colour labels and tags are written either way.')}</div>
   ${S.mock.admin ? `<div class="sec"><h3>${t('Cache')}</h3>
     <div class="setrow"><div><div>${t('Clean up orphaned data')}</div><div style="font-size:12px;color:var(--muted)">${t('Removes the picks, rejects and Keep RAW marks of photos that no longer exist or lie in the trash bin.')}</div></div><button class="btn" data-act="cleanupOrphans">${t('Clean up')}</button></div></div>` : ''}`,
     `<button class="btn primary" data-act="closeDlg">${t('Done')}</button>`, true);

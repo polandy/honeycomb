@@ -21,7 +21,7 @@ type Rows = ReadonlyMap<number, XmpCacheRow>
 type Known = ReadonlyMap<string, { readonly fileId: PictureId }>
 
 /** Whether the sidecar's row states another pick/reject or Keep RAW than the decision; an unflagged picture keeps a row stating nothing or PickLabel 2. */
-function differs(row: XmpCacheRow, decision: Decision, pair: boolean): boolean {
+export function differs(row: XmpCacheRow, decision: Decision, pair: boolean): boolean {
 	const flagDiffers = decision.flag === 'unflagged' ? row.flag === 'picked' || row.flag === 'rejected' : row.flag !== decision.flag
 	return flagDiffers || (pair && (row.keepRaw === true) !== decision.keepRaw)
 }

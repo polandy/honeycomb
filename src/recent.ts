@@ -12,6 +12,7 @@ import type { ToastAction } from './toast.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, ref, shallowRef } from 'vue'
+import { fireAndLog } from './fire-and-log.ts'
 import { listFolderSet } from './folder-count.ts'
 import { logger } from './logger.ts'
 import { countFolderSet } from './logic/cull.ts'
@@ -86,7 +87,7 @@ export function useRecent(api: ResumeApi, listEntries: ListEntries, cull: Recent
 			}
 		} catch (error) {
 			logger.error('Could not list the recent folder set', { error })
-			toast(notOpenedText(folderSet, error), { label: t('honeycomb', 'Try again'), run: () => void list(folderSet, openCull, opened) })
+			toast(notOpenedText(folderSet, error), { label: t('honeycomb', 'Try again'), run: () => fireAndLog(list(folderSet, openCull, opened), 'Could not list the folder set again') })
 		} finally {
 			if (listed === opening) {
 				listing.value = false

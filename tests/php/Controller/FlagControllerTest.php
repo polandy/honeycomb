@@ -66,12 +66,24 @@ final class FlagControllerTest extends TestCase {
 		$this->assertSame(['saved' => [7], 'skipped' => []], json_decode($response->render(), true));
 	}
 
-	// spec: DECISIONS-001.25
+	// spec: DECISIONS-001.40
+	public function testSettingTheSidecarEtagsAnswersWhatItSet(): void {
+		$this->controller()->save([self::PICKED]);
+
+		$response = $this->controller()->sidecarEtags([['fileId' => 7, 'sidecarEtag' => 'e1'], ['fileId' => 8, 'sidecarEtag' => 'e1']]);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame(['saved' => [7], 'skipped' => [['fileId' => 8, 'reason' => 'notFound']]], json_decode($response->render(), true));
+		$this->assertSame('e1', $this->store->rows[7]->sidecarEtag);
+	}
+
+	// spec: DECISIONS-001.25, DECISIONS-001.40
 	public function testAMalformedBodyIsABadRequest(): void {
 		$controller = $this->controller();
 
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $controller->save([['fileId' => 7]])->getStatus());
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $controller->takeOver([['fileId' => 7, 'flag' => 'maybe', 'keepRaw' => false]])->getStatus());
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $controller->sidecarEtags([['fileId' => 7, 'sidecarEtag' => 7]])->getStatus());
 		$this->assertSame(0, $this->store->writeCalls);
 	}
 
@@ -81,6 +93,7 @@ final class FlagControllerTest extends TestCase {
 
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $controller->save([self::PICKED])->getStatus());
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $controller->takeOver([self::PICKED])->getStatus());
+		$this->assertSame(Http::STATUS_UNAUTHORIZED, $controller->sidecarEtags([['fileId' => 7, 'sidecarEtag' => 'e1']])->getStatus());
 		$this->assertSame(0, $this->store->writeCalls);
 	}
 
@@ -89,6 +102,7 @@ final class FlagControllerTest extends TestCase {
 		return [
 			'save' => ['save', 'PUT', '/api/v1/flags'],
 			'take over' => ['takeOver', 'POST', '/api/v1/flags/take-over'],
+			'sidecar etags' => ['sidecarEtags', 'PUT', '/api/v1/flags/sidecar-etags'],
 		];
 	}
 

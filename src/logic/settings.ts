@@ -30,6 +30,8 @@ export interface Settings extends PairingSettings {
 	readonly libraryRoots: readonly string[]
 	/** Whether a start without a folder set opens Immich instead of the folder picker (IMMICH-001.23). */
 	readonly immichOnly: boolean
+	/** Whether a flag or Keep RAW step is written through to the XMP sidecars and synced on a visit (ADR 0056). */
+	readonly writeFlagsToXmp: boolean
 }
 
 /** The settings lists stored and saved each on its own, so another tab's save of the rest keeps them (ADR 0051). */
@@ -70,6 +72,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	keepStatistics: true,
 	libraryRoots: [],
 	immichOnly: false,
+	writeFlagsToXmp: true,
 }
 
 const OTHER_LIST: Record<ExtensionList, ExtensionList> = { rawExtensions: 'renderedExtensions', renderedExtensions: 'rawExtensions' }
@@ -78,7 +81,7 @@ const SWIPE_FLAGS: readonly (Flag | null)[] = ['picked', 'rejected', null]
 /** The settings as stored, each missing or invalid field at its default; pairing never fails on them. */
 export function parseSettings(value: unknown): Settings {
 	const stored: Record<string, unknown> = isObject(value) ? value : {}
-	const boolean = (key: 'showSingles' | 'autoAdvance' | 'flagButtonsShown' | 'filmstripPinned' | 'ratingRowPinned' | 'viKeys' | 'showFileNames' | 'keepStatistics' | 'immichOnly') => (typeof stored[key] === 'boolean' ? stored[key] : DEFAULT_SETTINGS[key])
+	const boolean = (key: 'showSingles' | 'autoAdvance' | 'flagButtonsShown' | 'filmstripPinned' | 'ratingRowPinned' | 'viKeys' | 'showFileNames' | 'keepStatistics' | 'immichOnly' | 'writeFlagsToXmp') => (typeof stored[key] === 'boolean' ? stored[key] : DEFAULT_SETTINGS[key])
 	return {
 		...extensionLists(stored.rawExtensions, stored.renderedExtensions),
 		folderMode: parseFolderMode(stored.folderMode),
@@ -96,6 +99,7 @@ export function parseSettings(value: unknown): Settings {
 		keepStatistics: boolean('keepStatistics'),
 		libraryRoots: parseLibraryRoots(stored.libraryRoots),
 		immichOnly: boolean('immichOnly'),
+		writeFlagsToXmp: boolean('writeFlagsToXmp'),
 	}
 }
 

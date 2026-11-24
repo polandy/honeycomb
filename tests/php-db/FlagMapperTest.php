@@ -45,8 +45,8 @@ final class FlagMapperTest extends DbTestCase {
 		parent::tearDown();
 	}
 
-	private static function flag(int $fileId, Flag $flag = Flag::Picked, bool $keepRaw = false, int $updatedAt = 100): FileFlag {
-		return new FileFlag($fileId, $flag, $keepRaw, $updatedAt);
+	private static function flag(int $fileId, Flag $flag = Flag::Picked, bool $keepRaw = false, int $updatedAt = 100, ?string $updatedBy = null): FileFlag {
+		return new FileFlag($fileId, $flag, $keepRaw, $updatedAt, $updatedBy);
 	}
 
 	// spec: DECISIONS-001.23
@@ -81,6 +81,32 @@ final class FlagMapperTest extends DbTestCase {
 
 		$this->assertSame([8], $this->flags->takeOver([self::flag(7, Flag::Picked, true, 200), self::flag(8, Flag::Unflagged, false, 200)]));
 		$this->assertEquals([7 => self::flag(7, Flag::Rejected), 8 => self::flag(8, Flag::Unflagged, false, 200)], $this->flags->find([7, 8]));
+	}
+
+	// spec: DECISIONS-001.41
+	public function testATakeOverStoresTheSidecarEtag(): void {
+		$this->flags->takeOver([new FileFlag(7, Flag::Picked, false, 100, null, 'e1'), self::flag(8)]);
+
+		$this->assertEquals([7 => new FileFlag(7, Flag::Picked, false, 100, null, 'e1'), 8 => self::flag(8)], $this->flags->find([7, 8]));
+	}
+
+	// spec: DECISIONS-001.42
+	public function testASaveKeepsTheSidecarEtag(): void {
+		$this->flags->takeOver([new FileFlag(7, Flag::Rejected, false, 100, null, 'e1')]);
+
+		$this->flags->save([new FileFlag(7, Flag::Picked, true, 200, 'bob', 'other')]);
+
+		$this->assertEquals([7 => new FileFlag(7, Flag::Picked, true, 200, 'bob', 'e1')], $this->flags->find([7]));
+	}
+
+	// spec: DECISIONS-001.40
+	public function testSetsTheSidecarEtagsOfExistingRowsOnly(): void {
+		$this->flags->save([self::flag(7, Flag::Rejected, true, 100, self::USER), self::flag(9)]);
+
+		$set = $this->flags->setSidecarEtags([7 => 'e2', 8 => 'e2', 9 => null]);
+
+		$this->assertEqualsCanonicalizing([7, 9], $set);
+		$this->assertEquals([7 => new FileFlag(7, Flag::Rejected, true, 100, self::USER, 'e2'), 9 => self::flag(9)], $this->flags->find([7, 8, 9]));
 	}
 
 	// spec: DECISIONS-001.34
@@ -125,6 +151,23 @@ final class FlagMapperTest extends DbTestCase {
 		$this->assertSame([['immich', null, self::ASSET, 'rejected'], ['file', 7, null, 'picked'], ['file', 10, null, 'picked']], $this->sourceRows());
 	}
 
+	// spec: DECISIONS-001.37, DECISIONS-001.36
+	public function testNotesWhoDecidedLastAndEmptiesItForADeletedUser(): void {
+		$this->insertImmichRow();
+		$this->flags->save([self::flag(7, updatedBy: 'anna'), self::flag(8, updatedBy: 'anna')]);
+		$this->flags->takeOver([self::flag(9, updatedBy: 'ben')]);
+		$this->flags->save([self::flag(8, Flag::Rejected, updatedBy: 'ben')]);
+
+		$this->flags->forgetUser('anna');
+		$this->flags->forgetUser(self::USER);
+
+		$this->assertEquals([7 => self::flag(7), 8 => self::flag(8, Flag::Rejected, updatedBy: 'ben'), 9 => self::flag(9, updatedBy: 'ben')], $this->flags->find([7, 8, 9]));
+		$query = $this->db->getQueryBuilder();
+		$result = $query->select('updated_by')->from('honeycomb_decisions')->where($query->expr()->eq('source', $query->createNamedParameter('immich')))->executeQuery();
+		$this->assertSame(self::USER, $result->fetchOne());
+		$result->closeCursor();
+	}
+
 	/** An Immich decision row as ADR 0054 shapes it. */
 	private function insertImmichRow(): void {
 		$query = $this->db->getQueryBuilder();
@@ -133,6 +176,7 @@ final class FlagMapperTest extends DbTestCase {
 			'connection_id' => $query->createNamedParameter('home'),
 			'asset_id' => $query->createNamedParameter(self::ASSET),
 			'user_id' => $query->createNamedParameter(self::USER),
+			'updated_by' => $query->createNamedParameter(self::USER),
 			'flag' => $query->createNamedParameter('rejected'),
 			'keep_raw' => $query->createNamedParameter(false, IQueryBuilder::PARAM_BOOL),
 			'rating' => $query->createNamedParameter(3, IQueryBuilder::PARAM_INT),

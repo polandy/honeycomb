@@ -7,6 +7,7 @@ import type { Filters } from './logic/picture-filter.ts'
 import type { ResumePosition } from './logic/resume-position.ts'
 
 import { computed, watch } from 'vue'
+import { fireAndLog } from './fire-and-log.ts'
 import { useFolderDone } from './folder-done.ts'
 import { useFolders } from './folders.ts'
 import { isRateable } from './logic/folder-row.ts'
@@ -61,7 +62,7 @@ export function useFoldersHome(api: LibraryApi & FolderDoneApi, options: Folders
 		folders.leave(true)
 		const position = options.positionOf(set)
 		if (position === null) {
-			void options.openSet(set)
+			fireAndLog(options.openSet(set), 'Could not open the folder set')
 		} else {
 			options.openPosition(position)
 		}
@@ -122,7 +123,7 @@ export function useFoldersHome(api: LibraryApi & FolderDoneApi, options: Folders
 		changed: done.changed,
 		finishing,
 		markFinished,
-		back: () => void folders.show(),
+		back: () => fireAndLog(folders.show(), 'Could not show the folders'),
 		saveRoots: options.saveRoots,
 		now: options.now,
 	}

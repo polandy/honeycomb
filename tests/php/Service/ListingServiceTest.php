@@ -107,6 +107,7 @@ final class ListingServiceTest extends TestCase {
 			'flag' => null,
 			'keepRaw' => null,
 			'flagUpdated' => null,
+			'sidecarEtag' => null,
 		]], $this->entriesOf($listing));
 	}
 
@@ -115,11 +116,11 @@ final class ListingServiceTest extends TestCase {
 		$folder = $this->folder('/Photos');
 		$folder->method('getDirectoryListing')->willReturn(array_map(fn (int $id): File => $this->file($id, "/Photos/IMG_$id.JPG"), [1, 2, 3, 4]));
 		$hashes = new FakeVisualHashStore();
-		$hashes->rows = [1 => new VisualHash(1, 'etag-1', '0000000000000001'), 2 => new VisualHash(2, 'etag-old', '0000000000000002'), 3 => new VisualHash(3, 'etag-3', '0000000000000003')];
+		$hashes->rows = [1 => new VisualHash(1, 'etag-1', 1, '0000000000000001'), 2 => new VisualHash(2, 'etag-old', 1, '0000000000000002'), 3 => new VisualHash(3, 'etag-3', 2, '0000000000000003')];
 
 		$listing = $this->service($this->rootWith(['/Photos' => $folder]), hashes: $hashes)->list($this->user(), 'Photos', false);
 
-		$this->assertSame(['0000000000000001', null, '0000000000000003', null], array_column($this->entriesOf($listing), 'visualHash'));
+		$this->assertSame([['method' => 1, 'hash' => '0000000000000001'], null, ['method' => 2, 'hash' => '0000000000000003'], null], array_column($this->entriesOf($listing), 'visualHash'));
 		$this->assertSame([[1, 2, 3, 4]], $hashes->findCalls);
 	}
 
@@ -145,11 +146,11 @@ final class ListingServiceTest extends TestCase {
 			$this->file(3, '/Photos/IMG_1.XMP', 'application/octet-stream'),
 		]);
 		$flags = new FakeFlagStore();
-		$flags->rows[1] = new FileFlag(1, Flag::Rejected, true, 1_800_000_000);
+		$flags->rows[1] = new FileFlag(1, Flag::Rejected, true, 1_800_000_000, null, 'e1');
 
 		$entries = $this->entriesOf($this->service($this->rootWith(['/Photos' => $folder]), flags: $flags)->list($this->user(), 'Photos', false));
 
-		$this->assertSame([['rejected', true, 1_800_000_000], [null, null, null], [null, null, null]], array_map(static fn (array $entry): array => [$entry['flag'], $entry['keepRaw'], $entry['flagUpdated']], $entries));
+		$this->assertSame([['rejected', true, 1_800_000_000, 'e1'], [null, null, null, null], [null, null, null, null]], array_map(static fn (array $entry): array => [$entry['flag'], $entry['keepRaw'], $entry['flagUpdated'], $entry['sidecarEtag']], $entries));
 	}
 
 	// spec: LISTING-001.18

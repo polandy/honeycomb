@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service;
 
-/** Rows each user keeps that go with the user. */
+/** Rows each user keeps, or names, that go with the user. */
 interface UserRowStore {
-	/** Removes every row of the user. */
+	/** Removes every row of the user, or empties the user's name in a row that stays. */
 	public function forgetUser(string $userId): void;
 }

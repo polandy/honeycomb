@@ -21,7 +21,7 @@ function pendingApi() {
 		sent.push([...items])
 		return new Promise<FlagAnswer>((resolve, reject) => answers.push((answer) => answer instanceof Error ? reject(answer) : resolve(answer)))
 	}
-	return { api: { save, takeOver: vi.fn(async () => SAVED) }, sent, answers }
+	return { api: { save, takeOver: vi.fn(async () => SAVED), saveSidecarEtags: vi.fn(async () => SAVED) }, sent, answers }
 }
 
 beforeEach(() => {
@@ -133,5 +133,53 @@ describe('useCullFlags', () => {
 		await flushPromises()
 
 		expect(logger.warn).toHaveBeenCalledWith('Could not take the flags over; the photos show what their sidecars state', expect.anything())
+	})
+
+	// spec: DECISIONS-001.41
+	it('sends a take-over with the ETag of each member\'s sidecar it knows', () => {
+		const { api } = pendingApi()
+		const flags = useCullFlags(api)
+
+		flags.takeOver([row(4), row(5)], new Map([[4, 'e1']]))
+
+		expect(api.takeOver).toHaveBeenCalledWith([{ fileId: 4, flag: 'picked', keepRaw: false, sidecarEtag: 'e1' }, { fileId: 5, flag: 'picked', keepRaw: false }])
+		expect(flags.knownEtags().get(4)).toBe('e1')
+	})
+
+	// spec: XMP-003.45, XMP-003.46
+	it('records the ETags after the saves before, keeps them for the session and sends nothing for none', async () => {
+		const { api, answers } = pendingApi()
+		const flags = useCullFlags(api)
+		void flags.save([row(1)])
+		flags.record([])
+		flags.record([{ fileId: 1, sidecarEtag: 'e2' }])
+		await flushPromises()
+		expect(api.saveSidecarEtags).not.toHaveBeenCalled()
+
+		answers[0]!(SAVED)
+		await flushPromises()
+
+		expect(api.saveSidecarEtags).toHaveBeenCalledOnce()
+		expect(api.saveSidecarEtags).toHaveBeenCalledWith([{ fileId: 1, sidecarEtag: 'e2' }])
+		expect(flags.knownEtags().get(1)).toBe('e2')
+		expect(flags.knownEtags().get(2)).toBeUndefined()
+	})
+
+	// spec: XMP-003.45
+	it('logs an ETag record that fails or skips and still sends the next save', async () => {
+		const { api, sent, answers } = pendingApi()
+		const flags = useCullFlags(api)
+		api.saveSidecarEtags.mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce({ saved: [], skipped: [{ fileId: 2, reason: 'missing' }] })
+
+		flags.record([{ fileId: 1, sidecarEtag: 'e2' }])
+		flags.record([{ fileId: 2, sidecarEtag: 'e3' }])
+		const next = flags.save([row(3)])
+		await flushPromises()
+		answers[0]!(SAVED)
+
+		await expect(next).resolves.toEqual(new Set())
+		expect(sent).toHaveLength(1)
+		expect(logger.warn).toHaveBeenCalledWith('Could not record the sidecar ETags; the next visit compares the old ones', expect.anything())
+		expect(logger.warn).toHaveBeenCalledWith('The server did not record some sidecar ETags', expect.anything())
 	})
 })

@@ -16,6 +16,7 @@ import { browserSchedule } from '../browser-schedule.ts'
 import { useGridPinch } from '../grid-pinch.ts'
 import { useGridSeries } from '../grid-series.ts'
 import { formatNumber } from '../l10n.ts'
+import { logger } from '../logger.ts'
 import { isAppended } from '../logic/appended.ts'
 import { autoScrollStep } from '../logic/auto-scroll.ts'
 import { folderLabel } from '../logic/cull.ts'
@@ -45,7 +46,6 @@ const props = withDefaults(defineProps<PhotoGridProps>(), {
 	schedule: browserSchedule,
 	frame: browserFrame,
 })
-
 const emit = defineEmits<PhotoGridEmits>()
 
 const GAP = 8
@@ -76,7 +76,7 @@ const layout = computed(() => gridLayout({
 	nameBar: props.fileNames ? NAME_BAR : 0,
 }))
 const series = useGridSeries({ pictures: () => props.pictures, seriesOf: () => props.seriesOf, offered: () => props.offeredSeries, open: () => props.openSeries, groupStarts: () => groups.value.map((group) => group.start) })
-const loads = createLoadQueue(props.loadImage, IMAGE_LOADS_IN_FLIGHT)
+const loads = createLoadQueue(props.loadImage, IMAGE_LOADS_IN_FLIGHT, (error) => logger.error('A tile image callback failed', { error }))
 const sticky = computed(() => stickyHeader(layout.value, scrollTop.value))
 const order = computed(() => props.pictures.map((picture) => imageMember(picture).fileId))
 const tiles = useTileSelection({

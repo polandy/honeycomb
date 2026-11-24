@@ -10,6 +10,7 @@ namespace OCA\Honeycomb\Tests\AppInfo;
 use DOMDocument;
 use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\BackgroundJob\SweepVanishedRows;
+use OCA\Honeycomb\Migration\ReinstallBeforeBaseline;
 use PHPUnit\Framework\TestCase;
 use SimpleXMLElement;
 
@@ -50,6 +51,11 @@ final class InfoXmlTest extends TestCase {
 	// spec: DECISIONS-001.11
 	public function testRegistersTheCleanUpJob(): void {
 		$this->assertSame(SweepVanishedRows::class, (string)$this->info->{'background-jobs'}->job);
+	}
+
+	// spec: DECISIONS-001.39
+	public function testRunsTheReinstallStepBeforeTheMigrations(): void {
+		$this->assertSame(ReinstallBeforeBaseline::class, (string)$this->info->{'repair-steps'}->{'pre-migration'}->step);
 	}
 
 	public function testVersionMatchesPackageJson(): void {

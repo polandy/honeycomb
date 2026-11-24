@@ -23,8 +23,13 @@ interface Entry {
 	cancelled: boolean
 }
 
+/** Without a listener, a failing callback surfaces as an unhandled rejection. */
+function rethrown(error: unknown): never {
+	throw error
+}
+
 /** A queue with at most `limit` loads in flight that starts the lowest priority, then the oldest. */
-export function createLoadQueue(load: (url: string) => Promise<void>, limit: number): LoadQueue {
+export function createLoadQueue(load: (url: string) => Promise<void>, limit: number, onError: (error: unknown) => void = rethrown): LoadQueue {
 	const waiting: Entry[] = []
 	let running = 0
 	let requested = 0
@@ -36,7 +41,7 @@ export function createLoadQueue(load: (url: string) => Promise<void>, limit: num
 		while (running < limit && waiting.length > 0) {
 			const first = waiting.reduce((best, entry) => (before(entry, best) ? entry : best))
 			waiting.splice(waiting.indexOf(first), 1)
-			void run(first)
+			run(first).catch(onError)
 		}
 	}
 

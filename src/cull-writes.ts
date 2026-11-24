@@ -9,6 +9,7 @@ import type { Picture } from './logic/pairing.ts'
 import type { PictureId } from './logic/picture-id.ts'
 import type { CountSign } from './logic/stats-counts.ts'
 
+import { fireAndLog } from './fire-and-log.ts'
 import { logger } from './logger.ts'
 import { changedFields, takenBack, withRows } from './logic/decision-change.ts'
 import { FLAG_FIELDS, pictureDecision } from './logic/decision.ts'
@@ -21,6 +22,8 @@ export interface CullWriteState {
 	readonly pictures: () => readonly Picture<ListingEntry>[]
 	/** Whether a step on the picture is saved and written through (XMP-008.12). */
 	readonly writesThrough: (picture: Picture<ListingEntry>) => boolean
+	/** Whether the flag fields are written through to the sidecars too (XMP-003.43). */
+	readonly writeFlags: () => boolean
 	/** Hears how many photos got their flag back. */
 	readonly onFlagsNotSaved: (photos: number) => void
 }
@@ -29,7 +32,7 @@ export interface CullWriteState {
 export function useCullWrites(flags: ReturnType<typeof useCullFlags>, sidecars: SidecarWrites, state: CullWriteState) {
 	const decisionOf = (picture: Picture<ListingEntry>) => pictureDecision(picture, state.decisions.value)
 
-	/** Saves the flags of the rows changed from `before` and writes their other fields through with what they count, by the sign; a failed save or write is taken back (XMP-003.37, .38, XMP-008.15, .17, STATS-001). */
+	/** Saves the flags of the rows changed from `before` and writes their fields through with what they count, by the sign; a failed save, or a failed write of a field other than a flag, is taken back (XMP-003.37, .38, .44, XMP-008.15, .17, STATS-001). */
 	function write(rows: readonly StoredDecision[], before: ReadonlyMap<PictureId, Decision>, sign: CountSign) {
 		const after = state.decisions.value
 		const fields = changedFields(rows, before)
@@ -38,17 +41,18 @@ export function useCullWrites(flags: ReturnType<typeof useCullFlags>, sidecars: 
 		const writtenRows = rowsOf(rows, written)
 		const flagFields = fields.filter((field) => FLAG_FIELDS.includes(field))
 		const sidecarFields = fields.filter((field) => !FLAG_FIELDS.includes(field))
+		const writtenFields = state.writeFlags() ? [...flagFields, ...sidecarFields] : sidecarFields
 		if (writtenRows.length > 0 && flagFields.length > 0) {
-			void flags.save(writtenRows, countsByRow(written, writtenRows, (picture) => flagCounts(pictureDecision(picture, before).flag, pictureDecision(picture, after).flag))).then((notSaved) => {
+			fireAndLog(flags.save(writtenRows, countsByRow(written, writtenRows, (picture) => flagCounts(pictureDecision(picture, before).flag, pictureDecision(picture, after).flag))).then((notSaved) => {
 				const back = written.filter((picture) => memberIds(picture).some((fileId) => notSaved.has(fileId)))
 				if (back.length > 0) {
 					takeBack(rowsOf(writtenRows, back), before, flagFields)
 					state.onFlagsNotSaved(back.length)
 				}
-			})
+			}), 'Could not save the flags')
 		}
-		if (written.length > 0 && sidecarFields.length > 0) {
-			sidecars.write(written, decisionOf, sidecarFields, undefined, (picture) => fieldCounts(pictureDecision(picture, before), pictureDecision(picture, after), sign)).then(({ failed }) => {
+		if (written.length > 0 && writtenFields.length > 0) {
+			sidecars.write(written, decisionOf, writtenFields, undefined, (picture) => fieldCounts(pictureDecision(picture, before), pictureDecision(picture, after), sign)).then(({ failed }) => {
 				const failedPictures = new Set(failed.map(({ picture }) => picture))
 				takeBack(rowsOf(writtenRows, written.filter((picture) => failedPictures.has(picture))), before, sidecarFields)
 			}, (error: unknown) => logger.error('Could not write the sidecars; the photos show them as changed', { error }))

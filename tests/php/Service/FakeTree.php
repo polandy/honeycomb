@@ -41,6 +41,9 @@ trait FakeTree {
 	private array $mounts = [];
 	/** @var array<int, \Throwable> file id → what its next move throws */
 	private array $moveFailures = [];
+
+	/** @var array<int, \Throwable> */
+	private array $deleteFailures = [];
 	/** @var array<int, int> file id → the id it gets when it moves, as across storages */
 	private array $newIds = [];
 	/** @var list<int> file ids in the order they went to the trash bin */
@@ -156,6 +159,9 @@ trait FakeTree {
 		$storage->method('instanceOfStorage')->willReturnCallback(fn (string $class): bool => !isset($this->noTrashBin[$id]) && $class === 'OCA\\Files_Trashbin\\Storage');
 		$file->method('getStorage')->willReturn($storage);
 		$file->method('delete')->willReturnCallback(function () use ($id): void {
+			if (isset($this->deleteFailures[$id])) {
+				throw $this->deleteFailures[$id];
+			}
 			unset($this->files[$id]);
 			$this->trashed[] = $id;
 		});

@@ -30,7 +30,7 @@ final class FlagService {
 	 * @throws \OCP\DB\Exception
 	 */
 	public function save(IUser $user, array $items): FlagAnswer {
-		$flags = $this->parse($items);
+		$flags = $this->parse($user, $items);
 		$counts = self::counts($items);
 		$rateable = $this->photos->rateable($user, array_keys($flags));
 		$allowed = array_values(array_filter($flags, static fn (FileFlag $flag): bool => $rateable[$flag->fileId] ?? false));
@@ -49,7 +49,7 @@ final class FlagService {
 	 * @throws \OCP\DB\Exception
 	 */
 	public function takeOver(IUser $user, array $items): FlagAnswer {
-		$flags = $this->parse($items);
+		$flags = $this->parse($user, $items);
 		$reached = array_flip($this->photos->photos($user, array_keys($flags)));
 		$candidates = array_values(array_intersect_key($flags, $reached));
 		$inserted = $candidates === [] ? [] : RetryOnConflict::run(fn (): array => $this->store->takeOver($candidates));
@@ -57,13 +57,34 @@ final class FlagService {
 	}
 
 	/**
-	 * The request's flags by file id, in its order, stamped now.
+	 * Records the sidecar ETags in `$items` on the rows of the photos in folders the user may write to (ADR 0056).
+	 * @param array<array-key, mixed> $items
+	 * @throws InvalidFlagException for a malformed item or a file id given twice, before any write
+	 * @throws \OCP\DB\Exception
+	 */
+	public function sidecarEtags(IUser $user, array $items): FlagAnswer {
+		$parsed = array_map(SidecarEtag::fromRequest(...), FileIds::items($items, ListingService::ENTRY_LIMIT, InvalidFlagException::class));
+		$fileIds = FileIds::eachOnce(array_map(static fn (SidecarEtag $etag): int => $etag->fileId, $parsed), InvalidFlagException::class);
+		$etags = array_combine($fileIds, array_map(static fn (SidecarEtag $etag): ?string => $etag->sidecarEtag, $parsed));
+		$rateable = $this->photos->rateable($user, $fileIds);
+		$allowed = array_filter($etags, static fn (int $fileId): bool => $rateable[$fileId] ?? false, ARRAY_FILTER_USE_KEY);
+		$set = $allowed === [] ? [] : RetryOnConflict::run(fn (): array => $this->store->setSidecarEtags($allowed));
+		return self::answer($fileIds, $set, static fn (int $fileId): string => match ($rateable[$fileId] ?? null) {
+			true => FlagAnswer::MISSING,
+			false => FlagAnswer::NOT_PERMITTED,
+			null => FlagAnswer::NOT_FOUND,
+		});
+	}
+
+	/**
+	 * The request's flags by file id, in its order, stamped now by the user.
 	 * @param array<array-key, mixed> $items
 	 * @return array<int, FileFlag>
 	 */
-	private function parse(array $items): array {
+	private function parse(IUser $user, array $items): array {
 		$now = $this->time->getTime();
-		$flags = array_map(static fn (mixed $item): FileFlag => FileFlag::fromRequest($item, $now), FileIds::items($items, ListingService::ENTRY_LIMIT, InvalidFlagException::class));
+		$uid = $user->getUID();
+		$flags = array_map(static fn (mixed $item): FileFlag => FileFlag::fromRequest($item, $now, $uid), FileIds::items($items, ListingService::ENTRY_LIMIT, InvalidFlagException::class));
 		$fileIds = FileIds::eachOnce(array_map(static fn (FileFlag $flag): int => $flag->fileId, $flags), InvalidFlagException::class);
 		return array_combine($fileIds, $flags);
 	}

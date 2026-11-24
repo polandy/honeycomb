@@ -6,6 +6,7 @@ import type { PictureId } from './picture-id.ts'
 import type { Series } from './series.ts'
 import type { Exposure } from './shake-risk.ts'
 import type { QualityValue } from './sharpness.ts'
+import type { ListedVisualHash } from './visual-hash.ts'
 
 import { imageMember } from './image-tiers.ts'
 
@@ -27,11 +28,13 @@ export interface ListingEntry extends SourceEntry {
 	readonly size: number
 	readonly etag: string
 	/** The stored visual hash of this file version, `null` while none is stored (ADR 0024). */
-	readonly visualHash: string | null
+	readonly visualHash: ListedVisualHash | null
 	/** The stored quality value of this file version, `null` while none is stored (ADR 0046). */
 	readonly quality: QualityValue | null
 	/** The EXIF exposure facts, `null` where Nextcloud extracted none (ADR 0046). */
 	readonly exposure: Exposure | null
+	/** The ETag of the file's sidecar as honeycomb last knew it, `null` without a row or never known (ADR 0056). */
+	readonly sidecarEtag: string | null
 }
 
 /** Whether the picture comes from the listing endpoint, so its members carry the folder-only fields. */

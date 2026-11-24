@@ -23,11 +23,18 @@ ADR 0054 moved the rows into `honeycomb_decisions`, the decision table that the 
 **Flags:**
 
 - A row is `fileId`, `flag` (`picked`, `rejected`, `unflagged`), `keepRaw` and `updatedAt` from
-  the injected clock, one row per member file id, without a user, of the source `file`. The flags
+  the injected clock, one row per member file id, shared by every user, of the source `file`. It
+  notes in `updated_by` who saved or took it over last, for information only: nothing reads it to
+  decide what a user sees, and deleting that user empties it and keeps the row (.37). The flags
   never read, change, carry or sweep a row of another source (.36). A row is never removed because
   it is back at the default: an *unflagged* row says the photo was taken over (XMP-003.1).
-- The listing carries each entry's `flag`, `keepRaw` and `flagUpdated`, `null` without a row
-  (LISTING-001.18). There is no lookup of arbitrary file ids.
+- The listing carries each entry's `flag`, `keepRaw`, `flagUpdated` and `sidecarEtag`, `null`
+  without a row (LISTING-001.18). There is no lookup of arbitrary file ids.
+- `sidecar_etag` is the ETag of the member's sidecar as honeycomb last knew it (ADR 0056). A save
+  keeps it (.42); the take-over takes it per item as `sidecarEtag`, optional (.41);
+  `PUT /apps/honeycomb/api/v1/flags/sidecar-etags` with `{"etags": [{"fileId", "sidecarEtag"}]}`,
+  at most 60,000, sets it on existing rows only, with the save's checks, and changes no other
+  column; it answers like a save, with `missing` for a file without a row (.40).
 - `PUT /apps/honeycomb/api/v1/flags` with `{"flags": [{"fileId", "flag", "keepRaw"}]}`, at most
   60,000, stores whole states in one transaction and answers `{"saved": [...], "skipped":
   [{"fileId", "reason"}]}`: `notFound` for an id the user does not reach as a photo, `notPermitted`
@@ -44,7 +51,7 @@ ADR 0054 moved the rows into `honeycomb_decisions`, the decision table that the 
   endpoints are rate limited per user (APP-001.9).
 - A move that gives a file a new id carries its row over (MOVE-002). Deleting a picture through
   honeycomb removes the rows of the files it trashed or deleted (DELETE-001.15). Deleting a user
-  leaves the rows.
+  leaves the rows and empties their `updated_by`.
 - `occ honeycomb:cleanup` and *Clean up orphaned data* (SETTINGS-001.27) remove the rows whose
   file id no longer exists or lies in a trash bin, and report how many.
 
@@ -167,7 +174,7 @@ Withdrawn by ADR 0040; `honeycomb_decisions` and its endpoints are gone (M8 PR 5
 
 - **Given** a folder shared between two users, and one of them sets a flag
 - **When** the other lists the folder
-- **Then** the other reads the same flag and *Keep RAW*; no row names a user
+- **Then** the other reads the same flag and *Keep RAW*; the row is one for both users
 
 ### DECISIONS-001.23 – A save stores whole states, the last one wins
 
@@ -280,6 +287,74 @@ Withdrawn by ADR 0040; `honeycomb_decisions` and its endpoints are gone (M8 PR 5
 - **Then** that row is never read, changed or removed, and every row the flags write is of the
   source `file`
 
+### DECISIONS-001.37 – A row notes who decided last
+
+- **Given** a row saved by one user and a file whose state another user takes over
+- **When** the first user saves the row again, and then that user is deleted
+- **Then** the save notes the first user in `updated_by`, the take-over the other; after the
+  deletion the first row keeps its flag with an empty `updated_by`, and the other row is unchanged
+
+### DECISIONS-001.38 – Removing all data and the schema
+
+- **Given** honeycomb's tables, also a table of an older release such as `honeycomb_flags`, and
+  its rows in `oc_migrations`, `oc_preferences`, `oc_jobs` and `oc_appconfig`
+- **When** an admin runs `occ honeycomb:cleanup --all --drop`
+- **Then** every one of them is gone, the rows of other apps stay, and the command names each
+  dropped table and says to enable or remove the app next; run again, it drops nothing and
+  succeeds; this covers every `honeycomb_*` table the migrations create, which a test enumerates
+
+- **Given** the same data
+- **When** an admin runs `occ honeycomb:cleanup --all --drop --dry-run`
+- **Then** it names the tables it would drop and removes nothing
+
+- **Given** the database fails during the drop
+- **When** an admin runs `occ honeycomb:cleanup --all --drop`
+- **Then** the command names the failure, exits non-zero and prints no success line; what it
+  removed before stays removed, and running it again removes the rest
+
+- **Given** `--drop` without `--all`
+- **When** an admin runs `occ honeycomb:cleanup --drop`
+- **Then** the command refuses, exits non-zero and removes nothing
+
+### DECISIONS-001.39 – Installing again over an instance from before 0.2.0
+
+- **Given** an instance installed before 0.2.0, with honeycomb's tables, and the admin set
+  `occ config:app:set honeycomb reinstall --value=yes`
+- **When** honeycomb updates to 0.2.0
+- **Then** before the migrations a repair step drops the tables, also those of older releases,
+  and forgets the migrations, so the baseline creates them empty; it names the dropped tables,
+  deletes the value and keeps the users' settings and the app config
+
+- **Given** the same instance without that value
+- **When** honeycomb updates
+- **Then** the step changes nothing and the baseline stops, naming the tables and the value
+
+- **Given** an instance at 0.2.0 or later with that value set
+- **When** honeycomb updates
+- **Then** the step drops nothing, warns and deletes the value
+
+### DECISIONS-001.40 – The sidecar ETags are set on existing rows only
+
+- **Given** a file with a row saying *rejected*, one without a row, one in a folder without
+  UPDATE and one the user does not reach
+- **When** the user sets `sidecarEtag` `"e2"` for all four
+- **Then** the first row has `sidecar_etag` `e2` and keeps its flag, `updatedAt` and `updatedBy`;
+  the others are answered under `skipped` with `missing`, `notPermitted` and `notFound`, and no
+  row is inserted; a malformed item or an ETag over 40 characters answers `400` and sets nothing
+
+### DECISIONS-001.41 – A take-over records the sidecar's ETag
+
+- **Given** a take-over of two files without rows, one item with `sidecarEtag` `"e1"` and one
+  without
+- **When** it is stored
+- **Then** the first row has `sidecar_etag` `e1`, the second `null`
+
+### DECISIONS-001.42 – A save keeps the sidecar's ETag
+
+- **Given** a row with `sidecar_etag` `e1`
+- **When** the user saves a new state for the file
+- **Then** the row has the new state and still `sidecar_etag` `e1`
+
 ## Out of scope
 
 Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XMP sidecars (M5).
@@ -303,3 +378,6 @@ Bulk changes (GRID-003), decisions in the loupe (LOUPE-002), undo (KEYS-001), XM
 | 2026-11-19 | M8 PR 6: a take-over reads before its transaction, so SQLite does not fail it (.34) |
 | 2026-11-20 | `occ honeycomb:cleanup --all [--dry-run]` empties all honeycomb data (.35, E16/B17) |
 | 2026-11-23 | ADR 0054: the flags are the file rows of `honeycomb_decisions`; rows of another source stay apart (.36) |
+| 2026-11-24 | A row notes who decided last in `updated_by` (.37, ADR 0055) |
+| 2026-11-24 | `sidecar_etag`: the listing, the take-over and the ETag endpoint carry it, a save keeps it (.40–.42, ADR 0056) |
+| 2026-11-24 | `occ honeycomb:cleanup --all --drop` removes the tables and the app's rows (.38), an opt-in repair step reinstalls an instance from before 0.2.0 (.39, ADR 0053) |

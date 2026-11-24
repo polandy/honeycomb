@@ -10,6 +10,7 @@ import { n, t } from '@nextcloud/l10n'
 import { computed, nextTick, ref } from 'vue'
 import AppIcon from './AppIcon.vue'
 import { listFolders as apiListFolders } from '../api.ts'
+import { fireAndLog } from '../fire-and-log.ts'
 import { formatNumber, nameComparer, PLAIN_TEXT } from '../l10n.ts'
 import { logger } from '../logger.ts'
 import { effectiveExclusions, isHiddenFolder } from '../logic/folder-set.ts'
@@ -81,7 +82,7 @@ function expand(path: string) {
 	expanded.value = new Set(expanded.value).add(path)
 	const state = branches.value.get(path)?.state
 	if (state === undefined || state === 'failed') {
-		void load(path)
+		fireAndLog(load(path), 'Could not load the folder')
 	}
 }
 

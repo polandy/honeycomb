@@ -9,7 +9,13 @@ namespace OCA\Honeycomb\Service;
 
 use OCP\Files\File;
 use OCP\Files\Folder;
+use OCP\Files\GenericFileException;
+use OCP\Files\InvalidPathException;
+use OCP\Files\NotFoundException;
+use OCP\Files\NotPermittedException;
+use OCP\Files\StorageNotAvailableException;
 use OCP\IUser;
+use OCP\Lock\LockedException;
 use Psr\Log\LoggerInterface;
 
 /** Hands the client the XMP packet each listed JPEG embeds (ADR 0023). */
@@ -45,7 +51,7 @@ final class EmbeddedXmpReader {
 		}
 		try {
 			$packet = $this->packetOf($node);
-		} catch (\Exception $e) {
+		} catch (GenericFileException|InvalidPathException|StorageNotAvailableException|NotPermittedException|LockedException|NotFoundException $e) {
 			$result = SidecarResult::ofFailure($e);
 			if ($result === SidecarResult::Failed) {
 				$this->logger->warning('The embedded XMP of a JPEG could not be read', ['fileId' => $fileId, 'exception' => $e]);
@@ -59,7 +65,7 @@ final class EmbeddedXmpReader {
 	private function packetOf(File $jpeg): ?string {
 		$stream = $jpeg->fopen('r');
 		if ($stream === false) {
-			throw new \RuntimeException('The JPEG could not be opened');
+			throw new GenericFileException('The JPEG could not be opened');
 		}
 		try {
 			return $this->jpegXmp->packet($stream);

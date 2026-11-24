@@ -27,6 +27,8 @@ final class FlagMapper implements FlagStore {
 		'flag' => IQueryBuilder::PARAM_STR,
 		'keep_raw' => IQueryBuilder::PARAM_BOOL,
 		'updated_at' => IQueryBuilder::PARAM_INT,
+		'updated_by' => IQueryBuilder::PARAM_STR,
+		'sidecar_etag' => IQueryBuilder::PARAM_STR,
 	];
 
 	/** @psalm-suppress PossiblyUnusedMethod Nextcloud constructs it. */
@@ -53,9 +55,26 @@ final class FlagMapper implements FlagStore {
 
 	#[\Override]
 	public function save(array $flags): void {
+		// Write first, so SQLite takes the write lock at once; the updated rows keep their sidecar ETag.
 		$this->atomic(function () use ($flags): void {
-			$this->deleteFileRows(null, array_map(static fn (FileFlag $flag): int => $flag->fileId, $flags));
-			$this->insert($flags);
+			$this->updateFlags($flags);
+			$existing = $this->find(array_map(static fn (FileFlag $flag): int => $flag->fileId, $flags));
+			$this->insert(array_values(array_filter($flags, static fn (FileFlag $flag): bool => !isset($existing[$flag->fileId]))));
+		}, $this->db);
+	}
+
+	#[\Override]
+	public function setSidecarEtags(array $etags): array {
+		return $this->atomic(function () use ($etags): array {
+			foreach ($etags as $fileId => $etag) {
+				$query = $this->db->getQueryBuilder();
+				$query->update(self::TABLE)
+					->set('sidecar_etag', $query->createNamedParameter($etag, $etag === null ? IQueryBuilder::PARAM_NULL : IQueryBuilder::PARAM_STR))
+					->where($query->expr()->eq('source', $query->createNamedParameter(self::SOURCE)))
+					->andWhere($query->expr()->eq('file_id', $query->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)))
+					->executeStatement();
+			}
+			return array_keys($this->find(array_keys($etags)));
 		}, $this->db);
 	}
 
@@ -73,6 +92,17 @@ final class FlagMapper implements FlagStore {
 		$this->deleteFileRows(null, $fileIds);
 	}
 
+	/** The flags stay; only the note of who decided them last is emptied (DECISIONS-001.37). */
+	#[\Override]
+	public function forgetUser(string $userId): void {
+		$query = $this->db->getQueryBuilder();
+		$query->update(self::TABLE)
+			->set('updated_by', $query->createNamedParameter(null, IQueryBuilder::PARAM_NULL))
+			->where($query->expr()->eq('source', $query->createNamedParameter(self::SOURCE)))
+			->andWhere($query->expr()->eq('updated_by', $query->createNamedParameter($userId)))
+			->executeStatement();
+	}
+
 	/** A file's one flag follows it to the new file id, whoever set it. */
 	#[\Override]
 	public function carryOver(string $userId, int $fileId, int $newFileId): void {
@@ -87,11 +117,39 @@ final class FlagMapper implements FlagStore {
 			'flag' => $flag->flag->value,
 			'keep_raw' => $flag->keepRaw,
 			'updated_at' => $flag->updatedAt,
+			'updated_by' => $flag->updatedBy,
+			'sidecar_etag' => $flag->sidecarEtag,
 		], $flags));
+	}
+
+	/**
+	 * Sets the flag fields of the rows that exist, one query per state and chunk.
+	 *
+	 * @param list<FileFlag> $flags
+	 */
+	private function updateFlags(array $flags): void {
+		$byState = [];
+		foreach ($flags as $flag) {
+			$byState[json_encode([$flag->flag->value, $flag->keepRaw, $flag->updatedAt, $flag->updatedBy], JSON_THROW_ON_ERROR)][] = $flag;
+		}
+		foreach ($byState as $same) {
+			$state = $same[0];
+			foreach (array_chunk(array_map(static fn (FileFlag $flag): int => $flag->fileId, $same), self::IN_CHUNK) as $chunk) {
+				$query = $this->db->getQueryBuilder();
+				$query->update(self::TABLE)
+					->set('flag', $query->createNamedParameter($state->flag->value))
+					->set('keep_raw', $query->createNamedParameter($state->keepRaw, IQueryBuilder::PARAM_BOOL))
+					->set('updated_at', $query->createNamedParameter($state->updatedAt, IQueryBuilder::PARAM_INT))
+					->set('updated_by', $query->createNamedParameter($state->updatedBy, $state->updatedBy === null ? IQueryBuilder::PARAM_NULL : IQueryBuilder::PARAM_STR))
+					->where($query->expr()->eq('source', $query->createNamedParameter(self::SOURCE)))
+					->andWhere($query->expr()->in('file_id', $query->createNamedParameter($chunk, IQueryBuilder::PARAM_INT_ARRAY)))
+					->executeStatement();
+			}
+		}
 	}
 
 	/** @param array<string, mixed> $row */
 	private static function fromRow(array $row): FileFlag {
-		return new FileFlag((int)$row['file_id'], Flag::from((string)$row['flag']), (bool)$row['keep_raw'], (int)$row['updated_at']);
+		return new FileFlag((int)$row['file_id'], Flag::from((string)$row['flag']), (bool)$row['keep_raw'], (int)$row['updated_at'], $row['updated_by'] === null ? null : (string)$row['updated_by'], $row['sidecar_etag'] === null ? null : (string)$row['sidecar_etag']);
 	}
 }

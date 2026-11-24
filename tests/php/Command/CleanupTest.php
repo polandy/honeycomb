@@ -9,6 +9,7 @@ namespace OCA\Honeycomb\Tests\Command;
 
 use OCA\Honeycomb\Command\Cleanup;
 use OCA\Honeycomb\Service\AppData;
+use OCA\Honeycomb\Service\AppRemoval;
 use OCA\Honeycomb\Service\FileFlag;
 use OCA\Honeycomb\Service\Flag;
 use OCA\Honeycomb\Service\OrphanedFlags;
@@ -19,13 +20,13 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 
 final class CleanupTest extends TestCase {
-	private function command(?AppData $data = null): Cleanup {
+	private function command(?AppData $data = null, ?AppRemoval $removal = null): Cleanup {
 		$store = new FakeFlagStore();
 		$store->rows = [7 => new FileFlag(7, Flag::Picked, false, 100), 8 => new FileFlag(8, Flag::Rejected, true, 100), 9 => new FileFlag(9, Flag::Unflagged, false, 100)];
 		$files = new FakeExistingFiles();
 		$files->vanished = [7];
 		$files->trashed = [8];
-		return new Cleanup(new OrphanedFlags($store, $files), $data ?? new FakeAppData([]));
+		return new Cleanup(new OrphanedFlags($store, $files), $data ?? new FakeAppData([]), $removal ?? new FakeAppRemoval([]));
 	}
 
 	// spec: DECISIONS-001.32
@@ -101,5 +102,72 @@ final class CleanupTest extends TestCase {
 		$this->assertSame(Command::FAILURE, $tester->execute(['--all' => true, '--dry-run' => true]));
 		$this->assertStringContainsString('Could not count the honeycomb tables: connection lost', $tester->getDisplay());
 		$this->assertStringNotContainsString('Dry run', $tester->getDisplay());
+	}
+
+	private function removal(): FakeAppRemoval {
+		return new FakeAppRemoval(['honeycomb_decisions', 'honeycomb_flags']);
+	}
+
+	// spec: DECISIONS-001.38
+	public function testDropNamesEachDroppedTableAndTheNextStep(): void {
+		$removal = $this->removal();
+		$tester = new CommandTester($this->command(null, $removal));
+
+		$this->assertSame(Command::SUCCESS, $tester->execute(['--all' => true, '--drop' => true]));
+		$this->assertStringContainsString('Dropped honeycomb_decisions', $tester->getDisplay());
+		$this->assertStringContainsString('Dropped honeycomb_flags', $tester->getDisplay());
+		$this->assertStringContainsString('Dropped 2 tables', $tester->getDisplay());
+		$this->assertStringContainsString('occ app:enable honeycomb', $tester->getDisplay());
+		$this->assertStringContainsString('occ app:remove honeycomb', $tester->getDisplay());
+		$this->assertSame([], $removal->tables);
+	}
+
+	// spec: DECISIONS-001.38
+	public function testDropAgainDropsNothingAndSucceeds(): void {
+		$tester = new CommandTester($this->command(null, new FakeAppRemoval([])));
+
+		$this->assertSame(Command::SUCCESS, $tester->execute(['--all' => true, '--drop' => true]));
+		$this->assertStringContainsString('Dropped 0 tables', $tester->getDisplay());
+	}
+
+	// spec: DECISIONS-001.38
+	public function testDropDoesNotEmptyTheRowsFirst(): void {
+		$data = $this->data();
+		$data->failure = new \RuntimeException('no such table: oc_honeycomb_folder_done');
+		$tester = new CommandTester($this->command($data, $this->removal()));
+
+		$this->assertSame(Command::SUCCESS, $tester->execute(['--all' => true, '--drop' => true]));
+	}
+
+	// spec: DECISIONS-001.38
+	public function testDropDryRunNamesTheTablesAndRemovesNothing(): void {
+		$removal = $this->removal();
+		$tester = new CommandTester($this->command(null, $removal));
+
+		$this->assertSame(Command::SUCCESS, $tester->execute(['--all' => true, '--drop' => true, '--dry-run' => true]));
+		$this->assertStringContainsString('Would drop honeycomb_decisions', $tester->getDisplay());
+		$this->assertStringContainsString('Dry run: 2 tables would be dropped, nothing was removed.', $tester->getDisplay());
+		$this->assertSame(['honeycomb_decisions', 'honeycomb_flags'], $removal->tables);
+	}
+
+	// spec: DECISIONS-001.38
+	public function testDropNamesADatabaseFailureAndFails(): void {
+		$removal = $this->removal();
+		$removal->failure = new \RuntimeException('connection lost');
+		$tester = new CommandTester($this->command(null, $removal));
+
+		$this->assertSame(Command::FAILURE, $tester->execute(['--all' => true, '--drop' => true]));
+		$this->assertStringContainsString('Could not drop the honeycomb tables: connection lost', $tester->getDisplay());
+		$this->assertStringNotContainsString('Dropped', $tester->getDisplay());
+	}
+
+	// spec: DECISIONS-001.38
+	public function testDropWithoutAllRefusesAndRemovesNothing(): void {
+		$removal = $this->removal();
+		$tester = new CommandTester($this->command(null, $removal));
+
+		$this->assertSame(Command::FAILURE, $tester->execute(['--drop' => true]));
+		$this->assertStringContainsString('--drop needs --all', $tester->getDisplay());
+		$this->assertSame(['honeycomb_decisions', 'honeycomb_flags'], $removal->tables);
 	}
 }

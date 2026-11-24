@@ -20,9 +20,10 @@ final class UserRowStoresTest extends TestCase {
 		$stats = new FakeStatsStore();
 		$immich = new FakeImmichDecisionStore();
 		$done = new FakeFolderDoneStore();
+		$flags = new FakeFlagStore();
 
-		$all = (new UserRowStores($series, $xmpCache, $tags, $positions, $stats, $immich, $done))->all();
+		$all = (new UserRowStores($series, $xmpCache, $tags, $positions, $stats, $immich, $done, $flags))->all();
 
-		$this->assertSame([$series, $xmpCache, $tags, $positions, $stats, $immich, $done], $all);
+		$this->assertSame([$series, $xmpCache, $tags, $positions, $stats, $immich, $done, $flags], $all);
 	}
 }

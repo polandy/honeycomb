@@ -5,10 +5,14 @@ sidecars next to your photos, where digiKam, darktable and Lightroom read them. 
 themselves are never changed.
 
 **Changing in the next release** ([ADR 0040](../dev/adr/0040-flags-per-picture-in-the-database.md)).
-Stars, colour labels and tags are still written into the sidecars at once, without a setting to
-turn on. Flags (pick, reject) and *Keep RAW* are kept by honeycomb itself and reach the sidecars
-only when you choose *Write picks/rejects to XMP* in the ⋯ menu; the entry shows how many sidecars
-differ. A photo honeycomb sees for the first time takes over the flag its sidecars state, once.
+Stars, colour labels and tags are still written into the sidecars at once, without a setting to turn
+on. Flags (pick, reject) and *Keep RAW* are kept by honeycomb itself and, by default, written into
+the sidecars too ([ADR 0056](../dev/adr/0056-flags-written-to-xmp-by-default.md)): digiKam sees your
+picks at its next scan, and a pick or reject you change in digiKam shows in honeycomb the next time
+you open the folder. Turn off *Write picks, rejects and Keep RAW to XMP sidecars* in
+[settings](settings.md#xmp-sidecars) to keep them in honeycomb alone; they then reach the sidecars
+only when you choose *Write picks/rejects to XMP* in the ⋯ menu, whose entry shows how many sidecars
+differ, and a photo honeycomb sees for the first time takes over the flag its sidecars state, once.
 
 ## When honeycomb writes
 
@@ -49,8 +53,13 @@ scan of the folder.
   change into it and saves once more, without asking. If it changed yet again, the write fails
   with *The sidecar changed again while honeycomb wrote it*.
 - **Between two culls.** When you open a folder set, honeycomb takes over the decisions in the
-  sidecars of photos it has no decision for yet. A photo you already decided in honeycomb keeps
-  honeycomb's decision; a later change on the desktop does not show in the grid.
+  sidecars of photos it has no decision for yet. For a photo you already decided, honeycomb
+  remembers which version of each sidecar it last wrote or read. If digiKam changed the pick,
+  reject or *Keep RAW* since, honeycomb takes it over and writes it to the photo's other sidecars;
+  if not, it writes its own decision to the sidecars that differ. So when both changed, digiKam's
+  wins. With *Write picks, rejects and Keep RAW to XMP sidecars* off, a photo you already decided
+  keeps honeycomb's decision and a later change on the desktop does not show in the grid. Photos
+  in folders you may only read are left as they are.
 - **Before deleting.** Deleting reads each rejected photo's sidecars afresh and leaves a photo
   alone when they no longer say rejected ([deleting photos](deleting.md)).
 
@@ -59,7 +68,9 @@ scan of the folder.
 A failed write names its reason, for example *Could not write 2 sidecars. You may not change this
 sidecar or create files in its folder* (with *More reasons in Details* when they differ);
 the change is taken back for that photo, so it shows what its sidecars still hold, and
-**Details** lists each file with the reason. Change the photo again to try once more. honeycomb
+**Details** lists each file with the reason. Change the photo again to try once more. A pick,
+reject or *Keep RAW* is not taken back: honeycomb keeps it and tries the sidecar again the next
+time you open the folder. honeycomb
 never overwrites a sidecar it cannot read — not
 well-formed XML, not UTF-8, larger than 1 MiB — and then leaves that photo unchanged until you
 open the folder again. Folders you may only read, and shared folders: [shared

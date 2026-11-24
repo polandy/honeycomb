@@ -15,6 +15,8 @@ final readonly class FlagAnswer implements \JsonSerializable {
 	public const string NOT_PERMITTED = 'notPermitted';
 	/** A take-over found a row already there. */
 	public const string EXISTS = 'exists';
+	/** A sidecar ETag found no row to set it on. */
+	public const string MISSING = 'missing';
 
 	/**
 	 * @param list<int> $saved

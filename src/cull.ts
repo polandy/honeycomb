@@ -11,6 +11,7 @@ import type { PairingSettings, Picture } from './logic/pairing.ts'
 import type { PictureId } from './logic/picture-id.ts'
 import type { ReductionPlan } from './logic/series-reduction.ts'
 import type { Settings } from './logic/settings.ts'
+import type { SavedSidecar } from './logic/sidecar-sync.ts'
 import type { CountSign } from './logic/stats-counts.ts'
 import type { TagChange } from './logic/tag.ts'
 import type { DecisionStep, PickRestStep, ReductionStep, StepEffects, TagStep, UndoStep } from './logic/undo.ts'
@@ -18,10 +19,12 @@ import type { ListedAccess } from './logic/writability.ts'
 
 import { computed, shallowRef, watch } from 'vue'
 import { useCullAccess } from './cull-access.ts'
+import { syncFlags } from './cull-flag-sync.ts'
 import { useCullFlags } from './cull-flags.ts'
 import { useCullHistory } from './cull-history.ts'
 import { useCullTags } from './cull-tags.ts'
 import { useCullWrites } from './cull-writes.ts'
+import { fireAndLog } from './fire-and-log.ts'
 import { nameComparer } from './l10n.ts'
 import { logger } from './logger.ts'
 import { prepareCull, warmMembers } from './logic/cull.ts'
@@ -35,6 +38,7 @@ import { listedRows, pictureFlag, readDecision } from './logic/picture-flag.ts'
 import { sortPictures } from './logic/picture-order.ts'
 import { reductionPlan as planReduction } from './logic/series-reduction.ts'
 import { pairingSettings } from './logic/settings.ts'
+import { readEtags, savedEtags } from './logic/sidecar-etags.ts'
 import { inDoneSeries } from './logic/stored-series.ts'
 import { inverseChange } from './logic/tag.ts'
 import { withoutFiles } from './logic/trash-report.ts'
@@ -73,13 +77,13 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		pickRest: (step, back) => store(back ? step.before : step.after, back ? -1 : 1),
 		reduction: (step, back) => store(back ? step.before : step.after, back ? -1 : 1),
 		tags: (step, back) => changeTags(step.pictures, back ? inverseChange(step.change) : step.change, back ? -1 : 1),
-		series: (step, back) => void storedSeries.store(back ? step.before : step.after),
+		series: (step, back) => fireAndLog(storedSeries.store(back ? step.before : step.after), 'Could not store the series'),
 	}
 	const history = useCullHistory<CullStep>((step, back) => applyStep(effects, step, back))
 	/** Whether a step on the picture is saved and written through (XMP-008.12). */
 	const writesThrough = (picture: Picture<ListingEntry>) => access.writabilityOf(picture) === 'writable'
 	const tags = useCullTags(api.tags, sidecars.writeTags, writesThrough)
-	const writes = useCullWrites(flags, sidecars, { decisions, pictures: () => paired.value, writesThrough, onFlagsNotSaved })
+	const writes = useCullWrites(flags, sidecars, { decisions, pictures: () => paired.value, writesThrough, writeFlags: () => settings().writeFlagsToXmp, onFlagsNotSaved })
 	const folderPaths = computed(() => pictureFolders(pictures.value, compareNames))
 	const folders = computed(() => folderPaths.value.length)
 	const options = useViewOptions(storage, () => folders.value)
@@ -125,7 +129,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		readPictures(opened)
 	}
 
-	/** Shows the sidecars' values of the pictures no read or step has set yet, with the listing's flag, and takes over those without a row (XMP-003.3, .34–.36, TAGS-002.2). */
+	/** Shows the sidecars' values of the pictures no read or step has set yet, with the listing's flag, takes over those without a row and syncs the others' flags (XMP-003.3, .34–.36, .46–.49, TAGS-002.2). */
 	function readPictures(read: readonly Picture<ListingEntry>[]) {
 		const shown = paired.value
 		const cull = opening
@@ -139,8 +143,12 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 			const rows = fresh.flatMap((picture) => memberIds(picture).map((fileId) => ({ fileId, ...readDecision(pictureFlag(picture), stated.get(picture) ?? UNDECIDED) })))
 			decisions.value = withRows(decisions.value, rows)
 			settle(rows)
-			const unlisted = new Set(fresh.filter((picture) => pictureFlag(picture) === null).flatMap(memberIds))
-			flags.takeOver(rows.filter(({ fileId }) => unlisted.has(fileId)))
+			const unlisted = fresh.filter((picture) => pictureFlag(picture) === null)
+			const unlistedIds = new Set(unlisted.flatMap(memberIds))
+			flags.takeOver(rows.filter(({ fileId }) => unlistedIds.has(fileId)), new Map(unlisted.flatMap((picture) => [...readEtags(picture, fromSidecars.rows)])))
+			if (settings().writeFlagsToXmp) {
+				syncFlags(fresh, fromSidecars, flags, sidecars, { decisions, writesThrough })
+			}
 		}).catch((error: unknown) => logger.error('Could not read the sidecars; the photos show the listing\'s flags', { error }))
 	}
 
@@ -210,6 +218,9 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		return replaced
 	}
 
+	/** Records the ETags of the sidecars honeycomb saved for their members (XMP-003.45). */
+	const sidecarsSaved = (saved: readonly SavedSidecar[]) => flags.record(savedEtags(saved))
+
 	/** Puts files back into the listing and pairs it again; the restored pictures not set yet show their listed flags, then their sidecars are read. */
 	function restoreFiles(restored: readonly ListingEntry[]) {
 		entries.value = [...entries.value, ...restored]
@@ -269,6 +280,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		open,
 		removeFiles,
 		restoreFiles,
+		sidecarsSaved,
 		setFlags: options.setFlags,
 		toggleFiltersOff: options.toggleFiltersOff,
 		setTileSize: options.setTileSize,

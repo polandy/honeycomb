@@ -11,23 +11,40 @@
 Brings the sidecars into the cull. Rating, colour label and tags are read from the picture's
 sidecars and written to them at once, so digiKam, darktable and Lightroom see them. The flag and
 *Keep RAW* live in the database (DECISIONS-001): a picture honeycomb sees for the first time takes
-over the flag its sidecars state, once, and *Write picks/rejects to XMP* writes the flags to the
-sidecars when the user asks (ADR 0040).
+over the flag its sidecars state, and by default the flags are written to the sidecars too and a
+flag changed in digiKam is taken over at the next visit (ADR 0056); with that setting off,
+*Write picks/rejects to XMP* writes them when the user asks (ADR 0040).
 
 ## Behaviour
 
-**Concept D (ADR 0040).** There is no setting and no shared-folder rule (XMP-008). The flag and
+**Concept D (ADR 0040), flags in the sidecars by default (ADR 0056).** There is no shared-folder
+rule (XMP-008). The flag and
 *Keep RAW* live in the database: the cull reads them from the listing (LISTING-001.18), and a flag
 or *Keep RAW* step, or an undo or redo of one, saves the whole state of every member of each
-picture it changed (DECISIONS-001.23) and looks up or saves no sidecar. A step writes only the
-rating, colour label and tags through, and leaves the sidecar's flag fields and
-`honeycomb:KeepRaw` as they are. **Taking over:** a picture whose members have no row in
+picture it changed (DECISIONS-001.23). With the setting *Write picks, rejects and Keep RAW to XMP
+sidecars* on (`writeFlagsToXmp`, the default, SETTINGS-001.34) it also writes the flag fields and
+`honeycomb:KeepRaw` through, as below, creating a missing sidecar only for a picture that ends
+flagged or kept (.43); a sidecar that fails is reported, but the flag stays (.44). With it off, a
+flag step looks up or saves no sidecar (.38). A rating, colour label or tag step leaves the
+sidecar's flag fields and `honeycomb:KeepRaw` as they are (.37).
+**Taking over:** a picture whose members have no row in
 `honeycomb_decisions` takes over the flag and *Keep RAW* its sources state, by the rules of *Reading*
 below, and the client sends them for every member to the take-over endpoint (DECISIONS-001.27), in
 one request per read, as *unflagged* when no source states one, also for a read-only picture; a
-failed take-over is logged as a warning and the picture shows what its sources state. From then on
-its row holds, and a later change in another program is not read. Rating, colour label and tags
-are not taken over: they are always read from the sidecars.
+failed take-over is logged as a warning and the picture shows what its sources state. Each item
+carries the ETag of its member's sidecar (`<member file>.xmp`, else the shared `<base>.xmp`), so
+the row knows which sidecar it came from. With the setting off its row holds from then on, and a
+later change in another program is not read (.35).
+**Syncing (ADR 0056).** Each member row holds the ETag of its sidecar as honeycomb last knew it:
+every sidecar save records the new ETag for the members whose sidecar it is, with the setting on
+or off (.45). With the setting on, a visit compares each rateable picture with rows with each read
+sidecar, as the export does: where they agree, it records the ETags that differ (.46); where they
+differ and a member's sidecar has another ETag than its row's non-null one, the picture takes over
+what its sidecars state by the rules of *Reading*, saves it as rows without an undo step and
+without counting it, and writes it to the sidecars that still differ (.47); where they differ and no
+sidecar changed, or none is known, it writes the row's state to the sidecars that differ (.48). A
+picture with a refused sidecar, or one not read, and a read-only picture are not synced (.49).
+Rating, colour label and tags are not taken over: they are always read from the sidecars.
 ***Write picks/rejects to XMP* (M8 PR 7):** the grid's ⋯ entry, shown with the number of sidecars
 to write (GRID-001.21), writes the flag and *Keep RAW* of every rateable
 picture of the open folder set, whatever the filters show, into each of its sidecars whose flag
@@ -326,10 +343,10 @@ Withdrawn by ADR 0040 (M8 PR 6); the flag lives in the database, .34 to .38 repl
 - **Then** the pair shows three stars and rejected and is taken over as *rejected*, the JPEG as
   *unflagged*, in one take-over request; nothing is written to a sidecar
 
-### XMP-003.35 – After taking over the row holds
+### XMP-003.35 – With the setting off, after taking over the row holds
 
-- **Given** a pair taken over as *rejected*, whose sidecar another program then changes to four
-  stars and picked
+- **Given** *Write picks, rejects and Keep RAW to XMP sidecars* off, and a pair taken over as
+  *rejected*, whose sidecar another program then changes to four stars and picked
 - **When** the cull opens again
 - **Then** the pair shows four stars and rejected, and no take-over is sent for it
 
@@ -348,9 +365,10 @@ Withdrawn by ADR 0040 (M8 PR 6); the flag lives in the database, .34 to .38 repl
 - **Then** the sidecar gets the new field and keeps `digiKam:PickLabel` 3 and `honeycomb:KeepRaw`
   as they were
 
-### XMP-003.38 – A flag goes to the database only
+### XMP-003.38 – With the setting off, a flag goes to the database only
 
-- **Given** a rateable pair with `IMG_0001.NEF.xmp` and without `IMG_0001.JPG.xmp`
+- **Given** *Write picks, rejects and Keep RAW to XMP sidecars* off, and a rateable pair with
+  `IMG_0001.NEF.xmp` and without `IMG_0001.JPG.xmp`
 - **When** the user picks it, marks it *Keep RAW*, or undoes either
 - **Then** both members' rows are saved with the new state, and no sidecar is looked up, saved or
   created
@@ -388,10 +406,63 @@ Withdrawn by ADR 0040 (M8 PR 6); the flag lives in the database, .34 to .38 repl
   sidecar or create files in its folder* with *Details*, the second *All XMP files are up to date*;
   undo afterwards takes back the step before the export, and no sidecar
 
+### XMP-003.43 – A flag is written through by default
+
+- **Given** the setting on, and a rateable pair with `IMG_0001.NEF.xmp` stating three stars and
+  without `IMG_0001.JPG.xmp`, and an unflagged single without a sidecar
+- **When** the user picks the pair and marks it *Keep RAW* in one bundle, then marks the single
+  *Keep RAW* and unflags it
+- **Then** both members' rows are saved, `IMG_0001.NEF.xmp` gets the pick fields and
+  `honeycomb:KeepRaw` and keeps its three stars, `IMG_0001.JPG.xmp` is created with them; the
+  single's rows are saved and no sidecar is created for it
+
+### XMP-003.44 – A failed flag write keeps the flag
+
+- **Given** the setting on, and a picture whose sidecar save answers `notPermitted`
+- **When** the user rejects it
+- **Then** the toast says *Could not write 1 sidecar* with the reason, the picture stays rejected
+  and its rows stay saved; a rating that failed the same way is taken back
+
+### XMP-003.45 – Every sidecar save records its ETag
+
+- **Given** the setting off, and a pair with `IMG_0001.NEF.xmp` and the shared `IMG_0001.xmp`
+- **When** the user rates it and the saves answer new ETags
+- **Then** the RAW's row records the ETag of `IMG_0001.NEF.xmp` and the JPEG's that of
+  `IMG_0001.xmp`, in one request; a failed request is logged and changes nothing shown
+
+### XMP-003.46 – A visit records the ETag of a sidecar that agrees
+
+- **Given** the setting on, a picked picture whose row has no ETag and whose sidecar states picked
+- **When** the cull opens
+- **Then** the sidecar's listed ETag is recorded for the picture's member, and no sidecar is saved
+
+### XMP-003.47 – A flag changed in digiKam is taken over
+
+- **Given** the setting on, a pair whose rows say *rejected* with the ETag `e1` of
+  `IMG_0001.NEF.xmp`, which is now listed with `e2` and states picked, and `IMG_0001.JPG.xmp`
+  unchanged stating rejected
+- **When** the cull opens
+- **Then** the pair shows picked, both rows are saved as picked without an undo step and without
+  counts, `IMG_0001.JPG.xmp` gets the pick fields, and both ETags are recorded
+
+### XMP-003.48 – honeycomb's flag is written where the sidecar did not change
+
+- **Given** the setting on, a picked picture whose sidecar states rejected and is listed with the
+  ETag its row holds, and a rejected picture whose sidecar states picked and whose row has no ETag
+- **When** the cull opens
+- **Then** both stay as their rows say and both sidecars get their rows' flag fields
+
+### XMP-003.49 – Read-only, refused and off are not synced
+
+- **Given** a read-only picture, a picture with a refused sidecar, each with a row that differs
+  from a changed sidecar, and the same with the setting off
+- **When** the cull opens
+- **Then** none is taken over or written, and each shows its row
+
 ## Out of scope
 
 - Re-reading a sidecar that another program changes while the cull is open; the next visit reads
-  it, by its new ETag (XMP-006.7).
+  it, by its new ETag (XMP-006.7), and with the setting on takes a changed flag over (.47).
 - The *Storage* setting of the mockup (database, sidecars or both); the sidecars hold the decisions
   (ADR 0032).
 
@@ -417,3 +488,4 @@ Withdrawn by ADR 0040 (M8 PR 6); the flag lives in the database, .34 to .38 repl
 | 2026-11-19 | M8 PR 5: `honeycomb_decisions` dropped, no stored row is read (.2 removed) |
 | 2026-11-19 | M8 PR 6: flags from the listing, taken over once, saved to the database; a failed write is taken back, so the report has no retry (.13 changed, .1, .6, .15, .21, .23 removed, .34–.38 implemented) |
 | 2026-11-19 | M8 PR 7: *Write picks/rejects to XMP* (.39–.42 implemented) |
+| 2026-11-24 | ADR 0056: flags written through by default and synced by the sidecar's ETag (.35, .38 with the setting off; .43–.49) |

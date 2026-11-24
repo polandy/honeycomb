@@ -19,6 +19,7 @@ import LibraryRoots from './LibraryRoots.vue'
 import LoupeGestureSettings from './LoupeGestureSettings.vue'
 import MoveSettings from './MoveSettings.vue'
 import StatisticsSettings from './StatisticsSettings.vue'
+import XmpSidecarSettings from './XmpSidecarSettings.vue'
 import { addExtension, DEFAULT_SUBFOLDERS, folderMode, removeExtension } from '../logic/settings.ts'
 import { extensionRefusalText, shown } from '../settings-text.ts'
 import { tip } from '../tooltip.ts'
@@ -223,6 +224,9 @@ function rename(field: 'rawSubfolder' | 'renderedSubfolder', name: string) {
 		</NcAppSettingsSection>
 		<NcAppSettingsSection id="moving-photos" :name="t('honeycomb', 'Moving photos')">
 			<MoveSettings :settings="settings" @update="emit('update', $event)" />
+		</NcAppSettingsSection>
+		<NcAppSettingsSection id="xmp-sidecars" :name="t('honeycomb', 'XMP sidecars')">
+			<XmpSidecarSettings :settings="settings" @update="emit('update', $event)" />
 		</NcAppSettingsSection>
 		<NcAppSettingsSection id="statistics" :name="t('honeycomb', 'Statistics')">
 			<StatisticsSettings :settings="settings" @update="emit('update', $event)" @reset="emit('resetStatistics')" />

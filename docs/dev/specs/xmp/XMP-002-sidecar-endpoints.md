@@ -40,7 +40,7 @@ changes only its own fields and keeps the rest of the sidecar (`06-xmp-interop.m
 | `notPermitted` | The user may not read it | The user may not update it; for a new one, create files in its folder |
 | `locked` | Locked by another process | Locked by another process |
 | `noSpace` | – | The storage or the owner's quota is full, by its free space or the error (ADR 0040) |
-| `failed` | Any other error, logged as a warning | Any other error, logged as a warning |
+| `failed` | Any other storage error (`OCP\Files`), logged as a warning | Any other storage error (`OCP\Files`), logged as a warning |
 
 | Case | Answer |
 |---|---|

@@ -11,6 +11,7 @@ use OCA\Honeycomb\Service\InvalidTrashRequestException;
 use OCA\Honeycomb\Service\TrashBinDisabledException;
 use OCP\Files\File;
 use OCP\Files\Folder;
+use OCP\Files\GenericFileException;
 use OCP\Files\Node;
 use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
@@ -179,7 +180,7 @@ final class TrashServiceTest extends TestCase {
 			'no permission' => [new NotPermittedException(), 'notPermitted'],
 			'a lock' => [new LockedException('IMG_0001.JPG'), 'locked'],
 			'vanished meanwhile' => [new NotFoundException(), 'notFound'],
-			'a storage error' => [new \RuntimeException('disk full'), 'failed'],
+			'a storage error' => [new GenericFileException('disk full'), 'failed'],
 		];
 	}
 
@@ -199,7 +200,7 @@ final class TrashServiceTest extends TestCase {
 
 	// spec: DELETE-001.4
 	public function testAStorageErrorIsLogged(): void {
-		$failure = new \RuntimeException('disk full');
+		$failure = new GenericFileException('disk full');
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('warning')->with($this->anything(), ['fileId' => 2, 'exception' => $failure]);
 
@@ -252,5 +253,11 @@ final class TrashServiceTest extends TestCase {
 		$results = $this->service([])->trash($this->user(), [self::picture(...range(1, 500))]);
 
 		$this->assertCount(500, $results[0]);
+	}
+
+	public function testAnUnexpectedFailureIsNotCaught(): void {
+		$this->expectException(\LogicException::class);
+
+		$this->service($this->pair(new \LogicException('bug')))->trash($this->user(), [self::picture(3, 1, 2)]);
 	}
 }

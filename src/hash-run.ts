@@ -5,9 +5,11 @@ import type { PictureId } from './logic/picture-id.ts'
 import type { StoredVisualHash } from './logic/visual-hash.ts'
 
 import { computed, ref, shallowRef, triggerRef } from 'vue'
+import { fireAndLog } from './fire-and-log.ts'
 import { logger } from './logger.ts'
 import { hashProgress } from './logic/hash-progress.ts'
 import { sendLimited } from './logic/retry-after.ts'
+import { VISUAL_HASH_METHOD } from './logic/visual-hash.ts'
 
 /** How many computed hashes one save of a run carries at most (SERIES-004.5). */
 export const HASH_RUN_SAVE_BATCH = 250
@@ -76,13 +78,13 @@ export function useHashRun(seams: HashRunSeams) {
 	function pump() {
 		if (status.value === 'running') {
 			if (!loading && !listed.value) {
-				void loadPage(run)
+				fireAndLog(loadPage(run), 'Could not load a page of pictures to hash')
 			}
 			while (hashing < seams.workers && queue.length > 0) {
-				void hashOne(run, queue.shift()!)
+				fireAndLog(hashOne(run, queue.shift()!), 'Could not hash a picture')
 			}
 			if (unsaved.length >= saveBatch && !saving) {
-				void save(run)
+				fireAndLog(save(run), 'Could not save the visual hashes')
 			}
 		}
 		const idle = hashing === 0 && !saving
@@ -91,7 +93,7 @@ export function useHashRun(seams: HashRunSeams) {
 		}
 		const finished = status.value === 'running' && !loading && listed.value && queue.length === 0
 		if (unsaved.length > 0 && problem.value !== 'save' && (finished || status.value === 'pausing')) {
-			void save(run)
+			fireAndLog(save(run), 'Could not save the visual hashes')
 		} else if (status.value === 'pausing') {
 			status.value = 'paused'
 		} else if (finished) {
@@ -132,7 +134,7 @@ export function useHashRun(seams: HashRunSeams) {
 		try {
 			const hash = await seams.hash(picture)
 			if (of === run) {
-				unsaved.push({ fileId: picture.fileId, etag: picture.etag, hash })
+				unsaved.push({ fileId: picture.fileId, etag: picture.etag, method: VISUAL_HASH_METHOD, hash })
 				mark(picture.fileId, 'hashed')
 			}
 		} catch (error) {

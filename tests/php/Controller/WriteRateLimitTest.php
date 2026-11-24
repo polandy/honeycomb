@@ -54,6 +54,7 @@ final class WriteRateLimitTest extends TestCase {
 		$this->assertSame([
 			'CleanupController::cleanup' => [['limit' => 600, 'period' => 60]],
 			'FlagController::save' => [['limit' => 600, 'period' => 60]],
+			'FlagController::sidecarEtags' => [['limit' => 600, 'period' => 60]],
 			'FlagController::takeOver' => [['limit' => 600, 'period' => 60]],
 			'ImmichController::decisions' => [['limit' => 600, 'period' => 60]],
 			'LibraryController::markDone' => [['limit' => 600, 'period' => 60]],

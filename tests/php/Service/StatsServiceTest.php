@@ -139,7 +139,7 @@ final class StatsServiceTest extends TestCase {
 	// spec: STATS-001.7
 	public function testUnreadableSettingsAreLoggedAndNeverThrown(): void {
 		$config = $this->createStub(IUserConfig::class);
-		$config->method('getValueString')->willThrowException(new \RuntimeException('config down'));
+		$config->method('getValueString')->willThrowException(new FakeDbException(DbException::REASON_CONNECTION_LOST));
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('warning')->with('Could not count the statistics.', $this->arrayHasKey('exception'));
 		$service = new StatsService($this->store, new StatsDay($config, $this->createStub(ITimeFactory::class)), new SettingsService($config), $logger);
@@ -191,5 +191,14 @@ final class StatsServiceTest extends TestCase {
 
 		$this->assertSame(['counters' => [], 'firstDay' => null, 'today' => '2026-03-01'], $this->service()->read($this->user(), null, null));
 		$this->assertSame(['2026-02-10' => ['series_done' => 9]], $this->store->rows['bob']);
+	}
+
+	public function testAnUnexpectedFailureIsNotCaught(): void {
+		$config = $this->createStub(IUserConfig::class);
+		$config->method('getValueString')->willThrowException(new \LogicException('bug'));
+		$service = new StatsService($this->store, new StatsDay($config, $this->createStub(ITimeFactory::class)), new SettingsService($config), $this->createStub(LoggerInterface::class));
+		$this->expectException(\LogicException::class);
+
+		$service->count($this->user(), new StatsCount(StatsMetric::TrashPictures, 1));
 	}
 }

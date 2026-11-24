@@ -17,7 +17,11 @@ use OCA\Honeycomb\Service\UserPhotos;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Config\IUserConfig;
+use OCP\Files\GenericFileException;
+use OCP\Files\NotFoundException;
+use OCP\Files\NotPermittedException;
 use OCP\IAppConfig;
+use OCP\Lock\LockedException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -32,7 +36,7 @@ final class OrphanedSidecarTrashTest extends TestCase {
 		$this->clock = new FakeClock();
 	}
 
-	private function service(bool $trashBin = true): OrphanedSidecarTrash {
+	private function service(bool $trashBin = true, ?LoggerInterface $logger = null): OrphanedSidecarTrash {
 		$apps = $this->createStub(IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturnCallback(static fn (string $app): bool => $app === 'files_trashbin' && $trashBin);
 		$userConfig = $this->createStub(IUserConfig::class);
@@ -42,7 +46,7 @@ final class OrphanedSidecarTrashTest extends TestCase {
 		$time = $this->createStub(ITimeFactory::class);
 		$time->method('getTime')->willReturnCallback(fn (): int => $this->clock->now);
 		$spacing = new TrashNameSpacing($time, $this->clock);
-		return new OrphanedSidecarTrash(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new TrashBinGuard($userConfig, $appConfig), $spacing, $this->createStub(LoggerInterface::class));
+		return new OrphanedSidecarTrash(new UserPhotos(new UserFolderResolver($this->treeRoot())), $apps, new TrashBinGuard($userConfig, $appConfig), $spacing, $logger ?? $this->createStub(LoggerInterface::class));
 	}
 
 	/**
@@ -138,5 +142,36 @@ final class OrphanedSidecarTrashTest extends TestCase {
 		} catch (TrashBinDisabledException) {
 			$this->assertSame([], $this->trashed);
 		}
+	}
+
+	// spec: XMP-009.8
+	public function testASidecarThatCannotBeDeletedIsReportedWithItsReason(): void {
+		$this->addFiles([1 => '/P/a.xmp', 2 => '/P/b.xmp', 3 => '/P/c.xmp']);
+		$this->deleteFailures = [1 => new NotPermittedException(), 2 => new LockedException('b.xmp'), 3 => new NotFoundException()];
+
+		$results = $this->service()->trash($this->treeUser(), self::sidecars(1, 2, 3));
+
+		$this->assertSame([1 => 'notPermitted', 2 => 'locked', 3 => 'notFound'], self::byFile($results));
+	}
+
+	// spec: XMP-009.8
+	public function testAStorageErrorIsLoggedWithTheFileId(): void {
+		$this->addFiles([1 => '/P/a.xmp']);
+		$failure = new GenericFileException('disk full');
+		$this->deleteFailures[1] = $failure;
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->expects($this->once())->method('warning')->with($this->anything(), ['fileId' => 1, 'exception' => $failure]);
+
+		$results = $this->service(logger: $logger)->trash($this->treeUser(), self::sidecars(1));
+
+		$this->assertSame([1 => 'failed'], self::byFile($results));
+	}
+
+	public function testAnUnexpectedFailureIsNotCaught(): void {
+		$this->addFiles([1 => '/P/a.xmp']);
+		$this->deleteFailures[1] = new \LogicException('bug');
+		$this->expectException(\LogicException::class);
+
+		$this->service()->trash($this->treeUser(), self::sidecars(1));
 	}
 }

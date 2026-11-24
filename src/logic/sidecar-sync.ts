@@ -5,12 +5,13 @@ import type { EmbeddedXmpAnswer } from './embedded-xmp.ts'
 import type { ListingEntry } from './listing.ts'
 import type { Picture } from './pairing.ts'
 import type { PictureId } from './picture-id.ts'
+import type { SavedEtag } from './sidecar-etags.ts'
 import type { StatsCounts } from './stats-counts.ts'
 import type { TagChange } from './tag.ts'
 import type { SidecarBytes } from './xmp/decision.ts'
 import type { XmpPacket, XmpRefusal, XmpTime } from './xmp/model.ts'
 
-import { UNDECIDED } from './decision.ts'
+import { FLAG_FIELDS, UNDECIDED } from './decision.ts'
 import { embeddedSidecarPath, embeddedSourceOf, embeddedXmpSource } from './embedded-xmp.ts'
 import { parseFileName } from './file-name.ts'
 import { isMemberSidecar } from './sidecars.ts'
@@ -72,9 +73,8 @@ export interface PlannedSave {
 	readonly item: SidecarSaveItem
 }
 
-/** A sidecar a save wrote, and whether the save created it. */
-export interface SavedSidecar {
-	readonly path: string
+/** A sidecar a save wrote, its picture, file id and new ETag, and whether the save created it. */
+export interface SavedSidecar extends SavedEtag {
 	readonly created: boolean
 }
 
@@ -173,15 +173,21 @@ function targetsOf(picture: Picture<ListingEntry>, known: Known, paths?: Readonl
 		})
 }
 
-/** How the edit changes a sidecar, a new one (with a `base`) starting from that decision, and whether it creates missing ones: a decision always does; a tag change applies to the union of the sources read, and creates them only while tags are left. */
+/** How the edit changes a sidecar, a new one (with a `base`) starting from that decision, and whether it creates missing ones: a decision does as `createsFor` says; a tag change applies to the union of the sources read, and creates them only while tags are left. */
 function editorOf(edit: SidecarEdit, pair: boolean, sources: readonly XmpPacket[]): { change: (packet: XmpPacket, base: Decision | null) => XmpPacket, creates: boolean } {
 	const { decision, tags } = edit
 	const write = tags === undefined ? null : tagWrite(sources, tags)
 	const decide = (packet: XmpPacket, base: Decision | null) => (base !== null ? mergeDelta(packet, decision ?? {}, pair, base) : (decision === undefined ? packet : mergeDelta(packet, decision, pair)))
 	return {
 		change: (packet, base) => (write === null ? decide(packet, base) : mergeTags(decide(packet, base), write)),
-		creates: decision !== undefined || (write !== null && write.tags.length > 0),
+		creates: (decision !== undefined && createsFor(decision, pair)) || (write !== null && write.tags.length > 0),
 	}
+}
+
+/** Whether a decision delta creates missing sidecars: one with a field beyond the flag's always does, a flag-only one while the picture ends flagged or kept (XMP-003.43). */
+function createsFor(decision: DecisionDelta, pair: boolean): boolean {
+	const flagOnly = Object.keys(decision).every((field) => FLAG_FIELDS.includes(field as DecisionField))
+	return !flagOnly || (decision.flag !== undefined && decision.flag !== 'unflagged') || (pair && decision.keepRaw === true)
 }
 
 /** A sidecar of the picture as the reading rules take it. */
@@ -212,5 +218,8 @@ export function isPair(picture: Picture<ListingEntry>): boolean {
 
 /** The sidecars the answers say were saved; one saved without a file id was created. */
 export function savedSidecars(saves: readonly PlannedSave[], answers: readonly SidecarSaveAnswer[]): SavedSidecar[] {
-	return saves.filter((_, index) => answers[index]?.result === 'saved').map(({ path, item }) => ({ path, created: !('fileId' in item) }))
+	return saves.flatMap(({ picture, path, item }, index) => {
+		const answer = answers[index]
+		return answer?.result === 'saved' ? [{ picture, path, created: !('fileId' in item), fileId: answer.fileId, etag: answer.etag }] : []
+	})
 }

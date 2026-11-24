@@ -20,10 +20,11 @@ use OCP\Migration\SimpleMigrationStep;
  * @psalm-suppress UnusedClass Nextcloud runs it by its name.
  */
 final class Version000200Date20261123200000 extends SimpleMigrationStep {
+	private const string TABLE_PREFIX = 'honeycomb_';
 	private const int USER_ID_LENGTH = 64;
 	private const int CONNECTION_ID_LENGTH = 64;
-	/** A UUID. */
-	private const int ASSET_ID_LENGTH = 36;
+	/** Immich's UUID today, room for the ids of other sources. */
+	private const int ASSET_ID_LENGTH = 255;
 	/** Wide enough for every source, flag, colour label, kind, state and status. */
 	private const int WORD_LENGTH = 16;
 	private const int KEY_LENGTH = 64;
@@ -39,7 +40,12 @@ final class Version000200Date20261123200000 extends SimpleMigrationStep {
 	private const array NOT_NULL = ['notnull' => true];
 	private const array NULL = ['notnull' => false];
 	private const array USER_ID = ['notnull' => true, 'length' => self::USER_ID_LENGTH];
+	private const array OPTIONAL_USER_ID = ['notnull' => false, 'length' => self::USER_ID_LENGTH];
+	private const array OPTIONAL_ASSET_ID = ['notnull' => false, 'length' => self::ASSET_ID_LENGTH];
 	private const array ETAG = ['notnull' => true, 'length' => VisualHash::MAX_ETAG_LENGTH];
+	private const array OPTIONAL_ETAG = ['notnull' => false, 'length' => VisualHash::MAX_ETAG_LENGTH];
+	/** dHash, the first visual hash method (ADR 0024). */
+	private const array FIRST_METHOD = ['notnull' => true, 'default' => 1];
 	private const array WORD = ['notnull' => true, 'length' => self::WORD_LENGTH];
 	private const array OPTIONAL_WORD = ['notnull' => false, 'length' => self::WORD_LENGTH];
 	private const array KEEP_RAW = ['notnull' => false, 'default' => false];
@@ -48,24 +54,32 @@ final class Version000200Date20261123200000 extends SimpleMigrationStep {
 	#[\Override]
 	public function changeSchema(IOutput $output, \Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		$schema = $schemaClosure();
+		self::refuseExistingTables($schema);
 		// A file's row has file_id; an Immich asset's row has connection_id and asset_id (ADR 0054).
 		self::create($schema, 'honeycomb_decisions', [
 			'source' => [Types::STRING, self::WORD],
 			'file_id' => [Types::BIGINT, self::NULL],
 			'connection_id' => [Types::STRING, ['notnull' => false, 'length' => self::CONNECTION_ID_LENGTH]],
-			'asset_id' => [Types::STRING, ['notnull' => false, 'length' => self::ASSET_ID_LENGTH]],
-			'user_id' => [Types::STRING, ['notnull' => false, 'length' => self::USER_ID_LENGTH]],
+			'asset_id' => [Types::STRING, self::OPTIONAL_ASSET_ID],
+			'user_id' => [Types::STRING, self::OPTIONAL_USER_ID],
 			'flag' => [Types::STRING, self::WORD],
 			'keep_raw' => [Types::BOOLEAN, self::KEEP_RAW],
 			'rating' => [Types::SMALLINT, self::NULL],
 			'colour_label' => [Types::STRING, self::OPTIONAL_WORD],
 			'updated_at' => [Types::BIGINT, self::NOT_NULL],
-		], unique: [['file_id'], ['connection_id', 'asset_id']]);
+			// Who decided last, for information only; null once that user is deleted.
+			'updated_by' => [Types::STRING, self::OPTIONAL_USER_ID],
+			// The ETag of this member's sidecar as honeycomb last knew it (ADR 0056); null while unknown.
+			'sidecar_etag' => [Types::STRING, self::OPTIONAL_ETAG],
+		], unique: [['file_id'], ['connection_id', 'asset_id']], index: [['user_id'], ['source', 'connection_id']]);
+		// A file's position has file_id; an Immich position has asset_id and taken_at.
 		self::create($schema, 'honeycomb_positions', [
 			'user_id' => [Types::STRING, self::USER_ID],
 			'folder_set_key' => [Types::STRING, ['notnull' => true, 'length' => self::KEY_LENGTH]],
 			'folder_set' => [Types::TEXT, self::NOT_NULL],
-			'file_id' => [Types::BIGINT, self::NOT_NULL],
+			'file_id' => [Types::BIGINT, self::NULL],
+			'asset_id' => [Types::STRING, self::OPTIONAL_ASSET_ID],
+			'taken_at' => [Types::BIGINT, self::NULL],
 			'decided' => [Types::INTEGER, self::ZERO],
 			'total' => [Types::INTEGER, self::ZERO],
 			'updated_at' => [Types::BIGINT, self::NOT_NULL],
@@ -77,6 +91,7 @@ final class Version000200Date20261123200000 extends SimpleMigrationStep {
 		self::create($schema, 'honeycomb_hashes', [
 			'file_id' => [Types::BIGINT, self::NOT_NULL],
 			'etag' => [Types::STRING, self::ETAG],
+			'method' => [Types::SMALLINT, self::FIRST_METHOD],
 			'hash' => [Types::STRING, ['notnull' => true, 'length' => self::HASH_LENGTH]],
 		], unique: [['file_id']]);
 		self::create($schema, 'honeycomb_series', [
@@ -119,7 +134,7 @@ final class Version000200Date20261123200000 extends SimpleMigrationStep {
 			'camera_model' => [Types::STRING, ['notnull' => false, 'length' => self::CAMERA_MODEL_LENGTH]],
 			'kind' => [Types::STRING, self::WORD],
 			'asset_updated_at' => [Types::STRING, ['notnull' => true, 'length' => self::TIME_LENGTH]],
-		], unique: [['connection_id', 'asset_id']], index: [['connection_id', 'taken_at']]);
+		], unique: [['connection_id', 'asset_id']], index: [['connection_id', 'taken_at'], ['user_id']]);
 		self::create($schema, 'honeycomb_quality', [
 			'file_id' => [Types::BIGINT, self::NOT_NULL],
 			'etag' => [Types::STRING, self::ETAG],
@@ -142,11 +157,19 @@ final class Version000200Date20261123200000 extends SimpleMigrationStep {
 		// user_id is null once the user who marked the folder done is deleted.
 		self::create($schema, 'honeycomb_folder_done', [
 			'file_id' => [Types::BIGINT, self::NOT_NULL],
-			'user_id' => [Types::STRING, ['notnull' => false, 'length' => self::USER_ID_LENGTH]],
+			'user_id' => [Types::STRING, self::OPTIONAL_USER_ID],
 			'done_at' => [Types::BIGINT, self::NOT_NULL],
 			'photos' => [Types::INTEGER, self::NOT_NULL],
 		], unique: [['file_id']]);
 		return $schema;
+	}
+
+	/** Stops before the first table when honeycomb tables exist, as on an instance installed before 0.2.0 (ADR 0055). */
+	private static function refuseExistingTables(ISchemaWrapper $schema): void {
+		$existing = array_values(array_filter($schema->getTableNamesWithoutPrefix(), static fn (string $table): bool => str_starts_with($table, self::TABLE_PREFIX)));
+		if ($existing !== []) {
+			throw new ExistingTablesException($existing);
+		}
 	}
 
 	/**
