@@ -25,13 +25,16 @@ function mountDialog() {
 	const text = document.createElement('p')
 	text.id = 'text'
 	text.textContent = 'page'
-	page.append(text)
+	const opener = document.createElement('button')
+	opener.id = 'opener'
+	page.append(text, opener)
 	const already = document.createElement('aside')
 	already.id = 'already'
 	already.inert = true
 	const host = document.createElement('section')
 	host.id = 'host'
 	document.body.replaceChildren(page, already, host)
+	opener.focus()
 	const wrapper = mount(Dialog, { attachTo: document.getElementById('host')! })
 	return wrapper
 }
@@ -42,6 +45,17 @@ describe('useModalDialog', () => {
 	afterEach(() => {
 		close.mockClear()
 		document.body.replaceChildren()
+	})
+
+	// spec: APP-001.20
+	it('gives the focus back to the control that opened it', () => {
+		const wrapper = mountDialog()
+		wrapper.find<HTMLElement>('.first').element.focus()
+		expect(document.activeElement?.className).toBe('first')
+
+		wrapper.unmount()
+
+		expect(document.activeElement?.id).toBe('opener')
 	})
 
 	// spec: APP-001.20
