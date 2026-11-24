@@ -1908,3 +1908,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   the setup page links the privacy page on GitHub, as `appinfo/info.xml` does (#187, autonomous).
 - 2026-11-24: `SidecarWriter` and `SidecarReader` catch only the `OCP\Files\*` types, so an unlisted
   exception fails the request loudly instead of one file quietly (#187, autonomous, PR #386).
+- 2026-11-24: Immich filter bar: time, device and kind as filter-bar chips in the Immich
+  toolbar, not in the navigation as the Phase 1 mockup drew them, since the owner asked for the
+  folder filter bar's style; they are kept per connection in the server view state
+  (`immich_filters`, ADR 0019 amendment), so they follow the user like the other view state.

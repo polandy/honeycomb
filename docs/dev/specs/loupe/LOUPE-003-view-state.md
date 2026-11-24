@@ -17,7 +17,9 @@ The view state is four booleans and one year per user behind `GET` and
 `PUT /apps/honeycomb/api/v1/view-state`: `info_panel_open`, `gesture_guide_seen`,
 `series_hint_seen`, `reject_hint_seen` and `year_review_hint_closed`, the year (1970 to 9999)
 whose year-in-review hint the user closed (STATS-001.26), each `null` while it was never
-stored. A write names only the keys it changes. The info panel's width and the Nextcloud
+stored. `immich_filters` keeps the Immich filters per connection (IMMICH-002.32), an object of
+connection ids, `null` while never stored. A write names only the keys it changes, and for
+`immich_filters` only the connections it changes. The info panel's width and the Nextcloud
 navigation toggle stay in browser storage (LOUPE-001), since they depend on the device's screen.
 
 The app reads the view state once when it starts. Until the answer arrives none of the gesture
@@ -112,3 +114,12 @@ toggle themselves: LOUPE-001. The settings: SETTINGS-001.
 | 2026-11-20 | `year_review_hint_closed` for the year-in-review hint (STATS-001.26, .48) |
 | 2026-11-24 | `reject_hint_seen` for the first-reject hint (LOUPE-003.9) |
 | 2026-11-22 | The four keys are snake_case, like every other stored key (no read of the old names: no production install yet) |
+
+### LOUPE-003.10 – Immich filters per connection
+
+- **Given** stored filters for connection `a`
+- **When** the client writes `{"immich_filters": {"b": {…}}}`
+- **Then** `b`'s filters are stored beside `a`'s and a read answers both; a write whose
+  `immich_filters` is not an object of connection ids (1 to 64 characters) with object values of
+  at most 4,096 bytes as JSON, or that would keep more than 50 connections, is refused with
+  `400` `request`
