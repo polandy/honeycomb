@@ -101,9 +101,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-10: The skeleton shows the mockup's empty state *No folder chosen* / *Pick a folder to
   start culling.* in `NcEmptyContent`, until the folder picker arrives with M2.3.
 - 2026-11-10: Vue errors reach `@nextcloud/logger` through `app.config.errorHandler`
-  (`src/app/create-honeycomb-app.ts`, logger injected); `src/app/main.ts` and `src/shared/logger.ts` are wiring
-  only, left out of coverage and covered by the e2e case. `src/<folder>/*.ts` and `src/**/*.vue` keep the
-  80 % lines gate of `02-workflow.md` §2.3.
+  (`src/app/create-honeycomb-app.ts`, logger injected); `src/app/main.ts` and
+  `src/shared/logger.ts` are wiring
+  only, left out of coverage and covered by the e2e case. `src/<folder>/*.ts` and `src/**/*.vue`
+  keep the 80 % lines gate of `02-workflow.md` §2.3.
 - 2026-11-10: The stub catalogue of ADR 0007 marks every string with a `[de]` prefix through a `Proxy`
   in `@nextcloud/l10n`'s registry, so it needs no list of strings. Components are
   shallow-mounted, so `@nextcloud/vue`'s own English stays out and the props of the stubs, which
@@ -992,7 +993,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   compare and its viewer mount inside the loupe (`.photo-loupe`), since the loupe sits above the
   page's dialogs; the viewer's title stays "Series 1 of 1" from the loupe, unchanged.
 - 2026-11-14: *Pick this, reject the rest* in the loupe (LOUPE-002.15, concept step 9) reuses the
-  compare's pick-and-land step (`pickRestAndLand` in `src/series/series-compare.ts`), so the loupe, the
+  compare's pick-and-land step (`pickRestAndLand` in `src/series/series-compare.ts`), so the loupe,
+  the
   compare and its viewer land after the series by one rule; the shortcut sheet's `Shift+K` row reads
   "Series: pick this, reject the rest", since the key now works in the loupe as well.
 - 2026-11-14: *Reject the other N* in the undo toast (LOUPE-002.16, SERIES-002.11, concept step 10)

@@ -28,7 +28,8 @@ The options for delivering the stored hashes:
 ## Decision
 
 - **Hash, link rule and span** stay as ADR 0021 decided them: a 64-bit dHash of the small grid
-  preview (`src/logic/visual-hash.ts`, drawn in `src/hashes/visual-hashes.ts`); two neighbouring shots of
+  preview (`src/logic/visual-hash.ts`, drawn in `src/hashes/visual-hashes.ts`); two neighbouring
+  shots of
   one camera link when both have a hash, they lie at most 30 s apart and the hashes differ in at
   most 10 of 64 bits, else when they lie at most 3 s apart; a series ends 60 s after its first
   shot. Only pictures with a shot of the same camera within 30 s are hashed, one at a time in the

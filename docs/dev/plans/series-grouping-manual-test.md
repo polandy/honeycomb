@@ -35,7 +35,8 @@ guide below has you prepare a small throw-away folder; nothing on the server nee
   canvas; hashes only pictures with a same-camera shot within 30 s (`hashablePictures`,
   `src/logic/series.ts`), one at a time, and saved on the server per file id and etag
   (SERIES-003, ADR 0024); the listing delivers the stored hashes as `visualHash`.
-- EXIF source: `lib/Service/Listing/EntryFactory.php:16-21` reads Nextcloud file metadata written by the
+- EXIF source: `lib/Service/Listing/EntryFactory.php:16-21` reads Nextcloud file metadata written
+  by the
   **Photos app's** metadata providers (`photos-original_date_time`, `photos-ifd0` for make and
   model). Missing values are `null` (LISTING-001.3); a picture without capture time is never in a
   series (SERIES-001.3). The RAW member's time and camera win over the JPEG's
