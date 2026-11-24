@@ -18,7 +18,7 @@ async function openFamily(page: Page): Promise<Locator> {
 	await page.goto('/index.php/apps/honeycomb/')
 	await page.getByRole('button', { name: 'Immich', exact: true }).click()
 	const main = page.getByRole('main')
-	await expect(main).toContainText('3,660 of 3,660 pictures')
+	await expect(main).toContainText('3,660 of 3,660 photos')
 	await expect(tile(page, 1)).toBeVisible()
 	return main
 }

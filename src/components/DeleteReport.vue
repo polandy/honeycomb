@@ -47,7 +47,7 @@ const stats = computed(() => [
 <template>
 	<ConfirmDialog
 		:title="failed ? t('honeycomb', 'Deletion finished with errors') : t('honeycomb', 'Some photos were skipped')"
-		:confirmLabel="props.busy ? runningText(props.progress) : t('honeycomb', 'Retry failed files')"
+		:confirmLabel="props.busy ? runningText(props.progress) : t('honeycomb', 'Try failed files again')"
 		:progress="props.progress"
 		:confirmDisabled="props.busy || !failed"
 		:cancelLabel="t('honeycomb', 'Close')"

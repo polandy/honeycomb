@@ -35,7 +35,7 @@ function confirm(): void {
 	<NcCheckboxRadioSwitch
 		type="switch"
 		:modelValue="settings.keepStatistics"
-		:description="t('honeycomb', 'Counts what honeycomb does per day: pictures decided, moved to the trash bin, sidecars written. No file names, nothing leaves your Nextcloud.')"
+		:description="t('honeycomb', 'Counts what honeycomb does per day: photos decided, moved to the trash bin, sidecars written. No file names, nothing leaves your Nextcloud.')"
 		@update:modelValue="emit('update', { keepStatistics: $event })">
 		{{ t('honeycomb', 'Keep statistics') }}
 	</NcCheckboxRadioSwitch>

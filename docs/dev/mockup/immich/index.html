@@ -532,7 +532,7 @@ function renderGrid(){
   const v = vis();
   let html = W.prev !== null ? '<div class="day" id="top">Newer pictures load as you scroll up</div>' : '', last = '';
   for (const p of v){ const d = fmtDay(p.t); if (d !== last){ html += `<div class="day">${esc(d)}</div>`; last = d; } html += tileHtml(c, p); }
-  if (!v.length && !W.busy && W.next === null) html = '<p class="empty">No pictures match. Change the time, device or flag filter.</p>';
+  if (!v.length && !W.busy && W.next === null) html = '<p class="empty">No photos match. Change the time, device or flag filter.</p>';
   g.innerHTML = html; renderFoot();
   thumbIO.disconnect(); g.querySelectorAll('img[data-a]').forEach(i => thumbIO.observe(i));
   topIO.disconnect(); if ($('#top')) topIO.observe($('#top'));

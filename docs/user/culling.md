@@ -67,7 +67,7 @@ Tap a tile to open the **loupe**: one photo full screen.
   or reject the loupe goes on to the next undecided photo; the settings change the swipes and
   turn this off.
 - **Info** (`I`) shows the photo's files, its decision and tags.
-- The **filmstrip** shows the photos around the current one; a honey frame marks a series.
+- The **filmstrip** shows the photos around the current one; a primary frame marks a series.
 
 Every decision shows a message with **Undo**. `Esc` returns to the grid at the photo you saw last.
 When you open the folder set again, on any device, *Continue where you left off* offers

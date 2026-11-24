@@ -71,7 +71,7 @@ describe('ImmichScreen', () => {
 		await flushPromises()
 
 		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(false)
-		expect(wrapper.text()).toContain('No pictures match. Change the time, device or flag filter.')
+		expect(wrapper.text()).toContain('No photos match. Change the time, device or flag filter.')
 	})
 
 	// spec: IMMICH-002.19
@@ -86,7 +86,7 @@ describe('ImmichScreen', () => {
 
 		expect(wrapper.findComponent(PhotoGrid).props('pictures')).toHaveLength(100)
 		const footer = wrapper.find('.immich-screen__footer')
-		expect(footer.text()).toContain('Could not load more pictures.')
+		expect(footer.text()).toContain('Could not load more photos.')
 		await footer.find('button').trigger('click')
 		expect(assets[2]!.cursor).toBe('c2')
 	})

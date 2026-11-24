@@ -42,7 +42,7 @@ shorter side is at most 520 px, else 220 px) does the grid scroll, downwards and
 as many columns as keep that width, the active card always scrolled into view.
 Each card has the picture's name, stars, flag mark and the flag buttons (*Pick*, *Unflag*,
 *Reject*, GRID-003.15); the flag buttons sit level across the cards, a flag mark or not. One
-picture is active: its card has the honey frame. *Pick this, reject the rest* is the primary
+picture is active: its card has the primary frame. *Pick this, reject the rest* is the primary
 button, *Skip* secondary. The keys are in the buttons' tooltips and the shortcut sheet. A single
 tap (click) on a card's photo only makes it active, never opens anything. Every card's photo
 carries a *View full screen* button (⤢) in its top right corner, always shown, 44 px (34 px with a
@@ -122,7 +122,7 @@ phone *Pick this, reject the rest* wraps its label to two balanced lines instead
 - **When** it shows a series
 - **Then** it fills the screen, its title says which series of how many and the active picture's
   place in it, each card shows its image, name, stars, flag mark and the flag buttons *Pick*,
-  *Unflag*, *Reject*, the first picture is active with the honey frame, and the bottom bar holds
+  *Unflag*, *Reject*, the first picture is active with the primary frame, and the bottom bar holds
   one line of instructions, *Skip* and *Pick this, reject the rest* for the active picture
 
 ### SERIES-001.8 – Deciding a picture of the series

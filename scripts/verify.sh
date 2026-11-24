@@ -14,9 +14,10 @@ source scripts/e2e-names.sh
 source scripts/verify-steps.sh
 
 step ci-changes scripts/test-ci-changes.sh
-step "gate tests" sh -c 'scripts/test-e2e-names.sh && scripts/test-database.sh && scripts/test-source-sizes.sh && scripts/test-pins.sh && scripts/test-specs.sh && scripts/test-spec-trailers.sh && scripts/test-nextcloud-versions.sh && scripts/test-package.sh && scripts/test-verify-steps.sh'
+step "gate tests" sh -c 'scripts/test-e2e-names.sh && scripts/test-database.sh && scripts/test-source-sizes.sh && scripts/test-pins.sh && scripts/test-words.sh && scripts/test-specs.sh && scripts/test-spec-trailers.sh && scripts/test-nextcloud-versions.sh && scripts/test-package.sh && scripts/test-verify-steps.sh'
 step source-sizes scripts/source-sizes.sh
 step pins scripts/pins.sh
+step words scripts/words.sh
 step specs scripts/specs.sh
 step "nextcloud versions" scripts/nextcloud-versions.sh
 # The branch's commit messages stand in for the description CI judges (docs/dev/specs/README.md).

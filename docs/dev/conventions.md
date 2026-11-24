@@ -144,5 +144,6 @@ The procedure — test first as its own commit, layers, coverage gate — is
 | PHP format (PSR-12 via `nextcloud/coding-standard`) | php-cs-fixer | `PHP` job |
 | PHP types, unused code, forbidden functions | psalm (`psalm.xml`) | `PHP` job |
 | File size, pins | `scripts/source-sizes.sh`, `scripts/pins.sh` | `Convention gates` job |
+| UI and doc words | `scripts/words.sh` | `Convention gates` job |
 
 All of them run locally through `scripts/verify.sh`.

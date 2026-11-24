@@ -27,7 +27,7 @@ const line = computed(() => {
 
 <template>
 	<section v-if="shares" class="statistics-read">
-		<h3>{{ t('honeycomb', 'Of the pictures read so far') }}</h3>
+		<h3>{{ t('honeycomb', 'Of the photos read so far') }}</h3>
 		<div class="statistics-read__split" aria-hidden="true">
 			<i class="statistics-read__picked" :style="{ flexGrow: props.read.picked }" />
 			<i class="statistics-read__rejected" :style="{ flexGrow: props.read.rejected }" />
