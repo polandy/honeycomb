@@ -12,22 +12,21 @@ final class StatsItemCounts {
 	/**
 	 * The item's counts, each capped at ±1; none without counts.
 	 * @param list<StatsMetric> $takes the metrics the endpoint takes
-	 * @param class-string<InvalidRequestException> $exception what a malformed counts object throws
 	 * @return list<StatsCount>
 	 */
-	public static function parse(mixed $counts, array $takes, string $exception): array {
+	public static function parse(mixed $counts, array $takes): array {
 		if ($counts === null) {
 			return [];
 		}
 		if (!is_array($counts) || ($counts !== [] && array_is_list($counts))) {
-			throw new $exception('counts must be an object of metrics');
+			throw InvalidRequestException::because(Reason::NotAnObject, 'counts must be an object of metrics');
 		}
 		$parsed = [];
 		/** @var array<array-key, mixed> $counts */
 		foreach ($counts as $key => $amount) {
 			$metric = StatsMetric::tryFrom((string)$key);
 			if ($metric === null || !in_array($metric, $takes, true) || !is_int($amount)) {
-				throw new $exception('counts name a metric this save carries, each with a whole number');
+				throw InvalidRequestException::because(Reason::BadValue, 'counts name a metric this save carries, each with a whole number');
 			}
 			$parsed[] = new StatsCount($metric, max(-1, min(1, $amount)));
 		}

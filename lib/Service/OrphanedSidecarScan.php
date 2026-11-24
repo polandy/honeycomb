@@ -28,7 +28,7 @@ final class OrphanedSidecarScan {
 	 * @return array{sidecars: list<array{fileId: int, etag: string, path: string, size: int}>, nextCursor: ?string}
 	 * @throws FolderNotFoundException for a path that is not the user's folder
 	 * @throws FolderNotReadableException when the user may not read the folder
-	 * @throws InvalidCursorException for a cursor that is no folder path
+	 * @throws InvalidRequestException for a cursor that is no folder path
 	 */
 	public function page(IUser $user, string $path, string $after): array {
 		$cursor = self::cursorOf($after);
@@ -80,7 +80,7 @@ final class OrphanedSidecarScan {
 	/**
 	 * The segments of a cursor; null for the first page, empty for the chosen folder itself.
 	 * @return ?list<string>
-	 * @throws InvalidCursorException
+	 * @throws InvalidRequestException
 	 */
 	private static function cursorOf(string $after): ?array {
 		if ($after === '') {
@@ -91,11 +91,11 @@ final class OrphanedSidecarScan {
 		}
 		$segments = explode('/', $after);
 		if (array_shift($segments) !== '') {
-			throw new InvalidCursorException($after);
+			throw InvalidRequestException::because(Reason::BadCursor, $after);
 		}
 		foreach ($segments as $segment) {
 			if (in_array($segment, ['', '.', '..'], true) || str_contains($segment, "\0")) {
-				throw new InvalidCursorException($after);
+				throw InvalidRequestException::because(Reason::BadCursor, $after);
 			}
 		}
 		return $segments;

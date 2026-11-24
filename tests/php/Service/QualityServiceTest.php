@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\InvalidQualityValueException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\QualityService;
 use OCA\Honeycomb\Service\QualityValue;
 use OCA\Honeycomb\Service\UserFolderResolver;
@@ -100,7 +100,7 @@ final class QualityServiceTest extends TestCase {
 		try {
 			$service->save($this->user(), $items);
 			$this->fail('A malformed save was accepted');
-		} catch (InvalidQualityValueException) {
+		} catch (InvalidRequestException) {
 			$this->assertSame(0, $this->store->replaceCalls);
 		}
 	}

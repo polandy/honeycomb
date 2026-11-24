@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\InvalidSeriesException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\SeriesService;
 use OCA\Honeycomb\Service\SeriesStatus;
 use OCA\Honeycomb\Service\StoredSeries;
@@ -62,7 +62,7 @@ final class SeriesServiceTest extends TestCase {
 
 	// spec: SERIES-005.20
 	public function testRefusesAMalformedLookup(): void {
-		$this->expectException(InvalidSeriesException::class);
+		$this->expectException(InvalidRequestException::class);
 		$this->service->lookup($this->user(), ['7']);
 	}
 
@@ -87,7 +87,7 @@ final class SeriesServiceTest extends TestCase {
 		try {
 			$this->service->save($this->user(), [self::item(null, 'closed', 7)], [], []);
 			$this->fail('A malformed body was written');
-		} catch (InvalidSeriesException) {
+		} catch (InvalidRequestException) {
 			$this->assertSame(0, $this->store->writeCalls);
 		}
 	}

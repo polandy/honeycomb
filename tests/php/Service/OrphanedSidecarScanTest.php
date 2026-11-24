@@ -8,8 +8,8 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\FolderNotFoundException;
-use OCA\Honeycomb\Service\InvalidCursorException;
 use OCA\Honeycomb\Service\OrphanedSidecarScan;
+use OCA\Honeycomb\Service\Reason;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -115,7 +115,6 @@ final class OrphanedSidecarScanTest extends TestCase {
 	public function testRefusesACursorThatIsNoFolderPath(string $cursor): void {
 		$this->addFiles([1 => '/P/a.xmp']);
 
-		$this->expectException(InvalidCursorException::class);
-		$this->scan()->page($this->treeUser(), '/P', $cursor);
+		$this->assertSame(Reason::BadCursor, ReasonOf::call(fn () => $this->scan()->page($this->treeUser(), '/P', $cursor)));
 	}
 }

@@ -26,7 +26,7 @@ final class FlagService {
 	/**
 	 * Writes the whole states in `$items` of the photos in folders the user may write to, and counts what the saved items carry.
 	 * @param array<array-key, mixed> $items
-	 * @throws InvalidFlagException for a malformed item or a file id given twice, before any write
+	 * @throws InvalidRequestException for a malformed item or a file id given twice, before any write
 	 * @throws \OCP\DB\Exception
 	 */
 	public function save(IUser $user, array $items): FlagAnswer {
@@ -45,7 +45,7 @@ final class FlagService {
 	/**
 	 * Inserts the flags in `$items` of the photos the user reaches that have no row yet, so a reader may take a picture's XMP over.
 	 * @param array<array-key, mixed> $items
-	 * @throws InvalidFlagException for a malformed item or a file id given twice, before any write
+	 * @throws InvalidRequestException for a malformed item or a file id given twice, before any write
 	 * @throws \OCP\DB\Exception
 	 */
 	public function takeOver(IUser $user, array $items): FlagAnswer {
@@ -59,12 +59,12 @@ final class FlagService {
 	/**
 	 * Records the sidecar ETags in `$items` on the rows of the photos in folders the user may write to (ADR 0056).
 	 * @param array<array-key, mixed> $items
-	 * @throws InvalidFlagException for a malformed item or a file id given twice, before any write
+	 * @throws InvalidRequestException for a malformed item or a file id given twice, before any write
 	 * @throws \OCP\DB\Exception
 	 */
 	public function sidecarEtags(IUser $user, array $items): FlagAnswer {
-		$parsed = array_map(SidecarEtag::fromRequest(...), FileIds::items($items, ListingService::ENTRY_LIMIT, InvalidFlagException::class));
-		$fileIds = FileIds::eachOnce(array_map(static fn (SidecarEtag $etag): int => $etag->fileId, $parsed), InvalidFlagException::class);
+		$parsed = array_map(SidecarEtag::fromRequest(...), FileIds::items($items, ListingService::ENTRY_LIMIT));
+		$fileIds = FileIds::eachOnce(array_map(static fn (SidecarEtag $etag): int => $etag->fileId, $parsed));
 		$etags = array_combine($fileIds, array_map(static fn (SidecarEtag $etag): ?string => $etag->sidecarEtag, $parsed));
 		$rateable = $this->photos->rateable($user, $fileIds);
 		$allowed = array_filter($etags, static fn (int $fileId): bool => $rateable[$fileId] ?? false, ARRAY_FILTER_USE_KEY);
@@ -84,8 +84,8 @@ final class FlagService {
 	private function parse(IUser $user, array $items): array {
 		$now = $this->time->getTime();
 		$uid = $user->getUID();
-		$flags = array_map(static fn (mixed $item): FileFlag => FileFlag::fromRequest($item, $now, $uid), FileIds::items($items, ListingService::ENTRY_LIMIT, InvalidFlagException::class));
-		$fileIds = FileIds::eachOnce(array_map(static fn (FileFlag $flag): int => $flag->fileId, $flags), InvalidFlagException::class);
+		$flags = array_map(static fn (mixed $item): FileFlag => FileFlag::fromRequest($item, $now, $uid), FileIds::items($items, ListingService::ENTRY_LIMIT));
+		$fileIds = FileIds::eachOnce(array_map(static fn (FileFlag $flag): int => $flag->fileId, $flags));
 		return array_combine($fileIds, $flags);
 	}
 
@@ -98,7 +98,7 @@ final class FlagService {
 		$counts = [];
 		/** @var array{fileId: int, counts?: mixed} $item */
 		foreach ($items as $item) {
-			$counts[$item['fileId']] = StatsItemCounts::parse($item['counts'] ?? null, self::COUNTS, InvalidFlagException::class);
+			$counts[$item['fileId']] = StatsItemCounts::parse($item['counts'] ?? null, self::COUNTS);
 		}
 		return $counts;
 	}

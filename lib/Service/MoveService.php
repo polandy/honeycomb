@@ -44,7 +44,7 @@ final class MoveService {
 	 * Moves the files of each picture and reports each file, pictures and files in the order sent.
 	 * @param array<array-key, mixed> $pictures
 	 * @return list<list<Outcome>>
-	 * @throws InvalidMoveRequestException for a malformed request; nothing is touched
+	 * @throws InvalidRequestException for a malformed request; nothing is touched
 	 * @throws TrashBinDisabledException when a replace would not be restorable; nothing is touched
 	 */
 	public function move(IUser $user, array $pictures): array {

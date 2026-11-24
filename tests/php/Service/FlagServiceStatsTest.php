@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\FlagService;
-use OCA\Honeycomb\Service\InvalidFlagException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IUser;
 use PHPUnit\Framework\TestCase;
@@ -59,7 +59,7 @@ final class FlagServiceStatsTest extends TestCase {
 
 	// spec: STATS-001.16
 	public function testAMetricAFlagSaveDoesNotCarryIsRejectedBeforeAnyWrite(): void {
-		$this->expectException(InvalidFlagException::class);
+		$this->expectException(InvalidRequestException::class);
 
 		$this->service()->save($this->user(), [self::item(7, ['trash_bytes' => 1])]);
 	}

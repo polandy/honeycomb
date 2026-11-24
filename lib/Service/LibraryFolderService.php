@@ -34,7 +34,7 @@ final class LibraryFolderService {
 	/**
 	 * Summarises the next batch of folders below `$root` without a fresh summary, in path order.
 	 * @return array{scanning: array{done: int, total: int}}
-	 * @throws InvalidLibraryRequestException for a root outside the user's own storage
+	 * @throws InvalidRequestException for a root outside the user's own storage
 	 * @throws FolderNotReadableException when the user may not read the root
 	 */
 	public function scan(IUser $user, string $root): array {
@@ -52,14 +52,14 @@ final class LibraryFolderService {
 	/**
 	 * One page, by file id, of the folders below `$root` that have a summary with photos.
 	 * @return array{folders: list<array<string, mixed>>, nextCursor: ?int, scanning: ?array{done: int, total: int}}
-	 * @throws InvalidLibraryRequestException for a root outside the user's own storage or a malformed page
+	 * @throws InvalidRequestException for a root outside the user's own storage or a malformed page
 	 * @throws FolderNotReadableException when the user may not read the root
 	 */
 	public function list(IUser $user, string $root, string $after, string $limit): array {
 		$afterId = self::number($after, 0, 'cursor');
 		$pageSize = self::number($limit, self::MAX_LIMIT, 'limit');
 		if ($pageSize < 1 || $pageSize > self::MAX_LIMIT) {
-			throw new InvalidLibraryRequestException('limit must be from 1 to ' . self::MAX_LIMIT);
+			throw InvalidRequestException::because(Reason::BadValue, 'limit must be from 1 to ' . self::MAX_LIMIT);
 		}
 		$rootPath = self::rootPath($root);
 		$folders = $this->files->folders($this->root($user, $root));
@@ -125,17 +125,17 @@ final class LibraryFolderService {
 
 	/**
 	 * The root folder, rechecked: a folder of the user's own storage.
-	 * @throws InvalidLibraryRequestException
+	 * @throws InvalidRequestException
 	 * @throws FolderNotReadableException
 	 */
 	private function root(IUser $user, string $root): Folder {
 		try {
 			$folder = $this->folders->folder($user, self::rootPath($root));
 		} catch (FolderNotFoundException) {
-			throw new InvalidLibraryRequestException('root must be a folder of your own files');
+			throw InvalidRequestException::because(Reason::BadPath, 'root must be a folder of your own files');
 		}
 		if ($folder->getMountPoint()->getMountType() !== self::OWN_MOUNT) {
-			throw new InvalidLibraryRequestException('root must be a folder of your own files');
+			throw InvalidRequestException::because(Reason::BadPath, 'root must be a folder of your own files');
 		}
 		return $folder;
 	}
@@ -150,13 +150,13 @@ final class LibraryFolderService {
 		return ($summaries[$folder->fileId] ?? null)?->etag === $folder->etag;
 	}
 
-	/** @throws InvalidLibraryRequestException */
+	/** @throws InvalidRequestException */
 	private static function number(string $value, int $default, string $name): int {
 		if ($value === '') {
 			return $default;
 		}
 		if (preg_match(self::NUMBER, $value) !== 1) {
-			throw new InvalidLibraryRequestException("$name must be a whole number");
+			throw InvalidRequestException::because(Reason::BadValue, "$name must be a whole number");
 		}
 		return (int)$value;
 	}

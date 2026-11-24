@@ -56,17 +56,17 @@ final class ViewStateService {
 
 	/**
 	 * Stores the keys given and returns the whole view state.
-	 * @throws InvalidViewStateException for anything but a non-empty object of known keys with boolean values, a year for the year key, or Immich filters per connection
+	 * @throws InvalidRequestException for anything but a non-empty object of known keys with boolean values, a year for the year key, or Immich filters per connection
 	 * @return array<string, bool|int|object|null>
 	 */
 	public function save(IUser $user, mixed $viewState): array {
 		if (!is_array($viewState) || $viewState === []) {
-			throw new InvalidViewStateException('viewState must be an object with at least one key');
+			throw InvalidRequestException::because(Reason::NotAnObject, 'viewState must be an object with at least one key');
 		}
 		/** @var array<string, bool|int|array<string, array<mixed>>> $valid */
 		$valid = array_filter($viewState, fn (mixed $value, int|string $key): bool => $this->isValid($key, $value), ARRAY_FILTER_USE_BOTH);
 		if (count($valid) !== count($viewState)) {
-			throw new InvalidViewStateException('viewState takes only ' . implode(', ', self::KEYS) . ', each a boolean, ' . self::YEAR_KEY . ', a year, and ' . self::IMMICH_FILTERS_KEY . ', an object of filters per connection');
+			throw InvalidRequestException::because(Reason::BadValue, 'viewState takes only ' . implode(', ', self::KEYS) . ', each a boolean, ' . self::YEAR_KEY . ', a year, and ' . self::IMMICH_FILTERS_KEY . ', an object of filters per connection');
 		}
 		$merged = null;
 		if (isset($valid[self::IMMICH_FILTERS_KEY])) {
@@ -74,7 +74,7 @@ final class ViewStateService {
 			$filters = $valid[self::IMMICH_FILTERS_KEY];
 			$merged = array_replace($this->config->getValueArray($user->getUID(), Application::APP_ID, self::IMMICH_FILTERS_KEY), $filters);
 			if (count($merged) > self::MAX_CONNECTIONS) {
-				throw new InvalidViewStateException(self::IMMICH_FILTERS_KEY . ' keeps at most ' . self::MAX_CONNECTIONS . ' connections');
+				throw InvalidRequestException::because(Reason::TooMany, self::IMMICH_FILTERS_KEY . ' keeps at most ' . self::MAX_CONNECTIONS . ' connections');
 			}
 			unset($valid[self::IMMICH_FILTERS_KEY]);
 		}

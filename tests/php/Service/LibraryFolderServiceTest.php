@@ -11,7 +11,7 @@ use OCA\Honeycomb\Service\CaptureTimes;
 use OCA\Honeycomb\Service\FolderDone;
 use OCA\Honeycomb\Service\FolderNotReadableException;
 use OCA\Honeycomb\Service\FolderSummary;
-use OCA\Honeycomb\Service\InvalidLibraryRequestException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\LibraryFolder;
 use OCA\Honeycomb\Service\LibraryFolderService;
 use OCA\Honeycomb\Service\UserFolderResolver;
@@ -173,9 +173,9 @@ final class LibraryFolderServiceTest extends TestCase {
 		try {
 			$this->service($nodes)->scan($this->user(), $root);
 			$this->fail('the scan of a foreign root ran');
-		} catch (InvalidLibraryRequestException) {
+		} catch (InvalidRequestException) {
 		}
-		$this->expectException(InvalidLibraryRequestException::class);
+		$this->expectException(InvalidRequestException::class);
 		$this->service($nodes)->list($this->user(), $root, '', '');
 	}
 
@@ -194,7 +194,7 @@ final class LibraryFolderServiceTest extends TestCase {
 	// spec: FOLDERS-005.14
 	#[DataProvider('malformedPages')]
 	public function testAMalformedPageIsRefused(string $after, string $limit): void {
-		$this->expectException(InvalidLibraryRequestException::class);
+		$this->expectException(InvalidRequestException::class);
 
 		$this->service()->list($this->user(), '/Photos', $after, $limit);
 	}

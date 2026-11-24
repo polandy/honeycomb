@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\InvalidListingRequestException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\PairingExtensions;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -51,7 +51,7 @@ final class PairingExtensionsTest extends TestCase {
 	// spec: LISTING-003.24
 	#[DataProvider('invalidLists')]
 	public function testRefusesAnInvalidList(mixed $raw, mixed $rendered): void {
-		$this->expectException(InvalidListingRequestException::class);
+		$this->expectException(InvalidRequestException::class);
 
 		PairingExtensions::fromRequest($raw, $rendered);
 	}

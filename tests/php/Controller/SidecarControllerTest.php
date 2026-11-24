@@ -76,9 +76,9 @@ final class SidecarControllerTest extends TestCase {
 
 	// spec: XMP-002.7
 	public function testAMalformedRequestIsABadRequest(): void {
-		foreach ([$this->controller()->lookup([9, 9]), $this->controller()->save([['fileId' => 9]])] as $response) {
+		foreach ([['duplicate', $this->controller()->lookup([9, 9])], ['bad-value', $this->controller()->save([['fileId' => 9]])]] as [$reason, $response]) {
 			$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
-			$this->assertSame(['error' => 'request'], json_decode($response->render(), true));
+			$this->assertSame(['error' => 'request', 'reason' => $reason], json_decode($response->render(), true));
 		}
 	}
 

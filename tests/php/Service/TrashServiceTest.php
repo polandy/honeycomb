@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\InvalidTrashRequestException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\TrashBinDisabledException;
 use OCP\Files\File;
 use OCP\Files\Folder;
@@ -239,7 +239,7 @@ final class TrashServiceTest extends TestCase {
 	// spec: DELETE-001.6
 	#[DataProvider('malformedRequests')]
 	public function testAMalformedRequestTouchesNothing(array $pictures): void {
-		$this->expectException(InvalidTrashRequestException::class);
+		$this->expectException(InvalidRequestException::class);
 
 		try {
 			$this->service($this->pair())->trash($this->user(), $pictures);

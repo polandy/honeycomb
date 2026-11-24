@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
-use OCA\Honeycomb\Service\InvalidTrashRequestException;
+use OCA\Honeycomb\Service\InvalidRequestException;
 use OCA\Honeycomb\Service\OrphanedSidecarTrash;
 use OCA\Honeycomb\Service\TrashBinDisabledException;
 use OCA\Honeycomb\Service\TrashBinGuard;
@@ -127,7 +127,7 @@ final class OrphanedSidecarTrashTest extends TestCase {
 		try {
 			$this->service()->trash($this->treeUser(), $sidecars);
 			$this->fail('A malformed request must be refused');
-		} catch (InvalidTrashRequestException) {
+		} catch (InvalidRequestException) {
 			$this->assertSame([], $this->trashed);
 		}
 	}

@@ -12,23 +12,23 @@ final class MoveRequest {
 	/**
 	 * @param array<array-key, mixed> $pictures
 	 * @return list<non-empty-list<MoveFile>>
-	 * @throws InvalidMoveRequestException
+	 * @throws InvalidRequestException
 	 */
 	public static function pictures(array $pictures): array {
 		if (!array_is_list($pictures)) {
-			throw new InvalidMoveRequestException('pictures must be a list');
+			throw InvalidRequestException::because(Reason::NotAList, 'pictures must be a list');
 		}
 		$parsed = array_map(self::picture(...), $pictures);
 		$files = array_merge(...$parsed);
 		if (count($files) > PictureRequestLimit::FILES) {
-			throw new InvalidMoveRequestException('At most ' . PictureRequestLimit::FILES . ' files');
+			throw InvalidRequestException::because(Reason::TooMany, 'At most ' . PictureRequestLimit::FILES . ' files');
 		}
-		FileIds::eachOnce(array_map(static fn (MoveFile $file): int => $file->fileId, $files), InvalidMoveRequestException::class);
+		FileIds::eachOnce(array_map(static fn (MoveFile $file): int => $file->fileId, $files));
 		self::refuseTwice(array_map(static fn (MoveFile $file): string => mb_strtolower($file->path), $files), 'target path');
 		$moved = array_flip(array_map(static fn (MoveFile $file): int => $file->fileId, $files));
 		foreach ($files as $file) {
 			if ($file->replaceFileId !== null && isset($moved[$file->replaceFileId])) {
-				throw new InvalidMoveRequestException("File {$file->replaceFileId} is moved and replaced");
+				throw InvalidRequestException::because(Reason::Conflict, "File {$file->replaceFileId} is moved and replaced");
 			}
 		}
 		return $parsed;
@@ -37,33 +37,33 @@ final class MoveRequest {
 	/**
 	 * @param array<array-key, mixed> $folders
 	 * @return list<string>
-	 * @throws InvalidMoveRequestException
+	 * @throws InvalidRequestException
 	 */
 	public static function folders(array $folders): array {
 		if (!array_is_list($folders) || count($folders) > ListingService::ENTRY_LIMIT) {
-			throw new InvalidMoveRequestException('folders must be a list of at most ' . ListingService::ENTRY_LIMIT . ' paths');
+			throw InvalidRequestException::because(Reason::NotAList, 'folders must be a list of at most ' . ListingService::ENTRY_LIMIT . ' paths');
 		}
 		return array_map(static fn (mixed $path): string => $path === '/' ? '/' : self::path($path), $folders);
 	}
 
 	/**
 	 * @return non-empty-list<MoveFile>
-	 * @throws InvalidMoveRequestException
+	 * @throws InvalidRequestException
 	 */
 	private static function picture(mixed $picture): array {
 		if (!is_array($picture) || $picture === [] || !array_is_list($picture)) {
-			throw new InvalidMoveRequestException('Each picture must be a non-empty list of files');
+			throw InvalidRequestException::because(Reason::NotAList, 'Each picture must be a non-empty list of files');
 		}
 		return array_map(self::file(...), $picture);
 	}
 
-	/** @throws InvalidMoveRequestException */
+	/** @throws InvalidRequestException */
 	private static function file(mixed $file): MoveFile {
 		$file = is_array($file) ? $file : [];
 		$fileId = $file['fileId'] ?? null;
 		$etag = $file['etag'] ?? null;
 		if (!is_int($fileId) || $fileId < 1 || !is_string($etag) || $etag === '') {
-			throw new InvalidMoveRequestException('Each file must have a positive fileId and an etag');
+			throw InvalidRequestException::because(Reason::BadValue, 'Each file must have a positive fileId and an etag');
 		}
 		$path = self::path($file['path'] ?? null);
 		if (!array_key_exists('replace', $file)) {
@@ -74,22 +74,22 @@ final class MoveRequest {
 		$replaceEtag = $replace['etag'] ?? null;
 		$permanent = $replace['permanent'] ?? false;
 		if (!is_int($replaceId) || $replaceId < 1 || !is_string($replaceEtag) || $replaceEtag === '' || !is_bool($permanent)) {
-			throw new InvalidMoveRequestException('A replace must have a positive fileId, an etag and at most a boolean permanent');
+			throw InvalidRequestException::because(Reason::BadValue, 'A replace must have a positive fileId, an etag and at most a boolean permanent');
 		}
 		return new MoveFile($fileId, $etag, $path, $replaceId, $replaceEtag, $permanent);
 	}
 
 	/**
 	 * An absolute path below the user's files without empty, `.` or `..` segments.
-	 * @throws InvalidMoveRequestException
+	 * @throws InvalidRequestException
 	 */
 	private static function path(mixed $path): string {
 		if (!is_string($path) || !str_starts_with($path, '/') || str_contains($path, '\\') || str_contains($path, "\0")) {
-			throw new InvalidMoveRequestException('A path must be absolute, without backslash or NUL');
+			throw InvalidRequestException::because(Reason::BadPath, 'A path must be absolute, without backslash or NUL');
 		}
 		foreach (explode('/', substr($path, 1)) as $segment) {
 			if ($segment === '' || $segment === '.' || $segment === '..') {
-				throw new InvalidMoveRequestException('A path must not have an empty, . or .. segment');
+				throw InvalidRequestException::because(Reason::BadPath, 'A path must not have an empty, . or .. segment');
 			}
 		}
 		return $path;
@@ -97,11 +97,11 @@ final class MoveRequest {
 
 	/**
 	 * @param list<int|string> $keys
-	 * @throws InvalidMoveRequestException
+	 * @throws InvalidRequestException
 	 */
 	private static function refuseTwice(array $keys, string $what): void {
 		if (count($keys) !== count(array_unique($keys))) {
-			throw new InvalidMoveRequestException("A $what is given twice");
+			throw InvalidRequestException::because(Reason::Duplicate, "A $what is given twice");
 		}
 	}
 }
