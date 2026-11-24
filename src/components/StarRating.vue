@@ -26,7 +26,7 @@ function rateLabel(value: number) {
 		: n('honeycomb', 'Rate {count} star', 'Rate {count} stars', value, { count: formatNumber(value) })
 }
 
-/** What a rating button shows: the count, with a star once there is one. */
+/** What a rating button shows: the star count, or *Clear* for none. */
 function buttonText(value: number) {
 	return value === 0 ? t('honeycomb', 'Clear') : `${formatNumber(value)}★`
 }
