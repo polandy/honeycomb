@@ -156,4 +156,16 @@ final class MoveServiceCarryOverTest extends TestCase {
 
 		$this->service($flags, $this->createStub(LoggerInterface::class))->move($this->treeUser(), self::request());
 	}
+
+	// spec: MOVE-002.4
+	public function testAnUnexpectedFailureStillMovesTheMovedFilesBackBeforeItEscapes(): void {
+		$this->moveFailures[2] = new \LogicException('bug');
+
+		try {
+			$this->service()->move($this->treeUser(), self::request());
+			$this->fail('The unexpected failure was swallowed');
+		} catch (\LogicException) {
+			$this->assertSame(['/In/A.RAF', '/In/A.JPG'], [$this->files[1], $this->files[2]]);
+		}
+	}
 }
