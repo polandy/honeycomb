@@ -29,6 +29,7 @@ final class FolderSummaryMapper implements FolderSummaryStore {
 		'oldest' => IQueryBuilder::PARAM_INT,
 		'newest' => IQueryBuilder::PARAM_INT,
 		'last_activity' => IQueryBuilder::PARAM_INT,
+		'previews' => IQueryBuilder::PARAM_STR,
 		'scanned_at' => IQueryBuilder::PARAM_INT,
 	];
 
@@ -59,6 +60,7 @@ final class FolderSummaryMapper implements FolderSummaryStore {
 				self::nullableInt($row['newest']),
 				self::nullableInt($row['last_activity']),
 				(int)$row['scanned_at'],
+				self::decodePreviews($row['previews']),
 			);
 			$summaries[$summary->fileId] = $summary;
 		}
@@ -82,6 +84,7 @@ final class FolderSummaryMapper implements FolderSummaryStore {
 				'newest' => $summary->newest,
 				'last_activity' => $summary->lastActivity,
 				'scanned_at' => $summary->scannedAt,
+				'previews' => self::encodePreviews($summary->previews),
 			], $summaries));
 		}, $this->db);
 	}
@@ -89,6 +92,22 @@ final class FolderSummaryMapper implements FolderSummaryStore {
 	#[\Override]
 	public function clearAll(): int {
 		return $this->clearRows(null);
+	}
+
+	/** @param list<array{fileId: int, mtime: int}> $previews as `fileId:mtime,fileId:mtime`; null without any */
+	private static function encodePreviews(array $previews): ?string {
+		return $previews === [] ? null : implode(',', array_map(static fn (array $preview): string => $preview['fileId'] . ':' . $preview['mtime'], $previews));
+	}
+
+	/** @return list<array{fileId: int, mtime: int}> */
+	private static function decodePreviews(mixed $value): array {
+		if (!is_string($value) || $value === '') {
+			return [];
+		}
+		return array_map(static function (string $pair): array {
+			[$fileId, $mtime] = explode(':', $pair);
+			return ['fileId' => (int)$fileId, 'mtime' => (int)$mtime];
+		}, explode(',', $value));
 	}
 
 	private static function nullableInt(mixed $value): ?int {
