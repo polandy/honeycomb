@@ -14,7 +14,7 @@ use OCP\IUser;
 
 /**
  * Pages through the user's own photos below a folder that have no visual hash of their current
- * etag, walking the tree in name order from a path cursor (ADR 0025).
+ * etag and the client's method, walking the tree in name order from a path cursor (ADR 0025).
  */
 final class MissingVisualHashes {
 	/** Photos looked at per page; a page lists only those of them without a current hash. */
@@ -31,13 +31,17 @@ final class MissingVisualHashes {
 	}
 
 	/**
-	 * The next page of photos without a current hash after `$after`, a path relative to `$path`.
+	 * The next page of photos without a current hash of `$method` after `$after`, a path relative to `$path`.
 	 * @return array{pictures: list<array{fileId: int, etag: string, mtime: int, path: string}>, nextCursor: ?string}
 	 * @throws FolderNotFoundException for a path that is not the user's folder
 	 * @throws FolderNotReadableException when the user may not read the folder
 	 * @throws InvalidCursorException for a cursor that is no relative path
+	 * @throws InvalidVisualHashException for a method outside 1 to VisualHash::MAX_METHOD
 	 */
-	public function page(IUser $user, string $path, string $after): array {
+	public function page(IUser $user, string $path, string $after, int $method): array {
+		if ($method < 1 || $method > VisualHash::MAX_METHOD) {
+			throw new InvalidVisualHashException('method must be an integer from 1 to ' . VisualHash::MAX_METHOD . ", not $method");
+		}
 		$cursor = self::cursorOf($after);
 		$folder = $this->folders->folder($user, $path);
 		if (!$this->isOwn($folder)) {
@@ -57,7 +61,8 @@ final class MissingVisualHashes {
 		$pictures = [];
 		foreach ($photos as $relative => $photo) {
 			$fileId = $photo->getId();
-			if (($stored[$fileId] ?? null)?->etag !== $photo->getEtag()) {
+			$hash = $stored[$fileId] ?? null;
+			if ($hash?->etag !== $photo->getEtag() || $hash?->method !== $method) {
 				$pictures[] = ['fileId' => $fileId, 'etag' => $photo->getEtag(), 'mtime' => $photo->getMTime(), 'path' => $base . '/' . $relative];
 			}
 		}

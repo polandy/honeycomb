@@ -49,9 +49,17 @@ export function hashDistance(a: string, b: string): number {
 	return count
 }
 
-/** A visual hash with the etag of the file version it was taken from, as the server stores it (ADR 0024). */
-export interface StoredVisualHash {
+/** The method of `differenceHash`; a stored hash of another method counts as missing (SERIES-003.30). */
+export const VISUAL_HASH_METHOD = 1
+
+/** A visual hash with the method it was taken by, as the listing gives it. */
+export interface ListedVisualHash {
+	readonly method: number
+	readonly hash: string
+}
+
+/** A visual hash with the file version it was taken from, as the server stores it (ADR 0024). */
+export interface StoredVisualHash extends ListedVisualHash {
 	readonly fileId: PictureId
 	readonly etag: string
-	readonly hash: string
 }

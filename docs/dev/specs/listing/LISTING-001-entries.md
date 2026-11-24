@@ -18,7 +18,7 @@ answer is `{"entries": [...], "truncated": <bool>, "folders": [...], "fileId": <
 being the listed folder's. An entry has `fileId`, `path`
 (from the user's files, leading `/`), `size`, `mtime`, `etag`, `mime` and `captureTime`,
 `orientation`, `width`, `height` from Nextcloud's file metadata, each `null` where it has none,
-`visualHash`, the stored visual hash of the file's current version or `null` (SERIES-003),
+`visualHash`, the stored visual hash of the file's current version with its method or `null` (SERIES-003),
 `quality`, the stored quality value of the file's current version or `null` (SERIES-006),
 `exposure`, the EXIF exposure facts or `null` (SERIES-009), and
 the file's `flag`, `keepRaw` and `flagUpdated` (Unix seconds) from
@@ -202,3 +202,4 @@ Withdrawn by ADR 0040 (M8 PR 3); a folder names its path and permissions only (.
 | 2026-11-19 | M8 PR 5: each entry carries its flag (.18 implemented) |
 | 2026-11-20 | `quality` on every entry; `visualHash` for every user of the file (SERIES-006, ADR 0046) |
 | 2026-11-21 | `exposure` on every entry (SERIES-009, ADR 0046) |
+| 2026-11-24 | `visualHash` carries its method (SERIES-003.30) |

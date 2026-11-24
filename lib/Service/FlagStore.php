@@ -8,7 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service;
 
 /** Where the one flag of each file is kept, by file id (ADR 0040). */
-interface FlagStore extends FileRowStore {
+interface FlagStore extends FileRowStore, UserRowStore {
 	/**
 	 * The rows of `$fileIds` that have one, by file id.
 	 * @param list<int> $fileIds

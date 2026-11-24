@@ -46,6 +46,6 @@ final class FakeVisualHashStore implements VisualHashStore {
 
 	/** The row moved to `$fileId`. */
 	private static function movedTo(VisualHash $row, int $fileId): VisualHash {
-		return new VisualHash($fileId, $row->etag, $row->hash);
+		return new VisualHash($fileId, $row->etag, $row->method, $row->hash);
 	}
 }

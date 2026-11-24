@@ -14,14 +14,16 @@ final readonly class FileFlag {
 		public Flag $flag,
 		public bool $keepRaw,
 		public int $updatedAt,
+		/** Who decided last, for information only; null once that user is deleted (DECISIONS-001.37). */
+		public ?string $updatedBy = null,
 	) {
 	}
 
 	/**
-	 * The flag in a request item, every field required, stamped `$updatedAt`.
+	 * The flag in a request item, every field required, stamped `$updatedAt` by `$updatedBy`.
 	 * @throws InvalidFlagException for a missing or unknown field
 	 */
-	public static function fromRequest(mixed $item, int $updatedAt): self {
+	public static function fromRequest(mixed $item, int $updatedAt, string $updatedBy): self {
 		if (!is_array($item)) {
 			throw new InvalidFlagException('A flag must be an object');
 		}
@@ -37,6 +39,6 @@ final readonly class FileFlag {
 		if (!is_bool($keepRaw)) {
 			throw new InvalidFlagException("keepRaw of file $fileId must be true or false");
 		}
-		return new self($fileId, Flag::from($flag), $keepRaw, $updatedAt);
+		return new self($fileId, Flag::from($flag), $keepRaw, $updatedAt, $updatedBy);
 	}
 }

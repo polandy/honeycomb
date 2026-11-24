@@ -22,6 +22,7 @@ final class VisualHashMapper implements VisualHashStore {
 	private const array COLUMNS = [
 		'file_id' => IQueryBuilder::PARAM_INT,
 		'etag' => IQueryBuilder::PARAM_STR,
+		'method' => IQueryBuilder::PARAM_INT,
 		'hash' => IQueryBuilder::PARAM_STR,
 	];
 
@@ -41,7 +42,7 @@ final class VisualHashMapper implements VisualHashStore {
 	public function find(array $fileIds): array {
 		$hashes = [];
 		foreach ($this->findFileRows(null, $fileIds) as $row) {
-			$hash = new VisualHash((int)$row['file_id'], (string)$row['etag'], (string)$row['hash']);
+			$hash = new VisualHash((int)$row['file_id'], (string)$row['etag'], (int)$row['method'], (string)$row['hash']);
 			$hashes[$hash->fileId] = $hash;
 		}
 		return $hashes;
@@ -55,7 +56,7 @@ final class VisualHashMapper implements VisualHashStore {
 			$this->deleteFileRows(null, array_map(static fn (VisualHash $hash): int => $hash->fileId, $hashes));
 			$this->insertRows(
 				new InsertStatements(self::TABLE, self::COLUMNS),
-				array_map(static fn (VisualHash $hash): array => ['file_id' => $hash->fileId, 'etag' => $hash->etag, 'hash' => $hash->hash], $hashes),
+				array_map(static fn (VisualHash $hash): array => ['file_id' => $hash->fileId, 'etag' => $hash->etag, 'method' => $hash->method, 'hash' => $hash->hash], $hashes),
 			);
 		}, $this->db);
 	}

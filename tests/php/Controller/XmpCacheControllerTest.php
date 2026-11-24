@@ -96,7 +96,7 @@ final class XmpCacheControllerTest extends TestCase {
 	// spec: XMP-006.5
 	public function testClearsTheUsersCacheKeepsTheHashesAndAnswersNoContent(): void {
 		$this->store->rows['alice'][9] = XmpCacheRow::fromRequest(XmpCacheRowTest::item());
-		$this->visualHashes->rows[7] = new VisualHash(7, 'etag-7', '00ff00ff00ff00ff');
+		$this->visualHashes->rows[7] = new VisualHash(7, 'etag-7', 1, '00ff00ff00ff00ff');
 
 		$response = $this->controller()->clear();
 

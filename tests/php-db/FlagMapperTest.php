@@ -45,8 +45,8 @@ final class FlagMapperTest extends DbTestCase {
 		parent::tearDown();
 	}
 
-	private static function flag(int $fileId, Flag $flag = Flag::Picked, bool $keepRaw = false, int $updatedAt = 100): FileFlag {
-		return new FileFlag($fileId, $flag, $keepRaw, $updatedAt);
+	private static function flag(int $fileId, Flag $flag = Flag::Picked, bool $keepRaw = false, int $updatedAt = 100, ?string $updatedBy = null): FileFlag {
+		return new FileFlag($fileId, $flag, $keepRaw, $updatedAt, $updatedBy);
 	}
 
 	// spec: DECISIONS-001.23
@@ -125,6 +125,23 @@ final class FlagMapperTest extends DbTestCase {
 		$this->assertSame([['immich', null, self::ASSET, 'rejected'], ['file', 7, null, 'picked'], ['file', 10, null, 'picked']], $this->sourceRows());
 	}
 
+	// spec: DECISIONS-001.37, DECISIONS-001.36
+	public function testNotesWhoDecidedLastAndEmptiesItForADeletedUser(): void {
+		$this->insertImmichRow();
+		$this->flags->save([self::flag(7, updatedBy: 'anna'), self::flag(8, updatedBy: 'anna')]);
+		$this->flags->takeOver([self::flag(9, updatedBy: 'ben')]);
+		$this->flags->save([self::flag(8, Flag::Rejected, updatedBy: 'ben')]);
+
+		$this->flags->forgetUser('anna');
+		$this->flags->forgetUser(self::USER);
+
+		$this->assertEquals([7 => self::flag(7), 8 => self::flag(8, Flag::Rejected, updatedBy: 'ben'), 9 => self::flag(9, updatedBy: 'ben')], $this->flags->find([7, 8, 9]));
+		$query = $this->db->getQueryBuilder();
+		$result = $query->select('updated_by')->from('honeycomb_decisions')->where($query->expr()->eq('source', $query->createNamedParameter('immich')))->executeQuery();
+		$this->assertSame(self::USER, $result->fetchOne());
+		$result->closeCursor();
+	}
+
 	/** An Immich decision row as ADR 0054 shapes it. */
 	private function insertImmichRow(): void {
 		$query = $this->db->getQueryBuilder();
@@ -133,6 +150,7 @@ final class FlagMapperTest extends DbTestCase {
 			'connection_id' => $query->createNamedParameter('home'),
 			'asset_id' => $query->createNamedParameter(self::ASSET),
 			'user_id' => $query->createNamedParameter(self::USER),
+			'updated_by' => $query->createNamedParameter(self::USER),
 			'flag' => $query->createNamedParameter('rejected'),
 			'keep_raw' => $query->createNamedParameter(false, IQueryBuilder::PARAM_BOOL),
 			'rating' => $query->createNamedParameter(3, IQueryBuilder::PARAM_INT),
