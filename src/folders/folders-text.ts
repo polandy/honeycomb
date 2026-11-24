@@ -125,3 +125,19 @@ export function refusalText(refused: LibraryRootRefusal): string {
 			return t('honeycomb', '{path} holds the root {other}; remove that one first.', { ...path, other: refused.other }, undefined, PLAIN_TEXT)
 	}
 }
+
+/** The note on a folder of the root picker that cannot be chosen as a root, null when it can (FOLDERS-004). */
+export function rootNote(refused: LibraryRootRefusal | null): string | null {
+	switch (refused?.reason) {
+		case undefined:
+		case 'empty':
+		case 'invalid':
+			return null
+		case 'duplicate':
+			return t('honeycomb', 'Already a root')
+		case 'inside':
+			return t('honeycomb', 'Inside the root {other}', { other: refused.other }, undefined, PLAIN_TEXT)
+		case 'contains':
+			return t('honeycomb', 'Holds the root {other}', { other: refused.other }, undefined, PLAIN_TEXT)
+	}
+}

@@ -313,6 +313,18 @@ Withdrawn by ADR 0040 (M8 PR 3); there is no sidecar switch (.28).
   `duplicate`, one in which a root lies inside another, and the home folder (`/`), as `bad-value`,
   and stores nothing; `/Photos2` is no part of `/Photos`
 
+### SETTINGS-001.36 – Folders to work in lie inside a library root
+
+- **Given** library roots, and a folder picker that chooses a folder to work in (the *Open folder*
+  picker, the similarity scan, the orphaned sidecar scan), or `GET /api/v1/entries`,
+  `/api/v1/visual-hashes/missing` or `/api/v1/sidecars/orphaned` with a `path`
+- **When** the user looks at the tree, or the path is sent
+- **Then** the tree disables every folder outside the roots with *Outside your library roots*
+  (their parents stay open to reach a root), and the server answers `400` with `bad-path` for a
+  path that is no root and lies in none, the home folder and any `..` or `.` step included;
+  `/Photos2` is no part of `/Photos`; while no root is set every folder is offered and accepted.
+  The picker that adds a root (.35) and the target picker of a move are no such picker
+
 ## Out of scope
 
 What the swipes, auto-advance and flag buttons do in the loupe: LOUPE-002. The vi keys: KEYS-001.
@@ -342,3 +354,4 @@ Pairing itself: LISTING-002.
 | 2026-11-22 | .31–.33 the lists in their own keys, the object versioned (ADR 0051) |
 | 2026-11-24 | .34 the switch for writing flags to the sidecars, on by default; .28 changed (ADR 0056) |
 | 2026-11-25 | .35 the root picker disables roots and their neighbours; the server refuses nested roots |
+| 2026-11-25 | .36 pickers offer, and the server accepts, only folders inside a library root |
