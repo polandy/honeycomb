@@ -1098,15 +1098,15 @@ honeycomb/
 
 ### Seams
 
-- **Path and file-id checks:** `FileIds` checks the file ids and item lists a request carries
-  (a list within a limit, positive integers, each once) and throws
-  `InvalidRequestException::because(Reason::…)` (ADR 0057).
-  `UserPhotos` is the one lookup of a file id in the user's files: it answers which file ids are photos
-  (at a given etag) and finds the photo, sidecar or listed file behind an id; every service that opens, trashes, moves, reads or writes a file by
-  id goes through it. `UserFolderResolver` turns a path into a readable
-  folder of the user, `CheckedMove` and
-  `ExistingSidecar` are files that passed their check, `SidecarWriter` checks again before its
-  rename, and `ExistingFiles` tells which file ids still have a file.
+- **Path and file-id checks:** `FileIds` checks the file ids and item lists a request carries (a
+  list within a limit, positive integers, each once) and throws
+  `InvalidRequestException::because(Reason::…)` (ADR 0057). `UserPhotos` is the one lookup of a
+  file id in the user's files: it answers which file ids are photos (at a given etag) and finds
+  the photo, sidecar or listed file behind an id; every service that opens, trashes, moves, reads
+  or writes a file by id goes through it. `UserFolderResolver` turns a path into a readable folder
+  of the user, `CheckedMove` and `ExistingSidecar` are files that passed their check,
+  `SidecarWriter` checks again before its rename, and `ExistingFiles` tells which file ids still
+  have a file.
 - **Files** go through `OCP\Files` inside `TrashService`, `MoveService` and `SidecarWriter`;
   there is no shared `FileService`.
 - **Rows per file id and per user** sit behind the `FileRowStore` and `UserRowStore`
