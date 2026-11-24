@@ -30,7 +30,7 @@ function stateText(state: Exclude<ConnectionState, 'ok'>): string {
 export type HelpState = Exclude<ConnectionState, 'ok'> | 'configuration'
 
 /** What to do about a state that does not work, and the admin page's section on it (IMMICH-001.26). */
-export function stateHelp(state: HelpState): { todo: string; url: string } {
+export function stateHelp(state: HelpState): { todo: string, url: string } {
 	switch (state) {
 		case 'unreachable':
 			return { todo: t('honeycomb', 'Try again in a moment. If it stays, ask your admin to check that Immich is running and reachable from Nextcloud.'), url: `${IMMICH_ADMIN_URL}#immich-unreachable` }

@@ -57,7 +57,11 @@ const description = computed(() => {
 						{{ t('honeycomb', 'Connection details') }}
 					</NcButton>
 				</template>
-				<NcButton v-if="failed || props.connection === null" variant="tertiary" :href="help.url" target="_blank">
+				<NcButton
+					v-if="failed || props.connection === null"
+					variant="tertiary"
+					:href="help.url"
+					target="_blank">
 					{{ t('honeycomb', 'Help for your admin') }}
 				</NcButton>
 			</div>
