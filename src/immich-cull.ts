@@ -121,8 +121,7 @@ export function useImmichCull(context: ImmichCullContext) {
 
 	/** Shows the listing under the default filters again, from its start (IMMICH-002.18). */
 	function resetFilters() {
-		filters.value = defaultImmichFilters(now(), calendar)
-		restart()
+		setFilters(defaultImmichFilters(now(), calendar))
 	}
 
 	/** Drops what was loaded and asks the counts and the first page again; older answers are ignored. */
