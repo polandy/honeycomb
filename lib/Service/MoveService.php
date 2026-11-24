@@ -110,8 +110,8 @@ final class MoveService {
 	/**
 	 * @param array<int, Node> $moved
 	 * @param array<int, CheckedMove> $moves
-	 * @param array<int, array<string, mixed>> $outcomes
-	 * @return array<int, array<string, mixed>>
+	 * @param array<int, array{result: MoveResult, replaced: bool, path?: string, newFileId?: int, etag?: string}> $outcomes
+	 * @return array<int, array{result: MoveResult, replaced: bool, path?: string, newFileId?: int, etag?: string}>
 	 */
 	private function rollBack(string $userId, array $moved, array $moves, array $outcomes): array {
 		foreach (array_reverse($moved, true) as $back => $node) {
