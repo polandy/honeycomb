@@ -4,8 +4,8 @@ import type { Sharpness } from './logic/sharpness.ts'
 
 import { hashWorkerCount } from './logic/hash-workers.ts'
 
-/** What a worker does with a URL: hash the small preview or measure the loupe tier's sharpness. */
-export type WorkerJobKind = 'hash' | 'sharpness'
+/** What a worker does with a URL: hash the small preview or run the quality measure of that id on the loupe tier. */
+export type WorkerJobKind = 'hash' | (string & {})
 
 /** A URL a worker should hash or measure, under the id of its answer. */
 export interface WorkerRequest {
@@ -98,9 +98,9 @@ export function createHashWorkers(count: number, create: () => HashWorker) {
 		return answer.hash
 	}
 
-	/** The sharpness of the photo at `url`, from the next free worker (SERIES-006.19). */
-	async function measure(url: string): Promise<Sharpness> {
-		const answer = await run('sharpness', url)
+	/** The value of the quality measure `measureId` of the photo at `url`, from the next free worker (SERIES-006.19). */
+	async function measure(measureId: string, url: string): Promise<Sharpness> {
+		const answer = await run(measureId, url)
 		if (!('measured' in answer)) {
 			throw new Error('The hash worker answered another job')
 		}

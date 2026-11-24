@@ -22,6 +22,7 @@ import { isListingPicture } from '../logic/listing.ts'
 import { badgeExtension } from '../logic/pair-badge.ts'
 import { exposureText, exposureTimeText, pictureExposure, shakeRisk } from '../logic/shake-risk.ts'
 import { sidecarTargets } from '../logic/xmp/targets.ts'
+import { measureById } from '../quality-measures.ts'
 
 const props = withDefaults(defineProps<{
 	picture: Picture<SourceEntry>
@@ -97,6 +98,7 @@ const decisionRows = computed(() => {
 		...(props.picture.raw !== null && props.picture.rendered !== null ? [{ term: t('honeycomb', 'Keep RAW'), value: keepRaw ? t('honeycomb', 'yes') : t('honeycomb', 'no') }] : []),
 	]
 })
+const sharpnessLabel = measureById('sharpness').label(t)
 const sharpnessText = computed(() => {
 	if (props.sharpness === null) {
 		return null
@@ -140,7 +142,7 @@ const writtenTo = computed(() => {
 			<h3>{{ t('honeycomb', 'Quality') }}</h3>
 			<template v-if="sharpnessText !== null">
 				<dl>
-					<dt>{{ t('honeycomb', 'Sharpness') }}</dt>
+					<dt>{{ sharpnessLabel }}</dt>
 					<dd>{{ sharpnessText }}</dd>
 				</dl>
 				<p class="loupe-info__note">

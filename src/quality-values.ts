@@ -6,7 +6,7 @@ import type { QualityValue, Sharpness, StoredQualityValue } from './logic/sharpn
 
 import { useBackgroundValues } from './background-values.ts'
 import { LOUPE_TIER, tierSource } from './logic/image-tiers.ts'
-import { SHARPNESS_METHOD } from './logic/sharpness.ts'
+import { measureById } from './quality-measures.ts'
 
 /** Measures the sharpness of a member's photo. */
 export type MeasureImage = (member: ListingEntry) => Promise<Sharpness>
@@ -21,14 +21,17 @@ export interface QualityApi {
 	readonly wait: (seconds: number) => Promise<void>
 }
 
+/** The measure the cull takes (SERIES-006.22). */
+const SHARPNESS = measureById('sharpness')
+
 /** The listed value of a member when it was measured by the current method, else null (ADR 0046). */
 function currentValue(member: ListingEntry): QualityValue | null {
-	return member.quality?.method === SHARPNESS_METHOD ? member.quality : null
+	return member.quality?.method === SHARPNESS.method ? member.quality : null
 }
 
 /** A measurer that hands the member's loupe tier URL to the hash pool's workers (SERIES-006.19). */
-export function measureInWorkers(workers: { readonly measure: (url: string) => Promise<Sharpness> }, urlFor: ImageUrlFor) {
-	return (member: Pick<ListingEntry, 'fileId' | 'mtime'>) => workers.measure(tierSource(member, LOUPE_TIER, urlFor))
+export function measureInWorkers(workers: { readonly measure: (measureId: string, url: string) => Promise<Sharpness> }, urlFor: ImageUrlFor) {
+	return (member: Pick<ListingEntry, 'fileId' | 'mtime'>) => workers.measure(SHARPNESS.id, tierSource(member, LOUPE_TIER, urlFor))
 }
 
 /**
@@ -40,7 +43,7 @@ export function useQualityValues(api: QualityApi, members: () => readonly Listin
 		compute: api.measureImage,
 		save: api.saveQualityValues,
 		wait: api.wait,
-		row: (member, value) => ({ fileId: member.fileId, etag: member.etag, method: SHARPNESS_METHOD, ...value }),
+		row: (member, value) => ({ fileId: member.fileId, etag: member.etag, method: SHARPNESS.method, ...value }),
 		listed: (member) => currentValue(member) !== null,
 		failures: { compute: 'Could not measure the photo', save: 'Could not save the quality values' },
 	}, members, ready)
@@ -49,7 +52,7 @@ export function useQualityValues(api: QualityApi, members: () => readonly Listin
 		/** The quality value of the member's file version, or null while it has none. */
 		qualityOf(member: ListingEntry): QualityValue | null {
 			const value = measured.computedOf(member)
-			return value === undefined ? currentValue(member) : { method: SHARPNESS_METHOD, ...value }
+			return value === undefined ? currentValue(member) : { method: SHARPNESS.method, ...value }
 		},
 	}
 }
