@@ -229,6 +229,9 @@ IMAGES-001.
   carries a "⧉ N" tab at its start, N the series' whole count, which opens the compare on that
   series as the series chip does (LOUPE-001.25), with the shown picture active while it is in that
   series, else the frame's first
+  (a pill of at least 24 px with a fine pointer); with a coarse pointer, while the folder has a
+  series, the strip is 46 px higher and the frame's tab is a 44 × 44 px button in that band above the
+  photos, so it covers none of them
 
 ### LOUPE-001.20 – Pinned filmstrip and rating row
 

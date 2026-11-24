@@ -105,4 +105,13 @@ describe('PhotoLoupe: the series frame', () => {
 		await wrapper.setProps({ seriesOf: new Map(wrapper.props('pictures').slice(0, 2).map((picture, _at, members) => [picture, { key: 1, members }])) })
 		expect(wrapper.findAll('.loupe-filmstrip__frame')).toHaveLength(1)
 	})
+
+	// spec: LOUPE-001.19
+	it('makes room for the series tabs above its photos only while the folder has a series', async () => {
+		const { wrapper } = await mountLoupe(4)
+		expect(wrapper.classes()).not.toContain('photo-loupe--series-tabs')
+
+		await wrapper.setProps({ seriesOf: new Map(wrapper.props('pictures').slice(0, 2).map((picture, _at, members) => [picture, { key: 1, members }])) })
+		expect(wrapper.classes()).toContain('photo-loupe--series-tabs')
+	})
 })

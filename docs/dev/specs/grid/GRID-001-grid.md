@@ -223,8 +223,8 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 - **When** the grid, filters, folder tree, settings, selection, *Move…*, ⋯ menu, reject review,
   *Delete…*, loupe, series compare and series viewer are open
 - **Then** the hit area of every control (found by hit testing, not by its box) is at least
-  44 × 44 px, no control is clipped or off screen, and none is covered by another; the series tab on
-  a filmstrip thumbnail is the one known exception (`TODO.md`)
+  44 × 44 px, no control is clipped or off screen, and none is covered by another, the series tab on
+  a filmstrip thumbnail included (LOUPE-001.19)
 
 ## History
 

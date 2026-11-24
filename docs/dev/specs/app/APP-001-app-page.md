@@ -140,9 +140,9 @@ stays the same.
 - **Given** the real app in the light and in the dark theme
 - **When** the grid, folder tree, settings, selection, *Move…*, ⋯ menu, reject review, *Delete…*,
   loupe, gesture guide, series compare and series viewer are open
-- **Then** an axe-core scan (WCAG 2.2 A and AA rules, ADR 0042) finds no fault rated *serious* or
-  *critical*, contrast included; a known fault is excluded only by its rule and element, each with
-  a `TODO.md` item
+- **Then** an axe-core scan (WCAG 2.2 A and AA rules, ADR 0042) finds no fault rated *moderate*,
+  *serious* or *critical*, contrast included; a known fault is excluded only by its rule and
+  element, each with a `TODO.md` item
 
 ### APP-001.16 – Escape closes a dialog from a switch or a checkbox
 
