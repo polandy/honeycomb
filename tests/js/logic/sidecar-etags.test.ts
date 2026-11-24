@@ -43,11 +43,11 @@ describe('savedEtags', () => {
 
 describe('readEtags', () => {
 	// spec: DECISIONS-001.41, XMP-003.46
-	it('gives each member the listed ETag of its sidecar, where the cache read it', () => {
+	it('gives each member the listed ETag of its sidecar, where the cache read that version', () => {
 		const pair = pairWith('/P/IMG_0001.NEF.xmp', '/P/IMG_0001.xmp')
-		const read = (fileId: number, state: 'read' | 'refused') => ({ fileId, kind: 'sidecar' as const, etag: 'x', reader: XMP_READER, state, reason: null, rating: null, flag: null, colourLabel: null, keepRaw: null, tags: null })
+		const read = (fileId: number, state: 'read' | 'refused', etag = `etag-${fileId}`) => ({ fileId, kind: 'sidecar' as const, etag, reader: XMP_READER, state, reason: null, rating: null, flag: null, colourLabel: null, keepRaw: null, tags: null })
 
 		expect(readEtags(pair, new Map([[11, read(11, 'read')], [12, read(12, 'read')]]))).toEqual(new Map([[1, 'etag-11'], [2, 'etag-12']]))
-		expect(readEtags(pair, new Map([[11, read(11, 'refused')]]))).toEqual(new Map())
+		expect(readEtags(pair, new Map([[11, read(11, 'refused')], [12, read(12, 'read', 'stale')]]))).toEqual(new Map())
 	})
 })

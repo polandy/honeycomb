@@ -8,9 +8,9 @@ import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { UNDECIDED } from '../../src/logic/decision.ts'
 import { XMP_READER } from '../../src/logic/xmp-cache.ts'
-import { listingEntry } from './logic/listing-entries.ts'
 import { ENTRIES, SET, stored } from './app-cull.ts'
 import { access, cullWith } from './cull-sidecars-fake.ts'
+import { listingEntry } from './logic/listing-entries.ts'
 
 const PICKED: Decision = { ...UNDECIDED, flag: 'picked' }
 const REJECTED: Decision = { ...UNDECIDED, flag: 'rejected' }

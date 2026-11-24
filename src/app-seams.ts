@@ -27,7 +27,7 @@ import type { HashImage, SaveVisualHashes } from './visual-hashes.ts'
 import { listEntries as apiListEntries, listFolders as apiListFolders, loadSettings as apiLoadSettings, saveSettings as apiSaveSettings, trashPictures as apiTrashPictures, warmPreviews as apiWarmPreviews, cleanUpOrphanedData, imageUrl, immichAssets, immichCounts, immichImageUrl, immichStatus, listImmichConnections, listLibraryFolders, loadPositions, loadTagList, loadViewState, lookupEmbeddedXmp, lookupSidecars, markFolderDone, movePictures, probeTargets, reopenFolder, resetStatistics, saveImmichDecisions, savePosition, saveQualityValues, saveSettingsList, saveSidecars, saveViewState, saveVisualHashes, scanLibrary } from './api.ts'
 import { browserSchedule } from './browser-schedule.ts'
 import { browserLocation } from './cull-location.ts'
-import { saveFlags, takeOverFlags } from './flags-api.ts'
+import { saveFlags, saveSidecarEtags, takeOverFlags } from './flags-api.ts'
 import { toggleBrowserFullscreen } from './fullscreen.ts'
 import { browserHashWorkers } from './hash-workers.ts'
 import { onBrowserPageHide } from './page-hide.ts'
@@ -105,7 +105,7 @@ export const APP_SEAMS = {
 	saveVisualHashes,
 	measureImage: measureInWorkers(HASH_WORKERS, imageUrl),
 	saveQualityValues,
-	flags: () => ({ save: saveFlags, takeOver: takeOverFlags }),
+	flags: () => ({ save: saveFlags, takeOver: takeOverFlags, saveSidecarEtags }),
 	lookupSeries,
 	saveSeries,
 	loadSettings: apiLoadSettings,

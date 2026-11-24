@@ -143,7 +143,7 @@ describe('useCullFlags', () => {
 		flags.takeOver([row(4), row(5)], new Map([[4, 'e1']]))
 
 		expect(api.takeOver).toHaveBeenCalledWith([{ fileId: 4, flag: 'picked', keepRaw: false, sidecarEtag: 'e1' }, { fileId: 5, flag: 'picked', keepRaw: false }])
-		expect(flags.etagOf(4)).toBe('e1')
+		expect(flags.knownEtags().get(4)).toBe('e1')
 	})
 
 	// spec: XMP-003.45, XMP-003.46
@@ -161,8 +161,8 @@ describe('useCullFlags', () => {
 
 		expect(api.saveSidecarEtags).toHaveBeenCalledOnce()
 		expect(api.saveSidecarEtags).toHaveBeenCalledWith([{ fileId: 1, sidecarEtag: 'e2' }])
-		expect(flags.etagOf(1)).toBe('e2')
-		expect(flags.etagOf(2)).toBeUndefined()
+		expect(flags.knownEtags().get(1)).toBe('e2')
+		expect(flags.knownEtags().get(2)).toBeUndefined()
 	})
 
 	// spec: XMP-003.45

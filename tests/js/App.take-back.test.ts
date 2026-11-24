@@ -21,10 +21,10 @@ async function press(key: string, fields: KeyboardEventInit = {}) {
 
 const toast = (wrapper: AppWrapper) => wrapper.findComponent(UndoToast)
 
-describe('App: Clear picks/rejects', () => {
+describe('App: Clear picks/rejects with the flags kept out of the sidecars', () => {
 	// spec: GRID-001.22
 	it('resets the flagged pictures, says so with Undo, and undoes them as one step', async () => {
-		const { wrapper, sidecarSaves } = mountApp({}, [stored(1, 'picked'), stored(4, 'rejected')])
+		const { wrapper, sidecarSaves } = mountApp({ loadSettings: async () => ({ writeFlagsToXmp: false }) }, [stored(1, 'picked'), stored(4, 'rejected')])
 		await openCull(wrapper)
 
 		wrapper.findComponent(GridToolbar).vm.$emit('clearFlags')

@@ -94,12 +94,13 @@ describe('flagSync', () => {
 	})
 
 	// spec: XMP-003.49
-	it('leaves out a picture with a refused or unread sidecar and one without a row', () => {
+	it('leaves out a picture with a refused, unread or stale sidecar and one without a row', () => {
 		const refused = jpeg(1, 'rejected', 'old')
 		const unread = jpeg(2, 'rejected', 'old')
+		const stale = jpeg(4, 'rejected', 'old')
 		const rowless = pictureOf(listingEntry(3, '/P/IMG_3.JPG'), listingEntry(103, '/P/IMG_3.JPG.xmp'))
 
-		const result = sync([refused, unread, rowless], byId(row(101, 'etag-101', { state: 'refused', reason: 'too-large' }), row(103, 'etag-103', { flag: 'picked' })), new Map([[refused, PICKED], [unread, PICKED], [rowless, PICKED]]))
+		const result = sync([refused, unread, stale, rowless], byId(row(101, 'etag-101', { state: 'refused', reason: 'too-large' }), row(104, 'old', { flag: 'picked' }), row(103, 'etag-103', { flag: 'picked' })), new Map([[refused, PICKED], [unread, PICKED], [stale, PICKED], [rowless, PICKED]]))
 
 		expect(result).toMatchObject({ takenOver: [], etags: [], plan: { pictures: [], files: 0 } })
 	})

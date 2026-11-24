@@ -49,6 +49,7 @@ final class Entry implements \JsonSerializable {
 			'flag' => $this->flag?->flag->value,
 			'keepRaw' => $this->flag?->keepRaw,
 			'flagUpdated' => $this->flag?->updatedAt,
+			'sidecarEtag' => $this->flag?->sidecarEtag,
 		];
 	}
 }

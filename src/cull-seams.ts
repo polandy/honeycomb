@@ -8,6 +8,7 @@ import type { Picture } from './logic/pairing.ts'
 import type { CountsOf } from './logic/sidecar-pass.ts'
 import type { SidecarFailure } from './logic/sidecar-sync.ts'
 import type { Tag, TagChange } from './logic/tag.ts'
+import type { XmpCacheRow } from './logic/xmp-cache.ts'
 import type { WarmPreviews } from './preview-warmer.ts'
 import type { QualityApi } from './quality-values.ts'
 import type { LookupSeries, SaveSeries } from './stored-series.ts'
@@ -18,7 +19,7 @@ type Paths = ReadonlyMap<Picture<ListingEntry>, ReadonlySet<string>>
 
 /** How the cull reads decisions and tags from the sidecars and writes them through (XMP-003, TAGS-002). */
 export interface SidecarWrites {
-	readonly read: (pictures: readonly Picture<ListingEntry>[]) => Promise<{ decided: { picture: Picture<ListingEntry>, decision: Decision }[], tagged: { picture: Picture<ListingEntry>, tags: Tag[] }[] }>
+	readonly read: (pictures: readonly Picture<ListingEntry>[]) => Promise<{ decided: { picture: Picture<ListingEntry>, decision: Decision }[], tagged: { picture: Picture<ListingEntry>, tags: Tag[] }[], rows: ReadonlyMap<number, XmpCacheRow> }>
 	readonly write: (pictures: readonly Picture<ListingEntry>[], decisionOf: (picture: Picture<ListingEntry>) => Decision, fields: readonly DecisionField[], paths?: Paths, counts?: CountsOf) => Written
 	readonly writeTags: (pictures: readonly Picture<ListingEntry>[], change: TagChange, paths?: Paths, counts?: CountsOf) => Written
 }

@@ -33,6 +33,8 @@ export interface ListingEntry extends SourceEntry {
 	readonly quality: QualityValue | null
 	/** The EXIF exposure facts, `null` where Nextcloud extracted none (ADR 0046). */
 	readonly exposure: Exposure | null
+	/** The ETag of the file's sidecar as honeycomb last knew it, `null` without a row or never known (ADR 0056). */
+	readonly sidecarEtag: string | null
 }
 
 /** Whether the picture comes from the listing endpoint, so its members carry the folder-only fields. */

@@ -107,6 +107,7 @@ final class ListingServiceTest extends TestCase {
 			'flag' => null,
 			'keepRaw' => null,
 			'flagUpdated' => null,
+			'sidecarEtag' => null,
 		]], $this->entriesOf($listing));
 	}
 

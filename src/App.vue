@@ -100,7 +100,7 @@ const { selected } = selection
 watch(cull.pairing, selection.selectNone)
 
 const cullFinished = useCullFinished({ folderSet: () => folderSet.value, pictures: () => pictures.value, decisionOf: cull.decisionOf, decidedOf: cull.decidedOf, now: props.clock })
-sidecarFlow.onSaved(cullFinished.saved)
+sidecarFlow.onSaved((saved) => [cullFinished.saved, cull.sidecarsSaved].forEach((listen) => listen(saved)))
 const { decide, pickRest, clearFlags, reduceSeries, tag, removeFromSeries, dissolveSeries, mergeSeries, markSeries, editSelection, undo, redo } = cullFinished.watching(useToastedDecisions(cull, toast.show, toast.showError))
 const tagEntry = useTagEntryTargets()
 const seriesCompare = useSeriesCompare({ series: () => cull.series.value, decisionOf: cull.decisionOf, decide: decideInCompare, pickRest, removeFromSeries, dissolve: dissolveSeries, everySeries: () => cull.everySeries.value, merge: mergeSeries, markSeries, settings: () => settings.value, updateSettings, toast: (shown) => toast.show(shown.message, shown.action), holdHashes: cull.holdHashes })

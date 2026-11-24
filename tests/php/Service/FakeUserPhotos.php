@@ -47,7 +47,8 @@ trait FakeUserPhotos {
 		$file->method('getId')->willReturn($id);
 		$file->method('getName')->willReturn($name);
 		$file->method('getMimetype')->willReturn($mime);
-		$file->method('getPath')->willReturn("/alice/files/Photos/$name");
+		$folderName = $permissions === Constants::PERMISSION_ALL ? 'Photos' : 'Shared';
+		$file->method('getPath')->willReturn("/alice/files/$folderName/$name");
 		$folder = $this->createStub(Folder::class);
 		$folder->method('getPermissions')->willReturn($permissions);
 		$file->method('getParent')->willReturn($folder);

@@ -84,8 +84,8 @@ describe('useSidecarSync: write', () => {
 		const both = sync((item) => saved('fileId' in item ? item.fileId : 30))
 		await both.sidecars.write([PAIR], decisionOf({ ...UNDECIDED, flag: 'picked' }))
 
-		expect(savedSidecars).toEqual([[{ path: '/P/IMG_0001.NEF.xmp', created: false }]])
-		expect(both.savedSidecars).toEqual([[{ path: '/P/IMG_0001.NEF.xmp', created: false }, { path: '/P/IMG_0001.JPG.xmp', created: true }]])
+		expect(savedSidecars).toEqual([[{ picture: PAIR, path: '/P/IMG_0001.NEF.xmp', created: false, fileId: 11, etag: 'saved-11' }]])
+		expect(both.savedSidecars).toEqual([[{ picture: PAIR, path: '/P/IMG_0001.NEF.xmp', created: false, fileId: 11, etag: 'saved-11' }, { picture: PAIR, path: '/P/IMG_0001.JPG.xmp', created: true, fileId: 30, etag: 'saved-30' }]])
 	})
 
 	// spec: DELETE-002.17

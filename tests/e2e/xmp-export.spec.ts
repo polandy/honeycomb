@@ -3,9 +3,19 @@
 import { expect, request, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { ADMIN } from './admin.ts'
-import { cullFolder } from './cull.ts'
+import { cullFolder, E2E_SETTINGS, putSettings } from './cull.ts'
 import { apiHeaders, createFolder, JPEG, upload } from './files.ts'
 import { occ, PORT } from './server.ts'
+
+// These describe honeycomb with the flags kept out of the sidecars (ADR 0040).
+test.beforeEach(async ({ page }) => {
+	await page.goto('/index.php/apps/honeycomb/')
+	await putSettings(page, { ...E2E_SETTINGS, writeFlagsToXmp: false })
+})
+
+test.afterEach(async ({ page }) => {
+	await putSettings(page, E2E_SETTINGS)
+})
 
 /** OCS share type and permissions of a user share that may only be read. */
 const READ_ONLY_SHARE = { shareType: 0, permissions: 1 }

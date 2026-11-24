@@ -54,7 +54,7 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 	async function read(pictures: Pictures) {
 		const sources = xmpCacheSources(pictures)
 		if (sources.length === 0) {
-			return { decided: [], tagged: [] }
+			return { decided: [], tagged: [], rows: new Map<number, XmpCacheRow>() }
 		}
 		const rows = await cachedRows(sources.map(({ entry }) => entry.fileId))
 		const stale = staleSources(sources, rows)
@@ -77,7 +77,7 @@ export function useSidecarSync(api: SidecarApi, now: () => XmpTime, onFailed: (f
 				tagged.push({ picture, tags })
 			}
 		}
-		return { decided, tagged }
+		return { decided, tagged, rows }
 	}
 
 	/** Keeps the rows, which the XMP export counts its sidecars by. */
