@@ -1099,8 +1099,8 @@ honeycomb/
 ### Seams
 
 - **Path and file-id checks:** `FileIds` checks the file ids and item lists a request carries
-  (a list within a limit, positive integers, each once) and throws the caller's
-  `InvalidRequestException` subclass. `UserPhotos` is the one lookup of a file id in the user's
+  (a list within a limit, positive integers, each once) and throws
+  `InvalidRequestException::because(Reason::…)` (ADR 0057). `UserPhotos` is the one lookup of a file id in the user's
   files: it answers which file ids are photos (at a given etag) and finds the photo, sidecar or
   listed file behind an id; every service that opens, trashes, moves, reads or writes a file by
   id goes through it. `UserFolderResolver` turns a path into a readable
