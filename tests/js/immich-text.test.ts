@@ -37,10 +37,10 @@ describe('immich-text', () => {
 	// spec: IMMICH-001.26
 	it('says what to do per state and where the admin page explains it', () => {
 		expect(stateHelp('unreachable').todo).toBe(`${MARK}Try again in a moment. If it stays, ask your admin to check that Immich is running and reachable from Nextcloud.`)
-		expect(stateHelp('refused').todo).toContain('Ask your admin')
-		expect(stateHelp('key').todo).toContain('key file')
-		expect(stateHelp('version').todo).toContain('Ask your admin')
-		expect(stateHelp('configuration').todo).toContain('connections file')
+		expect(stateHelp('refused').todo).toBe(`${MARK}Ask your admin to replace the API key. It may have been deleted or revoked in Immich.`)
+		expect(stateHelp('key').todo).toBe(`${MARK}Ask your admin to check that the key file exists, is readable and holds the API key.`)
+		expect(stateHelp('version').todo).toBe(`${MARK}This version is not supported. Ask your admin to update Immich or honeycomb.`)
+		expect(stateHelp('configuration').todo).toBe(`${MARK}Ask your Nextcloud admin to check the connections file.`)
 		for (const state of ['unreachable', 'refused', 'key', 'version', 'configuration'] as const) {
 			expect(stateHelp(state).url).toMatch(new RegExp(`^${IMMICH_ADMIN_URL}#[a-z-]+$`))
 		}

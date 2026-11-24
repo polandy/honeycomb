@@ -69,6 +69,8 @@ describe('ImmichState', () => {
 		const wrapper = mount(ImmichState, { props: { connection: null, status: null } })
 
 		expect(wrapper.find('a').attributes('href')).toMatch(/\/docs\/user\/admin\/immich\.md#the-connections-file$/)
+		expect(button(wrapper, 'Try again')).toBeUndefined()
+		expect(button(wrapper, 'Connection details')).toBeUndefined()
 	})
 
 	it('shows the connection while it checks and once it works, with its details', async () => {
