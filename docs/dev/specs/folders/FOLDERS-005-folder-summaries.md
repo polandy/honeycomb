@@ -28,6 +28,11 @@ done status writes, the ranking and the screen follow in their own specs.
   - `oldest`, `newest`: the earliest and latest capture time, Unix seconds, `null` without any.
   - `lastActivity`: the latest modification time of its photo files, Unix seconds, `null` without
     a photo.
+  - `previews`: up to 3 pictures that stand for the folder, `{fileId, mtime}` of each one's
+    rendered file (a RAW alone is no candidate), taken from the candidates in capture time order
+    (name order without one) at the first, the middle and the last place (the first and the last
+    of two, the one of one); empty without a candidate. The scan takes them from the files it
+    reads anyway.
   - It is **fresh** while it was taken from the folder's current etag. A stale summary is listed
     with its stored values until a scan replaces it.
 - `GET /apps/honeycomb/api/v1/library/folders?root=<path>&cursor=<fileId>&limit=<n>` answers
@@ -37,7 +42,7 @@ done status writes, the ranking and the screen follow in their own specs.
     default 200). `nextCursor` is the last listed file id when more follow, else `null`.
   - Each row: `fileId`, `root` and `path` (paths in the user's files, `/` first), `photos`,
     `bytes`, `rawBytes`, `bursts`, `oldest`, `newest`, `lastActivity`, `picked`, `rejected`,
-    `undecided`, `permissions` (the folder's Nextcloud permission bits) and `done`:
+    `undecided`, `previews` (the summary's), `permissions` (the folder's Nextcloud permission bits) and `done`:
     `{"by": <user id>, "at": <Unix seconds>, "photos": n}` when the folder is marked done, else
     `null`.
   - `picked` and `rejected`: the folder's pictures with that flag now (DECISIONS-001; a picture
@@ -172,6 +177,15 @@ done status writes, the ranking and the screen follow in their own specs.
 - **When** the daily clean-up runs
 - **Then** the first folder's rows are gone and the second's stay
 
+### FOLDERS-005.18 – Preview pictures
+
+- **Given** a folder of five JPEGs taken in the order `a`, `b`, `c`, `d`, `e`, a RAW alone and a
+  folder of one JPEG and a folder of a RAW alone
+- **When** the folders are scanned and listed
+- **Then** the first folder's `previews` are the files of `a`, `c` and `e` with their `mtime`, the
+  one-JPEG folder's is that file, the RAW-only folder's is `[]`; a folder of two has its first and
+  last
+
 ## Out of scope
 
 - Marking a folder done and reopening it (FOLDERS-006).
@@ -184,3 +198,4 @@ done status writes, the ranking and the screen follow in their own specs.
 | Date | Change |
 |---|---|
 | 2026-11-22 | Created with the backend of *Folders* (M12 PR 2, ADR 0049). |
+| 2026-11-25 | `previews` in the summary and the row (FOLDERS-005.18). |

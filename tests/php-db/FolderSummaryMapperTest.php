@@ -23,8 +23,10 @@ final class FolderSummaryMapperTest extends DbTestCase {
 		$this->summaries = new FolderSummaryMapper($this->db);
 	}
 
+	private const array PREVIEWS = [['fileId' => 1_234_567_890, 'mtime' => 1_700_000_001], ['fileId' => 5, 'mtime' => 1_700_000_002], ['fileId' => 99, 'mtime' => 3]];
+
 	private static function row(int $fileId, string $etag = ''): FolderSummary {
-		return new FolderSummary($fileId, $etag === '' ? "etag-$fileId" : $etag, 600, 30_000_000_000, 25_000_000_000, 12, 1_600_000_000, 1_600_000_900, 1_700_000_000, 1_800_000_000);
+		return new FolderSummary($fileId, $etag === '' ? "etag-$fileId" : $etag, 600, 30_000_000_000, 25_000_000_000, 12, 1_600_000_000, 1_600_000_900, 1_700_000_000, 1_800_000_000, self::PREVIEWS);
 	}
 
 	// spec: FOLDERS-005.1, FOLDERS-005.2, FOLDERS-005.4
