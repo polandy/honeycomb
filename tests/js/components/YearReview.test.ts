@@ -8,13 +8,43 @@ import { describe, expect, it } from 'vitest'
 import YearReview from '../../../src/components/YearReview.vue'
 
 const BARE: Review = {
-	year: 2026, decided: 0, trashed: 0, freedBytes: 0, deletedForGood: 0, rawsRemoved: 0, rawsRemovedBytes: 0, sidecarsCreated: 0, sidecarsUpdated: 0, sidecarsForeign: 0,
-	seriesDone: 0, longestStreak: 0, activeMs: 0, perMinute: null, busiest: null, calendar: [{ day: '2026-01-01', shade: 0 }], activeDays: 0, countedSince: null,
+	year: 2026,
+	decided: 0,
+	trashed: 0,
+	freedBytes: 0,
+	deletedForGood: 0,
+	rawsRemoved: 0,
+	rawsRemovedBytes: 0,
+	sidecarsCreated: 0,
+	sidecarsUpdated: 0,
+	sidecarsForeign: 0,
+	seriesDone: 0,
+	longestStreak: 0,
+	activeMs: 0,
+	perMinute: null,
+	busiest: null,
+	calendar: [{ day: '2026-01-01', shade: 0 }],
+	activeDays: 0,
+	countedSince: null,
 }
 
 const BUSY: Review = {
-	...BARE, decided: 120, trashed: 30, freedBytes: 5_000_000, deletedForGood: 2, rawsRemoved: 10, rawsRemovedBytes: 1_000_000, sidecarsCreated: 4, sidecarsUpdated: 5, sidecarsForeign: 3,
-	seriesDone: 2, longestStreak: 6, activeMs: 3_600_000, perMinute: 2.04, busiest: { day: '2026-03-04', decided: 50 }, activeDays: 12,
+	...BARE,
+	decided: 120,
+	trashed: 30,
+	freedBytes: 5_000_000,
+	deletedForGood: 2,
+	rawsRemoved: 10,
+	rawsRemovedBytes: 1_000_000,
+	sidecarsCreated: 4,
+	sidecarsUpdated: 5,
+	sidecarsForeign: 3,
+	seriesDone: 2,
+	longestStreak: 6,
+	activeMs: 3_600_000,
+	perMinute: 2.04,
+	busiest: { day: '2026-03-04', decided: 50 },
+	activeDays: 12,
 }
 
 describe('YearReview', () => {

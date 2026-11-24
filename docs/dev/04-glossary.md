@@ -121,7 +121,9 @@ loupe, series compare, series viewer). The controls come from the shared compone
   *Flag buttons* (toggle, `B`) hide them there.
 - **Toggle.** Pressing the flag a picture already has, by button or key, unflags it.
 - **Photo.** The UI and the user docs say *photo* for a picture; code and specs say *picture*.
-- **Retry, Close, primary frame.** The UI says *Try again* for every retry, *Close* on a display-only dialog (*Done* only leaves a mode), and *primary* for the emphasised frame; `scripts/words.sh` checks.
+- **Retry, Close, primary frame.** The UI says *Try again* for every retry, *Close* on a
+  display-only dialog (*Done* only leaves a mode), and *primary* for the emphasised frame;
+  `scripts/words.sh` checks.
 - **Quality.** The UI says *Sharpest*, *Shake risk* and *Clipping*, and the filter group *Hints*;
   code and specs say *quality value*, *sharpest* and *quality hint*.
 - **Similarity.** The UI says *similarity* for the progress of the visual hashes, and *Comparing
