@@ -7,6 +7,9 @@ import { seriesRuns } from './series-runs.ts'
 /** The side of a filmstrip photo in CSS pixels; the strip is as high. */
 export const FILMSTRIP_THUMB = 56
 
+/** The height of the band above the photos that holds the series tabs with a coarse pointer: a 44 px tab and the frame's 2 px border. */
+export const FILMSTRIP_TAB_BAND = 46
+
 /** How many photos the filmstrip renders beyond each end of its view, so a scroll shows no gap. */
 export const FILMSTRIP_OVERSCAN = 4
 
