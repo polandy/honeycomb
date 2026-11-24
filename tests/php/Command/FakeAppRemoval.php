@@ -11,6 +11,8 @@ use OCA\Honeycomb\Service\AppRemoval;
 
 final class FakeAppRemoval implements AppRemoval {
 	public ?\Throwable $failure = null;
+	public int $removals = 0;
+	public int $tableDrops = 0;
 
 	/** @param list<string> $tables */
 	public function __construct(
@@ -31,6 +33,21 @@ final class FakeAppRemoval implements AppRemoval {
 		if ($this->failure !== null) {
 			throw $this->failure;
 		}
+		$this->removals++;
+		return $this->drop();
+	}
+
+	#[\Override]
+	public function dropTables(): array {
+		if ($this->failure !== null) {
+			throw $this->failure;
+		}
+		$this->tableDrops++;
+		return $this->drop();
+	}
+
+	/** @return list<string> */
+	private function drop(): array {
 		$dropped = $this->tables;
 		$this->tables = [];
 		return $dropped;

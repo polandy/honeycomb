@@ -116,6 +116,21 @@ final class AppRemovalMapperTest extends TestCase {
 		$this->assertSame([], $removal->remove());
 	}
 
+	// spec: DECISIONS-001.39
+	public function testDroppingTheTablesKeepsThePreferencesJobsAndConfig(): void {
+		$this->installedData();
+		$removal = new AppRemovalMapper($this->db, $this->config, $this->jobs);
+
+		$this->assertEqualsCanonicalizing([...AppDataMapper::TABLES, self::LEGACY_TABLE], $removal->dropTables());
+
+		$this->assertSame([], $this->schemaTables());
+		$this->assertSame(0, $this->rows('migrations', 'app', self::APP));
+		$this->assertSame(1, $this->rows('preferences', 'appid', self::APP));
+		$this->assertTrue($this->jobs->has(SweepVanishedRows::class, null));
+		$this->assertSame('/srv/immich.json', $this->config->getValueString(self::APP, 'connections_file'));
+		$this->assertSame([], $removal->dropTables());
+	}
+
 	// spec: DECISIONS-001.38
 	public function testEveryHoneycombTableTheMigrationsCreateIsDropped(): void {
 		$tables = $this->schemaTables();

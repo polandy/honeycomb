@@ -14,6 +14,7 @@ use OCP\Migration\IOutput;
 use PHPUnit\Framework\TestCase;
 
 final class BaselineMigrationTest extends TestCase {
+	// spec: DECISIONS-001.39
 	public function testRefusesAnInstanceThatHasHoneycombTablesAndPointsToTheUpdateGuide(): void {
 		$schema = $this->createMock(ISchemaWrapper::class);
 		$schema->method('getTableNamesWithoutPrefix')->willReturn(['files', 'honeycomb_flags', 'honeycomb_tags']);
@@ -25,6 +26,7 @@ final class BaselineMigrationTest extends TestCase {
 		} catch (ExistingTablesException $e) {
 			$this->assertStringContainsString('honeycomb_flags, honeycomb_tags', $e->getMessage());
 			$this->assertStringContainsString('docs/user/admin/updating.md', $e->getMessage());
+			$this->assertStringContainsString('occ config:app:set honeycomb reinstall --value=yes', $e->getMessage());
 		}
 	}
 }

@@ -1899,4 +1899,5 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   override is accepted as unsupported (#187, autonomous).
 - 2026-11-24: ADR 0053 takes option B: no uninstall step; `occ honeycomb:cleanup --all --drop`
   drops the tables and deletes the `oc_migrations`, `oc_preferences`, `oc_jobs` and `oc_appconfig`
-  rows, and the reinstall before 0.2.0 uses it instead of SQL (#187, autonomous).
+  rows; the reinstall before 0.2.0 is an opt-in pre-migration repair step (`reinstall = yes`),
+  as no app command runs before the update (#187, autonomous).

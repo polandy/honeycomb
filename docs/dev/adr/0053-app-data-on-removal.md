@@ -60,10 +60,20 @@ emptying the rows and leaves a working, empty app.
   `occ app:enable honeycomb` installs it fresh and `occ app:remove honeycomb` leaves nothing.
 - **Not one transaction:** tables cannot be dropped inside one on every database. Every part
   skips what is gone already, so a failed run is finished by running it again.
-- **The reinstall before 0.2.0 uses it** (ADR 0055, `docs/user/admin/updating.md`). Nextcloud 35
-  loads the commands of an enabled app whose code is newer than its migrations
-  (`OC_Util::needUpgrade()` checks only the core version), so the 0.2.0 command runs before the
-  failed baseline: put 0.2.0 in place, drop, enable. No SQL and no debug mode.
+- **The reinstall before 0.2.0 is a pre-migration repair step the admin asks for** (ADR 0055).
+  While an enabled app's code is newer than its installed version, Nextcloud 35 loads no app
+  command ("Nextcloud or one of the apps require upgrade"), so the 0.2.0 command cannot run before
+  the update, and the old release has no `--drop`. Instead the admin sets
+  `occ config:app:set honeycomb reinstall --value=yes`, a core command that works in that state,
+  and updates as usual: the step `ReinstallBeforeBaseline` drops the tables and forgets the
+  migrations, and the baseline creates them again (DECISIONS-001.39). Without that value the
+  baseline still stops and names the tables, so no update deletes data unasked. The step acts
+  only below 0.2.0, deletes the value either way, and keeps the users' settings and the app
+  config, as the hand-written SQL did. Checked against Nextcloud 35.0.3 with an instance
+  installed from the chain before the baseline, the 0.2.0 code put in place, and a failed
+  `occ upgrade` before the value was set.
+- **A test server that ran an older baseline** has no version change and keeps its commands, so
+  it reinstalls with `--drop` and `occ app:enable honeycomb`.
 
 ## Consequences
 
