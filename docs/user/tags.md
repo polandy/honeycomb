@@ -1,14 +1,8 @@
 # Tags
 
 A **tag** is a path of names, such as `Places/Italy/Dolomites`, that you give to a photo. honeycomb
-works with tags the way digiKam does: they have levels, they are stored in the photo's XMP sidecar
-files, and digiKam, darktable and Lightroom Classic read them there. The technical details are in
-[`../07-tags.md`](../dev/07-tags.md).
-
-**Changing in the next release** ([ADR 0040](../dev/adr/0040-flags-per-picture-in-the-database.md)).
-Tags are written into the sidecars at once in shared folders too, wherever you may change the
-folder; honeycomb keeps no tags of its own per photo any more, only your list of tags for
-suggestions.
+works with tags the way digiKam does: they have levels, and they are stored in the photo's XMP
+sidecar files, where digiKam, darktable and Lightroom Classic read them.
 
 ## Add and remove tags
 
@@ -66,8 +60,8 @@ they are written to.
 
 ## Where tags are stored
 
-When writing to sidecars is on (**Settings → XMP sidecars**, off by default) and you change a tag,
-honeycomb writes it into the sidecar files of the photo, so it is the same tag in digiKam:
+When you change a tag, honeycomb writes it into the sidecar files of the photo, so it is the same
+tag in digiKam:
 
 - `digiKam:TagsList`, which digiKam reads first;
 - `lr:hierarchicalSubject`, which Lightroom Classic and darktable read;

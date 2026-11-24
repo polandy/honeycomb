@@ -5,8 +5,10 @@ sidecars), where you can restore it until the trash bin empties itself. Keep a b
 honeycomb deletes a file for good only after you confirm a warning that names it (see
 [Files the trash bin would not keep](#files-the-trash-bin-would-not-keep)).
 
-A photo restored from the trash bin comes back without its pick or reject
-([ADR 0040](../dev/adr/0040-flags-per-picture-in-the-database.md)).
+A photo restored from the trash bin comes back without a decision of its own. If a sidecar of its
+files states a pick, reject or *Keep RAW*, honeycomb takes it over again the next time it sees the
+photo, so it comes back; only when no sidecar of its files states one (it was never written, or is
+not readable) does it come back without its pick, reject or *Keep RAW*.
 
 ## Delete every rejected photo
 
