@@ -10,6 +10,7 @@ import { computed, onMounted, useTemplateRef } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
 import { keyCap } from '../hotkeys.ts'
+import { useModalDialog } from '../modal-dialog.ts'
 import { DEFAULT_SWIPES } from '../logic/loupe-gesture.ts'
 
 const props = withDefaults(defineProps<{
@@ -49,13 +50,21 @@ const swipeLines = computed(() => (['up', 'down'] as const).flatMap((direction) 
 const sections = computed(() => props.finePointer ? ['keys', 'gestures'] as const : ['gestures', 'keys'] as const)
 
 const gotIt = useTemplateRef<InstanceType<typeof NcButton>>('gotIt')
+const card = useTemplateRef<HTMLElement>('card')
+const { onKeydown } = useModalDialog(card, () => emit('dismiss'))
 
 onMounted(() => (gotIt.value!.$el as HTMLElement).focus())
 </script>
 
 <template>
 	<div class="gesture-guide">
-		<div class="gesture-guide__card" role="dialog" :aria-label="t('honeycomb', 'How to cull')">
+		<div
+			ref="card"
+			class="gesture-guide__card"
+			role="dialog"
+			aria-modal="true"
+			:aria-label="t('honeycomb', 'How to cull')"
+			@keydown="onKeydown">
 			<h3>{{ t('honeycomb', 'How to cull') }}</h3>
 			<template v-for="section in sections" :key="section">
 				<section v-if="section === 'keys'">
