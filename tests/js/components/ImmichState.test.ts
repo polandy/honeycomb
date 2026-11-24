@@ -33,6 +33,44 @@ describe('ImmichState', () => {
 		expect(wrapper.emitted('retry')).toHaveLength(1)
 	})
 
+	// spec: IMMICH-001.26
+	it('says what to do and links the admin page for each state that does not work', () => {
+		for (const [state, todo, anchor] of [
+			['unreachable', 'Try again in a moment', '#immich-unreachable'],
+			['refused', 'Ask your admin to replace the API key', '#the-api-key-is-refused'],
+			['key', 'key file', '#the-api-key-cannot-be-read'],
+			['version', 'not supported', '#this-immich-version-is-not-supported'],
+		] as const) {
+			const wrapper = mount(ImmichState, { props: { connection: PHONE, status: { ...OK, state } } })
+
+			expect(wrapper.text()).toContain(todo)
+			expect(wrapper.find('a').attributes('href')).toMatch(new RegExp(`/docs/user/admin/immich\\.md${anchor}$`))
+			wrapper.unmount()
+		}
+	})
+
+	// spec: IMMICH-001.26
+	it('makes Try again primary only while Immich is unreachable', () => {
+		const variantOf = (state: 'unreachable' | 'refused' | 'key' | 'version') => {
+			const wrapper = mount(ImmichState, { props: { connection: PHONE, status: { ...OK, state } } })
+			const primary = wrapper.findAll('button').filter((each) => each.classes().includes('button-vue--primary')).map((each) => each.text())
+			wrapper.unmount()
+			return primary
+		}
+
+		expect(variantOf('unreachable')).toEqual(['Try again'])
+		for (const state of ['refused', 'key', 'version'] as const) {
+			expect(variantOf(state)).toEqual(['Connection details'])
+		}
+	})
+
+	// spec: IMMICH-001.18, IMMICH-001.26
+	it('links the admin page when the connections file is broken', () => {
+		const wrapper = mount(ImmichState, { props: { connection: null, status: null } })
+
+		expect(wrapper.find('a').attributes('href')).toMatch(/\/docs\/user\/admin\/immich\.md#the-connections-file$/)
+	})
+
 	it('shows the connection while it checks and once it works, with its details', async () => {
 		const wrapper = mount(ImmichState, { props: { connection: PHONE, status: null } })
 		expect(wrapper.text()).toContain('Checking the connection…')

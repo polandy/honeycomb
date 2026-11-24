@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { connectionFacts, connectionLine } from '../../src/immich-text.ts'
+import { connectionFacts, connectionLine, IMMICH_ADMIN_URL, stateHelp } from '../../src/immich-text.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK as MARK, uninstallMarkedCatalogue } from './l10n/marked-catalogue.ts'
 
 const PHONE = { id: 'andy-phone', label: 'Andy · Phone', url: 'https://immich.example' }
@@ -32,5 +32,18 @@ describe('immich-text', () => {
 		expect(connectionFacts({ ...OK, total: null })).toBe(`${MARK}Immich 2.3.1`)
 		expect(connectionFacts({ ...OK, version: null, total: 1 })).toBe(`${MARK}${MARK}1 phone upload`)
 		expect(connectionFacts({ ...OK, version: null, total: null })).toBe('')
+	})
+
+	// spec: IMMICH-001.26
+	it('says what to do per state and where the admin page explains it', () => {
+		expect(stateHelp('unreachable').todo).toBe(`${MARK}Try again in a moment. If it stays, ask your admin to check that Immich is running and reachable from Nextcloud.`)
+		expect(stateHelp('refused').todo).toContain('Ask your admin')
+		expect(stateHelp('key').todo).toContain('key file')
+		expect(stateHelp('version').todo).toContain('Ask your admin')
+		expect(stateHelp('configuration').todo).toContain('connections file')
+		for (const state of ['unreachable', 'refused', 'key', 'version', 'configuration'] as const) {
+			expect(stateHelp(state).url).toMatch(new RegExp(`^${IMMICH_ADMIN_URL}#[a-z-]+$`))
+		}
+		expect(new Set(['unreachable', 'refused', 'key', 'version', 'configuration'].map((state) => stateHelp(state as 'key').url)).size).toBe(5)
 	})
 })

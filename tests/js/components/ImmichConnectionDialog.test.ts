@@ -32,6 +32,15 @@ describe('ImmichConnectionDialog', () => {
 		expect(text()).not.toMatch(/key file|api key:/i)
 	})
 
+	// spec: IMMICH-001.27
+	it('links the admin page with the connections file and the key scopes', () => {
+		mountDialog()
+
+		const link = document.body.querySelector('a[href*="/docs/user/admin/immich.md"]')
+		expect(link?.getAttribute('href')).toMatch(/immich\.md#api-key-scopes$/)
+		expect(link?.textContent?.trim()).toBe('Help for your admin')
+	})
+
 	// spec: IMMICH-001.10, IMMICH-001.17
 	it('says what the key may not read', () => {
 		const { text } = mountDialog({ ...OK, account: null, total: null })
