@@ -17,6 +17,7 @@ use OCA\Honeycomb\Service\SeriesStatus;
 use OCA\Honeycomb\Service\UserFolderResolver;
 use OCA\Honeycomb\Service\UserPhotos;
 use OCA\Honeycomb\Service\VisualHash;
+use OCP\DB\Exception as DbException;
 use OCP\App\IAppManager;
 use OCP\Files\NotPermittedException;
 use PHPUnit\Framework\TestCase;
@@ -86,7 +87,7 @@ final class MoveServiceCarryOverTest extends TestCase {
 	public function testAFlagThatCannotBeCarriedOverIsLoggedAndTheFileStaysMoved(): void {
 		$this->addFolder('/Out');
 		$this->newIds[2] = 20;
-		$failure = new \RuntimeException('database gone');
+		$failure = new FakeDbException(DbException::REASON_CONNECTION_LOST);
 		$flags = $this->createStub(FlagStore::class);
 		$flags->method('carryOver')->willThrowException($failure);
 		$logger = $this->createMock(LoggerInterface::class);

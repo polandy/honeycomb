@@ -10,6 +10,7 @@ namespace OCA\Honeycomb\Tests\Service;
 use OCA\Honeycomb\Service\SettingsService;
 use OCA\Honeycomb\Service\StatsDay;
 use OCA\Honeycomb\Service\StatsService;
+use OCP\DB\Exception as DbException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Config\IUserConfig;
 use Psr\Log\LoggerInterface;
@@ -51,6 +52,6 @@ trait StatsFixture {
 
 	/** Makes every counter write fail. */
 	private function failCounting(): void {
-		$this->statsStore()->failures = array_fill(0, 20, new \RuntimeException('database gone'));
+		$this->statsStore()->failures = array_fill(0, 20, new FakeDbException(DbException::REASON_CONNECTION_LOST));
 	}
 }

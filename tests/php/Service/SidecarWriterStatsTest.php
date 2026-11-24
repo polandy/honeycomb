@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
+use OCP\Files\GenericFileException;
 use OCA\Honeycomb\Service\SidecarResult;
 use OCP\Lock\LockedException;
 use PHPUnit\Framework\TestCase;
@@ -83,7 +84,7 @@ final class SidecarWriterStatsTest extends TestCase {
 
 	// spec: STATS-001.7
 	public function testAnUnreadableModificationTimeCountsNothingAndTheSaveGoesOn(): void {
-		$this->mtimeFailure = new \RuntimeException('storage gone');
+		$this->mtimeFailure = new GenericFileException('storage gone');
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('warning')->with('Could not read the modification time of a sidecar to count it');
 

@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
+use OCP\Files\GenericFileException;
 use OCA\Honeycomb\Service\FileRowStores;
 use OCA\Honeycomb\Service\InvalidMoveRequestException;
 use OCA\Honeycomb\Service\MoveService;
@@ -141,7 +142,7 @@ final class MoveServiceTest extends TestCase {
 			'a lock' => [new LockedException('A.JPG'), 'locked'],
 			'vanished meanwhile' => [new NotFoundException(), 'notFound'],
 			'taken meanwhile' => [new AlreadyExistsException(), 'exists'],
-			'a storage error' => [new \RuntimeException('disk full'), 'failed'],
+			'a storage error' => [new GenericFileException('disk full'), 'failed'],
 		];
 	}
 
@@ -163,7 +164,7 @@ final class MoveServiceTest extends TestCase {
 	// spec: MOVE-002.4
 	public function testAStorageErrorIsLogged(): void {
 		$this->pair();
-		$failure = new \RuntimeException('disk full');
+		$failure = new GenericFileException('disk full');
 		$this->moveFailures[3] = $failure;
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('warning')->with($this->anything(), ['fileId' => 3, 'exception' => $failure]);
@@ -295,5 +296,13 @@ final class MoveServiceTest extends TestCase {
 		} finally {
 			$this->assertSame([], $this->log);
 		}
+	}
+
+	public function testAnUnexpectedFailureIsNotCaught(): void {
+		$this->pair();
+		$this->moveFailures[3] = new \LogicException('bug');
+		$this->expectException(\LogicException::class);
+
+		$this->service()->move($this->treeUser(), [self::request()[0]]);
 	}
 }

@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Service;
 
+use OCP\Files\GenericFileException;
 use OCA\Honeycomb\Service\EmbeddedXmpReader;
 use OCA\Honeycomb\Service\InvalidSidecarRequestException;
 use OCA\Honeycomb\Service\JpegXmp;
@@ -88,14 +89,14 @@ final class EmbeddedXmpReaderTest extends TestCase {
 		$sidecar->method('getMimetype')->willReturn('application/octet-stream');
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('warning')->with($this->anything(), $this->callback(
-			static fn (array $context): bool => $context['fileId'] === 6 && $context['exception'] instanceof \RuntimeException,
+			static fn (array $context): bool => $context['fileId'] === 6 && $context['exception'] instanceof GenericFileException,
 		));
 		$reader = $this->reader([
 			2 => $sidecar,
 			3 => $this->createStub(Folder::class),
 			4 => $this->jpeg(mime: 'image/png'),
 			5 => $this->jpeg(readable: false),
-			6 => $this->jpeg(failure: new \RuntimeException('disk')),
+			6 => $this->jpeg(failure: new GenericFileException('disk')),
 			7 => $this->jpeg(failure: new LockedException('IMG_0007.JPG')),
 		], $logger);
 
@@ -150,5 +151,11 @@ final class EmbeddedXmpReaderTest extends TestCase {
 
 		$this->expectException(InvalidSidecarRequestException::class);
 		(new EmbeddedXmpReader(new UserPhotos(new UserFolderResolver($root)), new JpegXmp(), $this->createStub(LoggerInterface::class)))->lookup($this->user(), $fileIds);
+	}
+
+	public function testAnUnexpectedFailureIsNotCaught(): void {
+		$this->expectException(\LogicException::class);
+
+		$this->reader([9 => $this->jpeg(failure: new \LogicException('bug'))])->lookup($this->user(), [9]);
 	}
 }
