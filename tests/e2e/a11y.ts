@@ -10,14 +10,11 @@ export const SCHEMES = ['light', 'dark'] as const
 
 /** The rule sets the scan runs (ADR 0042). */
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22a', 'wcag22aa']
-const GATED_IMPACTS = new Set(['serious', 'critical'])
+const GATED_IMPACTS = new Set(['moderate', 'serious', 'critical'])
 /** Nextcloud's own header is not honeycomb's to fix. */
 const OUTSIDE_THE_APP = '#header'
 /** Faults known and on `TODO.md`, by rule and element; the scan skips them until the item is done. */
-const KNOWN: readonly { rule: string, selector: string }[] = [
-	// TODO.md: the series tab on a filmstrip thumbnail becomes a 44 × 44 px target.
-	{ rule: 'target-size', selector: '.loupe-filmstrip__tab' },
-]
+const KNOWN: readonly { rule: string, selector: string }[] = []
 
 /** Waits until the transitions running on the page have ended, as a dialog fading in has the contrast of its opacity. */
 async function settled(page: Page): Promise<void> {
@@ -29,7 +26,7 @@ async function settled(page: Page): Promise<void> {
 	})
 }
 
-/** The serious or critical faults axe-core finds on the open screen, one line each. */
+/** The moderate, serious or critical faults axe-core finds on the open screen, one line each. */
 export async function accessibilityFaults(page: Page, screen: string): Promise<string[]> {
 	await settled(page)
 	const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).exclude(OUTSIDE_THE_APP).analyze()
@@ -40,7 +37,7 @@ export async function accessibilityFaults(page: Page, screen: string): Promise<s
 			.map((node) => `${screen}: ${violation.id} (${violation.impact}) at ${node.target.join(' ')} ${node.html}: ${node.failureSummary ?? violation.help}`))
 }
 
-/** Fails the test, but goes on to the next screen, with every serious or critical fault on the open screen. */
+/** Fails the test, but goes on to the next screen, with every moderate, serious or critical fault on the open screen. */
 export async function expectAccessible(page: Page, screen: string): Promise<void> {
 	expect.soft(await accessibilityFaults(page, screen), `accessibility faults on ${screen}`).toEqual([])
 }

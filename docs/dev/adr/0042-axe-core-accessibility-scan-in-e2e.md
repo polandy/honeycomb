@@ -23,9 +23,9 @@ The options:
 
 - `@axe-core/playwright` and `axe-core` are exact dev dependencies; `tests/e2e/a11y.ts` wraps
   them, `tests/e2e/a11y.spec.ts` opens every screen of APP-001.15 in the light and the dark theme.
-- The scan runs the WCAG 2.0, 2.1 and 2.2 A and AA rules; a fault rated *serious* or *critical*
-  fails the test. *Moderate* and *minor* faults are
-  not gated: axe-core rates them as best practice or as harm a user works around.
+- The scan runs the WCAG 2.0, 2.1 and 2.2 A and AA rules; a fault rated *moderate*, *serious* or
+  *critical* fails the test (*moderate* joined on 2026-11-24, after the screens passed it). *Minor*
+  faults are not gated: axe-core rates them as best practice.
 - A known fault is excluded by its rule and element in one list in `tests/e2e/a11y.ts`, each with
   a `TODO.md` item, as the touch target check does.
 

@@ -131,7 +131,7 @@ watch([() => props.index, viewport], centre, { flush: 'post' })
 	--loupe-filmstrip-frame: 2px;
 	display: flex;
 	flex: none;
-	height: var(--loupe-filmstrip-thumb);
+	height: calc(var(--loupe-filmstrip-thumb) + var(--photo-loupe-tab-band, 0px));
 	background-color: #111;
 }
 
@@ -156,7 +156,7 @@ watch([() => props.index, viewport], centre, { flush: 'post' })
 
 .loupe-filmstrip__photo {
 	position: absolute;
-	top: 0;
+	top: var(--photo-loupe-tab-band, 0px);
 	width: var(--loupe-filmstrip-thumb);
 	height: var(--loupe-filmstrip-thumb);
 	min-width: 0;
@@ -203,27 +203,39 @@ watch([() => props.index, viewport], centre, { flush: 'post' })
 	position: absolute;
 	top: 2px;
 	left: 2px;
-	min-width: 0;
-	height: 20px;
+	min-width: 24px;
+	height: 24px;
 	min-height: 0;
 	margin: 0;
 	padding: 0 7px;
 	border: 0;
-	border-radius: 10px;
+	border-radius: 12px;
 	background: var(--color-primary-element);
 	color: var(--color-primary-element-text);
 	font-size: 12px;
 	font-weight: bold;
-	line-height: 20px;
+	line-height: 24px;
 	pointer-events: auto;
 }
 
-/* The hit area reaches 34 px with a fine pointer; a finger taps the thumbnail instead. */
+/* The hit area reaches 34 px with a fine pointer. */
 @media (pointer: fine) {
 	.loupe-filmstrip__tab::before {
 		content: '';
 		position: absolute;
 		inset: -7px -4px;
+	}
+}
+
+/* A finger gets the band above the photos, a 44 px square of the frame's corner. */
+@media (pointer: coarse) {
+	.loupe-filmstrip .loupe-filmstrip__tab {
+		top: 0;
+		left: 0;
+		min-width: 44px;
+		height: 44px;
+		border-radius: 8px 0 10px;
+		line-height: 44px;
 	}
 }
 

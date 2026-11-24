@@ -27,6 +27,13 @@
 	min-height: 0;
 }
 
+/* A finger needs 44 px for the series tab, so the strip grows a band above its photos. */
+@media (pointer: coarse) {
+	.photo-loupe--series-tabs {
+		--photo-loupe-tab-band: var(--photo-loupe-tab-band-size);
+	}
+}
+
 .photo-loupe__stage {
 	flex: 1;
 	min-width: 0;
