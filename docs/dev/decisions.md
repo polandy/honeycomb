@@ -1924,6 +1924,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   nothing, like the filter bar's *Clear filters* (IMMICH-002.31).
 - 2026-11-24: Icons and labels (Fable review, owner-approved): the rating's first button reads
   *Clear* instead of `0`, its aria-label unchanged; *Review rejects* takes a check-list icon
-  (the trash icon stays in the review dialog); the Immich source takes a neutral server icon
+  (the trash stays with the delete action); the Immich source takes a neutral server icon
   instead of a phone; and the tag refusal reads two plain sentences ("Separate the levels of a
   tag with \"/\". A name cannot be empty and cannot contain \"|\"."). Wording and icons only.
