@@ -19,7 +19,7 @@ them and no synonyms.
 | **Reject** | Mark a photo to throw away. |
 | **Unflag** | Take the pick or reject off a photo. |
 | **Keep RAW** | A marker that keeps a pair's RAW file when *Remove RAWs* runs. |
-| **rateable** | A photo whose folder you may change, so you can rate, label, flag and tag it. |
+| **rateable** | A photo whose folder you may change, so you can rate, label, flag and tag it and set *Keep RAW*. |
 | **read only** | A photo whose folder you may not change: it shows a lock and nothing can be set. |
 | **take-over** | Recording once the flag and *Keep RAW* a photo's sidecars state, when honeycomb first sees it. |
 | **cull** | Going through a folder set and rating, labelling, flagging and deleting photos. |
