@@ -20,10 +20,10 @@ whose year-in-review hint the user closed (STATS-001.26), each `null` while it w
 stored. A write names only the keys it changes. The info panel's width and the Nextcloud
 navigation toggle stay in browser storage (LOUPE-001), since they depend on the device's screen.
 
-The app reads the view state once when it starts. Until the answer arrives neither the gesture
-guide nor the first-series hint shows; without a stored value the info panel is closed and both
-are not seen. A value
-an older version left in browser storage is taken over once.
+The app reads the view state once when it starts. Until the answer arrives none of the gesture
+guide, the first-series hint and the first-reject hint shows; without a stored value the info panel
+is closed and the three are not seen. A value an older version left in browser storage is taken
+over once.
 
 ## Acceptance criteria
 
@@ -60,9 +60,9 @@ an older version left in browser storage is taken over once.
 
 - **Given** the app starts
 - **When** the view state is still being read, or has been read
-- **Then** neither the gesture guide nor the first-series hint shows until the answer arrives;
-  then the loupe takes each stored value, anything but a boolean counts as not stored, and without
-  one the info panel is closed and the gesture guide and the first-series hint show
+- **Then** none of the gesture guide, the first-series hint and the first-reject hint shows until
+  the answer arrives; then the loupe takes each stored value, anything but a boolean counts as not
+  stored, and without one the info panel is closed and the three hints show
 
 ### LOUPE-003.6 – A change applies at once and writes one key
 
