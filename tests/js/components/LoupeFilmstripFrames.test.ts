@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
 import LoupeFilmstrip from '../../../src/components/LoupeFilmstrip.vue'
 import { UNDECIDED } from '../../../src/logic/decision.ts'
-import { FILMSTRIP_THUMB } from '../../../src/logic/filmstrip.ts'
+import { FILMSTRIP_TAB, FILMSTRIP_THUMB } from '../../../src/logic/filmstrip.ts'
 import { listingEntry, picturesOf } from '../logic/listing-entries.ts'
 import { mountLoupe } from './mount-loupe.ts'
 
@@ -82,6 +82,21 @@ describe('LoupeFilmstrip: the series frame', () => {
 	})
 
 	// spec: LOUPE-001.19
+	it('puts the tab in a column before each frame\'s first photo and shifts the photos after it', async () => {
+		const wrapper = await mountStrip(0, seriesOf([2, 5], [5, 7]), () => undefined)
+		const left = (label: string) => wrapper.find(`button[aria-label="${label}"]`).attributes('style')
+
+		expect(frames(wrapper)).toEqual([
+			`left: ${2 * FILMSTRIP_THUMB}px; width: ${3 * FILMSTRIP_THUMB + FILMSTRIP_TAB}px;`,
+			`left: ${5 * FILMSTRIP_THUMB + FILMSTRIP_TAB}px; width: ${2 * FILMSTRIP_THUMB + FILMSTRIP_TAB}px;`,
+		])
+		expect(left('IMG_02')).toBe(`left: ${FILMSTRIP_THUMB}px;`)
+		expect(left('IMG_03')).toBe(`left: ${2 * FILMSTRIP_THUMB + FILMSTRIP_TAB}px;`)
+		expect(left('IMG_06')).toBe(`left: ${5 * FILMSTRIP_THUMB + 2 * FILMSTRIP_TAB}px;`)
+		expect(wrapper.find('.loupe-filmstrip__track').attributes('style')).toBe(`width: ${30 * FILMSTRIP_THUMB + 2 * FILMSTRIP_TAB}px;`)
+	})
+
+	// spec: LOUPE-001.19
 	it('opens the compare on the series from the tab at the frame\'s start, named with its key', async () => {
 		const opened: number[] = []
 		const wrapper = await mountStrip(0, seriesOf([2, 5]), (index) => opened.push(index))
@@ -107,11 +122,11 @@ describe('PhotoLoupe: the series frame', () => {
 	})
 
 	// spec: LOUPE-001.19
-	it('makes room for the series tabs above its photos only while the folder has a series', async () => {
+	it('keeps the strip as high as its photos while the folder has a series', async () => {
 		const { wrapper } = await mountLoupe(4)
-		expect(wrapper.classes()).not.toContain('photo-loupe--series-tabs')
-
 		await wrapper.setProps({ seriesOf: new Map(wrapper.props('pictures').slice(0, 2).map((picture, _at, members) => [picture, { key: 1, members }])) })
-		expect(wrapper.classes()).toContain('photo-loupe--series-tabs')
+
+		expect(wrapper.attributes('style')).toContain(`--photo-loupe-filmstrip-height: ${FILMSTRIP_THUMB}px;`)
+		expect(wrapper.attributes('style')).not.toContain('tab-band')
 	})
 })
