@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
 import { SHARPNESS_METHOD } from '../../src/logic/sharpness.ts'
-import { measureById, measuresIn, QUALITY_MEASURES } from '../../src/quality-measures.ts'
+import { measureById, QUALITY_MEASURES } from '../../src/quality-measures.ts'
 import { measureFetched } from '../../src/sharpness-drawing.ts'
 
 describe('the quality measure registry', () => {
@@ -17,9 +17,8 @@ describe('the quality measure registry', () => {
 	})
 
 	// spec: SERIES-006.22
-	it('finds a measure by id and lists those of a slot', () => {
+	it('finds a measure by id', () => {
 		expect(measureById('sharpness')).toBe(QUALITY_MEASURES[0])
-		expect(measuresIn('loupe-info')).toEqual([QUALITY_MEASURES[0]])
 	})
 
 	// spec: SERIES-006.22

@@ -12,7 +12,7 @@ export type MeasureSlot = 'loupe-info'
 /** A translation of `text` of an app, as `t` of `@nextcloud/l10n` gives it. */
 export type Translate = (app: string, text: string) => string
 
-/** One kind of quality value: how it is measured, stored and shown (SERIES-006.22). */
+/** One kind of quality value (the value shape is still the sharpness's until a second measure needs another): how it is measured, stored and shown (SERIES-006.22). */
 export interface QualityMeasure {
 	readonly id: string
 	/** The method number stored with its values; a value of another method counts as missing (ADR 0046). */
@@ -35,9 +35,4 @@ export function measureById(id: string): QualityMeasure {
 		throw new Error(`Unknown quality measure ${id}`)
 	}
 	return found
-}
-
-/** The measures shown in `slot`. */
-export function measuresIn(slot: MeasureSlot): readonly QualityMeasure[] {
-	return QUALITY_MEASURES.filter((measure) => measure.slot === slot)
 }

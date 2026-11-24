@@ -202,7 +202,7 @@ it flags, moves, deletes and writes nothing.
 
 - **Given** the registry of quality measures (`src/quality-measures.ts`), whose first entry
   is the sharpness
-- **When** the cull, the worker or the info panel needs a measure
+- **When** the cull, the worker or the info panel's label needs a measure
 - **Then** it finds it by `id` in the registry, which gives each entry its `id`, stored `method`,
   `measure` (the function a worker runs on a photo's URL), `label` and display `slot`; the
   sharpness is `sharpness`, method 1, shown in the `loupe-info` slot; a worker job names a measure

@@ -4,6 +4,7 @@ import type { WorkerAnswer, WorkerRequest } from './hash-workers.ts'
 
 import { hashFetched } from './hash-drawing.ts'
 import { measureById } from './quality-measures.ts'
+import { answerJob } from './worker-job.ts'
 
 /** The worker's global scope; the app's TypeScript knows only the DOM's. */
 const scope = self as unknown as { onmessage: ((event: MessageEvent<WorkerRequest>) => void) | null, postMessage: (answer: WorkerAnswer) => void }
@@ -15,9 +16,7 @@ const seams = {
 }
 
 scope.onmessage = ({ data }) => {
-	const answer = data.kind === 'hash'
-		? hashFetched(data.url, seams).then((hash) => ({ id: data.id, hash }))
-		: Promise.resolve().then(() => measureById(data.kind).measure(data.url, seams)).then((measured) => ({ id: data.id, measured }))
+	const answer = answerJob(data, { hash: (url) => hashFetched(url, seams), measure: (measureId, url) => measureById(measureId).measure(url, seams) })
 	answer.then(
 		(done) => scope.postMessage(done),
 		(error: unknown) => scope.postMessage({ id: data.id, error }),
