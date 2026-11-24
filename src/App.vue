@@ -139,7 +139,7 @@ function openRecent(position: ResumePosition) {
 recent.refresh()
 watch(pickerOpen, (open) => open && recent.refresh())
 
-const { immich, shown: immichShown, opened, openedStatus, onlyOffer, cull: immichCull, openConnection, checkOpened } = useImmichApp({ source: props.immich, cull: props.immichCull, storage: props.storage, now: props.now, toast })
+const { immich, shown: immichShown, opened, openedStatus, onlyOffer, cull: immichCull, openConnection, checkOpened } = useImmichApp({ source: props.immich, cull: props.immichCull, storage: props.storage, viewState: viewStateApi, now: props.now, toast })
 const immichOnly = useImmichOnly({ stored: () => (settingsSettled.value ? settings.value.immichOnly : null), offer: () => onlyOffer.value, store: (chosen) => updateSettings({ immichOnly: chosen }), chooseSource: immich.choose, folderSet: () => folderSet.value, idle: () => folderSet.value === null && !recent.listing.value, pickerOpen })
 const connectionDialogOpen = ref(false)
 const IMMICH_HIDDEN_KEYS = unofferedKeys(DECISIONS_ONLY)

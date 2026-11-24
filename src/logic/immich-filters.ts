@@ -120,7 +120,7 @@ export function shownTimeOptions(options: readonly TimeOption[], counts: readonl
 }
 
 /** Whether two time options are the same choice. */
-function sameTimeOption(a: TimeOption, b: TimeOption): boolean {
+export function sameTimeOption(a: TimeOption, b: TimeOption): boolean {
 	if (a.kind === 'month' && b.kind === 'month') {
 		return a.year === b.year && a.month === b.month
 	}

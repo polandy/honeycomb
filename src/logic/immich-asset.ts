@@ -7,8 +7,11 @@ import type { PictureId } from './picture-id.ts'
 
 import { parseFileName } from './file-name.ts'
 
+/** Every kind of Immich asset, in the order the filter bar shows them. */
+export const IMMICH_KINDS = ['photo', 'live', 'video'] as const
+
 /** What an Immich asset is: a photo, a live photo with its motion part, or a video (ADR 0044). */
-export type ImmichKind = 'photo' | 'live' | 'video'
+export type ImmichKind = typeof IMMICH_KINDS[number]
 
 /** One entry of the Immich listing (IMMICH-002.4) with its decision (ADR 0043); times are Unix seconds. */
 export interface ImmichEntry extends Decision {

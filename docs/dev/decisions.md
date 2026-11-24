@@ -1908,6 +1908,13 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   the setup page links the privacy page on GitHub, as `appinfo/info.xml` does (#187, autonomous).
 - 2026-11-24: `SidecarWriter` and `SidecarReader` catch only the `OCP\Files\*` types, so an unlisted
   exception fails the request loudly instead of one file quietly (#187, autonomous, PR #386).
+- 2026-11-24: Immich filter bar: time, device and kind as filter-bar chips in the Immich
+  toolbar, not in the navigation as the Phase 1 mockup drew them, since the owner asked for the
+  folder filter bar's style; they are kept per connection in the server view state
+  (`immich_filters`, ADR 0019 amendment), so they follow the user like the other view state.
+  The current month is kept as `current`, so it follows the calendar; the stored keys are the
+  connections file's ids (a numeric id included), and 4096 bytes per connection suffice, since a
+  listing takes at most 20 devices.
 - 2026-11-24: The 17 empty `Invalid*Exception` classes are gone; `InvalidRequestException::because(Reason)`
   names the reason in the 400 body next to `error: "request"` (ADR 0057, #187, autonomous). Twelve coarse
-  reasons, one per kind of malformed part, not one per field; the free-text detail stays in the log.
+  reasons, one per kind of malformed part, not one per field; the free-text detail stays on the exception.

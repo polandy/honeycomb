@@ -20,6 +20,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import AppIcon from './AppIcon.vue'
 import FlagFilter from './FlagFilter.vue'
+import ImmichFilterBar from './ImmichFilterBar.vue'
 import PhotoGrid from './PhotoGrid.vue'
 import PhotoLoupe from './PhotoLoupe.vue'
 import { formatNumber, PLAIN_TEXT } from '../l10n.ts'
@@ -44,7 +45,7 @@ const emit = defineEmits<{
 	toast: [toast: Toast]
 }>()
 
-const { list, counts, pictures, filters } = props.cull
+const { list, counts, pictures, filters, choices, filtersChanged } = props.cull
 const loupeIndex = ref<number | null>(null)
 const photoLoupe = useTemplateRef<InstanceType<typeof PhotoLoupe>>('photoLoupe')
 const photoGrid = useTemplateRef<InstanceType<typeof PhotoGrid>>('photoGrid')
@@ -102,6 +103,12 @@ defineExpose({ loupe: photoLoupe })
 			<FlagFilter :flags="filters.flags" :counts="counts?.flags ?? null" @update:flags="setFlags" />
 			<span class="immich-screen__count">{{ countText }}</span>
 		</div>
+		<ImmichFilterBar
+			:filters="filters"
+			:choices="choices"
+			:changed="filtersChanged"
+			@update:filters="props.cull.setFilters"
+			@clear="props.cull.clearFilters" />
 		<NcEmptyContent
 			v-if="empty"
 			class="immich-screen__empty"
