@@ -1930,6 +1930,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-24: The 17 empty `Invalid*Exception` classes are gone; `InvalidRequestException::because(Reason)`
   names the reason in the 400 body next to `error: "request"` (ADR 0057, #187, autonomous). Twelve coarse
   reasons, one per kind of malformed part, not one per field; the free-text detail stays on the exception.
-- 2026-11-24: No index and no smaller transaction after measuring 60,000 `xmp_cache` rows and 50,000 Immich
-  decisions on SQLite, MariaDB and PostgreSQL; `xmp_cache` stays per user (`docs/dev/performance.md`, #187,
-  autonomous).
+- 2026-11-24: No index and no smaller transaction after measuring 60,000 `xmp_cache` rows and 50,000
+  Immich decisions on SQLite, MariaDB and PostgreSQL; `xmp_cache` stays per user
+  (`docs/dev/performance.md`, #187, autonomous).

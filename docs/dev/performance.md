@@ -5,6 +5,7 @@ the baseline migration (ADR 0055) instead of guessing. Nothing here changes the 
 measurement showed an index or a smaller transaction paying off.
 
 ## Method
+
 `tests/php-db/DatabaseBenchTest.php` fills the real tables with synthetic rows through the real
 mappers and times them. It runs on SQLite, MariaDB 11.4 and PostgreSQL 17 inside the newest e2e
 Nextcloud image, on one developer machine, in Docker:
@@ -20,6 +21,7 @@ assets per second so the asset id breaks ties. The numbers compare options on on
 are not a promise for a production host.
 
 ## Results
+
 | Measure | SQLite | MariaDB | PostgreSQL |
 |---|---|---|---|
 | `readCounts`, 60,000 rows | 9.6 ms | 30 ms | 7.7 ms |
@@ -42,6 +44,7 @@ are not a promise for a production host.
 | The same pages with index `(connection_id, taken_at, asset_id)` | within 1 ms | within 8 ms | within 1 ms |
 
 ## Findings and decisions
+
 - **`readCounts` needs no index.** The unique key `(user_id, file_id)` already narrows to the user's
   rows; the statistics call costs 8–30 ms at 60,000 rows. A narrower index saves at most 2 ms, and
   the covering one makes SQLite slower.
