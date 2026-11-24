@@ -53,7 +53,9 @@ during a task becomes an issue as above.
     (`tests/fixtures/immich/e2e/`); its library is 3,660 uploads built from the search fixture's
     photo, paged by an offset cursor and unfiltered.
 - Coverage gate in CI: logic modules (`src/logic/`) at least 95 % lines and 90 % branches; Vue
-  components at least 80 % lines. A pull request does not lower either.
+  components and the glue modules (`src/*.ts`) in every file at least 70 % lines and 70 % branches
+  (`perFile`), so one weak file cannot hide behind a strong average. A pull request does not
+  lower any of them.
 - Test vectors shared with Framehive (pairing, XMP, name templates) are data files under
   `tests/fixtures/`, read by the tests rather than copied into them.
 - Tests are deterministic: no sleep, no timing waits, no wall clock (inject a clock), no
