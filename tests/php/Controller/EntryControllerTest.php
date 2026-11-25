@@ -106,7 +106,7 @@ final class EntryControllerTest extends TestCase {
 	public function testAFolderInsideALibraryRootIsListed(): void {
 		$photos = $this->treeOf([$this->file(1, '/Photos/2024/IMG_0001.JPG')]);
 
-		$response = $this->controller($this->rootWith(['/Photos' => $photos]), $this->user(), roots: ['/Photos'])->index('Photos/2024');
+		$response = $this->controller($this->rootWith(['/Photos/2024' => $photos]), $this->user(), roots: ['/Photos'])->index('Photos/2024');
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}

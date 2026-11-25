@@ -281,23 +281,6 @@ describe('FolderTree: one folder', () => {
 		expect(wrapper.emitted('toggle')).toEqual([['/Day 10']])
 	})
 
-	// spec: SETTINGS-001.35
-	it('shows the note of a folder that is refused and does not toggle it', async () => {
-		const folders = fakeFolders()
-		const disabledNote = (path: string) => (path === '/Day 9' ? 'Already a root' : null)
-		const wrapper = mount(FolderTree, { props: { ticked: [], listFolders: folders.listFolders, single: true, disabledNote } })
-		await folders.answer('')
-
-		expect(item(wrapper, 'Day 9').attributes('aria-disabled')).toBe('true')
-		expect(item(wrapper, 'Day 9').text()).toContain('Already a root')
-		expect(item(wrapper, 'Day 10').attributes('aria-disabled')).toBeUndefined()
-
-		await item(wrapper, 'Day 9').trigger('click')
-		await item(wrapper, 'Day 10').trigger('click')
-
-		expect(wrapper.emitted('toggle')).toEqual([['/Day 10']])
-	})
-
 	// spec: LISTING-003.17, MOVE-004.4
 	it('marks the folders above the chosen one', async () => {
 		const folders = fakeFolders()

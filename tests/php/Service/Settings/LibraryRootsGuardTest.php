@@ -36,9 +36,9 @@ final class LibraryRootsGuardTest extends TestCase {
 	// spec: SETTINGS-001.36
 	#[DataProvider('insideRoots')]
 	public function testAPathInsideARootPasses(string $path): void {
-		$this->rootsGuard(['/Photos', '/Archive'])->ensureInside($this->user(), $path);
+		$this->expectNotToPerformAssertions();
 
-		$this->addToAssertionCount(1);
+		$this->rootsGuard(['/Photos', '/Archive'])->ensureInside($this->user(), $path);
 	}
 
 	/** @return array<string, array{string}> */
@@ -71,9 +71,9 @@ final class LibraryRootsGuardTest extends TestCase {
 
 	// spec: SETTINGS-001.36
 	public function testWithoutRootsEveryPathPasses(): void {
+		$this->expectNotToPerformAssertions();
+
 		$this->rootsGuard()->ensureInside($this->user(), '/Anything');
 		$this->rootsGuard()->ensureInside($this->user(), '');
-
-		$this->addToAssertionCount(2);
 	}
 }

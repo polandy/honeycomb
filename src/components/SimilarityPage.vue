@@ -15,8 +15,8 @@ import NcContent from '@nextcloud/vue/components/NcContent'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import AppIcon from './AppIcon.vue'
 import FolderTree from './FolderTree.vue'
-import { outsideRootsNote } from '../folders/folders-text.ts'
 import ProgressBar from './ProgressBar.vue'
+import { outsideRootsNote } from '../folders/folders-text.ts'
 import { useHashRun } from '../hashes/hash-run.ts'
 
 const props = withDefaults(defineProps<{

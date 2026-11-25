@@ -154,5 +154,4 @@ describe('SimilarityPage', () => {
 		expect(limited('/Docs')).toContain('Outside your library roots')
 		expect(note(mountPage())('/Docs')).toBeNull()
 	})
-
 })

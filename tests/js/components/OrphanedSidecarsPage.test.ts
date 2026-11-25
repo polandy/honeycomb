@@ -133,5 +133,4 @@ describe('OrphanedSidecarsPage', () => {
 		expect(button(mountPage(undefined, ['/Photos']), 'Whole library')!.attributes('disabled')).toBeDefined()
 		expect(button(mountPage(), 'Whole library')!.attributes('disabled')).toBeUndefined()
 	})
-
 })

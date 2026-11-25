@@ -25,6 +25,7 @@ final class LibraryRootsGuard {
 		if (!is_array($roots) || $roots === []) {
 			return;
 		}
+		/** @var mixed $root */
 		foreach ($roots as $root) {
 			if (is_string($root) && LibraryRootPaths::isInside($path, LibraryRootPaths::normalize($root))) {
 				return;

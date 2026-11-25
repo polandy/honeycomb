@@ -186,7 +186,7 @@ final class SettingsServiceTest extends TestCase {
 		$this->assertSame(SettingsService::MAX_BYTES, strlen($this->stored['alice/honeycomb/move_recent']));
 	}
 
-	// spec: SETTINGS-001.35
+	// spec: SETTINGS-001.32
 	public function testAListStillInTheObjectIsReadAndCarriedOverOnTheNextSave(): void {
 		$this->stored['alice/honeycomb/settings'] = '{"viKeys":true,"moveRecent":["/A"],"libraryRoots":["/Photos"]}';
 		$this->stored['alice/honeycomb/library_roots'] = '["/Phone"]';

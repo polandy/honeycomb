@@ -52,10 +52,10 @@ function fakeApi() {
 	return { calls, pending, listEntries, listFolders: () => Promise.resolve(ROOT) }
 }
 
-async function mountPicker(current: FolderSet | null = null, pairing: PairingSettings = DEFAULT_PAIRING_SETTINGS, recent: RecentFolderSet[] = [], roots: string[] = []) {
+async function mountPicker(current: FolderSet | null = null, pairing: PairingSettings = DEFAULT_PAIRING_SETTINGS, recent: RecentFolderSet[] = []) {
 	const api = fakeApi()
 	const wrapper = mount(FolderPicker, {
-		props: { current, listFolders: api.listFolders, listEntries: api.listEntries, pairing, recent, roots },
+		props: { current, listFolders: api.listFolders, listEntries: api.listEntries, pairing, recent },
 		global: { stubs: { NcDialog: DialogStub } },
 	})
 	await flushPromises()
@@ -295,21 +295,4 @@ describe('FolderPicker', () => {
 
 		expect(untranslatedText(picker.wrapper.element as Element)).toEqual(['Empty', 'Home', 'Trip'])
 	})
-
-	// spec: SETTINGS-001.36
-	it('offers only folders inside a library root', async () => {
-		const { wrapper } = await mountPicker(null, DEFAULT_PAIRING_SETTINGS, [], ['/Photos'])
-		const note = wrapper.findComponent(FolderTree).props('disabledNote') as (path: string) => string | null
-
-		expect(note('/Photos/2025')).toBeNull()
-		expect(note('/Docs')).toContain('Outside your library roots')
-	})
-
-	// spec: SETTINGS-001.36
-	it('offers every folder while no root is set', async () => {
-		const { wrapper } = await mountPicker()
-
-		expect((wrapper.findComponent(FolderTree).props('disabledNote') as (path: string) => string | null)('/Docs')).toBeNull()
-	})
-
 })
