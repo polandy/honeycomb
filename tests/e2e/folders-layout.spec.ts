@@ -63,9 +63,10 @@ async function edges(elements: Locator): Promise<{ left: number, right: number }
 
 /** Expects all numbers to lie within the tolerance of the first. */
 function expectAligned(values: number[]) {
+	const [first = Number.NaN] = values
 	expect(values.length).toBeGreaterThan(1)
 	for (const value of values) {
-		expect(Math.abs(value - values[0])).toBeLessThanOrEqual(TOLERANCE_PX)
+		expect(Math.abs(value - first)).toBeLessThanOrEqual(TOLERANCE_PX)
 	}
 }
 
@@ -83,12 +84,12 @@ function intersection(a: Box, b: Box): Box | null {
 /** The WCAG contrast ratio of two computed `rgb()` colours. */
 function contrast(a: string, b: string): number {
 	const luminance = (color: string) => {
-		const [red, green, blue] = color.match(/\d+(\.\d+)?/g)!.slice(0, 3).map((part) => Number(part) / 255)
+		const [red = 0, green = 0, blue = 0] = color.match(/\d+(\.\d+)?/g)!.slice(0, 3).map((part) => Number(part) / 255)
 			.map((part) => (part <= 0.03928 ? part / 12.92 : ((part + 0.055) / 1.055) ** 2.4))
 		return 0.2126 * red + 0.7152 * green + 0.0722 * blue
 	}
-	const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x)
-	return (light + 0.05) / (dark + 0.05)
+	const [first, second] = [luminance(a), luminance(b)]
+	return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05)
 }
 
 /** The element's computed style property. */
@@ -116,8 +117,8 @@ for (const viewport of VIEWPORTS) {
 				expect(primaries).toHaveLength(3)
 				expectAligned(primaries.map((edge) => edge.right))
 				expectAligned((await edges(rows.getByRole('button', { name: /^More for / }))).map((edge) => edge.left))
-				const open = (await edges(screen.getByRole('button', { name: 'Open Iceland' })))[0]
-				expect(open.left).toBeGreaterThan(primaries[0].right)
+				const open = (await screen.getByRole('button', { name: 'Open Iceland' }).boundingBox())!
+				expect(open.x).toBeGreaterThan(Math.max(...primaries.map((edge) => edge.right)))
 
 				for (const counts of await rows.locator('.folder-row__counts').all()) {
 					const tops = await counts.locator('span').evaluateAll((spans) => spans.map((span) => Math.round(span.getBoundingClientRect().top)))
@@ -173,7 +174,7 @@ for (const viewport of VIEWPORTS) {
 					const x = crumb.x + crumb.width - TOLERANCE_PX
 					const y = covered.y + covered.height / 2
 					expect(y >= title.y && y <= title.y + title.height).toBe(true)
-					expect(await page.evaluate(([px, py]) => document.elementFromPoint(px, py)?.closest('.folder-breadcrumb') ?? null, [x, y])).toBeNull()
+					expect(await page.evaluate(({ px, py }) => document.elementFromPoint(px, py)?.closest('.folder-breadcrumb') ?? null, { px: x, py: y })).toBeNull()
 				}
 			})
 		})
