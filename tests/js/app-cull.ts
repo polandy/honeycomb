@@ -173,7 +173,7 @@ const NOW_SECONDS = 1_795_176_000
 export const SILENT_IMMICH_CULL: ImmichCullApi = { assets: () => new Promise(() => undefined), counts: () => new Promise(() => undefined), saveDecisions: () => new Promise(() => undefined), imageUrl: (id, assetId, size) => `/${id}/${assetId}/${size}` }
 
 /** A library without folders, never scanning. */
-export const NO_LIBRARY: LibraryApi & FolderDoneApi = { listLibraryFolders: async () => ({ folders: [], nextCursor: null, scanning: null }), scanLibrary: async () => ({ done: 0, total: 0 }), markFolderDone: async () => ({ by: '', at: 0, photos: 0 }), reopenFolder: async () => undefined }
+export const NO_LIBRARY: LibraryApi & FolderDoneApi = { listLibraryFolders: async () => ({ folders: [], nextCursor: null, scanning: null }), scanLibrary: async () => ({ done: 0, total: 0 }), markFolderDone: async () => ({ by: '', at: 0, photos: 0 }), reopenFolder: async () => undefined, markFoldersDone: async () => ({ done: [], skipped: [] }), reopenFolders: async () => undefined }
 
 export function mountApp(props: Record<string, unknown> = {}, decisions: StoredDecision[] = [], stubs: Record<string, unknown> = {}) {
 	provideSkipActions()

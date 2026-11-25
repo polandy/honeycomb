@@ -113,4 +113,15 @@ final class FolderDoneMapperTest extends DbTestCase {
 
 		$this->assertSame([8], array_keys($this->done->find([7, 8])));
 	}
+
+	// spec: FOLDERS-006.15, FOLDERS-006.18
+	public function testPutsAndRemovesABatchOfStatusesAtOnce(): void {
+		$this->done->put(new FolderDone(7, 'bob', 1, 1));
+
+		$this->done->put(new FolderDone(7, 'alice', 2, 3), new FolderDone(8, 'alice', 2, 4), new FolderDone(9, 'alice', 2, 5));
+		$this->assertEquals([7 => new FolderDone(7, 'alice', 2, 3), 8 => new FolderDone(8, 'alice', 2, 4), 9 => new FolderDone(9, 'alice', 2, 5)], $this->done->find([7, 8, 9]));
+
+		$this->done->remove(7, 9, 10);
+		$this->assertSame([8], array_keys($this->done->find([7, 8, 9])));
+	}
 }

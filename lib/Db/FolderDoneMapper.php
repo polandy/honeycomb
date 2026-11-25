@@ -49,21 +49,22 @@ final class FolderDoneMapper implements FolderDoneStore {
 	}
 
 	#[\Override]
-	public function put(FolderDone $done): void {
+	public function put(FolderDone ...$done): void {
+		$done = array_values($done);
 		$this->atomic(function () use ($done): void {
-			$this->deleteFileRows(null, [$done->fileId]);
-			$this->insertRows(new InsertStatements(self::TABLE, self::COLUMNS), [[
-				'file_id' => $done->fileId,
-				'user_id' => $done->userId,
-				'done_at' => $done->doneAt,
-				'photos' => $done->photos,
-			]]);
+			$this->deleteFileRows(null, array_map(static fn (FolderDone $row): int => $row->fileId, $done));
+			$this->insertRows(new InsertStatements(self::TABLE, self::COLUMNS), array_map(static fn (FolderDone $row): array => [
+				'file_id' => $row->fileId,
+				'user_id' => $row->userId,
+				'done_at' => $row->doneAt,
+				'photos' => $row->photos,
+			], $done));
 		}, $this->db);
 	}
 
 	#[\Override]
-	public function remove(int $fileId): void {
-		$this->deleteFileRows(null, [$fileId]);
+	public function remove(int ...$fileIds): void {
+		$this->atomic(fn () => $this->deleteFileRows(null, array_values($fileIds)), $this->db);
 	}
 
 	/** The statuses the user marked stay, without the name (ADR 0040, Who shares what). */

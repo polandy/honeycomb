@@ -47,7 +47,7 @@ final class WriteRateLimitTest extends TestCase {
 		return $routes;
 	}
 
-	// spec: APP-001.9
+	// spec: APP-001.9, FOLDERS-006.8
 	public function testLimitsEveryWritingRouteToSixHundredRequestsAMinutePerUser(): void {
 		$limits = array_map(static fn (ReflectionMethod $method): array => array_map(static fn ($limit): array => $limit->getArguments(), $method->getAttributes(UserRateLimit::class)), self::changingRoutes());
 
@@ -57,8 +57,10 @@ final class WriteRateLimitTest extends TestCase {
 			'FlagController::sidecarEtags' => [['limit' => 600, 'period' => 60]],
 			'FlagController::takeOver' => [['limit' => 600, 'period' => 60]],
 			'ImmichController::decisions' => [['limit' => 600, 'period' => 60]],
+			'LibraryController::markAllDone' => [['limit' => 600, 'period' => 60]],
 			'LibraryController::markDone' => [['limit' => 600, 'period' => 60]],
 			'LibraryController::reopen' => [['limit' => 600, 'period' => 60]],
+			'LibraryController::reopenAll' => [['limit' => 600, 'period' => 60]],
 			'LibraryController::scan' => [['limit' => 600, 'period' => 60]],
 			'MoveController::move' => [['limit' => 600, 'period' => 60]],
 			'OrphanedSidecarController::trash' => [['limit' => 600, 'period' => 60]],

@@ -94,6 +94,31 @@ export function subtreeRows(node: FolderNode): FolderRow[] {
 	return [...(node.row === null ? [] : [node.row]), ...node.children.flatMap(subtreeRows)]
 }
 
+/** A folder of a batch write with the photos it is marked done with (FOLDERS-006.15). */
+export interface FolderMark {
+	readonly fileId: number
+	readonly photos: number
+}
+
+/** What *Mark all done* and *Reopen all* write for the subtree; `reopen` keeps the photos each was marked with. */
+export interface BatchMarks {
+	readonly mark: readonly FolderMark[]
+	readonly reopen: readonly FolderMark[]
+	/** The read-only folders of the subtree, which neither writes. */
+	readonly readOnly: number
+}
+
+/** The rateable folders of the subtree to mark done and to reopen, in subtree order (FOLDERS-009.11, .13). */
+export function batchMarks(node: FolderNode): BatchMarks {
+	const rows = subtreeRows(node)
+	const rateable = rows.filter(isRateable)
+	return {
+		mark: rateable.filter((row) => row.done === null).map((row) => ({ fileId: row.fileId, photos: row.photos })),
+		reopen: rateable.flatMap((row) => (row.done === null ? [] : [{ fileId: row.fileId, photos: row.done.photos }])),
+		readOnly: rows.length - rateable.length,
+	}
+}
+
 /** The sums of the whole subtree, or of the folder's own photos only. */
 export function scopeSums(node: FolderNode, includeSubfolders: boolean): FolderSums {
 	const rows = includeSubfolders ? subtreeRows(node) : node.row === null ? [] : [node.row]

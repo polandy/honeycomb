@@ -32,6 +32,8 @@ const props = defineProps<{
 			@cull="props.home.cull"
 			@markDone="props.home.markDone"
 			@reopen="props.home.reopen"
+			@markAllDone="props.home.markAllDone"
+			@reopenAll="props.home.reopenAll"
 			@cullNew="props.home.cullNew"
 			@update:includeSubfolders="props.home.setIncludeSubfolders" />
 	</div>

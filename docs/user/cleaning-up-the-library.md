@@ -58,6 +58,11 @@ just culled.
 A done folder moves out of *Suggested*. **Reopen** in its ⋯ menu takes it back; a toast says
 *Reopened …*. A folder you are not allowed to change (a read-only share) offers neither.
 
+A folder with subfolders does it for all of them at once. Its ⋯ menu offers **Mark all done**,
+which marks every subfolder you may change and skips the read-only ones; the toast says how many it
+marked and skipped, with *Undo*. A subtree where every photo is decided offers *Mark all done* in
+its row too. **Reopen all** in the same menu takes every done folder of the subtree back.
+
 The status belongs to the folder, not to you: everyone who may change the folder sees it done.
 
 ## New photos

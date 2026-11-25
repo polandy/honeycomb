@@ -25,6 +25,11 @@ a dialog; a toast offers *Undo* for a while. A done folder with new photos offer
   when the list still shows the row, else on the list.
 - **A failed write** leaves the row as it was and shows an error toast: *Could not mark ⟨folder⟩
   done.* or *Could not reopen ⟨folder⟩.*; the server's text is only logged.
+- **Mark all done and Reopen all.** A row with subfolders offers both in its ⋯ menu (FOLDERS-009);
+  *Reopen all* is disabled when no rateable folder below is done. *Undo* after *Mark all done*
+  reopens the folders just marked; *Undo* after *Reopen all* marks the folders again, each with the
+  photos of its earlier status, so *n new* stays. A failed *Undo* leaves the rows as they are and
+  shows the error toast of its write. More than 500 folders go in calls of 500 each.
 - **New photos.** A done folder with *n new* > 0 shows the badge *n new* (n: photos now − photos at
   *Mark done*) and *Cull new* in its row; *Cull new* opens the folder as *Cull* does, with the flag
   filter set to *Unflagged* only.
@@ -102,6 +107,27 @@ a dialog; a toast offers *Undo* for a while. A done folder with new photos offer
 - **When** a row's menu is open
 - **Then** it is a bottom sheet, axe finds no serious fault and every control is at least 44 px
 
+### FOLDERS-008.11 – Undo of Reopen all
+
+- **Given** three done folders below a row, marked with 400, 20 and 7 photos
+- **When** the user presses *Reopen all* in the row's menu and *Undo* in its toast
+- **Then** one `PUT /library/done` carries the three with 400, 20 and 7 photos, and the rows are
+  done again
+
+### FOLDERS-008.12 – A failed Undo of a batch
+
+- **Given** a server that refuses the write of *Undo* after *Mark all done* or *Reopen all*
+- **When** the user presses *Undo*
+- **Then** the rows stay as they are and the error toast *Could not reopen the folders.* or *Could
+  not mark the folders done.* shows
+
+### FOLDERS-008.13 – The menu of a row with subfolders
+
+- **Given** a row with subfolders whose rateable folders are all open, and one with a done folder
+- **When** the user opens their ⋯ menus
+- **Then** both offer *Mark all done*; *Reopen all* is disabled in the first and enabled in the
+  second
+
 ## Out of scope
 
 The done endpoints: FOLDERS-006. The list, its filters and texts: FOLDERS-002, FOLDERS-003,
@@ -111,4 +137,5 @@ FOLDERS-007. The toast's timing, close button and swipe: APP-001.
 
 | Date | Change |
 |---|---|
+| 2026-11-25 | *Mark all done*, *Reopen all* and their *Undo* (FOLDERS-008.11 to .13, ADR 0060, PR 4) |
 | 2026-11-22 | Written with M12 PR 6 |

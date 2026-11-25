@@ -18,9 +18,9 @@ interface FolderDoneStore extends FileRowStore, UserRowStore {
 	 */
 	public function find(array $fileIds): array;
 
-	/** Stores the folder's status, replacing the one it had. */
-	public function put(FolderDone $done): void;
+	/** Stores each folder's status in one transaction, replacing the one it had. */
+	public function put(FolderDone ...$done): void;
 
-	/** Removes the folder's status; none is no error. */
-	public function remove(int $fileId): void;
+	/** Removes each folder's status in one transaction; none is no error. */
+	public function remove(int ...$fileIds): void;
 }

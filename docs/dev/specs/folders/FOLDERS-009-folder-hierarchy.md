@@ -195,6 +195,8 @@ folders; a parent's state is derived.
 - **Given** a server that refuses the batch
 - **When** the user presses *Mark all done* or *Reopen all*
 - **Then** the rows stay as they were and an error toast without the server's text shows
+- **And** with more than 500 folders, the calls before the refused one stay written; the list
+  shows them on its next load
 
 ### FOLDERS-009.19 – On a phone
 

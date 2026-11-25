@@ -28,6 +28,8 @@ function flow(api: Partial<FolderDoneApi> = {}) {
 		reopenFolder: async (fileId) => {
 			calls.push(`DELETE ${fileId}`)
 		},
+		markFoldersDone: async () => ({ done: [], skipped: [] }),
+		reopenFolders: async () => undefined,
 		...api,
 	}, {
 		setDone: (fileId, status) => shown.push([fileId, status]),

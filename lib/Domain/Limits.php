@@ -14,4 +14,7 @@ final class Limits {
 
 	/** The most files one move or trash request carries, so it ends well inside a timeout (ADR 0029). */
 	public const int REQUEST_FILES = 500;
+
+	/** The most folders one *Mark all done* or *Reopen all* call carries (ADR 0060). */
+	public const int REQUEST_FOLDERS = 500;
 }

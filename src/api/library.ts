@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { FolderMark } from '../logic/folder-hierarchy.ts'
 import type { FolderDone, FolderPreview, FolderRow } from '../logic/folder-row.ts'
 
 import axios from '@nextcloud/axios'
@@ -18,6 +19,15 @@ export interface LibraryPage {
 	readonly nextCursor: number | null
 	readonly scanning: LibraryScanning | null
 }
+
+/** What one *Mark all done* wrote and why it left the others (FOLDERS-006.15). */
+export interface FolderDoneBatch {
+	readonly done: { readonly fileId: number, readonly done: FolderDone }[]
+	readonly skipped: { readonly fileId: number, readonly reason: 'read-only' | 'done' }[]
+}
+
+/** The most folders the server takes in one batch call, `Limits::REQUEST_FOLDERS` (ADR 0060). */
+const REQUEST_FOLDERS = 500
 
 const ROW_NUMBERS = ['fileId', 'photos', 'bytes', 'rawBytes', 'picked', 'rejected', 'undecided', 'bursts', 'permissions'] as const
 const ROW_TIMES = ['oldest', 'newest', 'lastActivity'] as const
@@ -64,6 +74,42 @@ export async function markFolderDone(fileId: number, photos: number): Promise<Fo
 /** Removes the folder's done status (FOLDERS-006.3). */
 export async function reopenFolder(fileId: number): Promise<void> {
 	await axios.delete(generateUrl(`${API}/library/folders/${fileId}/done`))
+}
+
+/** Marks each folder done as of its photos, in calls of 500, and answers the written and the skipped ones (FOLDERS-006.15). */
+export async function markFoldersDone(folders: readonly FolderMark[]): Promise<FolderDoneBatch> {
+	const batch: FolderDoneBatch = { done: [], skipped: [] }
+	for (const chunk of chunks(folders)) {
+		const { data } = await axios.put<unknown>(generateUrl(`${API}/library/done`), { folders: chunk })
+		if (!isRecord(data) || !Array.isArray(data.done) || !data.done.every(isDoneRow) || !Array.isArray(data.skipped) || !data.skipped.every(isSkipped)) {
+			throw new ApiResponseError('The batch came without its done and skipped folders; check the server\'s version.')
+		}
+		batch.done.push(...data.done)
+		batch.skipped.push(...data.skipped)
+	}
+	return batch
+}
+
+/** Removes the done status of each folder, in calls of 500 (FOLDERS-006.18). */
+export async function reopenFolders(fileIds: readonly number[]): Promise<void> {
+	for (const chunk of chunks(fileIds)) {
+		await axios.delete(generateUrl(`${API}/library/done`), { data: { fileIds: chunk } })
+	}
+}
+
+/** The items in calls of at most REQUEST_FOLDERS. */
+function chunks<T>(items: readonly T[]): T[][] {
+	return Array.from({ length: Math.ceil(items.length / REQUEST_FOLDERS) }, (_, index) => items.slice(index * REQUEST_FOLDERS, (index + 1) * REQUEST_FOLDERS))
+}
+
+/** Whether a value is a written row of a batch. */
+function isDoneRow(value: unknown): value is FolderDoneBatch['done'][number] {
+	return isRecord(value) && typeof value.fileId === 'number' && isFolderDone(value.done)
+}
+
+/** Whether a value is a skipped folder of a batch. */
+function isSkipped(value: unknown): value is FolderDoneBatch['skipped'][number] {
+	return isRecord(value) && typeof value.fileId === 'number' && (value.reason === 'read-only' || value.reason === 'done')
 }
 
 /** Whether a value is a scan's progress. */

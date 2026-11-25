@@ -30,6 +30,19 @@ The status is one per folder, shared like the flags, and changes no file.
   readable or not rateable; `400` for a `photos` that is missing or no whole number from 0;
   `401` without a user. Nothing is stored, removed or counted for an error.
 - `GET /library/folders` lists the status as `done` (FOLDERS-005.10).
+- **Batch** (*Mark all done*, *Reopen all*, FOLDERS-009, ADR 0060). `PUT
+  /apps/honeycomb/api/v1/library/done` with `{"folders": [{"fileId": f, "photos": n}]}` marks
+  each folder done and answers `200` with `{"done": [{"fileId", "done"}], "skipped": [{"fileId",
+  "reason"}]}`, `done` in the form of the single `PUT`. A readable folder that is not rateable is
+  skipped with `read-only`, one already done with `done` and keeps its status. `DELETE` on the same
+  path with `{"fileIds": [f]}` removes each status and answers `204`, also for a folder not done.
+- Each folder of a batch is checked as a single one; one that fails the check fails the whole
+  call: `404` for no folder of the user's own files, `403` for one not readable and, in a `DELETE`,
+  for one not rateable. A body that is no list, an item without a whole `fileId` from 1 or `photos`
+  from 0, or a file id given twice is `400` with its reason (ADR 0057); more than 500 folders is
+  `400` with `too-many`. Nothing is stored, removed or counted for an error.
+- A batch is written in one transaction and takes the write rate limit once. `folders_done`
+  counts each folder it marked.
 
 ## Acceptance criteria
 
@@ -74,12 +87,12 @@ The status is one per folder, shared like the flags, and changes no file.
 ### FOLDERS-006.7 – Without a user
 
 - **Given** no logged-in user
-- **When** a `PUT` or `DELETE` arrives
+- **When** a `PUT` or `DELETE` arrives, for one folder or a batch
 - **Then** the answer is `401` and nothing is stored or removed
 
 ### FOLDERS-006.8 – Writes are limited per user
 
-- **Given** a user who marks and reopens folders
+- **Given** a user who marks and reopens folders, one at a time or in batches
 - **When** they send more than 600 writes within a minute
 - **Then** Nextcloud answers the further ones `429`
 
@@ -120,15 +133,46 @@ The status is one per folder, shared like the flags, and changes no file.
 - **When** the list answers and the row shows its done line
 - **Then** `done.by` is `null` and the line reads *Done 2026-11-20* without *· by*
 
+### FOLDERS-006.15 – Marking a batch
+
+- **Given** two rateable folders that are not done, a read-only folder and a folder done by Bob
+- **When** the user sends `PUT /library/done` with the four
+- **Then** the answer is `200`, `done` lists the two by the user with their photos, `skipped`
+  lists the read-only folder with `read-only` and Bob's with `done`, Bob's status stays and
+  `folders_done` of the day is 2
+
+### FOLDERS-006.16 – A malformed batch
+
+- **Given** a `PUT` whose `folders` is no list, one with an item without `photos`, with `photos`
+  −1, with `fileId` 0, with a file id twice, with 501 folders, and a `DELETE` with 501 file ids
+- **When** each is sent
+- **Then** each answer is `400` with the reason `not-a-list`, `bad-value`, `bad-value`,
+  `bad-file-id`, `duplicate`, `too-many` and `too-many`, and nothing is stored or removed
+
+### FOLDERS-006.17 – One folder fails the whole batch
+
+- **Given** a batch of a rateable folder with a file id that does not exist, a share's id, or an
+  unreadable folder, and a `DELETE` of a done folder with a read-only done folder
+- **When** the user sends each
+- **Then** the answers are `404`, `404`, `403` and `403`, and no status is stored, removed or
+  counted
+
+### FOLDERS-006.18 – Reopening a batch
+
+- **Given** two done folders and one that is not done
+- **When** the user sends `DELETE /library/done` with the three
+- **Then** the answer is `204` and none of them is done
+
 ## Out of scope
 
-- The *Folders* screen, its toast, *Undo* and the row menu (a later pull request, ADR 0049).
+- The *Folders* screen, its toast, *Undo* and the row menu (FOLDERS-008, FOLDERS-009).
 - *n new* and the *New photos* filter (pure TypeScript, FOLDERS-002).
 
 ## History
 
 | Date | Change |
 |---|---|
+| 2026-11-25 | The batch endpoints (FOLDERS-006.15 to .18, ADR 0060, PR 4). |
 | 2026-11-22 | A deleted user's statuses are removed (FOLDERS-006.13). |
 | 2026-11-22 | Superseded: they stay without the name (FOLDERS-006.13, .14, ADR 0040). |
 | 2026-11-22 | Created with the done endpoints (M12 PR 3, ADR 0049). |

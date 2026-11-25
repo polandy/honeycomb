@@ -146,6 +146,8 @@ final class LibraryControllerTest extends TestCase {
 
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller(loggedIn: false)->markDone(10, 3)->getStatus());
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller(loggedIn: false)->reopen(10)->getStatus());
+		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller(loggedIn: false)->markAllDone([['fileId' => 10, 'photos' => 3]])->getStatus());
+		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller(loggedIn: false)->reopenAll([10])->getStatus());
 		$this->assertEquals([10 => new FolderDone(10, 'bob', 5, 1)], $this->done->rows);
 	}
 
@@ -158,5 +160,32 @@ final class LibraryControllerTest extends TestCase {
 		$this->assertSame(['verb' => 'DELETE', 'url' => '/api/v1/library/folders/{fileId}/done'], $route('reopen'));
 		$this->assertSame(['limit' => 600, 'period' => 60], $limit('markDone'));
 		$this->assertSame(['limit' => 600, 'period' => 60], $limit('reopen'));
+		$this->assertSame(['verb' => 'PUT', 'url' => '/api/v1/library/done'], $route('markAllDone'));
+		$this->assertSame(['verb' => 'DELETE', 'url' => '/api/v1/library/done'], $route('reopenAll'));
+		$this->assertSame(['limit' => 600, 'period' => 60], $limit('markAllDone'));
+		$this->assertSame(['limit' => 600, 'period' => 60], $limit('reopenAll'));
+	}
+
+	// spec: FOLDERS-006.15, FOLDERS-006.18, FOLDERS-009.17
+	public function testMarksABatchDoneAndReopensIt(): void {
+		$marked = $this->controller()->markAllDone([['fileId' => 10, 'photos' => 412], ['fileId' => 11, 'photos' => 2]]);
+
+		$this->assertSame([Http::STATUS_OK, [
+			'done' => [['fileId' => 10, 'done' => ['by' => 'alice', 'at' => 1_772_407_800, 'photos' => 412]]],
+			'skipped' => [['fileId' => 11, 'reason' => 'read-only']],
+		]], [$marked->getStatus(), json_decode($marked->render(), true)]);
+		$this->assertSame(Http::STATUS_NO_CONTENT, $this->controller()->reopenAll([10])->getStatus());
+		$this->assertSame([], $this->done->rows);
+	}
+
+	// spec: FOLDERS-006.16, FOLDERS-006.17, FOLDERS-009.17
+	public function testAnswersTheErrorsOfTheBatchWrites(): void {
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller()->markAllDone(array_fill(0, 501, ['fileId' => 10, 'photos' => 1]))->getStatus());
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller()->markAllDone()->getStatus());
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller()->reopenAll()->getStatus());
+		$this->assertSame(Http::STATUS_NOT_FOUND, $this->controller()->markAllDone([['fileId' => 99, 'photos' => 1]])->getStatus());
+		$this->assertSame(Http::STATUS_FORBIDDEN, $this->controller()->reopenAll([11])->getStatus());
+		$this->assertSame([], $this->done->rows);
+		$this->assertSame([], $this->counted());
 	}
 }
