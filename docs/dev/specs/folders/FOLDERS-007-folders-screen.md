@@ -41,8 +41,9 @@ roots worth culling and the library's progress, and opens a folder's cull and re
   three, each the small preview tier loaded lazily; a done folder keeps a check mark over the
   cover. A folder without previews, or whose previews all fail to load, shows the folder icon (the
   check icon when done) instead.
-- **A row:** the folder's name and its parent path, its photos and undecided photos, a bar split
-  into picked, undecided and rejected, and one state line: the reason (FOLDERS-001), *Complete ·
+- **A row:** the folder's name and its parent path, its photos and undecided photos on one line
+  below them, a bar split into picked, undecided and rejected, which a legend above the rows names,
+  and one state line: the reason (FOLDERS-001), *Complete ·
   not marked done*, the done line with the badge *n new*, or *Read-only* before the reason. An open
   rateable folder with undecided photos offers *Cull*; every row has *More for ⟨name⟩*, a dialog
   (a bottom sheet on a phone) with *Cull*, *Cull with subfolders* and *Open in Files*; *Cull* and
@@ -183,6 +184,29 @@ roots worth culling and the library's progress, and opens a folder's cull and re
   third and fourth the folder icon; no cover image has a text alternative (the row's name is the
   label)
 
+### FOLDERS-007.19 – A row's layout
+
+- **Given** rows with *Cull*, with *Mark done* and without a primary action, on a phone, a tablet
+  and a desktop, light and dark
+- **When** the list shows them
+- **Then** the counts stand on one line below the name, the primary actions of all rows share
+  their right edge, *More* stands at the same x in every row, and *Complete · not marked done* is
+  plain text, not a badge, as *Mark done* beside it carries the emphasis
+
+### FOLDERS-007.20 – The bar's legend
+
+- **Given** the list with rows
+- **When** it shows them
+- **Then** a legend above the rows names the bar's colours *Picked*, *Undecided* and *Rejected*,
+  each swatch in its part's colour
+
+### FOLDERS-007.21 – The title row stays
+
+- **Given** a level on a phone, a tablet and a desktop
+- **When** the list scrolls
+- **Then** the title row stays at the top above the content, and the navigation toggle never
+  covers a visible crumb of the breadcrumb
+
 ## Out of scope
 
 *Mark done*, *Reopen*, *Cull new* and the toast with *Undo*: FOLDERS-008. The roots in *Settings* and
@@ -197,3 +221,4 @@ the statistics headline: M12 PR 7. Filters, sorts and texts: FOLDERS-002, FOLDER
 | 2026-11-25 | The row's cover of preview thumbnails (FOLDERS-007.18) |
 | 2026-11-25 | The root chips gave way to the levels of FOLDERS-009; *All* lists a level |
 | 2026-11-25 | The chip counts follow FOLDERS-009.23 |
+| 2026-11-25 | Owner's phone review: aligned row actions, counts on one line, the bar's legend, a title row that stays (FOLDERS-007.19–.21) |
