@@ -1,0 +1,36 @@
+/*
+ * SPDX-FileCopyrightText: 2026 honeycomb contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+/* The title row is as tall as the toggle's row; it keeps the toggle's gutter while the toggle floats over it. */
+.page-title-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	column-gap: calc(2.5 * var(--default-grid-baseline));
+	box-sizing: border-box;
+	width: min(var(--page-title-width, 960px), 100%);
+	min-height: var(--honeycomb-toolbar-height);
+	margin-inline: auto;
+	padding-inline: calc(4 * var(--default-grid-baseline));
+	padding-inline-start: var(--honeycomb-toggle-gutter);
+}
+
+/* From 1024 px the open navigation sits beside the content, and its toggle on the navigation's edge. */
+@media (min-width: 1024px) {
+	.app-navigation:not(.app-navigation--closed) ~ .app-content .page-title-row {
+		padding-inline-start: calc(4 * var(--default-grid-baseline));
+	}
+}
+
+.page-title-row__title {
+	margin: 0;
+	font-size: 16px;
+	overflow-wrap: anywhere;
+}
+
+.page-title-row__meta {
+	color: var(--color-text-maxcontrast);
+	font-size: 13px;
+}

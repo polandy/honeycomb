@@ -116,8 +116,8 @@ roots worth culling and the library's progress, and opens a folder's cull and re
 
 - **Given** rows below two roots
 - **When** the *Library* level shows, then a root's level
-- **Then** the card shows *Library*, the totals and one bar per root; for the root its own numbers
-  and no root bars
+- **Then** the page's title row (APP-001.22) shows *Library* with the totals, and the card one bar
+  per root; for the root its own title, numbers and no root bars
 
 ### FOLDERS-007.10 – Filter chips and sort
 

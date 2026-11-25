@@ -20,8 +20,9 @@ import FolderListFilters from './FolderListFilters.vue'
 import FolderListRow from './FolderListRow.vue'
 import FolderMenu from './FolderMenu.vue'
 import FoldersProgress from './FoldersProgress.vue'
-import ProgressBar from './ProgressBar.vue'
-import { updatingText, yearHeadingText } from '../folders/folders-text.ts'
+import FoldersUpdating from './FoldersUpdating.vue'
+import PageTitleRow from './PageTitleRow.vue'
+import { progressSummary, progressTitle, yearHeadingText } from '../folders/folders-text.ts'
 import { breadcrumb, buildHierarchy } from '../logic/folder-hierarchy.ts'
 import { allRows, cullSet, flatRows, ownRow, parentBelow, shownLevel } from '../logic/folder-level.ts'
 import { buildFolderList, filterCounts } from '../logic/folder-list.ts'
@@ -134,20 +135,20 @@ function cull(row: FolderRow, subfolders: boolean) {
 
 <template>
 	<div ref="scroller" class="folders-screen" tabindex="-1">
+		<PageTitleRow>
+			<span :translate="root === null ? undefined : 'no'">{{ progressTitle(root) }}</span>
+			<template #meta>
+				{{ progressSummary(root, props.roots.length, progress) }}
+			</template>
+		</PageTitleRow>
 		<div class="folders-screen__body">
 			<FoldersProgress
+				:titled="false"
 				:root="root"
 				:roots="props.roots.length"
 				:progress="progress"
 				:perRoot="perRoot" />
-			<div v-if="updating !== null" class="folders-screen__updating">
-				<span>{{ updatingText(updating.total - updating.done) }}</span>
-				<ProgressBar
-					class="folders-screen__updating-bar"
-					:label="updatingText(updating.total - updating.done)"
-					:value="updating.done"
-					:max="updating.total" />
-			</div>
+			<FoldersUpdating v-if="updating !== null" :updating="updating" />
 			<div class="folders-screen__header">
 				<FolderBreadcrumb :crumbs="crumbs" :library="tree.length > 1" @open="chosen = $event" />
 				<NcCheckboxRadioSwitch
@@ -241,7 +242,7 @@ function cull(row: FolderRow, subfolders: boolean) {
 	box-sizing: border-box;
 	width: min(960px, 100%);
 	margin: 0 auto;
-	padding: calc(4 * var(--default-grid-baseline));
+	padding: 0 calc(4 * var(--default-grid-baseline)) calc(4 * var(--default-grid-baseline));
 }
 
 .folders-screen__header {
@@ -250,19 +251,6 @@ function cull(row: FolderRow, subfolders: boolean) {
 	align-items: center;
 	justify-content: space-between;
 	gap: calc(2 * var(--default-grid-baseline));
-}
-
-.folders-screen__updating {
-	display: grid;
-	gap: var(--default-grid-baseline);
-	color: var(--color-text-maxcontrast);
-	font-size: 13px;
-}
-
-.folders-screen__updating-bar {
-	width: 100%;
-	height: 6px;
-	border-radius: 3px;
 }
 
 .folders-screen__state {

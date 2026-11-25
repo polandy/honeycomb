@@ -97,7 +97,7 @@ test('lists the folders with the library\'s progress, accessible and touch-sized
 	await emulateIpad(page, 'landscape')
 	const list = await openList(page)
 
-	await expect(list.getByRole('region', { name: 'Library progress' })).toContainText(`1 root · ${FOLDERS.length} folders · ${FOLDERS.length} photos`)
+	await expect(list.locator('.page-title-row')).toContainText(`1 root · ${FOLDERS.length} folders · ${FOLDERS.length} photos`)
 	await expect(list.getByRole('article', { name: 'Alps' }).getByRole('button', { name: 'Cull Alps' })).toBeVisible()
 	for (const scheme of SCHEMES) {
 		await page.emulateMedia({ colorScheme: scheme })

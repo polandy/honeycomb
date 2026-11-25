@@ -102,9 +102,11 @@ describe('FoldersScreen', () => {
 	it('shows the library\'s progress with a bar per root, and one root\'s alone', async () => {
 		const wrapper = mountScreen(fakeList([OPEN, DONE, PHONE]), ['/Photos', '/Phone'])
 		const card = () => wrapper.find('.folders-progress')
+		const title = () => wrapper.find('.page-title-row')
 
-		expect(card().find('.folders-progress__name').text()).toBe(`${MARK}Library`)
-		expect(card().text()).toContain(`${MARK}${MARK}2 roots · ${MARK}${MARK}3 folders · ${MARK}${MARK}304 photos`)
+		expect(title().find('.page-title-row__title').text()).toBe(`${MARK}Library`)
+		expect(card().find('.folders-progress__name').exists()).toBe(false)
+		expect(title().text()).toContain(`${MARK}${MARK}2 roots · ${MARK}${MARK}3 folders · ${MARK}${MARK}304 photos`)
 		expect(card().text()).toContain(`${MARK}34 % of photos in done folders`)
 		expect(card().text()).toContain(`${MARK}1 of 3 folders done`)
 		expect(card().text()).toContain(`${MARK}1 this month`)
@@ -114,8 +116,8 @@ describe('FoldersScreen', () => {
 		await wrapper.find(`[aria-label="${MARK}Open /Phone"]`).trigger('click')
 		await chip(wrapper, 'Filter', 'Suggested').trigger('click')
 
-		expect(card().find('.folders-progress__name').text()).toBe('/Phone')
-		expect(card().text()).toContain(`${MARK}${MARK}1 folder · ${MARK}${MARK}100 photos`)
+		expect(title().find('.page-title-row__title').text()).toBe('/Phone')
+		expect(title().text()).toContain(`${MARK}${MARK}1 folder · ${MARK}${MARK}100 photos`)
 		expect(card().findAll('.folders-progress__root')).toHaveLength(0)
 		expect(names(wrapper)).toEqual(['Camera'])
 	})
