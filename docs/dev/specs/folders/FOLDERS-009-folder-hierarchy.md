@@ -23,9 +23,9 @@ folders; a parent's state is derived.
   shown, and no text says it is missing.
 - **Rows.** A row shows the folder as the list does (FOLDERS-007), and › when it has subfolders
   with photos, at the right edge after *More*; while a row of the level has ›, the others keep its
-  slot empty, so the actions line up; a tap on it opens that level. A chain of folders without photos of their own, each
-  with exactly one subfolder with photos, is one row labelled with the names joined by ` / `; it
-  ends at that last subfolder, with or without subfolders of its own.
+  slot empty, so the actions line up; a tap on it opens that level. A chain of folders without
+  photos of their own, each with exactly one subfolder with photos, is one row labelled with the
+  names joined by ` / `; it ends at that last subfolder, with or without subfolders of its own.
 - **Breadcrumb length.** More than 4 levels show the first, "…" and the last two; "…" shows the
   levels in between.
 - **Include subfolders.** A switch in the header, on by default, saved per user as the setting
