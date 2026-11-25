@@ -129,6 +129,7 @@ describe('subtreeState', () => {
 		expect([subtreeState(sums), sums.rateable - sums.done]).toEqual(['complete', 2])
 	})
 
+	// spec: FOLDERS-009.9
 	it('is done before complete and open, read-only when no folder can be marked, empty without photos', () => {
 		expect(subtreeState(subtree([done()]))).toBe('done')
 		expect(subtreeState(subtree([done({ photos: 140 }), { undecided: 5, permissions: readOnly }]))).toBe('done')
@@ -145,6 +146,7 @@ describe('levelRows', () => {
 		expect(rows.map((entry) => [entry.label, entry.node.path])).toEqual([['Archive / Analog / Scans 1998', '/Photos/Archive/Analog/Scans 1998']])
 	})
 
+	// spec: FOLDERS-009.3
 	it('ends a chain at a folder with photos of its own and at a single folder without subfolders', () => {
 		const tree = buildHierarchy(['/Photos'], [
 			row({ fileId: 1, path: '/Photos/A/B' }),
