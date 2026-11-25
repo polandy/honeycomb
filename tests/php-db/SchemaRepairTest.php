@@ -67,6 +67,19 @@ final class SchemaRepairTest extends TestCase {
 		$this->assertSame(['file_id' => 7, 'flag' => 'pick', 'updated_by' => null, 'sidecar_etag' => null], $this->row('SELECT file_id, flag, updated_by, sidecar_etag FROM *PREFIX*honeycomb_decisions'));
 	}
 
+	// spec: FOLDERS-005.19
+	public function testASummaryWithPhotosFromBeforeThePreviewsIsDroppedSoTheNextScanWritesIt(): void {
+		$this->installFirstBaseline();
+		$this->db->executeStatement("INSERT INTO *PREFIX*honeycomb_folder_summary (file_id, etag, photos, bytes, raw_bytes, bursts, scanned_at) VALUES (7, 'e7', 3, 300, 0, 0, 100), (8, 'e8', 0, 0, 0, 0, 100)");
+
+		$this->migrate();
+		$this->db->executeStatement("INSERT INTO *PREFIX*honeycomb_folder_summary (file_id, etag, photos, bytes, raw_bytes, bursts, scanned_at, previews) VALUES (9, 'e9', 1, 100, 0, 0, 100, '90:5')");
+		$this->db->executeStatement('DELETE FROM *PREFIX*migrations WHERE app = ? AND version <> ?', [self::APP, self::BASELINE]);
+		$this->migrate();
+
+		$this->assertSame([8, 9], array_map(intval(...), $this->db->executeQuery('SELECT file_id FROM *PREFIX*honeycomb_folder_summary ORDER BY file_id')->fetchFirstColumn()));
+	}
+
 	public function testAWidenedAssetIdKeepsItsValueAndASecondRunChangesNothing(): void {
 		$this->installFirstBaseline();
 		$assetId = str_repeat('a', 36);
