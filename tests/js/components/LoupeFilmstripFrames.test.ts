@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import type { Decision } from '../../../src/logic/decision.ts'
-import type { ListingEntry } from '../../../src/logic/listing.ts'
+import type { ListingEntry, SourceEntry } from '../../../src/logic/listing.ts'
 import type { Picture } from '../../../src/logic/pairing.ts'
 import type { Series } from '../../../src/logic/series.ts'
 
@@ -25,7 +25,7 @@ function seriesOf(...runs: [first: number, end: number][]) {
 	}))
 }
 
-async function mountStrip(index: number, members: ReadonlyMap<Picture<ListingEntry>, Series<Picture<ListingEntry>>>, onCompareSeries?: (index: number) => void, decisionOf: (picture: Picture<ListingEntry>) => Decision = () => UNDECIDED) {
+async function mountStrip(index: number, members: ReadonlyMap<Picture<ListingEntry>, Series<Picture<ListingEntry>>>, onCompareSeries?: (index: number) => void, decisionOf: (picture: Picture<SourceEntry>) => Decision = () => UNDECIDED) {
 	const wrapper = mount(LoupeFilmstrip, {
 		props: {
 			pictures: PICTURES,

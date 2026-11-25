@@ -48,7 +48,7 @@ describe('PhotoGrid series', () => {
 	it('brackets a series in one across a rejected tile between two of its tiles', async () => {
 		const pictures = picturesIn({ '/P': 4 })
 		const series = { key: 1, members: [pictures[0]!, pictures[2]!] }
-		const { wrapper, resize } = mountGrid({ pictures, seriesOf: new Map(series.members.map((picture) => [picture, series])), decisionOf: (picture) => ({ ...UNDECIDED, flag: picture.baseName === pictures[1]!.baseName ? 'rejected' : 'unflagged' }) })
+		const { wrapper, resize } = mountGrid({ pictures, seriesOf: new Map(series.members.map((picture) => [picture, series])), decisionOf: (picture: Picture<ListingEntry>) => ({ ...UNDECIDED, flag: picture.baseName === pictures[1]!.baseName ? 'rejected' : 'unflagged' }) })
 		await resize(WIDTH, 400)
 
 		expect(brackets(wrapper)).toEqual([{ row: '8px', left: '0', width: String(2 * PITCH + 102), classes: ['photo-grid__bracket--start', 'photo-grid__bracket--end', 'photo-grid__bracket--settled'] }])
