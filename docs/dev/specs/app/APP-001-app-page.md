@@ -195,7 +195,7 @@ stays the same.
 ### APP-001.22 – Every page has one title row that clears the navigation toggle
 
 - **Given** a page of the app with a title: the library setup and the *Library* or a root's folder
-  list; the grid's toolbar keeps its own row (APP-001.11)
+  list; the grid's and the Immich grid's toolbars keep their own row (APP-001.11)
 - **When** the toggle floats over the content, on a screen narrower than 1024 px or with the
   navigation closed
 - **Then** the title row is as tall as the toolbar row and its left padding keeps the title clear
