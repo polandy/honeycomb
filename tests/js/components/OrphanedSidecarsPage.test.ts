@@ -130,6 +130,8 @@ describe('OrphanedSidecarsPage', () => {
 		expect(limited('/Photos/2025')).toBeNull()
 		expect(limited('/Docs')).toContain('Outside your library roots')
 		expect(note(mountPage())('/Docs')).toBeNull()
+		expect(button(mountPage(undefined, ['/Photos']), 'Whole library')!.attributes('disabled')).toBeDefined()
+		expect(button(mountPage(), 'Whole library')!.attributes('disabled')).toBeUndefined()
 	})
 
 })

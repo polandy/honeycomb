@@ -7,6 +7,7 @@ import type { LibraryRootRefusal } from '../logic/library-roots.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { newCount, percent } from '../logic/folder-row.ts'
+import { isInsideRoots } from '../logic/library-roots.ts'
 import { formatFileSize, formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
 
 /** Between the parts of a line of the list. */
@@ -124,6 +125,11 @@ export function refusalText(refused: LibraryRootRefusal): string {
 		case 'contains':
 			return t('honeycomb', '{path} holds the root {other}; remove that one first.', { ...path, other: refused.other }, undefined, PLAIN_TEXT)
 	}
+}
+
+/** The note on a folder of a picker that is no root and lies in none, null inside a root (SETTINGS-001.36). */
+export function outsideRootsNote(roots: readonly string[], path: string): string | null {
+	return isInsideRoots(roots, path) ? null : t('honeycomb', 'Outside your library roots')
 }
 
 /** The note on a folder of the root picker that cannot be chosen as a root, null when it can (FOLDERS-004). */

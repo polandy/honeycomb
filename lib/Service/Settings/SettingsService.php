@@ -9,6 +9,7 @@ namespace OCA\Honeycomb\Service\Settings;
 
 use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\LibraryRootPaths;
 use OCA\Honeycomb\Domain\Reason;
 use OCP\Config\IUserConfig;
 use OCP\IUser;
@@ -86,7 +87,7 @@ final class SettingsService {
 	private function checkRoots(array $roots): void {
 		$kept = [];
 		foreach ($roots as $root) {
-			$path = '/' . implode('/', array_filter(explode('/', trim($root)), static fn (string $segment): bool => trim($segment) !== ''));
+			$path = LibraryRootPaths::normalize($root);
 			if ($path === '/') {
 				throw InvalidRequestException::because(Reason::BadValue, 'the home folder cannot be a library root');
 			}

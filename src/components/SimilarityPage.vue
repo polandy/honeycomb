@@ -15,13 +15,18 @@ import NcContent from '@nextcloud/vue/components/NcContent'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import AppIcon from './AppIcon.vue'
 import FolderTree from './FolderTree.vue'
+import { outsideRootsNote } from '../folders/folders-text.ts'
 import ProgressBar from './ProgressBar.vue'
 import { useHashRun } from '../hashes/hash-run.ts'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
 	seams: HashRunSeams
 	listFolders: (path: string) => Promise<Folder[]>
-}>()
+	/** The library roots; the folders to scan lie inside them while any is set (SETTINGS-001.36). */
+	roots?: readonly string[]
+}>(), {
+	roots: () => [],
+})
 
 const run = useHashRun(props.seams)
 const chosen = ref<string | null>(null)
@@ -56,6 +61,7 @@ function choose(path: string) {
 				<FolderTree
 					:ticked="chosen === null ? [] : [chosen]"
 					:listFolders="props.listFolders"
+					:disabledNote="(path) => outsideRootsNote(props.roots, path)"
 					single
 					@toggle="choose" />
 				<div class="similarity-page__actions">

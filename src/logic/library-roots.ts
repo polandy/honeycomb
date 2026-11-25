@@ -37,6 +37,15 @@ export function validateLibraryRoots(roots: readonly string[]): LibraryRootRefus
 	return null
 }
 
+/** Whether a folder to work in is a root or lies in one; any folder while no root is set. */
+export function isInsideRoots(roots: readonly string[], path: string): boolean {
+	const folder = normalizeRoot(path)
+	if (roots.length === 0) {
+		return true
+	}
+	return !folder.split('/').some((segment) => DOT_SEGMENTS.has(segment)) && roots.some((root) => folder === root || folder.startsWith(`${root}/`))
+}
+
 /** Why the input cannot join the roots, null when it can. */
 function rootRefusal(roots: readonly string[], input: string): LibraryRootRefusal | null {
 	const path = normalizeRoot(input)
