@@ -24,7 +24,8 @@ on the loupe's picture, the grid's focused picture, or the selection in selectio
 | `6`–`9` | red, yellow, green, blue label |
 | `R` | Keep RAW |
 | `T` | tag entry (TAGS-003) |
-| `Shift` + a decision key, or `Caps Lock` on | decide and go to the next picture |
+| `Shift` + a decision key but `P`, or `Caps Lock` on | decide and go to the next picture |
+| `Shift+P` | *Pick this, reject the rest* of the picture's series (KEYS-001.13) |
 | `Ctrl+Z`, `Ctrl+Shift+Z` | undo, redo |
 | `?`, `Ctrl+/` | open, close the shortcut sheet |
 | `h` `j` `k` `l`, `g g`, `G`, `/` | with *Vi keys* on: move, first, last, filter bar |
@@ -55,7 +56,7 @@ on the loupe's picture, the grid's focused picture, or the selection in selectio
 
 ### KEYS-001.4 – Advance by Shift or Caps Lock
 
-- **Given** a decision key is pressed with `Shift`, or `Caps Lock` is on
+- **Given** a decision key other than `P` is pressed with `Shift`, or `Caps Lock` is on
 - **When** the decision is made
 - **Then** the view goes to the next picture, unless the decision already moved it or, in the
   grid, the picture left the view; on the last picture it stays
@@ -123,6 +124,20 @@ on the loupe's picture, the grid's focused picture, or the selection in selectio
   "from – to" and `Ctrl` as `⌘` on a Mac, every group in one table so the descriptions start at
   the same x; `Ctrl+/`, *Close* or the dialog's close closes it
 
+### KEYS-001.13 – Pick this, reject the rest by Shift+P
+
+- **Given** the loupe's picture, the grid's focused picture or the series compare's active picture
+  is in a series
+- **When** the user presses `Shift+P`, with or without `Caps Lock`
+- **Then** that picture is picked and every other picture of its series rejected, a picked one
+  too, through the same flag write as `P` and `X`, as one undo step that puts back every earlier
+  flag; the toast reads "Picked 1, rejected N", N counting the pictures not rejected before, with
+  *Undo*; a write that fails takes back only its picture and counts it as not saved
+- **Given** the picture is in no series
+- **When** the user presses `Shift+P`
+- **Then** no flag changes and a toast says "Not in a series · Shift+P picks a photo and rejects
+  the rest of its series"; `Shift+K` does nothing
+
 ## Out of scope
 
 What each decision does to the loupe: LOUPE-002. Delete keys: DELETE-002. Selection keys
@@ -135,3 +150,4 @@ What each decision does to the loupe: LOUPE-002. Delete keys: DELETE-002. Select
 | 2026-11-10 | Written from the merged M3.3 (#50) and M4.3 vi keys setting (#54) |
 | 2026-11-13 | `T` opens the tag entry (TAGS-003) |
 | 2026-11-13 | The sheet is one table with a shared key column (UX L1) |
+| 2026-11-26 | `Shift+P` is *Pick this, reject the rest*, everywhere, instead of pick and advance; `Shift+K` goes (KEYS-001.13) |

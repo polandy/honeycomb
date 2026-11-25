@@ -53,6 +53,7 @@ import { waitSeconds } from '../logic/retry-after.ts'
 import { unofferedKeys } from '../logic/source-keys.ts'
 import { useLoupeOpening } from '../loupe/loupe-opening.ts'
 import { useMoveFlow } from '../move/move-flow.ts'
+import { notInSeriesHint } from '../series/not-in-series.ts'
 import { useRestOffer } from '../series/rest-offer.ts'
 import { useSeriesCompare } from '../series/series-compare.ts'
 import { useSettings } from '../settings/settings.ts'
@@ -136,7 +137,7 @@ const { immich, shown: immichShown, opened, openedStatus, onlyOffer, cull: immic
 const immichOnly = useImmichOnly({ stored: () => (settingsSettled.value ? settings.value.immichOnly : null), offer: () => onlyOffer.value, store: (chosen) => updateSettings({ immichOnly: chosen }), chooseSource: immich.choose, folderSet: () => folderSet.value, idle: () => folderSet.value === null && !recent.listing.value, pickerOpen })
 const IMMICH_HIDDEN_KEYS = unofferedKeys(DECISIONS_ONLY)
 
-const gridKeys = gridHotkeys({ grid: () => grid.value, view: () => view.value, selection, common: cull.common, decide, toggleFiltersOff: cull.toggleFiltersOff, openLoupe, openTags: tagEntry.open, headerShown, filtersOpen, filterBar: () => gridScreen.value?.filterBar?.$el, toggleFullscreen: () => props.toggleFullscreen(document.documentElement) })
+const gridKeys = gridHotkeys({ grid: () => grid.value, view: () => view.value, selection, common: cull.common, decide, seriesOf: () => cull.seriesOf.value, pickRest, notInSeries: () => toast.show(notInSeriesHint()), toggleFiltersOff: cull.toggleFiltersOff, openLoupe, openTags: tagEntry.open, headerShown, filtersOpen, filterBar: () => gridScreen.value?.filterBar?.$el, toggleFullscreen: () => props.toggleFullscreen(document.documentElement) })
 
 provideCullContext({ cull, selection, decide, clearFlags, reduceSeries, xmpExport, editSeries: editSelection, deleting, moving, resume, seriesCompare, unsaved: sidecars.waiting, tagEntry, headerShown, home: { fromList: home.fromList, back: home.back }, openLoupe, openSettings: () => (settingsOpen.value = true), loupe: loupeOpening, restOffer, toast: toast.show, settings, updateSettings, viewState, storage: props.storage, imageUrl: props.imageUrl })
 
