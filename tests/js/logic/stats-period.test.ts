@@ -3,8 +3,8 @@
 import type { PeriodBounds } from '../../../src/logic/stats-period.ts'
 
 import { describe, expect, it } from 'vitest'
-import { canStep, comparedRange, holdsToday, periodAt, periodBars, periodNumbers, periodRun, stepAnchor } from '../../../src/logic/stats-period.ts'
 import { METRIC } from '../../../src/logic/statistics.ts'
+import { canStep, comparedRange, holdsToday, periodAt, periodBars, periodNumbers, periodRun, stepAnchor } from '../../../src/logic/stats-period.ts'
 
 const TODAY = '2026-11-26'
 const SUNDAY = 0
@@ -100,20 +100,20 @@ describe('stepping', () => {
 describe('comparedRange', () => {
 	// spec: STATS-001.41
 	it('compares the period of today up to the same day of the period before', () => {
-		expect(comparedRange(periodAt('month', TODAY, BOUNDS), TODAY)).toEqual({ range: { from: '2026-10-01', to: '2026-10-26' }, whole: false })
-		expect(comparedRange(periodAt('week', TODAY, BOUNDS), TODAY)).toEqual({ range: { from: '2026-11-16', to: '2026-11-19' }, whole: false })
-		expect(comparedRange(periodAt('year', TODAY, BOUNDS), TODAY)).toEqual({ range: { from: '2025-01-01', to: '2025-11-26' }, whole: false })
+		expect(comparedRange(periodAt('month', TODAY, BOUNDS), BOUNDS)).toEqual({ range: { from: '2026-10-01', to: '2026-10-26' }, whole: false })
+		expect(comparedRange(periodAt('week', TODAY, BOUNDS), BOUNDS)).toEqual({ range: { from: '2026-11-16', to: '2026-11-19' }, whole: false })
+		expect(comparedRange(periodAt('year', TODAY, BOUNDS), BOUNDS)).toEqual({ range: { from: '2025-01-01', to: '2025-11-26' }, whole: false })
 	})
 
 	// spec: STATS-001.41
 	it('cuts the same day to the end of a shorter month before', () => {
-		expect(comparedRange(periodAt('month', '2026-03-31', BOUNDS), '2026-03-31')?.range).toEqual({ from: '2026-02-01', to: '2026-02-28' })
+		expect(comparedRange(periodAt('month', '2026-03-31', BOUNDS), { ...BOUNDS, today: '2026-03-31' })?.range).toEqual({ from: '2026-02-01', to: '2026-02-28' })
 	})
 
 	// spec: STATS-001.41
 	it('compares a past period with the whole period before, and all time with nothing', () => {
-		expect(comparedRange(periodAt('month', '2026-03-05', BOUNDS), TODAY)).toEqual({ range: { from: '2026-02-01', to: '2026-02-28' }, whole: true })
-		expect(comparedRange(periodAt('all', TODAY, BOUNDS), TODAY)).toBeNull()
+		expect(comparedRange(periodAt('month', '2026-03-05', BOUNDS), BOUNDS)).toEqual({ range: { from: '2026-02-01', to: '2026-02-28' }, whole: true })
+		expect(comparedRange(periodAt('all', TODAY, BOUNDS), BOUNDS)).toBeNull()
 	})
 })
 

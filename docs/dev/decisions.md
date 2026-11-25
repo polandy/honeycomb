@@ -2057,3 +2057,12 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   navigation toggle no longer clips the breadcrumb; the bar and the done mark use Nextcloud's
   element colours, as `--color-success` and `--color-error` became light tints (FOLDERS-007.19–.22,
   FOLDERS-009.24) (autonomous).
+- 2026-11-26: The statistics bars carry one set of labels on every viewport — weekdays for a week,
+  the 1st, 8th, 15th, 22nd and 29th for a month, short months for a year, the year for all time —
+  instead of the mockup's separate phone and iPad sets, which kept them apart at 390 px too
+  (STATS-001.21) (autonomous).
+- 2026-11-26: In the period of today Photos decided compares with the period before from its
+  start for as many days, cut at its end, so the last day of a month compares with the whole month
+  before (STATS-001.41) (autonomous).
+- 2026-11-26: Changing the segment keeps the shown day, not its period's first day, so October
+  stays October through Year and back to Month (STATS-001.52) (autonomous).

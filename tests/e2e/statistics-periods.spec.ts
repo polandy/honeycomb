@@ -30,7 +30,7 @@ const ANSWER = {
 async function openStatistics(page: Page): Promise<void> {
 	await page.route('**/apps/honeycomb/api/v1/stats', (route) => (route.request().method() === 'GET' ? route.fulfill({ json: ANSWER }) : route.continue()))
 	await page.goto('/index.php/apps/honeycomb/statistics')
-	await expect(page.locator('.statistics-page__label')).toBeVisible()
+	await expect(page.locator('.statistics-period__label')).toBeVisible()
 }
 
 /** The texts under the bars, one per bar. */
@@ -46,9 +46,9 @@ async function expectApart(first: Locator, second: Locator): Promise<void> {
 
 /** Expects the page's controls of the period to sit apart and the chart to draw today's decided column. */
 async function expectDrawn(page: Page): Promise<void> {
-	await expectApart(page.getByRole('group', { name: 'Period' }), page.locator('.statistics-page__label'))
-	await expectApart(page.getByRole('button', { name: 'Previous period' }), page.locator('.statistics-page__label'))
-	await expectApart(page.locator('.statistics-page__label'), page.getByRole('button', { name: 'Next period' }))
+	await expectApart(page.getByRole('group', { name: 'Period' }), page.locator('.statistics-period__label'))
+	await expectApart(page.getByRole('button', { name: 'Previous period' }), page.locator('.statistics-period__label'))
+	await expectApart(page.locator('.statistics-period__label'), page.getByRole('button', { name: 'Next period' }))
 	const today = page.locator('.statistics-bars__bar--today')
 	await expect(today).toHaveCount(1)
 	expect((await today.locator('.statistics-bars__decided').boundingBox())!.height).toBeGreaterThan(0)
@@ -60,7 +60,7 @@ test(`steps through the calendar periods on the desktop and the iPad ${WEBKIT}`,
 	await openStatistics(page)
 
 	await expect(page.getByRole('button', { name: 'Month' })).toHaveAttribute('aria-pressed', 'true')
-	await expect(page.locator('.statistics-page__label')).toHaveText('November 2026')
+	await expect(page.locator('.statistics-period__label')).toHaveText('November 2026')
 	await expect(page.locator('.statistics-bars__bar')).toHaveCount(30)
 	expect(await barLabels(page)).toEqual(expect.arrayContaining(['1', '8', '15', '22', '29']))
 	await expect(page.locator('.statistics-bars__bar--future')).toHaveCount(4)
@@ -71,12 +71,12 @@ test(`steps through the calendar periods on the desktop and the iPad ${WEBKIT}`,
 	await page.screenshot({ path: testInfo.outputPath('statistics-month.png'), fullPage: true, animations: 'disabled' })
 
 	await page.getByRole('button', { name: 'Previous period' }).click()
-	await expect(page.locator('.statistics-page__label')).toHaveText('October 2026')
+	await expect(page.locator('.statistics-period__label')).toHaveText('October 2026')
 	await expect(page.getByText('Nothing counted in this period.')).toBeVisible()
 	await expect(page.locator('.statistics-bars__bar')).toHaveCount(0)
 	await expect(page.getByRole('button', { name: 'Next period' })).toBeEnabled()
 	await page.getByRole('button', { name: 'Today' }).click()
-	await expect(page.locator('.statistics-page__label')).toHaveText('November 2026')
+	await expect(page.locator('.statistics-period__label')).toHaveText('November 2026')
 
 	await page.getByRole('button', { name: 'Week' }).click()
 	const firstWeekDay = await page.evaluate(() => (globalThis as { firstDay?: number }).firstDay ?? 0)
@@ -85,19 +85,19 @@ test(`steps through the calendar periods on the desktop and the iPad ${WEBKIT}`,
 	await expect(page.locator('.delete-stats__item', { hasText: 'Photos decided' })).toContainText('80')
 
 	await page.getByRole('button', { name: 'Year' }).click()
-	await expect(page.locator('.statistics-page__label')).toHaveText('2026')
+	await expect(page.locator('.statistics-period__label')).toHaveText('2026')
 	expect(await barLabels(page)).toEqual(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
 	await expect(page.locator('.statistics-bars__bar--future')).toHaveCount(1)
 	await page.getByRole('button', { name: 'Previous period' }).click()
-	await expect(page.locator('.statistics-page__label')).toHaveText('2025')
+	await expect(page.locator('.statistics-period__label')).toHaveText('2025')
 	await page.getByRole('button', { name: 'Month' }).click()
-	await expect(page.locator('.statistics-page__label')).toHaveText('March 2025')
+	await expect(page.locator('.statistics-period__label')).toHaveText('March 2025')
 	await expect(page.getByRole('button', { name: 'Previous period' })).toBeDisabled()
 	await expect(page.locator('.statistics-bars__bar--before-first')).toHaveCount(13)
 	await expect(page.locator('.statistics-bars__bar--future')).toHaveCount(0)
 
 	await page.getByRole('button', { name: 'All time' }).click()
-	await expect(page.locator('.statistics-page__label')).toHaveText('Since Mar 14, 2025')
+	await expect(page.locator('.statistics-period__label')).toHaveText('Since Mar 14, 2025')
 	await expect(page.getByRole('button', { name: 'Previous period' })).toHaveCount(0)
 	expect(await barLabels(page)).toEqual(['2025', '2026'])
 	await page.screenshot({ path: testInfo.outputPath('statistics-all-time.png'), fullPage: true, animations: 'disabled' })
@@ -112,7 +112,7 @@ test.describe('on a phone', () => {
 		await openStatistics(page)
 
 		await expectTouchTargets(page.getByRole('group', { name: 'Period' }), 'statistics period segment on a phone')
-		await expectTouchTargets(page.locator('.statistics-page__stepper'), 'statistics period stepper on a phone')
+		await expectTouchTargets(page.locator('.statistics-period__stepper'), 'statistics period stepper on a phone')
 		await expectDrawn(page)
 		await page.getByRole('button', { name: 'Year' }).click()
 		await expect(page.locator('.statistics-bars__bar')).toHaveCount(12)

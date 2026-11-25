@@ -40,7 +40,7 @@ function mountPage(answer: Partial<StatsAnswer> = {}, settings: unknown = ROOTS,
 const tile = (wrapper: ReturnType<typeof mountPage>, label: string) => wrapper.findAll('.delete-stats__item').find((each) => each.text().includes(label))!.text()
 const chip = (wrapper: ReturnType<typeof mountPage>, label: string) => wrapper.findAll('button').find((each) => each.text() === label)!
 const step = (wrapper: ReturnType<typeof mountPage>, label: 'Previous period' | 'Next period') => wrapper.find(`button[aria-label="${label}"]`)
-const periodLabel = (wrapper: ReturnType<typeof mountPage>) => wrapper.find('.statistics-page__label').text()
+const periodLabel = (wrapper: ReturnType<typeof mountPage>) => wrapper.find('.statistics-period__label').text()
 
 enableAutoUnmount(afterEach)
 
@@ -287,7 +287,7 @@ describe('StatisticsPage', () => {
 
 	it('says so and logs when the numbers cannot be loaded', async () => {
 		const error = new Error('down')
-		const wrapper = mount(StatisticsPage, { props: { seams: { loadStatistics: async () => Promise.reject(error), loadLibraryFolders: async () => [], loadSettings: async () => ({}), saveViewState: async () => undefined } } })
+		const wrapper = mount(StatisticsPage, { props: { seams: { loadStatistics: async () => Promise.reject(error), loadLibraryFolders: async () => [], loadSettings: async () => ({}), saveViewState: async () => undefined, firstWeekDay: () => MONDAY } } })
 		await flushPromises()
 
 		expect(wrapper.text()).toContain('The statistics could not be loaded.')
@@ -313,7 +313,7 @@ describe('StatisticsPage', () => {
 			await flushPromises()
 
 			expect(december.find('.year-review').exists()).toBe(true)
-			expect(december.find('.year-review').element.compareDocumentPosition(december.find('.statistics-page__periods').element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+			expect(december.find('.year-review').element.compareDocumentPosition(december.find('.statistics-period').element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 			expect(november.find('.year-review').exists()).toBe(false)
 		})
 
