@@ -5,6 +5,7 @@ import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { enableAutoUnmount, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
+import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
 import AppNavigation from '../../../src/components/AppNavigation.vue'
 import RecentFolderSets from '../../../src/components/RecentFolderSets.vue'
 import { NAVIGATION_OPEN_KEY } from '../../../src/folders/navigation-choice.ts'
@@ -19,8 +20,8 @@ const MARK = TRANSLATED_MARK
 const position = { folderSet: { paths: ['/A', '/B'], subfolders: false }, fileId: 9, decided: 0, total: 40 }
 const ITEMS = [{ position, current: false, decided: 0, total: 40 }]
 
-function mountNavigation(items = ITEMS, stored: Record<string, string> = {}, width = 1440, hintYear: number | null = null) {
-	return mount(AppNavigation, { props: { items, storage: fakeStorage(stored), viewportWidth: () => width, hintYear } })
+function mountNavigation(items = ITEMS, stored: Record<string, string> = {}, width = 1440, hintYear: number | null = null, user: string | null = null) {
+	return mount(AppNavigation, { props: { items, storage: fakeStorage(stored), viewportWidth: () => width, hintYear, user } })
 }
 
 /** Records what the navigation is told from now on: true to open, false to close. */
@@ -82,6 +83,15 @@ describe('AppNavigation', () => {
 
 		expect(links).toEqual(useNavigationItems().map(({ name, href }) => ({ name, href })))
 		expect(links.map((link) => link.name)).toEqual([`${MARK}Similarity`, `${MARK}Statistics`, `${MARK}Orphaned sidecars`])
+	})
+
+	// spec: APP-001.23
+	it('marks the entry of the page shown, none on the cull page', () => {
+		const active = (page?: 'statistics') => mount(AppNavigation, { props: { items: ITEMS, storage: fakeStorage(), page } })
+			.findAllComponents(NcAppNavigationItem).filter((item) => item.props('active')).map((item) => item.props('name'))
+
+		expect(active('statistics')).toEqual([`${MARK}Statistics`])
+		expect(active()).toEqual([])
 	})
 
 	// spec: STATS-001.26
@@ -168,6 +178,21 @@ describe('AppNavigation', () => {
 		mountNavigation(ITEMS, { [NAVIGATION_OPEN_KEY]: 'true' }, 1024)
 		toggles.stop()
 		expect(toggles.opens()).toEqual([true])
+	})
+
+	// spec: APP-001.8
+	it('keeps the choice per user and starts from the browser\'s older one until the user makes one', () => {
+		isMobile.value = false
+		const stored: Record<string, string> = { [NAVIGATION_OPEN_KEY]: 'false' }
+		const toggles = recordToggles()
+		mountNavigation(ITEMS, stored, 1440, null, 'alice')
+
+		emit('navigation-toggled', { open: true })
+		mountNavigation(ITEMS, stored, 1440, null, 'bob')
+		toggles.stop()
+
+		expect(stored).toEqual({ [NAVIGATION_OPEN_KEY]: 'false', [`${NAVIGATION_OPEN_KEY}.alice`]: 'true' })
+		expect(toggles.opens()).toEqual([false, false])
 	})
 
 	// spec: APP-001.8

@@ -7,8 +7,9 @@
 
 ## Purpose
 
-honeycomb is a Nextcloud app with one page. A user reaches it from Nextcloud's navigation and
-starts from an empty state that leads to the folder picker.
+honeycomb is a Nextcloud app with one cull page and three pages of their own: *Similarity*,
+*Statistics* and *Orphaned sidecars*. A user reaches it from Nextcloud's navigation and starts on
+*Folders*; every page shares one layout with the honeycomb navigation beside it.
 
 ## Behaviour
 
@@ -22,11 +23,17 @@ the bottom edge, rounded at the top only, its footer clear of the home indicator
 browser asks for reduced motion, a dialog opens and closes without a fade or a zoom, which
 `NcModal` would otherwise play.
 
-Nextcloud's navigation beside the page holds only *Folder*, the recent folder sets and
-*Settings*, so it starts closed below 1280 px, where the grid needs the room. Once the user opens
-or closes it with Nextcloud's toggle, the app keeps that choice in the browser and starts with it
-on every width. Below 1024 px Nextcloud shows the navigation over the page and closes it itself;
-there the app neither applies nor remembers a choice.
+Every page is built from the one app layout, which always holds the honeycomb navigation and its
+toggle, so no page can leave it out. The navigation holds *Folders*, *Folder*, the pages of their
+own, the recent folder sets and *Settings*; it starts closed below 1280 px, where the grid needs
+the room. On a page of its own, the page's entry is marked current, and *Folders*, *Folder*, a
+recent folder set and *Settings* open the cull page there: *Folders*, the folder picker, the folder
+set at its position (DECISIONS-002.17) or the settings. Once the user opens or closes the
+navigation with Nextcloud's toggle, the app keeps that choice in the browser for that Nextcloud
+user and starts every page with it on every width. Below 1024 px Nextcloud shows the navigation
+over the page as a drawer and closes it itself; there the app neither applies nor remembers a
+choice. The loupe and the series viewer cover the page and show the navigation with their own
+toggle (LOUPE-001.14).
 
 Every route that writes is limited to 600 requests a minute per user, the visual hash save to
 300 (SERIES-003.23); Nextcloud answers a request beyond the limit `429` without running it
@@ -89,8 +96,10 @@ stays the same.
 - **Given** a screen at least 1024 px wide
 - **When** the user opens or closes the navigation with its toggle and later opens the app page
   again
-- **Then** the navigation starts as the user left it, at any width from 1024 px on; a choice made
-  below 1024 px is not remembered
+- **Then** the navigation starts as the user left it, on every page and at any width from 1024 px
+  on; a choice made below 1024 px is not remembered; the choice is kept per Nextcloud user, so
+  another user in the same browser starts with their own, and a choice an older version kept for
+  the browser applies until the user makes one
 
 ### APP-001.9 – Every write route is limited per user
 
@@ -202,6 +211,23 @@ stays the same.
   of the toggle, so their boxes do not overlap; with the navigation open on a wide screen the
   title sits flush left
 
+### APP-001.23 – Every page has the navigation
+
+- **Given** any page of the app: the cull page with *Folders*, the library setup, the grid or
+  Immich, and the pages *Similarity*, *Statistics* and *Orphaned sidecars*
+- **When** it renders, on a phone, an iPad or a desktop
+- **Then** it shows the honeycomb navigation with its toggle; the toggle opens and closes it,
+  beside the page from 1024 px on and as a drawer over the page below; on a page of its own the
+  page's entry is marked current
+
+### APP-001.24 – A page of its own opens the cull page from the navigation
+
+- **Given** a page of its own with the navigation open
+- **When** the user picks *Folders*, *Folder*, a recent folder set or *Settings*
+- **Then** the cull page opens on *Folders*, with the folder picker open, at the folder set's
+  position or with the settings open; the address it opened with is then replaced by the cull's
+  own (DECISIONS-002.17)
+
 ## Out of scope
 
 - The folder picker itself: LISTING-003.
@@ -226,4 +252,5 @@ stays the same.
 | 2026-11-20 | *Escape* closes a confirm dialog also from a switch or a checkbox, which `NcModal` leaves to the field (APP-001.16) |
 | 2026-11-24 | The gesture guide and the tag entry are modal: inert page, focus trap, `Esc` (APP-001.20; Fable review) |
 | 2026-11-24 | The page opts in to `viewport-fit=cover` and pads its edges with the safe areas (APP-001.21; Fable review) |
+| 2026-11-26 | Every page has the navigation from one app layout; the pages of their own open the cull page from it; the choice is kept per user (APP-001.8, .23, .24) |
 | 2026-11-22 | The page starts on *Folders* or the library setup, the picker no longer opens by itself (APP-001.3, M12 PR 5) |
