@@ -15,17 +15,18 @@ use PHPUnit\Framework\TestCase;
 
 final class PictureSourceTest extends TestCase {
 	public function testTheFoldersAreAPictureSourceThatCountsInTheBrowser(): void {
-		$this->assertSame([PictureSource::class], array_values(class_implements(FolderPictureSource::class)));
+		$this->assertSame([PictureSource::class], (new \ReflectionClass(FolderPictureSource::class))->getInterfaceNames());
 	}
 
 	public function testImmichIsAPictureSourceThatCountsOnTheServer(): void {
-		$implemented = array_values(class_implements(ImmichPictureSource::class));
+		$implemented = (new \ReflectionClass(ImmichPictureSource::class))->getInterfaceNames();
 		sort($implemented);
 
 		$this->assertSame([CountedPictureSource::class, PictureSource::class], $implemented);
 	}
 
 	public function testAPictureSourceListsShowsAnImageAndDecides(): void {
+		/** @param class-string $interface */
 		$methods = static fn (string $interface): array => array_map(static fn (\ReflectionMethod $method): string => $method->getName(), (new \ReflectionClass($interface))->getMethods());
 
 		$this->assertSame(['listing', 'image', 'decide'], $methods(PictureSource::class));
