@@ -30,8 +30,8 @@ done status writes, the ranking and the screen follow in their own specs.
     a photo.
   - `previews`: up to 3 pictures that stand for the folder, `{fileId, mtime}` of each one's
     rendered file (a RAW alone is no candidate), taken from the candidates in capture time order
-    (name order without one) at the first, the middle and the last place (the first and the last
-    of two, the one of one); empty without a candidate. The scan takes them from the files it
+    (those without one come last, in name order) at the first, the middle and the last place
+    (the first and the last of two, the one of one); empty without a candidate. The scan takes them from the files it
     reads anyway.
   - It is **fresh** while it was taken from the folder's current etag. A stale summary is listed
     with its stored values until a scan replaces it.
@@ -180,8 +180,8 @@ done status writes, the ranking and the screen follow in their own specs.
 
 ### FOLDERS-005.18 – Preview pictures
 
-- **Given** a folder of five JPEGs taken in the order `a`, `b`, `c`, `d`, `e`, a RAW alone and a
-  folder of one JPEG and a folder of a RAW alone
+- **Given** a folder of five JPEGs taken in the order `a`, `b`, `c`, `d`, `e`, a folder of one
+  JPEG and a folder of a RAW alone
 - **When** the folders are scanned and listed
 - **Then** the first folder's `previews` are the files of `a`, `c` and `e` with their `mtime`, the
   one-JPEG folder's is that file, the RAW-only folder's is `[]`; a folder of two has its first and

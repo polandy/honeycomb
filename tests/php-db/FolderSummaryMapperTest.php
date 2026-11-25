@@ -9,6 +9,7 @@ namespace OCA\Honeycomb\DbTests;
 
 use OCA\Honeycomb\Db\FolderSummaryMapper;
 use OCA\Honeycomb\Domain\FolderSummary;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 
 /** The folder summaries table, one row per folder whoever scanned it. */
 final class FolderSummaryMapperTest extends DbTestCase {
@@ -36,6 +37,22 @@ final class FolderSummaryMapperTest extends DbTestCase {
 		$this->summaries->replace([self::row(7, 'etag-new')]);
 
 		$this->assertEquals([7 => self::row(7, 'etag-new'), 8 => $empty], $this->summaries->find([7, 8, 9]));
+	}
+
+	// spec: FOLDERS-005.18
+	public function testAFolderWithoutPreviewsComesBackEmptyAndACorruptValueFailsLoud(): void {
+		$this->summaries->replace([new FolderSummary(7, 'etag-7', 0, 0, 0, 0, null, null, null, 5), self::row(8)]);
+		$this->assertSame([], $this->summaries->find([7])[7]->previews);
+
+		$update = $this->db->getQueryBuilder();
+		$update->update('honeycomb_folder_summary')
+			->set('previews', $update->createNamedParameter('12:x'))
+			->where($update->expr()->eq('file_id', $update->createNamedParameter(8, IQueryBuilder::PARAM_INT)))
+			->executeStatement();
+
+		$this->expectException(\UnexpectedValueException::class);
+		$this->expectExceptionMessage('Malformed folder previews: 12:x');
+		$this->summaries->find([8]);
 	}
 
 	public function testFindsAndReplacesMoreFoldersThanOneInListTakes(): void {

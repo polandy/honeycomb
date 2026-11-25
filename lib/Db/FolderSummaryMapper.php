@@ -104,9 +104,11 @@ final class FolderSummaryMapper implements FolderSummaryStore {
 		if (!is_string($value) || $value === '') {
 			return [];
 		}
-		return array_map(static function (string $pair): array {
-			[$fileId, $mtime] = explode(':', $pair);
-			return ['fileId' => (int)$fileId, 'mtime' => (int)$mtime];
+		return array_map(static function (string $pair) use ($value): array {
+			if (preg_match('/^(\d+):(\d+)$/', $pair, $parts) !== 1) {
+				throw new \UnexpectedValueException("Malformed folder previews: $value");
+			}
+			return ['fileId' => (int)$parts[1], 'mtime' => (int)$parts[2]];
 		}, explode(',', $value));
 	}
 

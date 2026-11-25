@@ -20,9 +20,6 @@ const props = defineProps<{
 const failed = ref<ReadonlySet<number>>(new Set())
 const shown = computed(() => props.previews.filter((preview) => !failed.value.has(preview.fileId)))
 
-/**
- *
- */
 /** Drops the preview whose image failed to load. */
 function fail(fileId: number) {
 	failed.value = new Set([...failed.value, fileId])
