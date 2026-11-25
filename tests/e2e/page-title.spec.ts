@@ -83,6 +83,9 @@ for (const shown of PAGES) {
 		const row = page.locator('.page-title-row')
 		await expect(row.getByRole('heading', { name: shown.title })).toBeVisible()
 
-		expect(await row.evaluate((element) => getComputedStyle(element).paddingInlineStart)).toBe('0px')
+		const { start, end } = await row.evaluate((element) => ({ start: getComputedStyle(element).paddingInlineStart, end: getComputedStyle(element).paddingInlineEnd }))
+		expect(start).toBe(end)
+		const box = (await toggle.boundingBox())!
+		expect((await titleBox(row)).left).toBeGreaterThanOrEqual(box.x + box.width)
 	})
 }

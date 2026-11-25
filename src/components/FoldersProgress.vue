@@ -8,10 +8,10 @@ import type { FolderProgress } from '../logic/folder-progress.ts'
 import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
 import ProgressBar from './ProgressBar.vue'
-import { progressTexts, summaryText } from '../folders/folders-text.ts'
+import { progressSummary, progressTexts, progressTitle } from '../folders/folders-text.ts'
 import { PLAIN_TEXT } from '../shared/l10n.ts'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
 	/** The chosen root, null for the whole library. */
 	root: string | null
 	/** How many roots the library has. */
@@ -19,18 +19,22 @@ const props = defineProps<{
 	progress: FolderProgress
 	/** One bar per root, shown for the whole library of several roots. */
 	perRoot: readonly { readonly root: string, readonly progress: FolderProgress }[]
-}>()
+	/** Whether the card shows its own title; false where the page's title row shows it. */
+	titled?: boolean
+}>(), {
+	titled: true,
+})
 
 const texts = computed(() => progressTexts(props.progress))
 </script>
 
 <template>
 	<section class="folders-progress" :aria-label="t('honeycomb', 'Library progress')">
-		<div class="folders-progress__head">
+		<div v-if="props.titled" class="folders-progress__head">
 			<h2 class="folders-progress__name" :translate="props.root === null ? undefined : 'no'">
-				{{ props.root ?? t('honeycomb', 'Library') }}
+				{{ progressTitle(props.root) }}
 			</h2>
-			<span class="folders-progress__summary">{{ summaryText(props.root === null ? props.roots : null, props.progress) }}</span>
+			<span class="folders-progress__summary">{{ progressSummary(props.root, props.roots, props.progress) }}</span>
 		</div>
 		<p class="folders-progress__headline">
 			{{ texts.headline }}

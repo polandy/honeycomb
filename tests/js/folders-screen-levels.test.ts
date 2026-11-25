@@ -202,7 +202,7 @@ describe('FoldersScreen levels', () => {
 
 		await open(wrapper, '/Photos')
 		expect(crumbs(wrapper)).toEqual([`${MARK}Library`, 'Photos'])
-		expect(wrapper.find('.folders-progress__name').text()).toBe('/Photos')
+		expect(wrapper.find('.page-title-row__title').text()).toBe('/Photos')
 		await wrapper.findAll('.folder-breadcrumb__crumb')[0]!.trigger('click')
 		expect(names(wrapper)).toEqual(['/Photos', '/Camera'])
 	})
