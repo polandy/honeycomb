@@ -19,6 +19,7 @@ import FolderLevelList from './FolderLevelList.vue'
 import FolderListFilters from './FolderListFilters.vue'
 import FolderListRow from './FolderListRow.vue'
 import FolderMenu from './FolderMenu.vue'
+import FolderSplitLegend from './FolderSplitLegend.vue'
 import FoldersProgress from './FoldersProgress.vue'
 import FoldersUpdating from './FoldersUpdating.vue'
 import PageTitleRow from './PageTitleRow.vue'
@@ -141,7 +142,7 @@ function cull(row: FolderRow, subfolders: boolean) {
 
 <template>
 	<div ref="scroller" class="folders-screen" tabindex="-1">
-		<PageTitleRow>
+		<PageTitleRow class="page-title-row--sticky">
 			<span :translate="root === null ? undefined : 'no'">{{ progressTitle(root) }}</span>
 			<template #meta>
 				{{ progressSummary(root, props.roots.length, progress) }}
@@ -174,6 +175,7 @@ function cull(row: FolderRow, subfolders: boolean) {
 				v-model:filter="filter"
 				v-model:sort="sort"
 				:counts="counts" />
+			<FolderSplitLegend v-if="props.folders.state.value === 'ready' && !empty" />
 			<p v-if="props.folders.state.value === 'loading'" class="folders-screen__state">
 				{{ t('honeycomb', 'Loading the folders…') }}
 			</p>

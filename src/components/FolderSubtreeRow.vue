@@ -62,7 +62,7 @@ const split = computed(() => ([['picked', sums.value.picked], ['undecided', sums
 			</div>
 			<p class="folder-row__state">
 				<span v-if="cullableNew" class="folder-row__badge">{{ newText(sums.fresh) }}</span>
-				<span :class="{ 'folder-row__badge': state === 'read-only' || state === 'complete' }">
+				<span :class="{ 'folder-row__badge': state === 'read-only' }">
 					{{ subtreeStateText(state, sums, props.node.children.length) }}
 				</span>
 			</p>
@@ -92,7 +92,6 @@ const split = computed(() => ([['picked', sums.value.picked], ['undecided', sums
 				@click="emit('markAllDone')">
 				{{ t('honeycomb', 'Mark all done') }}
 			</NcButton>
-			<slot />
 			<NcButton
 				variant="tertiary"
 				:aria-label="t('honeycomb', 'More for {name}', { name: props.label }, undefined, PLAIN_TEXT)"
@@ -101,6 +100,7 @@ const split = computed(() => ([['picked', sums.value.picked], ['undecided', sums
 					<AppIcon name="more" />
 				</template>
 			</NcButton>
+			<slot />
 		</div>
 	</article>
 </template>
