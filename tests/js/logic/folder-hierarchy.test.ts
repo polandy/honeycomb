@@ -172,7 +172,7 @@ describe('breadcrumb', () => {
 	it('shows the first level, a gap with the levels between and the last two above 4 levels', () => {
 		expect(breadcrumb('/Photos', '/Photos/2024/Iceland/Day 1/Raw')).toEqual([
 			crumb('/Photos'),
-			{ kind: 'gap', levels: [crumb('/Photos/2024'), crumb('/Photos/2024/Iceland')] },
+			{ kind: 'gap', levels: [{ name: '2024', path: '/Photos/2024' }, { name: 'Iceland', path: '/Photos/2024/Iceland' }] },
 			crumb('/Photos/2024/Iceland/Day 1'),
 			crumb('/Photos/2024/Iceland/Day 1/Raw'),
 		])
