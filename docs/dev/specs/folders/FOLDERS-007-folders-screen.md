@@ -34,7 +34,7 @@ roots worth culling and the library's progress, and opens a folder's cull and re
   the headline share with its bar, the folders done, done this month and the decided share; with
   the *Library* level and several roots, one bar per root.
 - **Chips and sort.** The levels of FOLDERS-009 choose the root of the list and the progress. The
-  filter chips *Suggested*, *New photos* and *All* carry their counts; the *Sort* menu offers the
+  filter chips *All*, *Suggested* and *New photos* carry their counts; the *Sort* menu offers the
   sorts of FOLDERS-002. Year and root headings as FOLDERS-002; *All* lists a level (FOLDERS-009).
 - **A row's cover:** left of the name, the folder's `previews` (FOLDERS-005) as thumbnails, one
   square for one, a large and a small one side by side for two, a large one and two stacked for
@@ -196,4 +196,4 @@ the statistics headline: M12 PR 7. Filters, sorts and texts: FOLDERS-002, FOLDER
 | 2026-11-22 | The row's menu and actions for the done status moved to FOLDERS-008 |
 | 2026-11-25 | The row's cover of preview thumbnails (FOLDERS-007.18) |
 | 2026-11-25 | The root chips gave way to the levels of FOLDERS-009; *All* lists a level |
-| 2026-11-25 | The chip counts follow FOLDERS-009.22 |
+| 2026-11-25 | The chip counts follow FOLDERS-009.23 |

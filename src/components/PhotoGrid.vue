@@ -75,7 +75,7 @@ const layout = computed(() => gridLayout({
 	top: overlayHeight + GAP,
 	nameBar: props.fileNames ? NAME_BAR : 0,
 }))
-const series = useGridSeries({ pictures: () => props.pictures, seriesOf: () => props.seriesOf, offered: () => props.offeredSeries, open: () => props.openSeries, groupStarts: () => groups.value.map((group) => group.start) })
+const series = useGridSeries({ pictures: () => props.pictures, seriesOf: () => props.seriesOf, offered: () => props.offeredSeries, open: () => props.openSeries, groupStarts: () => groups.value.map((group) => group.start), decisionOf: (picture) => props.decisionOf(picture) })
 const loads = createLoadQueue(props.loadImage, IMAGE_LOADS_IN_FLIGHT, (error) => logger.error('A tile image callback failed', { error }))
 const sticky = computed(() => stickyHeader(layout.value, scrollTop.value))
 const order = computed(() => props.pictures.map((picture) => imageMember(picture).fileId))

@@ -3,10 +3,11 @@
 import type { Series } from './series.ts'
 import type { SeriesStatus } from './stored-series.ts'
 
-/** A stretch of neighbouring pictures in one series: `first` up to but not including `end`. */
+/** A stretch of neighbouring pictures in one series: `first` up to but not including `end`, `members` of them in the series. */
 export interface SeriesRun<P> {
 	readonly first: number
 	readonly end: number
+	readonly members: number
 	readonly series: Series<P>
 }
 
@@ -19,7 +20,7 @@ export interface RowBracket<P> {
 	readonly ends: boolean
 }
 
-/** A tile's place in its series, on the first tile of a run the run's length, and the status of a stored series. */
+/** A tile's place in its series, on the first tile of a run the run's count of its pictures, and the status of a stored series. */
 export interface TileSeries<P> {
 	readonly series: Series<P>
 	readonly position: number
@@ -28,21 +29,24 @@ export interface TileSeries<P> {
 	readonly stored: SeriesStatus | null
 }
 
-/** The runs of neighbours sharing a series; a picture outside every series, another series or a group start in `breaks` ends a run (SERIES-002.12). */
-export function seriesRuns<P>(pictures: readonly P[], seriesOf: ReadonlyMap<P, Series<P>>, breaks: readonly number[] = []): SeriesRun<P>[] {
+/** The runs of neighbours sharing a series, spanning pictures `spans` lets in between; any other picture outside every series, another series or a group start in `breaks` ends a run (SERIES-002.12). */
+export function seriesRuns<P>(pictures: readonly P[], seriesOf: ReadonlyMap<P, Series<P>>, breaks: readonly number[] = [], spans: (picture: P) => boolean = () => false): SeriesRun<P>[] {
 	const groupStarts = new Set(breaks)
 	const runs: SeriesRun<P>[] = []
+	let ended = true
 	pictures.forEach((picture, index) => {
 		const series = seriesOf.get(picture)
 		if (series === undefined) {
+			ended ||= !spans(picture) || groupStarts.has(index)
 			return
 		}
 		const last = runs.at(-1)
-		if (last !== undefined && last.end === index && last.series.key === series.key && !groupStarts.has(index)) {
-			runs[runs.length - 1] = { ...last, end: index + 1 }
+		if (!ended && last !== undefined && last.series.key === series.key && !groupStarts.has(index)) {
+			runs[runs.length - 1] = { ...last, end: index + 1, members: last.members + 1 }
 		} else {
-			runs.push({ first: index, end: index + 1, series })
+			runs.push({ first: index, end: index + 1, members: 1, series })
 		}
+		ended = false
 	})
 	return runs
 }
@@ -74,11 +78,11 @@ export function rowBrackets<P>(at: readonly (SeriesRun<P> | undefined)[], first:
 /** The series of the tile at the index, or null outside every series (SERIES-002.10). */
 export function tileSeries<P>(at: readonly (SeriesRun<P> | undefined)[], index: number, picture: P): TileSeries<P> | null {
 	const run = at[index]
-	if (run === undefined) {
+	if (run === undefined || !run.series.members.includes(picture)) {
 		return null
 	}
 	const { members } = run.series
-	return { series: run.series, position: members.indexOf(picture) + 1, size: members.length, run: run.first === index ? run.end - run.first : null, stored: run.series.stored?.status ?? null }
+	return { series: run.series, position: members.indexOf(picture) + 1, size: members.length, run: run.first === index ? run.members : null, stored: run.series.stored?.status ?? null }
 }
 
 /** The first index of the next run, or of the run before the focused one's, null at either end (SERIES-002.15). */

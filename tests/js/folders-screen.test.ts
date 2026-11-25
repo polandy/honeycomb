@@ -4,7 +4,7 @@
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
-import { chip, COMPLETE, crumbs, dialogButton, DONE, fakeList, MARK, mountScreen, names, OPEN, PHONE, READ_ONLY, row_ } from './folders-screen-fixture.ts'
+import { chip, COMPLETE, crumbs, dialogButton, DONE, fakeList, MARK, mountScreen, names, OPEN, PHONE, READ_ONLY, row_, showSuggested } from './folders-screen-fixture.ts'
 import { installMarkedCatalogue, uninstallMarkedCatalogue, untranslatedText } from './l10n/marked-catalogue.ts'
 import { row } from './logic/folder-fixtures.ts'
 
@@ -16,9 +16,10 @@ describe('FoldersScreen', () => {
 	})
 
 	// spec: FOLDERS-007.18
-	it('shows each row\'s previews as its cover and the icon for a folder without', () => {
+	it('shows each row\'s previews as its cover and the icon for a folder without', async () => {
 		const previewed = row({ fileId: 8, path: '/Photos/Alps', previews: [{ fileId: 31, mtime: 5 }, { fileId: 32, mtime: 6 }, { fileId: 33, mtime: 7 }] })
 		const wrapper = mountScreen(fakeList([previewed, OPEN]))
+		await showSuggested(wrapper)
 
 		expect(row_(wrapper, 'Alps').findAll('.folder-cover img')).toHaveLength(3)
 		expect(row_(wrapper, 'Alps').find('.folder-cover img').attributes('src')).toContain('/images/31?size=256&v=5')
@@ -61,6 +62,7 @@ describe('FoldersScreen', () => {
 	// spec: FOLDERS-007.12
 	it('opens the row\'s menu with Cull, Cull with subfolders and Open in Files, and closes it by Cancel', async () => {
 		const wrapper = mountScreen(fakeList([OPEN]))
+		await showSuggested(wrapper)
 
 		await row_(wrapper, 'Trip').find(`[aria-label="${MARK}More for Trip"]`).trigger('click')
 		await flushPromises()
@@ -130,7 +132,12 @@ describe('FoldersScreen', () => {
 		expect(chip(wrapper, 'Filter', 'Suggested').text()).toContain('3')
 		expect(chip(wrapper, 'Filter', 'New photos').text()).toContain('1')
 		expect(chip(wrapper, 'Filter', 'All').text()).toContain('4')
-		expect(chip(wrapper, 'Filter', 'Suggested').attributes('aria-pressed')).toBe('true')
+		const chips = wrapper.find(`[role="group"][aria-label="${MARK}Filter"]`).findAll('button')
+		expect(chips[0]!.attributes('aria-pressed')).toBe('true')
+		expect(chips[0]!.text()).toContain('All')
+		expect(names(wrapper)).toEqual(['/Photos', '/Phone'])
+
+		await showSuggested(wrapper)
 		expect(wrapper.findAll('.folders-screen__root-heading').map((each) => each.find('[translate="no"]').text())).toEqual(['/Photos', '/Phone'])
 		expect(names(wrapper)).toEqual(['Trip', 'Big', 'Camera'])
 
@@ -187,7 +194,7 @@ describe('FoldersScreen', () => {
 
 		list.state.value = 'ready'
 		list.rows.value = [DONE]
-		await nextTick()
+		await showSuggested(wrapper)
 
 		expect(wrapper.text()).toContain(`${MARK}No folders here.`)
 	})

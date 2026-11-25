@@ -249,7 +249,7 @@ async function chipCount(list: Locator, name: string): Promise<number> {
 	return Number(await list.getByRole('group', { name: 'Filter' }).getByRole('button', { name: new RegExp(`^${name}`) }).locator('.folder-filters__count').innerText())
 }
 
-// spec: FOLDERS-009.22
+// spec: FOLDERS-009.23
 test('counts each filter chip over the folders its list covers, All never fewer than Suggested', async ({ page }) => {
 	await page.setViewportSize({ width: 390, height: 844 })
 	await addDays(page)
@@ -259,6 +259,8 @@ test('counts each filter chip over the folders its list covers, All never fewer 
 	expect(await chipCount(list, 'Suggested')).toBe(FOLDERS.length + DAYS.length)
 	expect(await chipCount(list, 'All')).toBe(FOLDERS.length + DAYS.length)
 	expect(await chipCount(list, 'New photos')).toBe(0)
+	await expect(list.getByRole('article')).toHaveCount(FOLDERS.length)
+	await filters.getByRole('button', { name: /^Suggested/ }).click()
 	await expect(list.getByRole('article')).toHaveCount(await chipCount(list, 'Suggested'))
 	await filters.getByRole('button', { name: /^New photos/ }).click()
 	await expect(list.getByRole('article')).toHaveCount(0)

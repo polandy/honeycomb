@@ -55,7 +55,7 @@ const emit = defineEmits<{
 
 /** The level the user opened, null for the start. */
 const chosen = ref<string | null>(null)
-const filter = ref<FolderFilter>('suggested')
+const filter = ref<FolderFilter>('all')
 const sort = ref<FolderSort>('suggested')
 const menuRow = ref<FolderRow | null>(null)
 const scroller = useTemplateRef<HTMLElement>('scroller')
@@ -126,6 +126,12 @@ function change(event: 'markDone' | 'reopen', row: FolderRow) {
 	}
 }
 
+/** Shows the level at the path, or the *Library* for null, on *All* (FOLDERS-009.22). */
+function open(path: string | null) {
+	chosen.value = path
+	filter.value = 'all'
+}
+
 /** Close the menu and open the folder in the grid. */
 function cull(row: FolderRow, subfolders: boolean) {
 	menuRow.value = null
@@ -150,7 +156,7 @@ function cull(row: FolderRow, subfolders: boolean) {
 				:perRoot="perRoot" />
 			<FoldersUpdating v-if="updating !== null" :updating="updating" />
 			<div class="folders-screen__header">
-				<FolderBreadcrumb :crumbs="crumbs" :library="tree.length > 1" @open="chosen = $event" />
+				<FolderBreadcrumb :crumbs="crumbs" :library="tree.length > 1" @open="open" />
 				<NcCheckboxRadioSwitch
 					class="folders-screen__subfolders"
 					type="switch"
@@ -188,7 +194,7 @@ function cull(row: FolderRow, subfolders: boolean) {
 				:own="own"
 				:includeSubfolders="props.includeSubfolders"
 				@cull="emit('cull', $event)"
-				@open="chosen = $event"
+				@open="open"
 				@markDone="change('markDone', $event)"
 				@cullNew="emit('cullNew', $event)"
 				@menu="menuRow = $event"

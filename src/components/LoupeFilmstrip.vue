@@ -44,14 +44,14 @@ const emit = defineEmits<{ select: [index: number], 'update:pinned': [pinned: bo
 const strip = useTemplateRef<HTMLElement>('strip')
 const viewport = ref(0)
 const offset = ref(0)
-const allFrames = computed(() => filmstripFrames(props.pictures, props.seriesOf))
+const allFrames = computed(() => filmstripFrames(props.pictures, props.seriesOf, (picture) => isRejected(props.decisionOf(picture))))
 // A tab column comes before each frame only while a listener opens the compare from it.
 const tabs = computed(() => props.onCompareSeries ? allFrames.value.map((frame) => frame.first) : [])
 const layout = computed(() => filmstripLayout({ index: props.index, count: props.pictures.length, viewport: viewport.value, offset: offset.value, tabs: tabs.value }))
 
 const shown = computed(() => props.pictures.slice(layout.value.first, layout.value.end).map((picture, at) => {
 	const index = layout.value.first + at
-	return { picture, index, left: filmstripLeft(index, tabs.value), member: imageMember(picture), flag: props.decisionOf(picture).flag, framed: props.seriesOf.has(picture) }
+	return { picture, index, left: filmstripLeft(index, tabs.value), member: imageMember(picture), flag: props.decisionOf(picture).flag, framed: allFrames.value.some((frame) => frame.first <= index && index < frame.end) }
 }))
 
 const tabWidth = computed(() => tabs.value.length > 0 ? FILMSTRIP_TAB : 0)

@@ -2036,7 +2036,17 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   `previews`, which the repair migration added as null, and stay fresh while the folder etag holds.
   `Version000200Date20261125150000` drops the summaries with photos and no previews, so the next
   scan rewrites them; a RAW-only folder is scanned once more (0.1.2, autonomous).
+- 2026-11-25: *Folders* opens on *All*, the first chip, and every level opened by a row or the
+  breadcrumb shows *All*, as the signed-off mockup `folders/hierarchy.html` does; ADR 0060 and
+  FOLDERS-009 named no start filter, so the app kept *Suggested* of ADR 0049 and showed the nested
+  folders flat on nc-test (owner, 2026-11-25, FOLDERS-009.22).
+- 2026-11-25: *Cull this level* reads *Cull this level (with subfolders)* while the switch is on,
+  as in the mockup, so the card names its scope (FOLDERS-009, autonomous).
+- 2026-11-25: *Pick this, reject the rest* seemed to reject the next series on nc-test: one series
+  of 11 was drawn as two frames, split by rejected photos between its members. A series' frame and
+  bracket now span the rejected photos between its members, and the action stays on the whole
+  series (owner choice of three: one frame, a rejected photo cuts the series, act on the frame only).
 - 2026-11-25: *All* read 2 beside *Suggested* 5 on nc-test, because it counted the rows of the
   level while the other chips count every folder below it. All three now count the same folders
-  (FOLDERS-009.22); *All* keeps its drill-down list, so its rows stand for several folders
+  (FOLDERS-009.23); *All* keeps its drill-down list, so its rows stand for several folders
   (autonomous).

@@ -129,8 +129,10 @@ describe('FoldersScreen levels', () => {
 
 		expect(card.find('.folder-level-card__name').text()).toBe('2024')
 		expect(card.text()).toContain(`${MARK}${MARK}47 photos with subfolders · ${MARK}${MARK}37 directly in it · ${MARK}40 undecided`)
+		expect(card.find('button').text()).toBe(`${MARK}Cull this level (with subfolders)`)
 		await card.find('button').trigger('click')
 		await wrapper.setProps({ includeSubfolders: false })
+		expect(card.find('button').text()).toBe(`${MARK}Cull this level`)
 		await card.find('button').trigger('click')
 
 		expect(wrapper.emitted('cull')).toEqual([[{ paths: ['/Photos/2024'], subfolders: true }], [{ paths: ['/Photos/2024'], subfolders: false }]])
@@ -229,6 +231,21 @@ describe('FoldersScreen levels', () => {
 		expect(wrapper.find('select').exists()).toBe(true)
 	})
 
+	// spec: FOLDERS-009.22
+	it('opens on All and shows All again on a level opened by the breadcrumb', async () => {
+		const wrapper = mountScreen(fakeList(ROWS))
+		expect(chip(wrapper, 'Filter', 'All').attributes('aria-pressed')).toBe('true')
+		expect(names(wrapper)).toEqual(['2024', 'Archive / Analog / Scans 1998'])
+
+		await open(wrapper, '2024')
+		await chip(wrapper, 'Filter', 'New photos').trigger('click')
+		await wrapper.findAll('.folder-breadcrumb__crumb')[0]!.trigger('click')
+
+		expect(crumbs(wrapper)).toEqual(['Photos'])
+		expect(chip(wrapper, 'Filter', 'All').attributes('aria-pressed')).toBe('true')
+		expect(names(wrapper)).toEqual(['2024', 'Archive / Analog / Scans 1998'])
+	})
+
 	// spec: FOLDERS-009.16
 	it('keeps the level, filter and sort while a cull hides the list', async () => {
 		const list = fakeList(ROWS)
@@ -269,12 +286,13 @@ describe('FoldersScreen levels', () => {
 		expect(wrapper.emitted('update:includeSubfolders')).toEqual([[false]])
 	})
 
-	// spec: FOLDERS-009.22
+	// spec: FOLDERS-009.23
 	it('counts every chip over the folders of the level, so All is never fewer than Suggested or New photos', async () => {
 		const fresh = doneRow({ fileId: 17, path: '/Photos/2024/Iceland/Day 4', photos: 5, picked: 5 }, 3)
 		const wrapper = mountScreen(fakeList([...ROWS, fresh]))
 
 		expect([count(wrapper, 'Suggested'), count(wrapper, 'New photos'), count(wrapper, 'All')]).toEqual([5, 1, 7])
+		await chip(wrapper, 'Filter', 'Suggested').trigger('click')
 		expect(wrapper.findAll('.folder-row')).toHaveLength(5)
 		await chip(wrapper, 'Filter', 'New photos').trigger('click')
 		expect(wrapper.findAll('.folder-row')).toHaveLength(1)
