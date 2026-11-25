@@ -22,7 +22,8 @@ folders; a parent's state is derived.
   shown, and no text says it is missing.
 - **Rows.** A row shows the folder as the list does (FOLDERS-007), and › when it has subfolders
   with photos; a tap on it opens that level. A chain of folders without photos of their own, each
-  with exactly one subfolder with photos, is one row labelled with the names joined by ` / `.
+  with exactly one subfolder with photos, is one row labelled with the names joined by ` / `; it
+  ends at that last subfolder, with or without subfolders of its own.
 - **Breadcrumb length.** More than 4 levels show the first, "…" and the last two; "…" shows the
   levels in between.
 - **Include subfolders.** A switch in the header, on by default, saved per user as the setting
@@ -43,7 +44,7 @@ folders; a parent's state is derived.
   be n, those of them done k. With n ≥ 1 and k = n the row reads *Done · all n folders*. With no
   undecided photo in the subtree and k < n it reads *Complete · n − k folders not marked done*
   and offers *Mark all done*. Otherwise it reads the open share and *k of n folders done*. Read-only
-  folders are in no n and k.
+  folders are in no n and k; with n = 0 the row reads as a read-only folder does.
 - **New photos.** The row's *n new* is the sum over the done folders below it; *Cull new* opens
   the subtree with the flag filter *Unflagged* only.
 - **Mark all done.** In the ⋯ menu of every row with subfolders, with open photos too, and in
@@ -208,3 +209,4 @@ folders: phase 2.
 | Date | Change |
 |---|---|
 | 2026-11-25 | Written with ADR 0060 |
+| 2026-11-25 | A chain ends at its last subfolder, also one without subfolders; a subtree of read-only folders only reads as a read-only folder (`folder-hierarchy.ts`) |
