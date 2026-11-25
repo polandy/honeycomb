@@ -18,7 +18,7 @@ Add items with `/todo`.
 ## Later
 
 - [ ] Architecture review of 2026-11-24 (done: migration rules ADR 0055, filecache exception ADR 0049, XMP-before-rebuild note, wiring rule ADR 0028): add the canary test that runs `FileCacheLibrary`'s raw `oc_filecache` queries on every Nextcloud version CI covers (ADR 0049) (2026-11-24)
-- [ ] Architecture review of 2026-11-24, picture source step 2 (ADR 0058): the folder picture source and `useCull`'s decision steps on `useCullCore` (`src/cull/cull-core.ts`), tags, series, sidecar write-through and the access gate on top where the capabilities allow them; behaviour-neutral with green e2e (2026-11-24)
+- [ ] Picture source step 2 follow-up (ADR 0058): the folder listing flows (recent, folder picker, fresh check) and the grid's image URLs through `folderPictureSource`'s `list`, `counts` and `imageUrl` instead of their seams (2026-11-25)
 - [ ] Architecture review of 2026-11-24, picture source step 3 (ADR 0058): a PHP `PictureSource` interface (`listing`, `counts`, `image`, `decide`) with a folder and an Immich class behind the existing routes and bodies (2026-11-24)
 - [ ] Architecture review of 2026-11-24: rename the glue files in `src/` that share a name with a `src/logic` file (`cull.ts`, `series.ts`, `settings.ts` and 14 more) to `-flow` or `-run` (conventions §1) (2026-11-24)
 - [ ] Folders phase 2 (M12, ADR 0049): shares, group folders and external storage as library roots, with a done status that survives the owner's permissions; the walker of ADR 0025 and the roots check of FOLDERS-005 list only the home storage today (2026-11-22)

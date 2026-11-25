@@ -1973,3 +1973,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   the 0.2.0 baseline; a new idempotent migration adds what the baseline gained since, instead of a
   reinstall, and `SchemaRepairTest` proves it on every database. `info.xml` and `package.json` go to
   0.1.1 so Nextcloud runs it; release-please's next patch release is the same 0.1.1 (owner, lane c).
+- 2026-11-25: The folder cull takes the cull core's lower layer `useCullSteps` (decided map and
+  undo history of every step kind) instead of the queued `useCullCore`; its write-through keeps
+  `useCullWrites` with its field-wise take back (ADR 0058, #187, autonomous).
+- 2026-11-25: `PictureSource` has a `saved` type, so the folder adapter answers the flag save's
+  skipped ids; Immich answers `void` (ADR 0058, #187, autonomous).
+- 2026-11-25: Step 2 wires the folder adapter's `decide` only; the listing flows and the image URLs
+  move onto `list`, `counts` and `imageUrl` in a follow-up (ADR 0058, #187, autonomous).
