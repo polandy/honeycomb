@@ -86,7 +86,7 @@ export function findLevel(tree: readonly FolderNode[], path: string): FolderNode
 
 /** The level *Folders* opens on: the only root, or null for the *Library*. */
 export function startLevel(tree: readonly FolderNode[]): string | null {
-	return tree.length === 1 ? tree[0].path : null
+	return tree.length === 1 ? tree[0]!.path : null
 }
 
 /** The rows of the level and of every folder below it, the level first, then depth first. */
@@ -132,7 +132,7 @@ export function levelRows(level: FolderNode): LevelRow[] {
 		const names = [child.name]
 		let node = child
 		while (node.row === null && node.children.length === 1) {
-			node = node.children[0]
+			node = node.children[0]!
 			names.push(node.name)
 		}
 		return { label: names.join(CHAIN_SEPARATOR), node }
@@ -151,7 +151,7 @@ export function breadcrumb(root: string, path: string): Crumb[] {
 	if (levels.length <= BREADCRUMB_MAX) {
 		return crumbs
 	}
-	return [crumbs[0], { kind: 'gap', levels: levels.slice(1, -BREADCRUMB_TAIL) }, ...crumbs.slice(-BREADCRUMB_TAIL)]
+	return [crumbs[0]!, { kind: 'gap', levels: levels.slice(1, -BREADCRUMB_TAIL) }, ...crumbs.slice(-BREADCRUMB_TAIL)]
 }
 
 /** The path's segments below the root, empty for the root itself, null for a path outside it. */

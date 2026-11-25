@@ -28,7 +28,7 @@ describe('buildHierarchy', () => {
 	// spec: FOLDERS-009.2
 	it('has no node for a folder without photos in its subtree', () => {
 		const tree = buildHierarchy(['/Photos'], [row({ path: '/Photos/2024' }), row({ fileId: 2, path: '/Photos/Documents/Receipts', photos: 0, undecided: 0, picked: 0, rejected: 0 })])
-		expect(names(tree[0].children)).toEqual(['2024'])
+		expect(names(tree[0]!.children)).toEqual(['2024'])
 		expect(findLevel(tree, '/Photos/Documents')).toBeNull()
 		expect(findLevel(tree, '/Photos/Documents/Receipts')).toBeNull()
 	})
@@ -36,19 +36,19 @@ describe('buildHierarchy', () => {
 	it('keeps every root in the roots order, also one without photos, and the root row as its own photos', () => {
 		const tree = buildHierarchy(['/Photos', '/Empty', '/Camera'], [row({ root: '/Camera', path: '/Camera' }), row({ fileId: 2, path: '/Photos/a' })])
 		expect(tree.map((node) => [node.name, node.path, node.children.length])).toEqual([['Photos', '/Photos', 1], ['Empty', '/Empty', 0], ['Camera', '/Camera', 0]])
-		expect(tree[2].row?.path).toBe('/Camera')
-		expect(tree[0].row).toBeNull()
+		expect(tree[2]!.row?.path).toBe('/Camera')
+		expect(tree[0]!.row).toBeNull()
 	})
 
 	it('leaves out rows of an unknown root and rows outside their root', () => {
 		const tree = buildHierarchy(['/Photos'], [row({ root: '/Other', path: '/Other/a' }), row({ fileId: 2, path: '/Photoshop/a' }), row({ fileId: 3, path: '/Photos/b' })])
-		expect(names(tree[0].children)).toEqual(['b'])
-		expect(subtreeRows(tree[0]).map((folder) => folder.fileId)).toEqual([3])
+		expect(names(tree[0]!.children)).toEqual(['b'])
+		expect(subtreeRows(tree[0]!).map((folder) => folder.fileId)).toEqual([3])
 	})
 
 	it('sorts subfolders in natural order, code points breaking case-only ties', () => {
 		const tree = buildHierarchy(['/Photos'], ['Day 10', 'day 2', 'Day 2', 'Day 1'].map((name, index) => row({ fileId: index, path: `/Photos/${name}` })))
-		expect(names(tree[0].children)).toEqual(['Day 1', 'Day 2', 'day 2', 'Day 10'])
+		expect(names(tree[0]!.children)).toEqual(['Day 1', 'Day 2', 'day 2', 'Day 10'])
 	})
 
 	it('is empty without roots', () => {
@@ -65,7 +65,6 @@ describe('findLevel and startLevel', () => {
 		expect(findLevel(tree, '/Elsewhere')).toBeNull()
 	})
 
-	// spec: FOLDERS-009.4
 	it('starts inside the root when there is one, else at the Library', () => {
 		expect(startLevel(buildHierarchy(['/Photos'], []))).toBe('/Photos')
 		expect(startLevel(buildHierarchy(['/Photos', '/Camera'], []))).toBeNull()
@@ -82,6 +81,11 @@ describe('scopeSums', () => {
 	])
 
 	// spec: FOLDERS-009.7
+	it('counts a folder of 3 pairs and its subfolder of 2 as 5 photos', () => {
+		const pairs = buildHierarchy(['/Photos'], [row({ fileId: 1, path: '/Photos/Trip', photos: 3, undecided: 3 }), row({ fileId: 2, path: '/Photos/Trip/Day 1', photos: 2, undecided: 2 })])
+		expect(scopeSums(pairs[0]!, true).photos).toBe(5)
+	})
+
 	it('sums the subtree with subfolders, each folder once, and its own photos without', () => {
 		const trip = level(tree, '/Photos/Trip')
 		expect(scopeSums(trip, true)).toEqual({ photos: 122, picked: 118, rejected: 1, undecided: 3, bytes: 56, folders: 4, rateable: 2, done: 1, fresh: 17 })
@@ -95,20 +99,20 @@ describe('scopeSums', () => {
 
 	// spec: FOLDERS-009.1
 	it('is zero for a level without photos of its own when the subfolders are left out', () => {
-		const sums = scopeSums(tree[0], false)
+		const sums = scopeSums(tree[0]!, false)
 		expect(sums).toEqual({ photos: 0, picked: 0, rejected: 0, undecided: 0, bytes: 0, folders: 0, rateable: 0, done: 0, fresh: 0 })
 		expect(subtreeState(sums)).toBe('empty')
-		expect(scopeSums(tree[0], true).photos).toBe(122)
+		expect(scopeSums(tree[0]!, true).photos).toBe(122)
 	})
 
 	it('lists the rows of the subtree, the level first, then depth first in natural order', () => {
-		expect(subtreeRows(tree[0]).map((folder) => folder.fileId)).toEqual([1, 2, 3, 4])
+		expect(subtreeRows(tree[0]!).map((folder) => folder.fileId)).toEqual([1, 2, 3, 4])
 		expect(subtreeRows(level(tree, '/Photos/Trip/Day 2')).map((folder) => folder.fileId)).toEqual([3, 4])
 	})
 })
 
 describe('subtreeState', () => {
-	const subtree = (rows: readonly Parameters<typeof row>[0][]) => scopeSums(buildHierarchy(['/Photos'], rows.map((overrides, index) => row({ ...overrides, fileId: index, path: `/Photos/t/${index}` })))[0], true)
+	const subtree = (rows: readonly Parameters<typeof row>[0][]) => scopeSums(buildHierarchy(['/Photos'], rows.map((overrides, index) => row({ ...overrides, fileId: index, path: `/Photos/t/${index}` })))[0]!, true)
 	const done = (overrides: Parameters<typeof row>[0] = {}) => doneRow(overrides)
 
 	// spec: FOLDERS-009.9
@@ -137,7 +141,7 @@ describe('levelRows', () => {
 	// spec: FOLDERS-009.3
 	it('collapses a chain of folders without photos of their own into one row', () => {
 		const tree = buildHierarchy(['/Photos'], [1, 2, 3].map((roll) => row({ fileId: roll, path: `/Photos/Archive/Analog/Scans 1998/Roll 0${roll}` })))
-		const rows = levelRows(tree[0])
+		const rows = levelRows(tree[0]!)
 		expect(rows.map((entry) => [entry.label, entry.node.path])).toEqual([['Archive / Analog / Scans 1998', '/Photos/Archive/Analog/Scans 1998']])
 	})
 
@@ -151,7 +155,7 @@ describe('levelRows', () => {
 			row({ fileId: 6, path: '/Photos/Two/x' }),
 			row({ fileId: 7, path: '/Photos/Two/y' }),
 		])
-		expect(levelRows(tree[0]).map((entry) => [entry.label, entry.node.path])).toEqual([
+		expect(levelRows(tree[0]!).map((entry) => [entry.label, entry.node.path])).toEqual([
 			['A / B', '/Photos/A/B'],
 			['Only / Leaf', '/Photos/Only/Leaf'],
 			['Own', '/Photos/Own'],
@@ -161,7 +165,7 @@ describe('levelRows', () => {
 
 	it('has no rows for a level without subfolders', () => {
 		const tree = buildHierarchy(['/Photos'], [row({ path: '/Photos' })])
-		expect(levelRows(tree[0])).toEqual([])
+		expect(levelRows(tree[0]!)).toEqual([])
 	})
 })
 
