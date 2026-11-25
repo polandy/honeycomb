@@ -170,7 +170,8 @@ folders; a parent's state is derived.
 - **Given** the level `2024` and the filter *Suggested*
 - **When** the list shows
 - **Then** every folder with photos below `2024`, at any depth, is a row of its own photos, ranked
-  as FOLDERS-002, labelled with its path below `2024`; *All* shows only the direct subfolders
+  as FOLDERS-002, labelled with its path below `2024`; *All* lists only the direct subfolders
+  (its count: FOLDERS-009.22)
 
 ### FOLDERS-009.15 – New photos of a subtree
 
