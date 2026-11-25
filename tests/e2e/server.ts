@@ -28,6 +28,21 @@ export function previewFiles(fileIds: number[]): number {
 	return found.split('\n').filter((line) => line !== '').length
 }
 
+/** Runs PHP code inside the e2e Nextcloud, after its bootstrap, with `args` in `$argv` from 1. */
+function nextcloudPhp(code: string, args: string[]): void {
+	execFileSync('docker', ['exec', '-u', 'www-data', CONTAINER, 'php', '-r', `require "lib/base.php"; ${code}`, '--', ...args], { encoding: 'utf8' })
+}
+
+/** Runs one SQL statement with `*PREFIX*` tables on the e2e Nextcloud's database, as an older release left its rows. */
+export function sql(statement: string, params: (number | string)[] = []): void {
+	nextcloudPhp('\\OCP\\Server::get(\\OCP\\IDBConnection::class)->executeStatement($argv[1], json_decode($argv[2]));', [statement, JSON.stringify(params)])
+}
+
+/** Runs the app's migration step `version` again, as an update to the release that brings it would. */
+export function executeMigration(version: string): void {
+	nextcloudPhp('(new \\OC\\DB\\MigrationService("honeycomb", \\OCP\\Server::get(\\OC\\DB\\Connection::class)))->executeStep($argv[1]);', [version])
+}
+
 /** Logs `user` in through the login form. */
 export async function logIn(page: Page, user: { username: string, password: string }): Promise<void> {
 	await page.goto('/index.php/login')

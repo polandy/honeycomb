@@ -187,6 +187,14 @@ done status writes, the ranking and the screen follow in their own specs.
   one-JPEG folder's is that file, the RAW-only folder's is `[]`; a folder of two has its first and
   last
 
+### FOLDERS-005.19 – Summaries from before the previews
+
+- **Given** a summary of a folder with photos and one of a folder without, both written before the
+  summary had `previews`, and a summary with previews
+- **When** honeycomb updates to a release with the repair migration
+- **Then** the first summary is gone, so the next scan writes it with its previews; the other two
+  stay
+
 ## Out of scope
 
 - Marking a folder done and reopening it (FOLDERS-006).
@@ -200,3 +208,4 @@ done status writes, the ranking and the screen follow in their own specs.
 |---|---|
 | 2026-11-22 | Created with the backend of *Folders* (M12 PR 2, ADR 0049). |
 | 2026-11-25 | `previews` in the summary and the row (FOLDERS-005.18). |
+| 2026-11-25 | Summaries from before the previews are scanned again (FOLDERS-005.19). |
