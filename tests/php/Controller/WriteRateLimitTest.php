@@ -47,7 +47,7 @@ final class WriteRateLimitTest extends TestCase {
 		return $routes;
 	}
 
-	// spec: APP-001.9
+	// spec: APP-001.9, FOLDERS-006.8
 	public function testLimitsEveryWritingRouteToSixHundredRequestsAMinutePerUser(): void {
 		$limits = array_map(static fn (ReflectionMethod $method): array => array_map(static fn ($limit): array => $limit->getArguments(), $method->getAttributes(UserRateLimit::class)), self::changingRoutes());
 
