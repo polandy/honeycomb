@@ -28,11 +28,25 @@ large (RAW-heavy) files. Each row says why in words, for example *63 % undecided
 4.2 GB · 2019*. A folder where every photo is decided, and not yet done, comes first with *Mark
 done* in its row.
 
-The other chips and sorts are *New photos* and *All*, and *Most undecided*, *Largest*, *Oldest*,
-*Newest* and *Name*. With several roots, a chip row picks one root or *All roots*.
+The other chips are *New photos* and *All*; *Suggested* and *New photos* sort by *Most undecided*,
+*Largest*, *Oldest*, *Newest* or *Name* too. Each chip lists only the folders of the level you see.
 
-*Cull* opens a folder in the grid, at the place you stopped. *Back to folders* in the cull
-returns to the list, which keeps its scroll, filter and sort.
+## Levels
+
+*Folders* shows one level of your library at a time, starting at your root. The breadcrumb
+above the list names the levels above it; tap one to go up. With several roots it starts at
+*Library*, where *All* lists the roots. The card on top of a level
+counts its photos and offers *Cull this level*.
+
+On *All*, a folder with subfolders opens its level: tap the row or its arrow. The row *Photos
+directly in* holds a level's own photos, without its subfolders. A chain of single subfolders
+shows as one row, for example *2019 / Trip*.
+
+The switch **Include subfolders**, on by default and kept for you, decides what a row and *Cull
+this level* cover: on, a folder counts and culls its subfolders too; off, only its own photos.
+
+*Cull* opens the folders in the grid, at the place you stopped. *Back to folders* in the cull
+returns to the same level, which keeps its scroll, filter and sort.
 
 ## Mark done and Reopen
 

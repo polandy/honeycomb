@@ -32,11 +32,10 @@ roots worth culling and the library's progress, and opens a folder's cull and re
   toast.
 - **The progress card:** the chosen root's name or *Library*, its summary line (FOLDERS-003.6),
   the headline share with its bar, the folders done, done this month and the decided share; with
-  *All roots* and several roots, one bar per root.
-- **Chips and sort.** With several roots a chip row offers *All roots* and each root; it chooses
-  the rows of the list and the progress. The filter chips *Suggested*, *New photos* and *All*
-  carry their counts; the *Sort* menu offers the sorts of FOLDERS-002. Year and root headings as
-  FOLDERS-002.
+  the *Library* level and several roots, one bar per root.
+- **Chips and sort.** The levels of FOLDERS-009 choose the root of the list and the progress. The
+  filter chips *Suggested*, *New photos* and *All* carry their counts; the *Sort* menu offers the
+  sorts of FOLDERS-002. Year and root headings as FOLDERS-002; *All* lists a level (FOLDERS-009).
 - **A row's cover:** left of the name, the folder's `previews` (FOLDERS-005) as thumbnails, one
   square for one, a large and a small one side by side for two, a large one and two stacked for
   three, each the small preview tier loaded lazily; a done folder keeps a check mark over the
@@ -51,7 +50,7 @@ roots worth culling and the library's progress, and opens a folder's cull and re
 - **Cull and Back.** *Cull* opens the folder set `{paths: [path], subfolders: false}`, *Cull with
   subfolders* the same with subfolders, at its stored resume position as *Recent* does
   (DECISIONS-002.8), else at its start. The grid's toolbar then shows *Back to folders* in place of
-  *Change folders*; it shows the list again with its root, filter, sort and scroll as they were and
+  *Change folders*; it shows the list again with its level, filter, sort and scroll as they were and
   reads the rows again. A cull opened from the folder picker or *Recent* keeps *Change folders*.
 - **Navigation.** The navigation lists *Folders* first, then *Folder* (the folder picker) and the
   pages; *Recent* stays. *Folders* shows the list from any screen of the Nextcloud source.
@@ -116,16 +115,16 @@ roots worth culling and the library's progress, and opens a folder's cull and re
 ### FOLDERS-007.9 – The progress card
 
 - **Given** rows below two roots
-- **When** *All roots* is chosen, then one root
+- **When** the *Library* level shows, then a root's level
 - **Then** the card shows *Library*, the totals and one bar per root; for the root its own numbers
   and no root bars
 
-### FOLDERS-007.10 – Root chips, filter chips and sort
+### FOLDERS-007.10 – Filter chips and sort
 
 - **Given** rows below two roots
-- **When** a root chip, a filter chip and a sort are chosen
+- **When** a filter chip *Suggested* or *New photos* and a sort are chosen at the *Library* level
 - **Then** the list shows the rows FOLDERS-002 keeps, in its order and headings, and each filter
-  chip shows its count; with one root there are no root chips
+  chip shows its count; there are no root chips
 
 ### FOLDERS-007.11 – The row states
 
@@ -155,7 +154,7 @@ roots worth culling and the library's progress, and opens a folder's cull and re
 
 - **Given** a cull opened from *Folders* with a filter, a sort and the list scrolled
 - **When** *Back to folders* is pressed
-- **Then** *Folders* shows with the same root, filter, sort and scroll and its rows read again
+- **Then** *Folders* shows with the same level, filter, sort and scroll and its rows read again
 
 ### FOLDERS-007.15 – Change folders elsewhere
 
@@ -196,3 +195,4 @@ the statistics headline: M12 PR 7. Filters, sorts and texts: FOLDERS-002, FOLDER
 | 2026-11-22 | Written with M12 PR 5 |
 | 2026-11-22 | The row's menu and actions for the done status moved to FOLDERS-008 |
 | 2026-11-25 | The row's cover of preview thumbnails (FOLDERS-007.18) |
+| 2026-11-25 | The root chips gave way to the levels of FOLDERS-009; *All* lists a level |

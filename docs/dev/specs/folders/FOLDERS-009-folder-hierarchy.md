@@ -16,7 +16,8 @@ folders; a parent's state is derived.
 
 - **Level.** *Folders* shows one level at a time: a path below a library root, or the *Library*
   with the roots. With one root the view starts inside it. The breadcrumb names the levels; each
-  one but the last goes back to it; it never goes above a root.
+  one but the last goes back to it; it never goes above a root, but starts with *Library* when
+  there are several roots.
 - **The tree** is built from the rows of `GET /library/folders`. A folder without photos of its own
   is a level when a folder below it has photos; a folder with no photos in its subtree is not
   shown, and no text says it is missing.
@@ -29,7 +30,9 @@ folders; a parent's state is derived.
 - **Include subfolders.** A switch in the header, on by default, saved per user as the setting
   `foldersIncludeSubfolders`. On: a row's photos, bars, state and *Cull* cover its whole subtree
   and *Cull* opens `{paths: [path], subfolders: true}`. Off: its own photos only and `subfolders:
-  false`. A photo is counted once, as each pair lies in one folder.
+  false`. A photo is counted once, as each pair lies in one folder. A row without subfolders with
+  photos opens `subfolders: false` whatever the switch: the photos are the same, and its resume
+  position and *Mark done* on *Cull finished* (FOLDERS-008.8) stay.
 - **Level card.** Below the header, on every level but the *Library*: the level's name, its photos
   with subfolders and directly in it, its open photos and *Cull this level*, which opens the level
   as *Cull* does with the switch's scope.
@@ -38,8 +41,9 @@ folders; a parent's state is derived.
   status, and its *Cull* opens `subfolders: false`.
 - **Filters.** *All* lists the direct subfolders of the level. *Suggested* and *New photos* list
   every folder below the level flat, one row each with its own photos, ranked and sorted as
-  FOLDERS-002, each labelled with its path below the level. At the *Library* level the lists are
-  those of FOLDERS-007.
+  FOLDERS-002, each labelled with its path below the level. At the *Library* level *Suggested* and
+  *New photos* are the lists of FOLDERS-007 and *All* lists the roots. *Sort* shows for *Suggested*
+  and *New photos*; *All* keeps the natural order of the names, the roots in their order.
 - **Derived state of a row with subfolders.** Let the rateable folders with photos in the subtree
   be n, those of them done k. With n ≥ 1 and k = n the row reads *Done · all n folders*. With no
   undecided photo in the subtree and k < n it reads *Complete · n − k folders not marked done*
@@ -96,7 +100,8 @@ folders; a parent's state is derived.
 - **Given** a level five deep
 - **When** the breadcrumb shows
 - **Then** it shows the first level, "…" and the last two; "…" lists the levels between and a
-  level of the breadcrumb opens it; at the top the *Library* is not a crumb above a root
+  level of the breadcrumb opens it; with one root the *Library* is not a crumb above it, with
+  several roots it is the first crumb
 
 ### FOLDERS-009.5 – The switch is on by default and saved
 
@@ -209,4 +214,5 @@ folders: phase 2.
 | Date | Change |
 |---|---|
 | 2026-11-25 | Written with ADR 0060 |
+| 2026-11-25 | PR 3: the *Library* crumb with several roots, a row without subfolders culls without them, *Sort* only for the flat filters |
 | 2026-11-25 | A chain ends at its last subfolder, also one without subfolders; a subtree of read-only folders only reads as a read-only folder (`folder-hierarchy.ts`) |

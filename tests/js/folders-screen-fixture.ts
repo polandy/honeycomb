@@ -26,8 +26,8 @@ export function fakeList(rows: readonly FolderRow[], state: FolderList['state'][
 	return { rows: shallowRef(rows), state: ref(state), updating: ref(updating), shown: ref(true), refresh: vi.fn(async () => undefined) } satisfies FolderList
 }
 
-export function mountScreen(list: FolderList, roots: readonly string[] = ['/Photos'], focusRow: { fileId: number } | null = null) {
-	return mount(FoldersScreen, { props: { folders: list, roots, now: () => NOW, focusRow }, attachTo: document.body })
+export function mountScreen(list: FolderList, roots: readonly string[] = ['/Photos'], focusRow: { fileId: number } | null = null, includeSubfolders = true) {
+	return mount(FoldersScreen, { props: { folders: list, roots, now: () => NOW, focusRow, includeSubfolders }, attachTo: document.body })
 }
 
 export type Screen = ReturnType<typeof mountScreen>
@@ -39,6 +39,16 @@ export function names(wrapper: Screen): string[] {
 
 export function row_(wrapper: Screen, name: string) {
 	return wrapper.findAll('.folder-row').find((each) => each.find('.folder-row__name').text() === name)!
+}
+
+/** Shows the filter *All*: the level's rows. */
+export async function showAll(wrapper: Screen): Promise<void> {
+	await chip(wrapper, 'Filter', 'All').trigger('click')
+}
+
+/** The breadcrumb's crumbs by their text, or label for an icon, the current level last. */
+export function crumbs(wrapper: Screen): string[] {
+	return wrapper.find('.folder-breadcrumb').findAll('.folder-breadcrumb__crumb').map((each) => each.text() || (each.attributes('aria-label') ?? ''))
 }
 
 export function chip(wrapper: Screen, group: string, label: string) {

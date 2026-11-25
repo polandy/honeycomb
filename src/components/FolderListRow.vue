@@ -15,7 +15,15 @@ import { doneText, newBadgeText, photosText, reasonText, splitText, undecidedTex
 import { folderName, isComplete, isRateable, newCount, percent } from '../logic/folder-row.ts'
 import { PLAIN_TEXT } from '../shared/l10n.ts'
 
-const props = defineProps<{ row: FolderRow }>()
+const props = defineProps<{
+	row: FolderRow
+	/** Shown in place of the folder's name, as a chain's names or *Photos directly in* (FOLDERS-009). */
+	label?: string
+	/** The parent line, the parent's path when left out; empty hides it. */
+	parent?: string | undefined
+	/** The grey row *Photos directly in* of a level (FOLDERS-009.8). */
+	own?: boolean
+}>()
 
 const emit = defineEmits<{
 	cull: []
@@ -26,9 +34,9 @@ const emit = defineEmits<{
 	cullNew: []
 }>()
 
-const name = computed(() => folderName(props.row))
+const name = computed(() => props.label ?? folderName(props.row))
 const nameId = useId()
-const parent = computed(() => props.row.path.slice(0, -name.value.length - 1) || '/')
+const parent = computed(() => props.parent ?? (props.row.path.slice(0, -folderName(props.row).length - 1) || '/'))
 const rateable = computed(() => isRateable(props.row))
 const open = computed(() => props.row.done === null)
 /** An open folder the user may rate with photos left to decide offers *Cull* (FOLDERS-007.11). */
@@ -49,7 +57,7 @@ defineExpose({ focus })
 </script>
 
 <template>
-	<article class="folder-row" :class="{ 'folder-row--done': !open }" :aria-labelledby="nameId">
+	<article class="folder-row" :class="{ 'folder-row--done': !open, 'folder-row--own': props.own }" :aria-labelledby="nameId">
 		<FolderCover
 			class="folder-row__cover"
 			:previews="props.row.previews"
@@ -57,7 +65,7 @@ defineExpose({ focus })
 			:imageUrl="imageUrl" />
 		<div class="folder-row__head">
 			<span :id="nameId" class="folder-row__name" translate="no">{{ name }}</span>
-			<span class="folder-row__parent" translate="no">{{ parent }}</span>
+			<span v-if="parent !== ''" class="folder-row__parent" translate="no">{{ parent }}</span>
 		</div>
 		<div class="folder-row__counts">
 			<span>{{ photosText(props.row.photos) }}</span>
@@ -108,6 +116,7 @@ defineExpose({ focus })
 				@click="emit('cullNew')">
 				{{ t('honeycomb', 'Cull new') }}
 			</NcButton>
+			<slot />
 			<NcButton
 				ref="more"
 				variant="tertiary"
@@ -121,122 +130,4 @@ defineExpose({ focus })
 	</article>
 </template>
 
-<style scoped>
-.folder-row {
-	--folder-cover-size: 56px;
-
-	display: grid;
-	grid-template-areas: "cover head counts" "cover meta meta" "cover actions actions";
-	grid-template-columns: var(--folder-cover-size) 1fr auto;
-	gap: var(--default-grid-baseline) calc(2 * var(--default-grid-baseline));
-	align-items: start;
-	padding: calc(2.5 * var(--default-grid-baseline)) calc(3 * var(--default-grid-baseline));
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius-container);
-	background: var(--color-main-background);
-}
-
-@media (min-width: 720px) {
-	.folder-row {
-		--folder-cover-size: 72px;
-
-		grid-template-areas: "cover head counts actions" "cover meta meta actions";
-		grid-template-columns: var(--folder-cover-size) 1fr auto auto;
-		align-items: center;
-	}
-}
-
-.folder-row--done {
-	background: var(--color-background-hover);
-}
-
-.folder-row__cover {
-	grid-area: cover;
-}
-
-.folder-row__head {
-	display: flex;
-	grid-area: head;
-	flex-direction: column;
-	min-width: 0;
-}
-
-.folder-row__name {
-	overflow: hidden;
-	font-weight: bold;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.folder-row__parent {
-	overflow: hidden;
-	color: var(--color-text-maxcontrast);
-	font-size: 12px;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.folder-row__counts {
-	display: flex;
-	grid-area: counts;
-	flex-direction: column;
-	align-items: flex-end;
-	color: var(--color-text-maxcontrast);
-	font-size: 13px;
-	font-variant-numeric: tabular-nums;
-	white-space: nowrap;
-}
-
-.folder-row__meta {
-	display: grid;
-	grid-area: meta;
-	gap: var(--default-grid-baseline);
-	min-width: 0;
-}
-
-.folder-row__split {
-	display: flex;
-	overflow: hidden;
-	height: 8px;
-	border-radius: 4px;
-	background: var(--color-background-darker);
-}
-
-.folder-row__split-picked {
-	background: var(--color-success);
-}
-
-.folder-row__split-undecided {
-	background: var(--color-border-maxcontrast);
-}
-
-.folder-row__split-rejected {
-	background: var(--color-error);
-}
-
-.folder-row__state {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 2px calc(1.5 * var(--default-grid-baseline));
-	color: var(--color-text-maxcontrast);
-	font-size: 13px;
-}
-
-.folder-row__badge {
-	padding: 1px calc(2 * var(--default-grid-baseline));
-	border-radius: var(--border-radius-pill, 10px);
-	background: var(--color-primary-element-light);
-	color: var(--color-primary-element-light-text);
-	font-size: 12px;
-	font-weight: bold;
-}
-
-.folder-row__actions {
-	display: flex;
-	grid-area: actions;
-	align-items: center;
-	justify-content: flex-end;
-	gap: calc(1.5 * var(--default-grid-baseline));
-}
-</style>
+<style scoped src="./folder-row.css" />

@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { FolderSums, SubtreeState } from '../logic/folder-hierarchy.ts'
 import type { FolderFilter, FolderSort, YearHeading } from '../logic/folder-list.ts'
 import type { FolderProgress } from '../logic/folder-progress.ts'
 import type { FolderRow } from '../logic/folder-row.ts'
@@ -50,7 +51,7 @@ export function reasonText(row: FolderRow): string {
 }
 
 /** The split bar's accessible name. */
-export function splitText(row: FolderRow): string {
+export function splitText(row: Pick<FolderRow, 'picked' | 'undecided' | 'rejected'>): string {
 	const counts = { picked: formatNumber(row.picked), undecided: formatNumber(row.undecided), rejected: formatNumber(row.rejected) }
 	return t('honeycomb', '{picked} picked · {undecided} undecided · {rejected} rejected', counts)
 }
@@ -58,6 +59,11 @@ export function splitText(row: FolderRow): string {
 /** "100 photos". */
 export function photosText(count: number): string {
 	return n('honeycomb', '{count} photo', '{count} photos', count, { count: formatNumber(count) })
+}
+
+/** "12 folders". */
+export function foldersText(count: number): string {
+	return n('honeycomb', '{count} folder', '{count} folders', count, { count: formatNumber(count) })
 }
 
 /** "63 undecided". */
@@ -86,7 +92,7 @@ export function newBadgeText(row: FolderRow): string | null {
 /** The card's subtitle: the roots (only for the whole library), folders and photos below them. */
 export function summaryText(roots: number | null, progress: FolderProgress): string {
 	const parts = [
-		n('honeycomb', '{count} folder', '{count} folders', progress.folders, { count: formatNumber(progress.folders) }),
+		foldersText(progress.folders),
 		photosText(progress.photos),
 	]
 	if (roots !== null) {
@@ -99,10 +105,46 @@ export function summaryText(roots: number | null, progress: FolderProgress): str
 export function progressTexts(progress: FolderProgress): { headline: string, folders: string, month: string, decided: string } {
 	return {
 		headline: t('honeycomb', '{percent} % of photos in done folders', { percent: progress.donePercent }),
-		folders: n('honeycomb', '{done} of {total} folder done', '{done} of {total} folders done', progress.folders, { done: formatNumber(progress.doneFolders), total: formatNumber(progress.folders) }),
+		folders: foldersDoneText(progress.doneFolders, progress.folders),
 		month: t('honeycomb', '{count} this month', { count: formatNumber(progress.doneThisMonth) }),
 		decided: t('honeycomb', '{percent} % of all photos decided', { percent: progress.decidedPercent }),
 	}
+}
+
+/** "2 of 5 folders done". */
+function foldersDoneText(done: number, total: number): string {
+	return n('honeycomb', '{done} of {total} folder done', '{done} of {total} folders done', total, { done: formatNumber(done), total: formatNumber(total) })
+}
+
+/** The state line of a row with subfolders: its derived state of FOLDERS-009, `subfolders` naming an empty one's. */
+export function subtreeStateText(state: SubtreeState, sums: FolderSums, subfolders: number): string {
+	switch (state) {
+		case 'empty':
+			return n('honeycomb', 'No photos of its own · {count} subfolder', 'No photos of its own · {count} subfolders', subfolders, { count: formatNumber(subfolders) })
+		case 'read-only':
+			return t('honeycomb', 'Read-only')
+		case 'done':
+			return n('honeycomb', 'Done · all {count} folder', 'Done · all {count} folders', sums.rateable, { count: formatNumber(sums.rateable) })
+		case 'complete': {
+			const open = sums.rateable - sums.done
+			return n('honeycomb', 'Complete · {count} folder not marked done', 'Complete · {count} folders not marked done', open, { count: formatNumber(open) })
+		}
+		case 'open':
+			return [
+				t('honeycomb', '{percent} % undecided', { percent: percent(sums.undecided, sums.photos) }),
+				foldersDoneText(sums.done, sums.rateable),
+			].join(SEPARATOR)
+	}
+}
+
+/** The level card's line: the photos with subfolders, directly in it when there are, and the undecided ones. */
+export function levelSummaryText(all: FolderSums, own: FolderSums): string {
+	const parts = [n('honeycomb', '{count} photo with subfolders', '{count} photos with subfolders', all.photos, { count: formatNumber(all.photos) })]
+	if (own.photos > 0) {
+		parts.push(n('honeycomb', '{count} directly in it', '{count} directly in it', own.photos, { count: formatNumber(own.photos) }))
+	}
+	parts.push(undecidedText(all.undecided))
+	return parts.join(SEPARATOR)
 }
 
 /** The strip while the server summarises folders: the folders not yet fresh. */

@@ -9,10 +9,10 @@ import { DEFAULT_PAIRING_SETTINGS, pairPictures } from '../../../src/logic/pairi
 import { addExtension, DEFAULT_SETTINGS, DEFAULT_SUBFOLDERS, folderMode, pairingSettings, parseSettings, removeExtension, SETTINGS_VERSION, splitChange, storedSettings } from '../../../src/logic/settings.ts'
 
 describe('DEFAULT_SETTINGS', () => {
-	// spec: SETTINGS-001.6, GRID-004.1, STATS-001.2, IMMICH-001.22, SETTINGS-001.34
+	// spec: SETTINGS-001.6, GRID-004.1, STATS-001.2, IMMICH-001.22, SETTINGS-001.34, FOLDERS-009.5
 	it('pairs as the pairing defaults and turns on all but the vi keys', () => {
 		expect(pairingSettings(DEFAULT_SETTINGS)).toEqual(DEFAULT_PAIRING_SETTINGS)
-		expect(DEFAULT_SETTINGS).toMatchObject({ showSingles: true, swipes: DEFAULT_SWIPES, autoAdvance: true, flagButtonsShown: true, filmstripPinned: false, ratingRowPinned: false, viKeys: false, showFileNames: false, keepStatistics: true, immichOnly: false, writeFlagsToXmp: true })
+		expect(DEFAULT_SETTINGS).toMatchObject({ showSingles: true, swipes: DEFAULT_SWIPES, autoAdvance: true, flagButtonsShown: true, filmstripPinned: false, ratingRowPinned: false, viKeys: false, showFileNames: false, keepStatistics: true, immichOnly: false, writeFlagsToXmp: true, foldersIncludeSubfolders: true })
 		expect(DEFAULT_SUBFOLDERS).toEqual({ rawSubfolder: 'RAW', renderedSubfolder: 'JPG' })
 	})
 })
@@ -35,6 +35,7 @@ describe('parseSettings', () => {
 			keepStatistics: false,
 			immichOnly: true,
 			writeFlagsToXmp: false,
+			foldersIncludeSubfolders: false,
 			libraryRoots: ['/Photos', '/Archive'],
 			moveFavourites: ['/Archive'],
 			moveRecent: ['/Archive', '/Best'],
@@ -49,9 +50,9 @@ describe('parseSettings', () => {
 		expect(parseSettings(value)).toEqual(DEFAULT_SETTINGS)
 	})
 
-	// spec: SETTINGS-001.6, GRID-004.1, STATS-001.2, IMMICH-001.22, SETTINGS-001.34
+	// spec: SETTINGS-001.6, GRID-004.1, STATS-001.2, IMMICH-001.22, SETTINGS-001.34, FOLDERS-009.5
 	it('takes the default of each missing or invalid field and keeps the rest', () => {
-		expect(parseSettings({ showSingles: 'no', autoAdvance: false, viKeys: 1, showFileNames: 'yes', keepStatistics: 'no', immichOnly: 'yes', writeFlagsToXmp: 'no', swipes: { up: 'rejected', down: 'maybe' } })).toEqual({
+		expect(parseSettings({ showSingles: 'no', autoAdvance: false, viKeys: 1, showFileNames: 'yes', keepStatistics: 'no', immichOnly: 'yes', writeFlagsToXmp: 'no', foldersIncludeSubfolders: 0, swipes: { up: 'rejected', down: 'maybe' } })).toEqual({
 			...DEFAULT_SETTINGS,
 			autoAdvance: false,
 			swipes: { up: 'rejected', down: 'rejected' },

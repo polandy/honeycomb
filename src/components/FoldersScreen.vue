@@ -6,16 +6,23 @@
 import type { FolderList } from '../folders/folders.ts'
 import type { FolderFilter, FolderSort } from '../logic/folder-list.ts'
 import type { FolderRow } from '../logic/folder-row.ts'
+import type { FolderSet } from '../logic/folder-set.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/components/NcCheckboxRadioSwitch'
+import FolderBreadcrumb from './FolderBreadcrumb.vue'
+import FolderLevelCard from './FolderLevelCard.vue'
+import FolderLevelList from './FolderLevelList.vue'
 import FolderListFilters from './FolderListFilters.vue'
 import FolderListRow from './FolderListRow.vue'
 import FolderMenu from './FolderMenu.vue'
 import FoldersProgress from './FoldersProgress.vue'
 import ProgressBar from './ProgressBar.vue'
 import { updatingText, yearHeadingText } from '../folders/folders-text.ts'
+import { breadcrumb, buildHierarchy } from '../logic/folder-hierarchy.ts'
+import { allRows, cullSet, flatRows, ownRow, parentBelow, shownLevel } from '../logic/folder-level.ts'
 import { buildFolderList, filterCounts } from '../logic/folder-list.ts'
 import { folderProgress } from '../logic/folder-progress.ts'
 import { formatNumber } from '../shared/l10n.ts'
@@ -27,39 +34,48 @@ const props = defineProps<{
 	now: () => number
 	/** The row whose done status changed last; its *More* takes the focus (FOLDERS-008.3). */
 	focusRow?: { fileId: number } | null
+	/** Whether a row covers its whole subtree (FOLDERS-009.5). */
+	includeSubfolders: boolean
 }>()
 
 const emit = defineEmits<{
 	/** Cull one folder, with its subfolders or without (FOLDERS-007.13). */
-	cull: [set: { paths: string[], subfolders: boolean }]
+	cull: [set: FolderSet]
 	/** Mark the folder done, or reopen it, without a dialog (FOLDERS-008). */
 	markDone: [row: FolderRow]
 	reopen: [row: FolderRow]
 	/** Cull a done folder's new photos (FOLDERS-008.7). */
-	cullNew: [set: { paths: string[], subfolders: boolean }]
+	cullNew: [set: FolderSet]
+	'update:includeSubfolders': [on: boolean]
 }>()
 
-const root = ref<string | null>(null)
+/** The level the user opened, null for the start. */
+const chosen = ref<string | null>(null)
 const filter = ref<FolderFilter>('suggested')
 const sort = ref<FolderSort>('suggested')
 const menuRow = ref<FolderRow | null>(null)
 const scroller = useTemplateRef<HTMLElement>('scroller')
 
 const rows = computed(() => props.folders.rows.value)
-const listing = computed(() => buildFolderList(rows.value, { roots: props.roots, root: root.value, filter: filter.value, sort: sort.value }))
-const empty = computed(() => listing.value.sections.every((section) => section.groups.every((group) => group.rows.length === 0)))
-const counts = computed(() => filterCounts(rows.value.filter((each) => (root.value === null ? props.roots.includes(each.root) : each.root === root.value))))
+const tree = computed(() => buildHierarchy(props.roots, rows.value))
+const level = computed(() => shownLevel(tree.value, chosen.value))
+const crumbs = computed(() => (level.value === null ? [] : breadcrumb(level.value.root, level.value.path)))
+const flat = computed(() => flatRows(rows.value, level.value).filter((each) => props.roots.includes(each.root)))
+const listing = computed(() => buildFolderList(flat.value, { roots: level.value === null ? props.roots : [level.value.root], root: null, filter: filter.value, sort: sort.value }))
+const entries = computed(() => allRows(tree.value, level.value))
+const own = computed(() => ownRow(level.value))
+const empty = computed(() => (filter.value === 'all'
+	? entries.value.length === 0 && own.value === null
+	: listing.value.sections.every((section) => section.groups.every((group) => group.rows.length === 0))))
+const counts = computed(() => ({ ...filterCounts(flat.value), all: entries.value.length + (own.value === null ? 0 : 1) }))
+/** The root of the shown level for the progress card; null for the whole library, also of one root. */
+const root = computed(() => (tree.value.length > 1 ? level.value?.root ?? null : null))
 const library = computed(() => folderProgress(rows.value, props.roots, new Date(props.now() * 1000)))
 const progress = computed(() => (root.value === null ? library.value.total : library.value.perRoot.find((each) => each.root === root.value)!.progress))
 /** One bar per root only for the whole library of several roots (FOLDERS-007.9). */
 const perRoot = computed(() => (root.value === null && props.roots.length > 1 ? library.value.perRoot : []))
 const updating = computed(() => props.folders.updating.value)
-
-watch(() => props.roots, (roots) => {
-	if (root.value !== null && !roots.includes(root.value)) {
-		root.value = null
-	}
-})
+const levelList = useTemplateRef<InstanceType<typeof FolderLevelList>>('levelList')
 
 /** The list stays mounted under a cull; its scroll comes back with it (FOLDERS-007.14). */
 let scrollTop = 0
@@ -89,10 +105,10 @@ watch(() => props.focusRow, async (target) => {
 	}
 	await nextTick()
 	const shown = rowRefs.get(target.fileId)
-	if (shown === undefined) {
-		scroller.value?.focus()
-	} else {
+	if (shown !== undefined) {
 		shown.focus()
+	} else if (levelList.value?.focus(target.fileId) !== true) {
+		scroller.value?.focus()
 	}
 })
 
@@ -129,11 +145,24 @@ function cull(row: FolderRow, subfolders: boolean) {
 					:value="updating.done"
 					:max="updating.total" />
 			</div>
+			<div class="folders-screen__header">
+				<FolderBreadcrumb :crumbs="crumbs" :library="tree.length > 1" @open="chosen = $event" />
+				<NcCheckboxRadioSwitch
+					class="folders-screen__subfolders"
+					type="switch"
+					:modelValue="props.includeSubfolders"
+					@update:modelValue="emit('update:includeSubfolders', $event)">
+					{{ t('honeycomb', 'Include subfolders') }}
+				</NcCheckboxRadioSwitch>
+			</div>
+			<FolderLevelCard
+				v-if="level !== null"
+				:level="level"
+				:includeSubfolders="props.includeSubfolders"
+				@cull="emit('cull', cullSet(level, props.includeSubfolders))" />
 			<FolderListFilters
-				v-model:root="root"
 				v-model:filter="filter"
 				v-model:sort="sort"
-				:roots="props.roots"
 				:counts="counts" />
 			<p v-if="props.folders.state.value === 'loading'" class="folders-screen__state">
 				{{ t('honeycomb', 'Loading the folders…') }}
@@ -147,6 +176,18 @@ function cull(row: FolderRow, subfolders: boolean) {
 			<p v-else-if="empty" class="folders-screen__state">
 				{{ t('honeycomb', 'No folders here.') }}
 			</p>
+			<FolderLevelList
+				v-else-if="filter === 'all'"
+				ref="levelList"
+				:level="level"
+				:entries="entries"
+				:own="own"
+				:includeSubfolders="props.includeSubfolders"
+				@cull="emit('cull', $event)"
+				@open="chosen = $event"
+				@markDone="change('markDone', $event)"
+				@cullNew="emit('cullNew', $event)"
+				@menu="menuRow = $event" />
 			<template v-else>
 				<section v-for="section in listing.sections" :key="section.root" class="folders-screen__section">
 					<h3 v-if="listing.rootHeadings" class="folders-screen__root-heading">
@@ -162,6 +203,7 @@ function cull(row: FolderRow, subfolders: boolean) {
 							:key="each.fileId"
 							:ref="rowRef(each.fileId)"
 							:row="each"
+							:parent="level === null ? undefined : parentBelow(level, each.path)"
 							@cull="cull(each, false)"
 							@markDone="change('markDone', each)"
 							@cullNew="emit('cullNew', { paths: [each.path], subfolders: false })"
@@ -195,6 +237,14 @@ function cull(row: FolderRow, subfolders: boolean) {
 	width: min(960px, 100%);
 	margin: 0 auto;
 	padding: calc(4 * var(--default-grid-baseline));
+}
+
+.folders-screen__header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: calc(2 * var(--default-grid-baseline));
 }
 
 .folders-screen__updating {

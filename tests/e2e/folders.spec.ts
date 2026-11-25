@@ -9,10 +9,14 @@ import { putSettings, resetViewState } from './cull.ts'
 import { createFolder, JPEG, upload } from './files.ts'
 import { logIn, occ, trackRequests } from './server.ts'
 import { emulateIpad, expectTouchTargets } from './touch-targets.ts'
+import { WEBKIT } from './webkit.ts'
 
 /** The folders below the library root, each with one photo; enough rows to scroll on a short screen. */
 const FOLDERS = ['Alps', 'Beach', 'City', 'Desert', 'Forest', 'Glacier', 'Harbour', 'Island']
 const ROOT = '/Library'
+/** The subfolders put below *Alps*, so it is a level with photos of its own. */
+const DAYS = ['Day 1', 'Day 2']
+const SETTINGS_SAVED = /\/api\/v1\/settings$/
 
 test.use({ storageState: { cookies: [], origins: [] }, hasTouch: true })
 
@@ -144,4 +148,67 @@ test('culls a folder from the list and goes back to it with its filter and scrol
 	await expect(list.getByRole('group', { name: 'Filter' }).getByRole('button', { name: /^All/ })).toHaveAttribute('aria-pressed', 'true')
 	await expect.poll(() => list.evaluate((element) => element.scrollTop)).toBe(scrolled)
 	await expect(page.getByRole('grid', { name: 'Photos' })).toHaveCount(0)
+})
+
+/** Puts the days below *Alps*, each with one photo. */
+async function addDays(page: Page) {
+	for (const day of DAYS) {
+		await createFolder(page, `Library/Alps/${day}`, user.username)
+		await upload(page, `Library/Alps/${day}/IMG_0001.jpg`, JPEG, user.username)
+	}
+}
+
+// spec: FOLDERS-009.1, FOLDERS-009.4, FOLDERS-009.5, FOLDERS-009.8, FOLDERS-009.19
+test('opens a level by its row and breadcrumb and keeps Include subfolders off after a reload', { tag: WEBKIT }, async ({ page }) => {
+	await emulateIpad(page, 'landscape')
+	await addDays(page)
+	const list = await openList(page)
+	const subfolders = list.getByRole('switch', { name: 'Include subfolders' })
+	await expect(subfolders).toBeChecked()
+	await list.getByRole('group', { name: 'Filter' }).getByRole('button', { name: /^All/ }).click()
+	await expect(list.getByRole('article', { name: 'Alps' })).toContainText('3 photos')
+
+	await list.getByRole('button', { name: 'Open Alps' }).click()
+
+	const crumbs = list.getByRole('navigation', { name: 'Level' })
+	await expect(crumbs.locator('[aria-current="location"]')).toHaveText('Alps')
+	await expect(list.getByRole('button', { name: 'Cull this level' })).toBeEnabled()
+	await expect(list.getByRole('article', { name: 'Photos directly in Alps' })).toContainText('1 photo')
+	await expect(list.getByRole('article', { name: 'Day 1' })).toBeVisible()
+	await expectTouchTargets(list, 'folder level')
+	await crumbs.getByRole('button', { name: 'Library' }).click()
+	await expect(list.getByRole('article', { name: 'Beach' })).toBeVisible()
+
+	const saved = page.waitForResponse((response) => SETTINGS_SAVED.test(response.url()) && response.request().method() === 'PUT' && response.ok())
+	await list.getByText('Include subfolders', { exact: true }).click()
+	await saved
+	await page.reload()
+
+	await expect(list.getByRole('switch', { name: 'Include subfolders' })).not.toBeChecked()
+	await list.getByRole('group', { name: 'Filter' }).getByRole('button', { name: /^All/ }).click()
+	await expect(list.getByRole('article', { name: 'Alps' })).toContainText('1 photo')
+})
+
+// spec: FOLDERS-009.16, FOLDERS-009.19
+test('shows a level on a phone without a horizontal scroll and goes back to it from a cull', async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 844 })
+	await addDays(page)
+	const list = await openList(page)
+	await list.getByRole('group', { name: 'Filter' }).getByRole('button', { name: /^All/ }).click()
+	await list.getByRole('button', { name: 'Open Alps' }).click()
+	await expect(list.getByRole('article', { name: 'Day 2' })).toBeVisible()
+
+	expect(await list.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true)
+	for (const scheme of SCHEMES) {
+		await page.emulateMedia({ colorScheme: scheme })
+		await expectAccessible(page, `folder level on a phone, ${scheme}`)
+	}
+	await expectTouchTargets(list, 'folder level on a phone')
+
+	await list.getByRole('button', { name: 'Cull Day 2' }).click()
+	await expect(page.getByRole('gridcell', { name: 'IMG_0001, JPG only' })).toBeVisible()
+	await page.getByRole('button', { name: 'Back to folders' }).click()
+
+	await expect(list.getByRole('navigation', { name: 'Level' }).locator('[aria-current="location"]')).toHaveText('Alps')
+	await expect(list.getByRole('group', { name: 'Filter' }).getByRole('button', { name: /^All/ })).toHaveAttribute('aria-pressed', 'true')
 })

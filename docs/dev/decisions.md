@@ -2000,3 +2000,17 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-25: A subtree whose folders with photos are all read-only has the derived state
   `read-only`, not *Complete · 0 folders not marked done* or *0 of 0 folders done* (ADR 0060, PR 2,
   autonomous).
+- 2026-11-25: With several roots, the breadcrumb starts at *Library*, where *All* lists the roots
+  by their paths; the root chips of FOLDERS-007 go (ADR 0060, PR 3, autonomous).
+- 2026-11-25: A row without subfolders culls only its folder, `subfolders: false`, whatever the
+  switch says (ADR 0060, PR 3, autonomous).
+- 2026-11-25: *Sort* shows only for *Suggested* and *New photos*; *All* keeps the tree's order
+  (ADR 0060, PR 3, autonomous).
+- 2026-11-25: A subtree row has no ⋯ menu, *n new* or *Cull new* yet, and *Complete · n folders
+  not marked done* is text without *Mark all done*; PR 4 and PR 5 add them (ADR 0060, PR 3,
+  autonomous).
+- 2026-11-25: A chain row that ends at a folder without subfolders still opens its level, which
+  shows its card only (ADR 0060, PR 3, autonomous).
+- 2026-11-25: The progress card keeps the whole library with one root, and shows the level's root
+  with several; only the switch is saved, the shown level is not kept across reloads (ADR 0060,
+  PR 3, autonomous).

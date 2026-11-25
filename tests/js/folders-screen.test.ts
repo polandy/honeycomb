@@ -4,7 +4,7 @@
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
-import { chip, COMPLETE, dialogButton, DONE, fakeList, MARK, mountScreen, names, OPEN, PHONE, READ_ONLY, row_ } from './folders-screen-fixture.ts'
+import { chip, COMPLETE, crumbs, dialogButton, DONE, fakeList, MARK, mountScreen, names, OPEN, PHONE, READ_ONLY, row_ } from './folders-screen-fixture.ts'
 import { installMarkedCatalogue, uninstallMarkedCatalogue, untranslatedText } from './l10n/marked-catalogue.ts'
 import { row } from './logic/folder-fixtures.ts'
 
@@ -33,17 +33,18 @@ describe('FoldersScreen', () => {
 		void chosen.trigger('click')
 
 		return nextTick().then(() => {
-			expect(row_(wrapper, 'Trip').text()).toContain(`${MARK}63 % undecided · ${MARK}18 in bursts · 500 MB · 2019`)
-			expect(row_(wrapper, 'Trip').find('.folder-row__parent').text()).toBe('/Photos/2019')
-			expect(row_(wrapper, 'Trip').text()).toContain(`${MARK}100 photos`)
-			expect(row_(wrapper, 'Trip').text()).toContain(`${MARK}63 undecided`)
-			expect(row_(wrapper, 'Trip').find('.folder-row__split').attributes('aria-label')).toBe(`${MARK}30 picked · 63 undecided · 7 rejected`)
+			const trip = row_(wrapper, '2019 / Trip')
+			expect(trip.text()).toContain(`${MARK}63 % undecided · ${MARK}18 in bursts · 500 MB · 2019`)
+			expect(trip.find('.folder-row__parent').exists()).toBe(false)
+			expect(trip.text()).toContain(`${MARK}100 photos`)
+			expect(trip.text()).toContain(`${MARK}63 undecided`)
+			expect(trip.find('.folder-row__split').attributes('aria-label')).toBe(`${MARK}30 picked · 63 undecided · 7 rejected`)
 			expect(row_(wrapper, 'Done soon').text()).toContain(`${MARK}Complete · not marked done`)
 			expect(row_(wrapper, 'Old').text()).toContain(`${MARK}Done 2026-11-02 · by Andy`)
 			expect(row_(wrapper, 'Old').text()).toContain(`${MARK}4 new`)
 			expect(row_(wrapper, 'Shared copy').text()).toContain(`${MARK}Read-only`)
 			const culls = wrapper.findAll('.folder-row__cull')
-			expect(culls.map((each) => each.attributes('aria-label'))).toEqual([`${MARK}Cull Trip`])
+			expect(culls.map((each) => each.attributes('aria-label'))).toEqual([`${MARK}Cull 2019 / Trip`])
 			expect(untranslatedText(wrapper.element)).toEqual([])
 		})
 	})
@@ -109,7 +110,9 @@ describe('FoldersScreen', () => {
 		expect(card().text()).toContain(`${MARK}1 this month`)
 		expect(card().findAll('.folders-progress__root')).toHaveLength(2)
 
-		await chip(wrapper, 'Library root', '/Phone').trigger('click')
+		await chip(wrapper, 'Filter', 'All').trigger('click')
+		await wrapper.find(`[aria-label="${MARK}Open /Phone"]`).trigger('click')
+		await chip(wrapper, 'Filter', 'Suggested').trigger('click')
 
 		expect(card().find('.folders-progress__name').text()).toBe('/Phone')
 		expect(card().text()).toContain(`${MARK}${MARK}1 folder · ${MARK}${MARK}100 photos`)
@@ -124,7 +127,7 @@ describe('FoldersScreen', () => {
 
 		expect(chip(wrapper, 'Filter', 'Suggested').text()).toContain('3')
 		expect(chip(wrapper, 'Filter', 'New photos').text()).toContain('1')
-		expect(chip(wrapper, 'Filter', 'All').text()).toContain('4')
+		expect(chip(wrapper, 'Filter', 'All').text()).toContain('2')
 		expect(chip(wrapper, 'Filter', 'Suggested').attributes('aria-pressed')).toBe('true')
 		expect(wrapper.findAll('.folders-screen__root-heading').map((each) => each.find('[translate="no"]').text())).toEqual(['/Photos', '/Phone'])
 		expect(names(wrapper)).toEqual(['Trip', 'Big', 'Camera'])
@@ -133,8 +136,11 @@ describe('FoldersScreen', () => {
 		expect(names(wrapper)).toEqual(['Old'])
 
 		await chip(wrapper, 'Filter', 'All').trigger('click')
+		expect(names(wrapper)).toEqual(['/Photos', '/Phone'])
+
+		await chip(wrapper, 'Filter', 'Suggested').trigger('click')
 		await wrapper.find('select').setValue('largest')
-		expect(names(wrapper)).toEqual(['Big', 'Old', 'Trip', 'Camera'])
+		expect(names(wrapper)).toEqual(['Big', 'Trip', 'Camera'])
 
 		await wrapper.find('select').setValue('oldest')
 		expect(wrapper.findAll('.folders-screen__year').map((each) => each.text())).toEqual(['2019', '2020', '2020'])
@@ -146,6 +152,7 @@ describe('FoldersScreen', () => {
 		const wrapper = mountScreen(fakeList([OPEN]))
 
 		expect(wrapper.find(`[role="group"][aria-label="${MARK}Library root"]`).exists()).toBe(false)
+		expect(crumbs(wrapper)).toEqual(['Photos'])
 		expect(wrapper.find('.folders-screen__root-heading').exists()).toBe(false)
 		expect(wrapper.find('.folders-progress__root').exists()).toBe(false)
 	})
