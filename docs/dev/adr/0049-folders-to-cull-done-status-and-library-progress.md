@@ -25,6 +25,11 @@ Before the implementation: the endpoints moved to the `library` namespace, the f
 and not cached, the library roots are validated in the client, and *n new* and *Suggested* are
 defined. The sections below hold the amended text.
 
+## Amended 2026-11-25
+
+*Folders* became a drill-down with a scope switch and a derived done for a subtree; no stored
+status per subtree and no new table: [0060](0060-folder-hierarchy-scope-and-derived-done.md).
+
 ## Decision
 
 ### Library roots
