@@ -44,7 +44,8 @@ the `reinstall` value; on 0.2.0 or later the value drops nothing. After a failed
 keeps the maintenance mode on; turn it off with `occ maintenance:mode --off`.
 
 A test server that ran a Git checkout of the first form of the baseline, from 2026-11-23, keeps its
-data: the update adds the columns and indexes the baseline gained before 0.2.0. A schema of any
+data: the update adds the columns and indexes the baseline gained before 0.2.0, and drops the
+folder summaries it wrote without preview thumbnails, so the next folder scan writes them again. A schema of any
 other checkout cannot use the `reinstall` value, since it is already at 0.2.0. Drop everything
 with `occ honeycomb:cleanup --all --drop` and install honeycomb fresh with
 `occ app:enable honeycomb`.

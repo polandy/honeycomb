@@ -2032,3 +2032,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-25: The cover of a subtree row is picked by the client from the folders'
   `previews`, spread evenly, so the previews endpoint and the summaries stay as they are (ADR 0060,
   PR 5, autonomous).
+- 2026-11-25: nc-test showed the folder icon on every *Folders* row: its summaries predate
+  `previews`, which the repair migration added as null, and stay fresh while the folder etag holds.
+  `Version000200Date20261125150000` drops the summaries with photos and no previews, so the next
+  scan rewrites them; a RAW-only folder is scanned once more (0.1.2, autonomous).

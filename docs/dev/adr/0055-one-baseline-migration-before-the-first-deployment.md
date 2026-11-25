@@ -53,7 +53,8 @@ where it is missing, and a schema from the baseline today stays as it is. Making
 `honeycomb_positions.file_id` nullable and widening `asset_id` are in-place changes, which every
 supported database makes without losing a value. `SchemaRepairTest` builds the first form from
 `tests/fixtures/schema/honeycomb-first-baseline.json` and checks the migrations bring it to the
-fixture on SQLite, MariaDB and PostgreSQL.
+fixture on SQLite, MariaDB and PostgreSQL. `Version000200Date20261125150000` then drops the
+folder summaries with photos the first form wrote without `previews`, so the next scan rewrites them.
 
 - **`honeycomb_decisions.updated_by`** (`string(64)`, null) notes who saved or took a row over
   last, for information like `honeycomb_folder_done.user_id`: nothing reads it to decide, and
