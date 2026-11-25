@@ -94,10 +94,20 @@ export function doneText(row: FolderRow): string | null {
 	return t('honeycomb', 'Done {date} · by {user}', { date, user: row.done.by }, undefined, PLAIN_TEXT)
 }
 
+/** *n new*. */
+export function newText(count: number): string {
+	return n('honeycomb', '{count} new', '{count} new', count, { count: formatNumber(count) })
+}
+
 /** The badge *n new* of a done folder with new photos, else null. */
 export function newBadgeText(row: FolderRow): string | null {
 	const count = newCount(row)
-	return count > 0 ? n('honeycomb', '{count} new', '{count} new', count, { count: formatNumber(count) }) : null
+	return count > 0 ? newText(count) : null
+}
+
+/** The level card's line for a subtree of more than 20,000 photos. */
+export function largeSubtreeText(): string {
+	return t('honeycomb', 'A large subtree: loading it takes a while.')
 }
 
 /** The card's subtitle: the roots (only for the whole library), folders and photos below them. */

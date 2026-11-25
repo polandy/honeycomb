@@ -204,7 +204,7 @@ Phase 2: shares and group folders, Immich albums. **Done 2026-11-22**, phase 2 a
 switch *Include subfolders*; done stays per folder and a parent's state is derived. Five pull
 requests: ADR, spec and mockup; the pure module `folder-hierarchy.ts`; the drill-down in the
 screen; the batch endpoints with *Mark all done* and *Reopen all*; previews of a subtree, the
-large-subtree warning and *Cull new* with subfolders (`TODO.md`).
+large-subtree warning and *Cull new* with subfolders. **Done 2026-11-25.**
 
 ### Release – first App Store release
 

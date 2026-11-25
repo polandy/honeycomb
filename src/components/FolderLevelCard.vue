@@ -8,8 +8,8 @@ import type { FolderNode } from '../logic/folder-hierarchy.ts'
 import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import { levelSummaryText } from '../folders/folders-text.ts'
-import { scopeSums } from '../logic/folder-hierarchy.ts'
+import { largeSubtreeText, levelSummaryText } from '../folders/folders-text.ts'
+import { isLargeSubtree, scopeSums } from '../logic/folder-hierarchy.ts'
 
 /** The card of the shown level: its photos and *Cull this level* in the switch's scope (FOLDERS-009). */
 const props = defineProps<{ level: FolderNode, includeSubfolders: boolean }>()
@@ -17,6 +17,7 @@ const props = defineProps<{ level: FolderNode, includeSubfolders: boolean }>()
 const emit = defineEmits<{ cull: [] }>()
 
 const summary = computed(() => levelSummaryText(scopeSums(props.level, true), scopeSums(props.level, false)))
+const large = computed(() => isLargeSubtree(scopeSums(props.level, true)))
 const cullable = computed(() => scopeSums(props.level, props.includeSubfolders).photos > 0)
 </script>
 
@@ -27,6 +28,7 @@ const cullable = computed(() => scopeSums(props.level, props.includeSubfolders).
 				{{ props.level.name }}
 			</h2>
 			<span class="folder-level-card__summary">{{ summary }}</span>
+			<span v-if="large" class="folder-level-card__summary">{{ largeSubtreeText() }}</span>
 		</div>
 		<NcButton variant="primary" :disabled="!cullable" @click="emit('cull')">
 			{{ t('honeycomb', 'Cull this level') }}

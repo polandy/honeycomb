@@ -2029,3 +2029,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-25: A refused later call of a batch over 500 folders keeps the earlier calls written and
   shown on the next load, instead of a client rollback that could fail too (ADR 0060, PR 4,
   autonomous).
+- 2026-11-25: The cover of a subtree row is picked by the client from the folders'
+  `previews`, spread evenly, so the previews endpoint and the summaries stay as they are (ADR 0060,
+  PR 5, autonomous).
