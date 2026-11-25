@@ -35,6 +35,8 @@ function fakeHome(roots: readonly string[]) {
 		setDone: vi.fn(),
 		back: vi.fn(),
 		saveRoots: vi.fn(),
+		includeSubfolders: computed(() => false),
+		setIncludeSubfolders: vi.fn(),
 		now: () => 0,
 	} satisfies Home
 }
@@ -82,5 +84,16 @@ describe('FoldersHome', () => {
 		expect(home.markDone).toHaveBeenCalledWith(trip)
 		expect(home.reopen).toHaveBeenCalledWith(trip)
 		expect(home.cullNew).toHaveBeenCalledWith({ paths: ['/Photos/Trip'], subfolders: false })
+	})
+
+	// spec: FOLDERS-009.5
+	it('hands the screen the saved switch Include subfolders and saves its change', () => {
+		const home = fakeHome(['/Photos'])
+		const screen = mountHome(home).findComponent(FoldersScreen)
+
+		expect(screen.props('includeSubfolders')).toBe(false)
+		screen.vm.$emit('update:includeSubfolders', true)
+
+		expect(home.setIncludeSubfolders).toHaveBeenCalledWith(true)
 	})
 })
