@@ -27,9 +27,13 @@ final class PictureSourceTest extends TestCase {
 
 	public function testAPictureSourceListsShowsAnImageAndDecides(): void {
 		/** @param class-string $interface */
-		$methods = static fn (string $interface): array => array_map(static fn (\ReflectionMethod $method): string => $method->getName(), (new \ReflectionClass($interface))->getMethods());
+		$methods = static function (string $interface): array {
+			$names = array_map(static fn (\ReflectionMethod $method): string => $method->getName(), (new \ReflectionClass($interface))->getMethods());
+			sort($names);
+			return $names;
+		};
 
-		$this->assertSame(['listing', 'image', 'decide'], $methods(PictureSource::class));
-		$this->assertSame(['counts', 'listing', 'image', 'decide'], $methods(CountedPictureSource::class));
+		$this->assertSame(['decide', 'image', 'listing'], $methods(PictureSource::class));
+		$this->assertSame(['counts', 'decide', 'image', 'listing'], $methods(CountedPictureSource::class));
 	}
 }
