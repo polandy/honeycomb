@@ -53,6 +53,19 @@ describe('FoldersScreen subtree rows', () => {
 		expect(untranslatedText(wrapper.element)).toEqual([])
 	})
 
+	// spec: FOLDERS-009.15
+	it('with the switch off shows the own folder\'s new photos and culls them without subfolders', async () => {
+		const grown = doneRow({ fileId: 40, path: '/Photos/2023/Grown', photos: 15, picked: 10, undecided: 5 }, 10)
+		const below = row({ fileId: 41, path: '/Photos/2023/Grown/Extra' })
+		const wrapper = mountScreen(fakeList([grown, below, row({ fileId: 42, path: '/Photos/2023/Other' })]), ['/Photos'], null, false)
+		await openYear(wrapper)
+
+		expect(row_(wrapper, 'Grown').text()).toContain(`${MARK}5 new`)
+		await row_(wrapper, 'Grown').find('.folder-row__cull-new').trigger('click')
+
+		expect(wrapper.emitted('cullNew')).toEqual([[{ paths: ['/Photos/2023/Grown'], subfolders: false }]])
+	})
+
 	// spec: FOLDERS-009.21
 	it('adds the large-subtree line to the level card above 20,000 photos, whatever the switch says, and keeps Cull enabled', async () => {
 		const big = row({ fileId: 30, path: '/Photos/Big/a', photos: 20_001, undecided: 20_001, picked: 0, rejected: 0 })
