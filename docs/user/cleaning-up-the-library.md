@@ -31,9 +31,9 @@ The other chips are *New photos* and *All*; *Suggested* and *New photos* sort by
 
 ## Levels
 
-*Folders* shows one level of your library at a time, starting at the first folder that has more
-than one subfolder. The breadcrumb above the list names the levels above it; tap one to go up.
-With several roots it starts at *Library*, where *All* lists the roots. The card on top of a level
+*Folders* shows one level of your library at a time, starting at your root. The breadcrumb
+above the list names the levels above it; tap one to go up. With several roots it starts at
+*Library*, where *All* lists the roots. The card on top of a level
 counts its photos and offers *Cull this level*.
 
 On *All*, a folder with subfolders opens its level: tap the row or its arrow. The row *Photos
