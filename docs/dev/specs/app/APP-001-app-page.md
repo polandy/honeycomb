@@ -192,6 +192,16 @@ stays the same.
   says), and the page and the loupe pad their edges with `env(safe-area-inset-*)`, so the
   loupe's background runs under the bars while no control lies under them
 
+### APP-001.22 – Every page has one title row that clears the navigation toggle
+
+- **Given** a page of the app with a title: the library setup and the *Library* or a root's folder
+  list; the grid's toolbar keeps its own row (APP-001.11)
+- **When** the toggle floats over the content, on a screen narrower than 1024 px or with the
+  navigation closed
+- **Then** the title row is as tall as the toolbar row and its left padding keeps the title clear
+  of the toggle, so their boxes do not overlap; with the navigation open on a wide screen the
+  title sits flush left
+
 ## Out of scope
 
 - The folder picker itself: LISTING-003.
@@ -212,6 +222,7 @@ stays the same.
 | 2026-11-19 | An axe-core scan of every screen, light and dark (APP-001.15, ADR 0042; review UX-5) |
 | 2026-11-20 | A dialog opens without motion under reduced motion (APP-001.17) |
 | 2026-11-22 | Every toast has *Close* and goes by a sideways swipe; a toast may stay longer (APP-001.18, .19; M12 PR 6) |
+| 2026-11-25 | Every page has one title row that clears the navigation toggle (APP-001.22) |
 | 2026-11-20 | *Escape* closes a confirm dialog also from a switch or a checkbox, which `NcModal` leaves to the field (APP-001.16) |
 | 2026-11-24 | The gesture guide and the tag entry are modal: inert page, focus trap, `Esc` (APP-001.20; Fable review) |
 | 2026-11-24 | The page opts in to `viewport-fit=cover` and pads its edges with the safe areas (APP-001.21; Fable review) |
