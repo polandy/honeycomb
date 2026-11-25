@@ -28,6 +28,7 @@ export interface ImmichShape {
 	readonly countsQuery: CountsRequest
 	readonly counts: ImmichCounts
 	readonly row: DecisionRow
+	readonly saved: void
 }
 
 /** One connection's upload library as a picture source: paged and counted on the server, deciding only (ADR 0044, ADR 0058). */

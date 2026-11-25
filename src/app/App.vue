@@ -36,6 +36,7 @@ import { provideCullContext } from '../cull/cull-context.ts'
 import { useCullFinished } from '../cull/cull-finished.ts'
 import { useCull } from '../cull/cull.ts'
 import { flagsNotSavedText } from '../cull/decision-text.ts'
+import { folderPictureSource } from '../cull/folder-picture-source.ts'
 import { useTagEntryTargets } from '../cull/tag-entry-targets.ts'
 import { useToastedDecisions } from '../cull/toasted-decisions.ts'
 import { useFoldersHome } from '../folders/folders-home.ts'
@@ -81,7 +82,8 @@ const dialogs = useAppDialogs({ clearCache: props.clearCache, cleanUp: props.cle
 const { settingsOpen, shortcutsOpen, connectionOpen, toggleShortcuts } = dialogs
 const sidecarFlow = useSidecarFlow(props.sidecars, toast.show, toast.showError)
 const sidecars = useBundledSidecars(sidecarFlow.sync, props.schedule, props.onPageHide)
-const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveVisualHashes, measureImage: props.measureImage, saveQualityValues: props.saveQualityValues, wait: waitSeconds(props.schedule), warmPreviews: props.warmPreviews, flags: props.flags, lookupSeries: props.lookupSeries, saveSeries: props.saveSeries, tags: props.tags }, props.storage, () => settings.value, sidecars, (photos) => toast.showError(flagsNotSavedText(photos)))
+const folderPictures = folderPictureSource({ listEntries: props.listEntries, imageUrl: props.imageUrl, saveFlags: (items) => props.flags.save(items) })
+const cull = useCull({ hashImage: props.hashImage, saveVisualHashes: props.saveVisualHashes, measureImage: props.measureImage, saveQualityValues: props.saveQualityValues, wait: waitSeconds(props.schedule), warmPreviews: props.warmPreviews, flags: { ...props.flags, save: folderPictures.decide }, lookupSeries: props.lookupSeries, saveSeries: props.saveSeries, tags: props.tags }, props.storage, () => settings.value, sidecars, (photos) => toast.showError(flagsNotSavedText(photos)))
 const { folderSet, pictures, folders, view, progress, filtersOpen, pickerOpen, tileSize } = cull
 const gridScreen = useTemplateRef<InstanceType<typeof GridScreen>>('gridScreen')
 const grid = computed(() => gridScreen.value?.grid ?? null)

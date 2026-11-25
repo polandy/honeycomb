@@ -40,8 +40,15 @@ measure on 2026-11-24.
 ## Staging
 
 The owner chose the staging on 2026-11-24 (issue #187) over one PR for all of it and over
-TypeScript only. Until step 2 lands, `useCull` keeps its own decision steps; until step 3, the
-controllers call their services directly.
+TypeScript only. Until step 3, the controllers call their services directly.
+
+Step 2 (2026-11-25) split the core in two layers. `useCullSteps` holds the decided map and the undo
+history of every step kind and hands each shown row step to a `write`; `useCullCore` puts the
+queued save with roll back on it for a source that saves whole rows (Immich). The folder cull uses
+`useCullSteps` directly: its write saves the flags through `folderPictureSource.decide` and writes
+the other fields through to the sidecars, each taken back field by field (`useCullWrites`), which
+one queued row save cannot express. `PictureSource` gained a `saved` type, so the folder adapter
+answers the flag save's skipped ids. The listing flows and the image URLs still call their seams.
 
 ## Consequences
 
