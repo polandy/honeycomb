@@ -20,9 +20,9 @@ import FolderListFilters from './FolderListFilters.vue'
 import FolderListRow from './FolderListRow.vue'
 import FolderMenu from './FolderMenu.vue'
 import FoldersProgress from './FoldersProgress.vue'
+import FoldersUpdating from './FoldersUpdating.vue'
 import PageTitleRow from './PageTitleRow.vue'
-import ProgressBar from './ProgressBar.vue'
-import { progressSummary, progressTitle, updatingText, yearHeadingText } from '../folders/folders-text.ts'
+import { progressSummary, progressTitle, yearHeadingText } from '../folders/folders-text.ts'
 import { breadcrumb, buildHierarchy } from '../logic/folder-hierarchy.ts'
 import { allRows, cullSet, flatRows, ownRow, parentBelow, shownLevel } from '../logic/folder-level.ts'
 import { buildFolderList, filterCounts } from '../logic/folder-list.ts'
@@ -148,14 +148,7 @@ function cull(row: FolderRow, subfolders: boolean) {
 				:roots="props.roots.length"
 				:progress="progress"
 				:perRoot="perRoot" />
-			<div v-if="updating !== null" class="folders-screen__updating">
-				<span>{{ updatingText(updating.total - updating.done) }}</span>
-				<ProgressBar
-					class="folders-screen__updating-bar"
-					:label="updatingText(updating.total - updating.done)"
-					:value="updating.done"
-					:max="updating.total" />
-			</div>
+			<FoldersUpdating v-if="updating !== null" :updating="updating" />
 			<div class="folders-screen__header">
 				<FolderBreadcrumb :crumbs="crumbs" :library="tree.length > 1" @open="chosen = $event" />
 				<NcCheckboxRadioSwitch
@@ -258,19 +251,6 @@ function cull(row: FolderRow, subfolders: boolean) {
 	align-items: center;
 	justify-content: space-between;
 	gap: calc(2 * var(--default-grid-baseline));
-}
-
-.folders-screen__updating {
-	display: grid;
-	gap: var(--default-grid-baseline);
-	color: var(--color-text-maxcontrast);
-	font-size: 13px;
-}
-
-.folders-screen__updating-bar {
-	width: 100%;
-	height: 6px;
-	border-radius: 3px;
 }
 
 .folders-screen__state {
