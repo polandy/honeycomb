@@ -34,6 +34,7 @@ use ReflectionMethod;
 final class EntryControllerTest extends TestCase {
 	use FakeFiles;
 	use FakeRoots;
+	use FolderSourceFixture;
 
 	/** @param array<string, mixed> $params */
 	/** @param list<string> $roots */
@@ -43,7 +44,7 @@ final class EntryControllerTest extends TestCase {
 		$listing = new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class), new FakeVisualHashStore(), new FakeFlagStore(), new FakeQualityStore()));
 		$request = $this->createStub(IRequest::class);
 		$request->method('getParam')->willReturnCallback(static fn (string $key, mixed $default = null): mixed => $params[$key] ?? $default);
-		return new EntryController(Application::APP_ID, $request, new ApiResponse($session), $listing, $this->rootsGuard($roots));
+		return new EntryController(Application::APP_ID, $request, new ApiResponse($session), $this->folderSource(listing: $listing), $this->rootsGuard($roots));
 	}
 
 	// spec: LISTING-001.1

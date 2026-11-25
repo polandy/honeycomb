@@ -40,7 +40,7 @@ measure on 2026-11-24.
 ## Staging
 
 The owner chose the staging on 2026-11-24 (issue #187) over one PR for all of it and over
-TypeScript only. Until step 3, the controllers call their services directly.
+TypeScript only.
 
 Step 2 (2026-11-25) split the core in two layers. `useCullSteps` holds the decided map and the undo
 history of every step kind and hands each shown row step to a `write`; `useCullCore` puts the
@@ -49,6 +49,16 @@ queued save with roll back on it for a source that saves whole rows (Immich). Th
 the other fields through to the sidecars, each taken back field by field (`useCullWrites`), which
 one queued row save cannot express. `PictureSource` gained a `saved` type, so the folder adapter
 answers the flag save's skipped ids. The listing flows and the image URLs still call their seams.
+
+Step 3 (2026-11-25) put the PHP interface behind the routes. `PictureSource`
+(`lib/Domain/PictureSource.php`) has `listing`, `image` and `decide`; `CountedPictureSource` adds
+`counts`, as only a source that lists page by page counts on the server. Each method takes the
+source it acts on (the user for their folders, a connection for Immich) and one query value, both
+typed by Psalm templates. `FolderPictureSource` (`lib/Service/Source`) serves `entries`, the image
+tiers and the flag save; `ImmichPictureSource` (`lib/Immich`) the four Immich routes. The image
+route still finds the file and answers *not modified* itself, and the flag take over and sidecar
+ETags stay on `FlagService`, as no other source has them. Step 1's re-exports from
+`src/immich/immich-cull.ts` are gone.
 
 ## Consequences
 

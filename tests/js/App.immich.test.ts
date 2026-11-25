@@ -1,10 +1,11 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { AssetsRequest, ImmichCullApi } from '../../src/immich/immich-cull.ts'
+import type { ImmichCullApi } from '../../src/immich/immich-picture-source.ts'
 import type { ImmichApi } from '../../src/immich/immich-source.ts'
 import type { DecisionRow } from '../../src/logic/immich-asset.ts'
 import type { ConnectionStatus, ImmichAvailability } from '../../src/logic/immich-connections.ts'
+import type { AssetsRequest } from '../../src/logic/immich-paging.ts'
 import type { ViewStatePatch } from '../../src/logic/view-state.ts'
 
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'

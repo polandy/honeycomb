@@ -10,8 +10,8 @@ namespace OCA\Honeycomb\Controller;
 use OCA\Honeycomb\Domain\FolderSet;
 use OCA\Honeycomb\Domain\InvalidRequestException;
 use OCA\Honeycomb\Domain\Reason;
-use OCA\Honeycomb\Service\Listing\ListingService;
 use OCA\Honeycomb\Service\Settings\LibraryRootsGuard;
+use OCA\Honeycomb\Service\Source\FolderPictureSource;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -26,7 +26,7 @@ final class EntryController extends Controller {
 		string $appName,
 		IRequest $request,
 		private ApiResponse $api,
-		private ListingService $listingService,
+		private FolderPictureSource $source,
 		private LibraryRootsGuard $roots,
 	) {
 		parent::__construct($appName, $request);
@@ -40,7 +40,7 @@ final class EntryController extends Controller {
 			$this->roots->ensureInside($user, $path);
 			$excluded = FolderSet::folderPaths($this->request->getParam('excluded', []))
 				?? throw InvalidRequestException::because(Reason::BadPath, 'excluded must list at most ' . FolderSet::MAX_FOLDERS . ' folder paths without ..');
-			return new JSONResponse($this->listingService->list($user, $path, $subfolders, $excluded));
+			return new JSONResponse($this->source->listing($user, ['path' => $path, 'subfolders' => $subfolders, 'excluded' => $excluded]));
 		});
 	}
 }
