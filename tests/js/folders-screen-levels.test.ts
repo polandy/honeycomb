@@ -17,6 +17,11 @@ const RECEIPTS = row({ fileId: 15, path: '/Photos/Documents/Receipts', photos: 0
 const SCANS = row({ fileId: 16, path: '/Photos/Archive/Analog/Scans 1998' })
 const ROWS = [Y2024, JURA, DAY1, DAY2, DAY3, RECEIPTS, SCANS]
 
+/** The number on a filter chip. */
+function count(wrapper: ReturnType<typeof mountScreen>, label: string): number {
+	return Number(chip(wrapper, 'Filter', label).find('.folder-filters__count').text())
+}
+
 /** Opens the level of the row labelled `label` by its *Open* button. */
 async function open(wrapper: ReturnType<typeof mountScreen>, label: string) {
 	await wrapper.find(`[aria-label="${MARK}Open ${label}"]`).trigger('click')
@@ -220,7 +225,7 @@ describe('FoldersScreen levels', () => {
 		expect(row_(wrapper, 'Day 1').find('.folder-row__parent').text()).toBe('Iceland')
 		expect(row_(wrapper, 'Jura').find('.folder-row__parent').exists()).toBe(false)
 		expect(chip(wrapper, 'Filter', 'Suggested').text()).toContain('4')
-		expect(chip(wrapper, 'Filter', 'All').text()).toContain('3')
+		expect(chip(wrapper, 'Filter', 'All').text()).toContain('5')
 		expect(wrapper.find('select').exists()).toBe(true)
 	})
 
@@ -262,5 +267,19 @@ describe('FoldersScreen levels', () => {
 		await wrapper.find('.folders-screen__subfolders input').setValue(false)
 
 		expect(wrapper.emitted('update:includeSubfolders')).toEqual([[false]])
+	})
+
+	// spec: FOLDERS-009.22
+	it('counts every chip over the folders of the level, so All is never fewer than Suggested or New photos', async () => {
+		const fresh = doneRow({ fileId: 17, path: '/Photos/2024/Iceland/Day 4', photos: 5, picked: 5 }, 3)
+		const wrapper = mountScreen(fakeList([...ROWS, fresh]))
+
+		expect([count(wrapper, 'Suggested'), count(wrapper, 'New photos'), count(wrapper, 'All')]).toEqual([5, 1, 7])
+		expect(wrapper.findAll('.folder-row')).toHaveLength(5)
+		await chip(wrapper, 'Filter', 'New photos').trigger('click')
+		expect(wrapper.findAll('.folder-row')).toHaveLength(1)
+		await showAll(wrapper)
+		await open(wrapper, '2024')
+		expect([count(wrapper, 'Suggested'), count(wrapper, 'New photos'), count(wrapper, 'All')]).toEqual([4, 1, 6])
 	})
 })

@@ -129,7 +129,7 @@ describe('FoldersScreen', () => {
 
 		expect(chip(wrapper, 'Filter', 'Suggested').text()).toContain('3')
 		expect(chip(wrapper, 'Filter', 'New photos').text()).toContain('1')
-		expect(chip(wrapper, 'Filter', 'All').text()).toContain('2')
+		expect(chip(wrapper, 'Filter', 'All').text()).toContain('4')
 		expect(chip(wrapper, 'Filter', 'Suggested').attributes('aria-pressed')).toBe('true')
 		expect(wrapper.findAll('.folders-screen__root-heading').map((each) => each.find('[translate="no"]').text())).toEqual(['/Photos', '/Phone'])
 		expect(names(wrapper)).toEqual(['Trip', 'Big', 'Camera'])
