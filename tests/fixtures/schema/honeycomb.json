@@ -47,6 +47,7 @@
             "newest": "bigint null",
             "oldest": "bigint null",
             "photos": "integer notnull",
+            "previews": "string(100) null",
             "raw_bytes": "bigint notnull",
             "scanned_at": "bigint notnull"
         },

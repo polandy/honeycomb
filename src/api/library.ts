@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { FolderDone, FolderRow } from '../logic/folder-row.ts'
+import type { FolderDone, FolderPreview, FolderRow } from '../logic/folder-row.ts'
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -76,8 +76,14 @@ function isFolderRow(value: unknown): value is FolderRow {
 	return isRecord(value)
 		&& ROW_NUMBERS.every((key) => typeof value[key] === 'number')
 		&& ROW_TIMES.every((key) => value[key] === null || typeof value[key] === 'number')
+		&& Array.isArray(value.previews) && value.previews.every(isFolderPreview)
 		&& typeof value.root === 'string' && typeof value.path === 'string'
 		&& (value.done === null || isFolderDone(value.done))
+}
+
+/** Whether a value is one of a folder's preview pictures. */
+function isFolderPreview(value: unknown): value is FolderPreview {
+	return isRecord(value) && typeof value.fileId === 'number' && typeof value.mtime === 'number'
 }
 
 /** Whether a value is a folder's done status. */

@@ -9,6 +9,8 @@ import { t } from '@nextcloud/l10n'
 import { computed, useId, useTemplateRef } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
+import FolderCover from './FolderCover.vue'
+import { imageUrl } from '../api/index.ts'
 import { doneText, newBadgeText, photosText, reasonText, splitText, undecidedText } from '../folders/folders-text.ts'
 import { folderName, isComplete, isRateable, newCount, percent } from '../logic/folder-row.ts'
 import { PLAIN_TEXT } from '../shared/l10n.ts'
@@ -48,9 +50,11 @@ defineExpose({ focus })
 
 <template>
 	<article class="folder-row" :class="{ 'folder-row--done': !open }" :aria-labelledby="nameId">
-		<span class="folder-row__icon" aria-hidden="true">
-			<AppIcon :name="open ? 'folder' : 'check'" />
-		</span>
+		<FolderCover
+			class="folder-row__cover"
+			:previews="props.row.previews"
+			:done="!open"
+			:imageUrl="imageUrl" />
 		<div class="folder-row__head">
 			<span :id="nameId" class="folder-row__name" translate="no">{{ name }}</span>
 			<span class="folder-row__parent" translate="no">{{ parent }}</span>
@@ -119,9 +123,11 @@ defineExpose({ focus })
 
 <style scoped>
 .folder-row {
+	--folder-cover-size: 56px;
+
 	display: grid;
-	grid-template-areas: "icon head counts" "icon meta meta" "icon actions actions";
-	grid-template-columns: 36px 1fr auto;
+	grid-template-areas: "cover head counts" "cover meta meta" "cover actions actions";
+	grid-template-columns: var(--folder-cover-size) 1fr auto;
 	gap: var(--default-grid-baseline) calc(2 * var(--default-grid-baseline));
 	align-items: start;
 	padding: calc(2.5 * var(--default-grid-baseline)) calc(3 * var(--default-grid-baseline));
@@ -132,8 +138,10 @@ defineExpose({ focus })
 
 @media (min-width: 720px) {
 	.folder-row {
-		grid-template-areas: "icon head counts actions" "icon meta meta actions";
-		grid-template-columns: 36px 1fr auto auto;
+		--folder-cover-size: 72px;
+
+		grid-template-areas: "cover head counts actions" "cover meta meta actions";
+		grid-template-columns: var(--folder-cover-size) 1fr auto auto;
 		align-items: center;
 	}
 }
@@ -142,16 +150,8 @@ defineExpose({ focus })
 	background: var(--color-background-hover);
 }
 
-.folder-row__icon {
-	display: flex;
-	grid-area: icon;
-	align-items: center;
-	justify-content: center;
-	width: 36px;
-	height: 36px;
-	border-radius: 50%;
-	background: var(--color-background-dark);
-	color: var(--color-text-maxcontrast);
+.folder-row__cover {
+	grid-area: cover;
 }
 
 .folder-row__head {

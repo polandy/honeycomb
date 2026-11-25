@@ -77,9 +77,25 @@ final class LibraryFolderServiceTest extends TestCase {
 		$this->service()->scan($this->user(), 'Photos');
 
 		$this->assertEquals([
-			10 => new FolderSummary(10, 'e-10', 2, 32, 25, 1, 1_000, 1_002, 50, self::NOW),
+			10 => new FolderSummary(10, 'e-10', 2, 32, 25, 1, 1_000, 1_002, 50, self::NOW, [['fileId' => 1, 'mtime' => 50], ['fileId' => 3, 'mtime' => 30]]),
 			11 => new FolderSummary(11, 'e-11', 0, 0, 0, 0, null, null, null, self::NOW),
 		], $this->summaries->rows);
+	}
+
+	// spec: FOLDERS-005.18
+	public function testARowCarriesThePreviewsItsScanStored(): void {
+		$this->files->folders = [$this->libraryFolder(10, ''), $this->libraryFolder(11, '/raw')];
+		$this->files->photos = [
+			['fileId' => 1, 'parent' => 10, 'name' => 'a.jpg', 'size' => 1, 'mtime' => 50],
+			['fileId' => 2, 'parent' => 11, 'name' => 'b.nef', 'size' => 1, 'mtime' => 60],
+		];
+		$this->captureTimes = [1 => 1_000, 2 => 1_001];
+		$this->service()->scan($this->user(), '/Photos');
+
+		$list = $this->service()->list($this->user(), '/Photos', '', '');
+
+		$this->assertSame([[['fileId' => 1, 'mtime' => 50]]], [$list['folders'][0]['previews']]);
+		$this->assertSame([], $list['folders'][1]['previews']);
 	}
 
 	// spec: FOLDERS-005.5
@@ -139,8 +155,8 @@ final class LibraryFolderServiceTest extends TestCase {
 
 		$this->assertNull($list['scanning']);
 		$this->assertSame([
-			['fileId' => 10, 'root' => '/Photos', 'path' => '/Photos', 'photos' => 4, 'bytes' => 100, 'rawBytes' => 60, 'bursts' => 1, 'oldest' => 1_600_000_000, 'newest' => 1_600_000_100, 'lastActivity' => 1_700_000_000, 'picked' => 0, 'rejected' => 0, 'undecided' => 4, 'permissions' => Constants::PERMISSION_ALL, 'done' => null],
-			['fileId' => 11, 'root' => '/Photos', 'path' => '/Photos/2024', 'photos' => 4, 'bytes' => 100, 'rawBytes' => 60, 'bursts' => 1, 'oldest' => 1_600_000_000, 'newest' => 1_600_000_100, 'lastActivity' => 1_700_000_000, 'picked' => 0, 'rejected' => 0, 'undecided' => 4, 'permissions' => Constants::PERMISSION_READ, 'done' => ['by' => 'bob', 'at' => 1_750_000_000, 'photos' => 3]],
+			['fileId' => 10, 'root' => '/Photos', 'path' => '/Photos', 'photos' => 4, 'bytes' => 100, 'rawBytes' => 60, 'bursts' => 1, 'oldest' => 1_600_000_000, 'newest' => 1_600_000_100, 'lastActivity' => 1_700_000_000, 'previews' => [], 'picked' => 0, 'rejected' => 0, 'undecided' => 4, 'permissions' => Constants::PERMISSION_ALL, 'done' => null],
+			['fileId' => 11, 'root' => '/Photos', 'path' => '/Photos/2024', 'photos' => 4, 'bytes' => 100, 'rawBytes' => 60, 'bursts' => 1, 'oldest' => 1_600_000_000, 'newest' => 1_600_000_100, 'lastActivity' => 1_700_000_000, 'previews' => [], 'picked' => 0, 'rejected' => 0, 'undecided' => 4, 'permissions' => Constants::PERMISSION_READ, 'done' => ['by' => 'bob', 'at' => 1_750_000_000, 'photos' => 3]],
 		], $list['folders']);
 	}
 

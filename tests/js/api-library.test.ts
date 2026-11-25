@@ -19,6 +19,14 @@ describe('listLibraryFolders', () => {
 		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/library/folders', { params: { root: '/Photos', cursor: 3 } })
 	})
 
+	// spec: FOLDERS-007.18
+	it('keeps a row\'s previews', async () => {
+		const previewed = row({ fileId: 8, previews: [{ fileId: 3, mtime: 9 }] })
+		vi.mocked(axios.get).mockResolvedValue({ data: { folders: [previewed], nextCursor: null, scanning: null } })
+
+		await expect(listLibraryFolders('/Photos')).resolves.toMatchObject({ folders: [{ previews: [{ fileId: 3, mtime: 9 }] }] })
+	})
+
 	// spec: FOLDERS-007.4
 	it('asks a page of the given size', async () => {
 		vi.mocked(axios.get).mockResolvedValue({ data: { folders: [], nextCursor: null, scanning: null } })
@@ -28,7 +36,7 @@ describe('listLibraryFolders', () => {
 	})
 
 	it('refuses a page of the wrong shape', async () => {
-		for (const data of [null, { folders: {}, nextCursor: null, scanning: null }, { folders: [{ fileId: '7' }], nextCursor: null, scanning: null }, { folders: [], nextCursor: '7', scanning: null }, { folders: [], nextCursor: null, scanning: { done: 1 } }]) {
+		for (const data of [null, { folders: {}, nextCursor: null, scanning: null }, { folders: [{ fileId: '7' }], nextCursor: null, scanning: null }, { folders: [{ ...ROW, previews: undefined }], nextCursor: null, scanning: null }, { folders: [{ ...ROW, previews: [{ fileId: 1 }] }], nextCursor: null, scanning: null }, { folders: [], nextCursor: '7', scanning: null }, { folders: [], nextCursor: null, scanning: { done: 1 } }]) {
 			vi.mocked(axios.get).mockResolvedValue({ data })
 			await expect(listLibraryFolders('/Photos')).rejects.toThrow(ApiResponseError)
 		}
