@@ -19,6 +19,7 @@ use OCA\Honeycomb\Immich\ImmichCounts;
 use OCA\Honeycomb\Immich\ImmichDecisions;
 use OCA\Honeycomb\Immich\ImmichImages;
 use OCA\Honeycomb\Immich\ImmichListing;
+use OCA\Honeycomb\Immich\ImmichPictureSource;
 use OCA\Honeycomb\Immich\ImmichSearchFilter;
 use OCA\Honeycomb\Immich\ImmichStatus;
 use OCA\Honeycomb\Immich\ListingCursors;
@@ -230,10 +231,12 @@ final class ImmichControllerTest extends TestCase {
 			new ApiResponse($session),
 			new Connections($config, $this->files, new ConnectionsFileShape(), $logger),
 			new ImmichStatus($client, $filter),
-			new ImmichListing($client, $filter, $cursors, $entries, $time, $this->decisions, new DecidedPages($client, $filter, $cursors, $entries, $this->decisions)),
-			new ImmichImages($client),
-			new ImmichDecisions($this->decisions, $time),
-			new ImmichCounts($client, $filter, $this->decisions, $time),
+			new ImmichPictureSource(
+				new ImmichListing($client, $filter, $cursors, $entries, $time, $this->decisions, new DecidedPages($client, $filter, $cursors, $entries, $this->decisions)),
+				new ImmichCounts($client, $filter, $this->decisions, $time),
+				new ImmichImages($client),
+				new ImmichDecisions($this->decisions, $time),
+			),
 		);
 	}
 }
