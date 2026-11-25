@@ -15,6 +15,17 @@ describe('FoldersScreen', () => {
 		document.body.replaceChildren()
 	})
 
+	// spec: FOLDERS-007.18
+	it('shows each row\'s previews as its cover and the icon for a folder without', () => {
+		const previewed = row({ fileId: 8, path: '/Photos/Alps', previews: [{ fileId: 31, mtime: 5 }, { fileId: 32, mtime: 6 }, { fileId: 33, mtime: 7 }] })
+		const wrapper = mountScreen(fakeList([previewed, OPEN]))
+
+		expect(row_(wrapper, 'Alps').findAll('.folder-cover img')).toHaveLength(3)
+		expect(row_(wrapper, 'Alps').find('.folder-cover img').attributes('src')).toContain('/images/31?size=256&v=5')
+		expect(row_(wrapper, 'Trip').find('.folder-cover img').exists()).toBe(false)
+		expect(row_(wrapper, 'Trip').find('.folder-cover__icon').exists()).toBe(true)
+	})
+
 	// spec: FOLDERS-007.11
 	it('shows each row\'s state and offers Cull only on the open one', () => {
 		const wrapper = mountScreen(fakeList([OPEN, COMPLETE, DONE, READ_ONLY]), ['/Photos'])

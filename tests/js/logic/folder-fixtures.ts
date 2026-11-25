@@ -22,6 +22,7 @@ export function row(overrides: Partial<FolderRow> = {}): FolderRow {
 		oldest: Date.UTC(2020, 5, 1) / 1000,
 		newest: Date.UTC(2020, 5, 2) / 1000,
 		lastActivity: null,
+		previews: [],
 		permissions: PERMISSION_UPDATE,
 		done: null,
 		...overrides,

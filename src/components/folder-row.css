@@ -3,9 +3,11 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 .folder-row {
+	--folder-cover-size: 56px;
+
 	display: grid;
-	grid-template-areas: "icon head counts" "icon meta meta" "icon actions actions";
-	grid-template-columns: 36px 1fr auto;
+	grid-template-areas: "cover head counts" "cover meta meta" "cover actions actions";
+	grid-template-columns: var(--folder-cover-size) 1fr auto;
 	gap: var(--default-grid-baseline) calc(2 * var(--default-grid-baseline));
 	align-items: start;
 	padding: calc(2.5 * var(--default-grid-baseline)) calc(3 * var(--default-grid-baseline));
@@ -16,8 +18,10 @@
 
 @media (min-width: 720px) {
 	.folder-row {
-		grid-template-areas: "icon head counts actions" "icon meta meta actions";
-		grid-template-columns: 36px 1fr auto auto;
+		--folder-cover-size: 72px;
+
+		grid-template-areas: "cover head counts actions" "cover meta meta actions";
+		grid-template-columns: var(--folder-cover-size) 1fr auto auto;
 		align-items: center;
 	}
 }
@@ -26,16 +30,8 @@
 	background: var(--color-background-hover);
 }
 
-.folder-row__icon {
-	display: flex;
-	grid-area: icon;
-	align-items: center;
-	justify-content: center;
-	width: 36px;
-	height: 36px;
-	border-radius: 50%;
-	background: var(--color-background-dark);
-	color: var(--color-text-maxcontrast);
+.folder-row__cover {
+	grid-area: cover;
 }
 
 .folder-row__head {

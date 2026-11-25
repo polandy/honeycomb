@@ -3,6 +3,7 @@
 import type { Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
+import { FILMSTRIP_TAB } from '../../src/logic/filmstrip.ts'
 import { openLoupe } from './cull.ts'
 import { WEBKIT } from './webkit.ts'
 
@@ -32,7 +33,7 @@ test('opens a photo in the loupe, pages by key and closes back to the grid', { t
 })
 
 // spec: LOUPE-001.13, LOUPE-001.19
-test('shows the filmstrip as square photos edge to edge at full opacity from its left edge, the shown one with a white ring and a dark edge', async ({ page }) => {
+test('shows the filmstrip as square photos edge to edge at full opacity from its left edge past the series tab, the shown one with a white ring and a dark edge', async ({ page }) => {
 	const loupe = await openLoupe(page)
 	const filmstrip = loupe.getByRole('navigation', { name: 'Filmstrip' })
 	const shown = filmstrip.getByRole('button', { name: 'IMG_0001' })
@@ -48,7 +49,8 @@ test('shows the filmstrip as square photos edge to edge at full opacity from its
 	const [strip, first, second] = [(await filmstrip.boundingBox())!, (await shown.boundingBox())!, (await other.boundingBox())!]
 	expect(first.width).toBe(first.height)
 	expect(second.x).toBe(first.x + first.width)
-	expect(Math.abs(first.x - strip.x)).toBeLessThanOrEqual(1)
+	// The series' tab column comes before its first photo.
+	expect(Math.abs(first.x - FILMSTRIP_TAB - strip.x)).toBeLessThanOrEqual(1)
 	expect((await loupe.locator('.action-bar__row').boundingBox())!.y).toBeGreaterThanOrEqual(strip.y + strip.height)
 })
 

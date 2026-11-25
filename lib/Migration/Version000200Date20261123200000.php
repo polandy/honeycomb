@@ -36,6 +36,8 @@ final class Version000200Date20261123200000 extends SimpleMigrationStep {
 	private const int CAMERA_MODEL_LENGTH = 128;
 	/** Immich's ISO 8601 time as it sends it. */
 	private const int TIME_LENGTH = 32;
+	/** Three `fileId:mtime` pairs: 3 times 21 characters and two commas. */
+	private const int PREVIEWS_LENGTH = 100;
 
 	private const array NOT_NULL = ['notnull' => true];
 	private const array NULL = ['notnull' => false];
@@ -49,6 +51,7 @@ final class Version000200Date20261123200000 extends SimpleMigrationStep {
 	private const array WORD = ['notnull' => true, 'length' => self::WORD_LENGTH];
 	private const array OPTIONAL_WORD = ['notnull' => false, 'length' => self::WORD_LENGTH];
 	private const array KEEP_RAW = ['notnull' => false, 'default' => false];
+	private const array OPTIONAL_PREVIEWS = ['notnull' => false, 'length' => self::PREVIEWS_LENGTH];
 	private const array ZERO = ['notnull' => true, 'default' => 0];
 
 	#[\Override]
@@ -152,6 +155,7 @@ final class Version000200Date20261123200000 extends SimpleMigrationStep {
 			'oldest' => [Types::BIGINT, self::NULL],
 			'newest' => [Types::BIGINT, self::NULL],
 			'last_activity' => [Types::BIGINT, self::NULL],
+			'previews' => [Types::STRING, self::OPTIONAL_PREVIEWS],
 			'scanned_at' => [Types::BIGINT, self::NOT_NULL],
 		], unique: [['file_id']]);
 		// user_id is null once the user who marked the folder done is deleted.

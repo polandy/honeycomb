@@ -9,6 +9,8 @@ import { t } from '@nextcloud/l10n'
 import { computed, useId, useTemplateRef } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
+import FolderCover from './FolderCover.vue'
+import { imageUrl } from '../api/index.ts'
 import { doneText, newBadgeText, photosText, reasonText, splitText, undecidedText } from '../folders/folders-text.ts'
 import { folderName, isComplete, isRateable, newCount, percent } from '../logic/folder-row.ts'
 import { PLAIN_TEXT } from '../shared/l10n.ts'
@@ -56,9 +58,11 @@ defineExpose({ focus })
 
 <template>
 	<article class="folder-row" :class="{ 'folder-row--done': !open, 'folder-row--own': props.own }" :aria-labelledby="nameId">
-		<span class="folder-row__icon" aria-hidden="true">
-			<AppIcon :name="open ? 'folder' : 'check'" />
-		</span>
+		<FolderCover
+			class="folder-row__cover"
+			:previews="props.row.previews"
+			:done="!open"
+			:imageUrl="imageUrl" />
 		<div class="folder-row__head">
 			<span :id="nameId" class="folder-row__name" translate="no">{{ name }}</span>
 			<span v-if="parent !== ''" class="folder-row__parent" translate="no">{{ parent }}</span>

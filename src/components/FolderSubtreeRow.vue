@@ -8,7 +8,8 @@ import type { FolderNode } from '../logic/folder-hierarchy.ts'
 import { t } from '@nextcloud/l10n'
 import { computed, useId } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import AppIcon from './AppIcon.vue'
+import FolderCover from './FolderCover.vue'
+import { imageUrl } from '../api/index.ts'
 import { foldersText, photosText, splitText, subtreeStateText, undecidedText } from '../folders/folders-text.ts'
 import { scopeSums, subtreeState } from '../logic/folder-hierarchy.ts'
 import { percent } from '../logic/folder-row.ts'
@@ -29,9 +30,11 @@ const split = computed(() => ([['picked', sums.value.picked], ['undecided', sums
 
 <template>
 	<article class="folder-row" :class="{ 'folder-row--done': state === 'done' }" :aria-labelledby="nameId">
-		<span class="folder-row__icon" aria-hidden="true">
-			<AppIcon :name="state === 'done' ? 'check' : 'folder'" />
-		</span>
+		<FolderCover
+			class="folder-row__cover"
+			:previews="[]"
+			:done="state === 'done'"
+			:imageUrl="imageUrl" />
 		<div class="folder-row__head">
 			<span :id="nameId" class="folder-row__name" translate="no">{{ props.label }}</span>
 		</div>

@@ -11,6 +11,12 @@ export interface FolderDone {
 	readonly photos: number
 }
 
+/** A picture that stands for a folder: its rendered file and that file's modification time (FOLDERS-005.18). */
+export interface FolderPreview {
+	readonly fileId: number
+	readonly mtime: number
+}
+
 /** One folder as `GET /api/v1/library/folders` answers; times are Unix seconds, null when unknown. */
 export interface FolderRow {
 	readonly fileId: number
@@ -26,6 +32,7 @@ export interface FolderRow {
 	readonly oldest: number | null
 	readonly newest: number | null
 	readonly lastActivity: number | null
+	readonly previews: readonly FolderPreview[]
 	readonly permissions: number
 	readonly done: FolderDone | null
 }
