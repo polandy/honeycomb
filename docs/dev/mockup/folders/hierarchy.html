@@ -1,0 +1,349 @@
+<!doctype html>
+<!-- SPDX-FileCopyrightText: 2026 honeycomb contributors -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>honeycomb mockup – folder hierarchy</title>
+<link rel="icon" href="data:,">
+<style>
+:root{
+  --bg:#f6f5f1;--surface:#ffffff;--surface-2:#efede7;--text:#1d1c19;--muted:#66625a;--line:#dcd8ce;
+  --accent:#b86a00;--accent-soft:#fbeed8;--primary:#0b6bcb;--primary-text:#ffffff;
+  --picked:#2e8540;--rejected:#c0392b;--undecided:#c9c4b8;--done:#2e8540;--done-soft:#e2f2e5;
+  --warn:#9a5b00;--warn-soft:#fff3dc;--shadow:0 1px 2px rgba(0,0,0,.06),0 4px 14px rgba(0,0,0,.05);
+  --mono:ui-monospace,monospace;--sans:system-ui,-apple-system,'Segoe UI',Roboto,'Noto Sans',sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141412;--surface:#1e1d1a;--surface-2:#272622;--text:#ece9e1;--muted:#a39e93;--line:#38362f;
+  --accent:#f0a540;--accent-soft:#3a2a12;--primary:#4ea1f3;--primary-text:#0b1520;
+  --picked:#5cc46f;--rejected:#ef6b5b;--undecided:#5a564c;--done:#5cc46f;--done-soft:#1d3322;
+  --warn:#f0b450;--warn-soft:#33260f;--shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.3);
+}}
+:root[data-theme="dark"]{
+  --bg:#141412;--surface:#1e1d1a;--surface-2:#272622;--text:#ece9e1;--muted:#a39e93;--line:#38362f;
+  --accent:#f0a540;--accent-soft:#3a2a12;--primary:#4ea1f3;--primary-text:#0b1520;
+  --picked:#5cc46f;--rejected:#ef6b5b;--undecided:#5a564c;--done:#5cc46f;--done-soft:#1d3322;
+  --warn:#f0b450;--warn-soft:#33260f;--shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+html,body{margin:0;overflow-x:hidden}
+body{background:var(--bg);color:var(--text);font:15px/1.55 var(--sans)}
+main{max-width:1040px;margin:0 auto;padding:24px 16px 80px}
+h1{font-size:clamp(26px,4.5vw,38px);line-height:1.15;margin:8px 0 6px;letter-spacing:-.01em}
+h2{font-size:22px;margin:48px 0 10px;padding-top:12px;border-top:1px solid var(--line)}
+h3{font-size:17px;margin:24px 0 6px}
+p,li{max-width:72ch}
+code,.mono{font-family:var(--mono);font-size:.88em}
+code{background:var(--surface-2);padding:1px 5px;border-radius:4px;overflow-wrap:anywhere}
+a{color:var(--primary)}
+.kicker{font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.lede{font-size:17px;color:var(--muted);max-width:68ch}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.btn{font:inherit;font-size:14px;min-height:44px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--primary);color:var(--primary-text);border-color:var(--primary)}
+.btn.small{min-height:36px;padding:0 10px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn:focus-visible,.row:focus-visible,.crumb:focus-visible,.chip:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+.card h4{margin:0 0 4px;font-size:15px}
+.card p{margin:0;color:var(--muted);font-size:14px}
+.tag{display:inline-block;font:500 11px/1.6 var(--mono);padding:0 7px;border-radius:99px;background:var(--surface-2);color:var(--muted);vertical-align:middle}
+.tag.rec{background:var(--accent-soft);color:var(--accent)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
+th{font-weight:600;background:var(--surface-2)}
+tr:last-child td{border-bottom:0}
+.proscons{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:12px}
+.proscons ul{margin:4px 0 0;padding-left:18px}
+.proscons li{font-size:14px}
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);padding:12px 14px;border-radius:0 10px 10px 0;margin:14px 0}
+.callout p{margin:0}
+
+/* ---------- mock frame ---------- */
+.mock{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);margin-top:14px;overflow:hidden}
+.mock-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.mock-title{font-weight:600;font-size:14px}
+.mock-body{padding:12px;min-height:200px}
+.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:2px;font-size:14px;min-width:0}
+.crumb{background:none;border:0;color:var(--primary);font:inherit;cursor:pointer;padding:8px 4px;min-height:36px;border-radius:6px}
+.crumb[aria-current]{color:var(--text);font-weight:600;cursor:default}
+.sep{color:var(--muted)}
+.switch{display:inline-flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;min-height:44px;user-select:none}
+.switch input{appearance:none;width:40px;height:24px;border-radius:99px;background:var(--undecided);position:relative;cursor:pointer;transition:background .15s;margin:0}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s}
+.switch input:checked{background:var(--primary)}
+.switch input:checked::after{left:19px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chip{font:inherit;font-size:13px;min-height:36px;padding:0 12px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--text);color:var(--surface);border-color:var(--text)}
+.levelcard{border:1px dashed var(--line);border-radius:12px;padding:10px 12px;margin:6px 0 10px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.levelcard .t{font-size:13px;color:var(--muted)}
+.levelcard strong{font-size:15px;color:var(--text)}
+
+.rows{display:flex;flex-direction:column;gap:6px}
+.row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.row.nav{cursor:pointer}
+.row.nav:hover{border-color:var(--muted)}
+.row.own{background:var(--surface-2)}
+.row.sel{border-color:var(--primary);box-shadow:0 0 0 1px var(--primary)}
+.thumbs{display:grid;grid-template-columns:repeat(2,22px);grid-template-rows:repeat(2,22px);gap:2px;border-radius:7px;overflow:hidden;flex:none}
+.thumbs i{display:block}
+.thumbs.none{background:var(--surface-2)}
+.rmain{min-width:0}
+.rname{font-weight:600;font-size:14.5px;overflow-wrap:anywhere}
+.rname .via{font-weight:400;color:var(--muted)}
+.rmeta{font-size:12.5px;color:var(--muted)}
+.bar{display:flex;height:6px;border-radius:99px;overflow:hidden;background:var(--undecided);margin:5px 0 3px;max-width:340px}
+.bar b{display:block}
+.state{font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.state.done{color:var(--done)}
+.state.complete{color:var(--warn)}
+.badge{font:600 11px/1.6 var(--sans);padding:0 7px;border-radius:99px;background:var(--accent);color:var(--surface)}
+.ract{display:flex;gap:6px;align-items:center}
+.chev{color:var(--muted);font-size:18px;width:20px;text-align:center}
+.menu{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;padding-top:6px;border-top:1px solid var(--line)}
+.note{font-size:12.5px;color:var(--muted);padding:8px 2px}
+
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);max-width:min(640px,calc(100vw - 32px));background:var(--text);color:var(--surface);padding:10px 14px;border-radius:12px;box-shadow:var(--shadow);font-size:14px;display:none;gap:10px;align-items:center;z-index:9}
+.toast.on{display:flex}
+.toast code{background:transparent;color:inherit}
+.toast button{font:inherit;color:var(--accent);background:none;border:0;cursor:pointer;font-weight:600;min-height:36px}
+@media (max-width:560px){
+  .row{grid-template-columns:auto 1fr}
+  .ract{grid-column:1/-1;justify-content:flex-end}
+  .thumbs{grid-template-columns:repeat(2,18px);grid-template-rows:repeat(2,18px)}
+}
+</style>
+</head>
+<body>
+<main>
+<div class="topbar">
+  <span class="kicker">honeycomb · mockup · ADR 0060 · FOLDERS-009</span>
+  <button class="btn small" id="themeBtn" type="button">Light / dark</button>
+</div>
+<h1>Folders: pick a level, cull with or without subfolders</h1>
+<p class="lede">The UX spec of FOLDERS-009. The list of <em>Folders</em> becomes a drill-down: a breadcrumb names the level, a row with a › goes one level deeper, and the switch <em>Include subfolders</em> (on by default, remembered per user) decides whether the numbers, the bars and <em>Cull</em> cover the whole subtree. The data is invented; <em>Mark all done</em> and <em>Reopen all</em> change it for real, with <em>Undo</em> in the toast, so you can watch the parent rows follow.</p>
+
+<h2>Decisions the mockup shows</h2>
+<ul>
+  <li><strong>Drill-down with breadcrumb</strong> on every width. A chain of folders without photos of their own and with one subfolder shows as one row (<em>Archive / Analog / Scans 1998</em>); a breadcrumb of more than 4 levels shows the first, “…” and the last two.</li>
+  <li><strong>Include subfolders</strong>: on by default, saved per user. <em>Cull</em> opens <code>{paths:[path], subfolders:true}</code> or <code>false</code>.</li>
+  <li><strong>The level card</strong> above the rows: <em>Cull this level</em>. A folder with photos of its own and subfolders also gets a grey row <em>Photos directly in ⟨folder⟩</em>, which culls only those.</li>
+  <li><strong>Done stays per folder.</strong> A parent row shows a derived line: <em>Done · all n folders</em>, or <em>k of n folders done</em>. Read-only folders count for neither k nor n.</li>
+  <li><strong>Filters</strong> <em>Suggested</em> and <em>New photos</em> list the folders below the level flat, one row each with its own photos; <em>All</em> lists the direct subfolders.</li>
+  <li><strong>Folders without photos</strong> anywhere below are not shown, and nothing says they are hidden.</li>
+  <li><strong>The folder picker stays</strong> for folder sets of several paths.</li>
+</ul>
+
+<h2>Mockup</h2>
+<div class="mock" id="mockA"></div>
+<p class="note">Try: switch <em>Include subfolders</em> off and on, open <em>2024 › 2024-09 Island</em>, press <em>Mark all done</em> on <em>2023</em>, <em>Druckvorlagen</em> is read-only and is skipped, then <em>Undo</em>.</p>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toastText"></span><button type="button" id="toastUndo">Undo</button><button type="button" id="toastClose" aria-label="Close">✕</button></div>
+<script>
+(() => {
+  const rootEl = document.documentElement
+  document.getElementById('themeBtn').addEventListener('click', () => {
+    const dark = rootEl.dataset.theme ? rootEl.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches
+    rootEl.dataset.theme = dark ? 'light' : 'dark'
+  })
+
+  // n name, p photos, k picked, r rejected, d photos at Mark done, at date, ro read-only
+  const F = (n, o = {}, c = []) => ({ n, ...o, c })
+  const LIB = F('Library', {}, [
+    F('Photos', {}, [
+      F('2022', {}, [
+        F('2022-02 Carnival', { p: 318, k: 40, r: 278, d: 318, at: '12 Nov 2026' }),
+        F('2022-08 Tuscany', { p: 1460, k: 230, r: 1222, d: 1452, at: '20 Nov 2026' }),
+      ]),
+      F('2023', {}, [
+        F('2023-03 Ski trip', { p: 412, k: 61, r: 351 }),
+        F('2023-07 Sardinia', { p: 1284, k: 300, r: 600 }, [
+          F('Drone', { p: 96, k: 0, r: 0 }),
+          F('Underwater', { p: 210, k: 50, r: 160, d: 210, at: '23 Nov 2026' }),
+        ]),
+      ]),
+      F('2024', { p: 37, k: 0, r: 0 }, [
+        F('2024-05 Jura bike tour', { p: 522, k: 80, r: 140 }),
+        F('2024-09 Iceland', {}, [
+          F('Day 1–3', { p: 880, k: 120, r: 500 }),
+          F('Day 4–7', { p: 1102, k: 0, r: 0 }),
+          F('Northern lights', { p: 158, k: 40, r: 118, d: 158, at: '24 Nov 2026' }),
+        ]),
+        F('Print masters', { p: 24, k: 24, r: 0, ro: true }),
+      ]),
+      F('2025', {}, [
+        F('2025-04 Lisbon', { p: 940, k: 0, r: 0 }),
+        F('Phone', { p: 2310, k: 120, r: 400 }),
+      ]),
+      F('Archive', {}, [F('Analog', {}, [F('Scans 1998', {}, [
+        F('Roll 01', { p: 36, k: 12, r: 24, d: 36, at: '2 Nov 2026' }),
+        F('Roll 02', { p: 36, k: 9, r: 27 }),
+        F('Roll 03', { p: 24, k: 0, r: 0 }),
+      ])])]),
+      F('Documents', {}, [F('Receipts', {})]),
+    ]),
+    F('Camera upload', { p: 640, k: 30, r: 90 }),
+  ])
+  ;(function link(n, parent, path) {
+    n.parent = parent; n.path = path
+    n.c.forEach(ch => link(ch, n, parent ? `${path}/${ch.n}` : `/${ch.n}`))
+  })(LIB, null, '')
+
+  // what src/logic/folder-hierarchy.ts would hold
+  const fmt = v => v.toLocaleString('en-US')
+  const zero = () => ({ photos: 0, picked: 0, rejected: 0, folders: 0, fresh: 0, rateable: 0, doneRateable: 0 })
+  const ownStats = n => n.p ? { photos: n.p, picked: n.k, rejected: n.r, folders: 1, fresh: n.d != null ? Math.max(0, n.p - n.d) : 0, rateable: n.ro ? 0 : 1, doneRateable: n.d != null && !n.ro ? 1 : 0 } : null
+  const agg = n => {
+    const s = zero(), o = ownStats(n)
+    if (o) for (const key in s) s[key] += o[key]
+    for (const ch of n.c) { const a = agg(ch); for (const key in s) s[key] += a[key] }
+    return s
+  }
+  const stats = (n, rec) => (rec ? agg(n) : ownStats(n) || zero())
+  const undecided = s => s.photos - s.picked - s.rejected
+  const kids = n => n.c.filter(ch => agg(ch).photos > 0)
+  const folderNodes = (n, acc = []) => { if (n.p) acc.push(n); n.c.forEach(ch => folderNodes(ch, acc)); return acc }
+  function compact(n) {
+    const names = [n.n]; let cur = n
+    while (!cur.p && kids(cur).length === 1 && kids(kids(cur)[0]).length > 0) { cur = kids(cur)[0]; names.push(cur.n) }
+    return { node: cur, label: names.join(' / ') }
+  }
+  const hue = str => { let h = 0; for (const ch of str) h = (h * 31 + ch.charCodeAt(0)) % 360; return h }
+  function thumbs(n, rec) {
+    const src = rec ? folderNodes(n) : (n.p ? [n] : [])
+    if (!src.length) return '<span class="thumbs none" aria-hidden="true"><i></i><i></i><i></i><i></i></span>'
+    return `<span class="thumbs" aria-hidden="true">${[0, 1, 2, 3].map(i => `<i style="background:hsl(${(hue(src[i % src.length].path) + i * 23) % 360} 45% ${48 + i * 6}%)"></i>`).join('')}</span>`
+  }
+  function bar(s) {
+    if (!s.photos) return ''
+    const pc = v => (100 * v / s.photos).toFixed(1) + '%'
+    return `<div class="bar" aria-hidden="true"><b style="width:${pc(s.picked)};background:var(--picked)"></b><b style="width:${pc(undecided(s))};background:var(--undecided)"></b><b style="width:${pc(s.rejected)};background:var(--rejected)"></b></div>`
+  }
+  // the one state line of a row: kind (open | complete | done | none) and its text
+  function stateOf(n, rec) {
+    const s = stats(n, rec), u = undecided(s)
+    if (!s.photos) return { kind: 'none', text: `No photos of its own · ${kids(n).length} subfolders` }
+    const ro = s.folders === 1 && n.ro ? 'Read-only · ' : ''
+    const multi = rec && s.folders > 1
+    const allDone = multi ? s.rateable > 0 && s.doneRateable === s.rateable : n.d != null
+    const fresh = s.fresh ? ` <span class="badge">${fmt(s.fresh)} new</span>` : ''
+    if (allDone) return { kind: 'done', text: (multi ? `Done · all ${s.rateable} folders` : `Done ${n.at || ''} · by you`) + fresh }
+    if (u === 0) return { kind: 'complete', text: ro + (multi ? `Complete · ${s.rateable - s.doneRateable} folders not marked done` : 'Complete · not marked done') }
+    return { kind: 'open', text: ro + `${Math.round(100 * u / s.photos)} % open` + (multi ? ` · ${s.doneRateable} of ${s.rateable} folders done` : '') + fresh }
+  }
+
+  const toast = document.getElementById('toast'), toastText = document.getElementById('toastText'), toastUndo = document.getElementById('toastUndo')
+  let undoFn = null, toastTimer = 0
+  function say(html, undo) {
+    toastText.innerHTML = html; undoFn = undo || null
+    toastUndo.style.display = undo ? '' : 'none'
+    toast.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('on'), 8000)
+  }
+  toastUndo.addEventListener('click', () => { if (undoFn) undoFn(); toast.classList.remove('on'); renderA() })
+  document.getElementById('toastClose').addEventListener('click', () => toast.classList.remove('on'))
+
+  function cull(n, rec, fresh) {
+    const s = stats(n, rec)
+    say(`Opens <code>{paths:["${n.path}"], subfolders:${rec}}</code>${fresh ? ' with <em>Unflagged</em> only' : ''} · ${fmt(s.photos)} photos, ${fmt(undecided(s))} open`)
+  }
+  const plural = (list, one) => list.length === 1 ? `“${one.n}”` : `${list.length} folders`
+  function markDone(n, rec) {
+    const targets = (rec ? folderNodes(n) : [n]).filter(f => f.p && f.d == null)
+    const skipped = targets.filter(f => f.ro), go = targets.filter(f => !f.ro)
+    const note = skipped.length ? ` · ${skipped.length} read-only skipped` : ''
+    if (!go.length) { say('Nothing to mark' + note); return }
+    go.forEach(f => { f.d = f.p; f.at = '25 Nov 2026' })
+    say(`Marked ${plural(go, go[0])} done${note}`, () => go.forEach(f => { f.d = null; f.at = null }))
+    renderA()
+  }
+  function reopen(n, rec) {
+    const targets = (rec ? folderNodes(n) : [n]).filter(f => f.d != null)
+    const saved = targets.map(f => [f, f.d, f.at])
+    targets.forEach(f => { f.d = null; f.at = null })
+    say(`Reopened ${plural(targets, targets[0] || n)}`, () => saved.forEach(([f, d, at]) => { f.d = d; f.at = at }))
+    renderA()
+  }
+  const byPath = p => { let hit = null; (function f(n) { if (n.path === p) hit = n; n.c.forEach(f) })(LIB); return hit }
+
+  const A = { at: '/Photos', rec: true, filter: 'all', menu: null }
+  function crumbsHtml(node) {
+    const chain = []; for (let n = node; n; n = n.parent) chain.unshift(n)
+    let items = chain.map((n, i) => ({ n, last: i === chain.length - 1 }))
+    if (items.length > 4) items = [items[0], { gap: items[items.length - 3].n }, ...items.slice(-2)]
+    return items.map(it => it.gap
+      ? `<button class="crumb" type="button" data-go="${it.gap.path}" title="More levels">…</button>`
+      : `<button class="crumb" type="button" ${it.last ? 'aria-current="page"' : `data-go="${it.n.path}"`}>${it.n.n}</button>`).join('<span class="sep">›</span>')
+  }
+  function rowHtml(n, rec, opts = {}) {
+    const st = stateOf(n, rec), s = stats(n, rec), nav = !opts.own && kids(n).length > 0
+    const label = opts.label || n.n, multi = rec && s.folders > 1
+    const where = opts.via ? `<span class="via"> · ${opts.via}</span>` : ''
+    const fresh = s.fresh > 0
+    const cullBtn = s.photos && !(n.ro && !rec) ? `<button class="btn small ${st.kind === 'open' || fresh ? 'primary' : ''}" type="button" data-cull="${n.path}" data-rec="${rec}" ${fresh ? 'data-fresh' : ''}>${fresh ? 'Cull new' : 'Cull'}</button>` : ''
+    const doneBtn = st.kind === 'complete' && s.rateable > s.doneRateable ? `<button class="btn small" type="button" data-done="${n.path}" data-rec="${rec}">${multi ? 'Mark all done' : 'Mark done'}</button>` : ''
+    const key = n.path + '|' + rec
+    const menu = A.menu === key ? `<div class="menu">
+        <button class="btn small" type="button" data-cull="${n.path}" data-rec="false" ${n.p && !n.ro ? '' : 'disabled'}>Cull this folder only</button>
+        <button class="btn small" type="button" data-cull="${n.path}" data-rec="true" ${n.c.length ? '' : 'disabled'}>Cull with subfolders</button>
+        <button class="btn small" type="button" data-done="${n.path}" data-rec="${rec}" ${s.rateable > s.doneRateable ? '' : 'disabled'}>${multi ? 'Mark all done' : 'Mark done'}</button>
+        <button class="btn small" type="button" data-reopen="${n.path}" data-rec="${rec}" ${s.doneRateable ? '' : 'disabled'}>${multi ? 'Reopen all' : 'Reopen'}</button>
+        <button class="btn small" type="button" data-files>Open in Files</button></div>` : ''
+    return `<div class="row ${nav ? 'nav' : ''} ${opts.own ? 'own' : ''}" ${nav ? `data-go="${opts.goTo || n.path}" tabindex="0" role="button" aria-label="Open ${label}"` : ''}>
+      ${thumbs(n, rec)}
+      <div class="rmain"><div class="rname">${label}${where}</div>
+        <div class="rmeta">${fmt(s.photos)} photos · ${fmt(undecided(s))} open${multi ? ` · ${s.folders} folders` : ''}</div>
+        ${bar(s)}<div class="state ${st.kind}">${st.text}</div></div>
+      <div class="ract">${doneBtn}${cullBtn}<button class="btn small" type="button" data-menu="${key}" aria-label="More for ${label}">⋯</button>${nav ? '<span class="chev" aria-hidden="true">›</span>' : ''}</div>
+      ${menu}</div>`
+  }
+  function renderA() {
+    const el = document.getElementById('mockA'), node = byPath(A.at) || LIB, rec = A.rec
+    const s = agg(node), own = ownStats(node)
+    let body = ''
+    if (node !== LIB) {
+      body += `<div class="levelcard"><div><div class="t">Level</div><strong>${node.n}</strong>
+        <div class="t">${fmt(s.photos)} photos with subfolders${own ? ` · ${fmt(own.photos)} directly in it` : ''} · ${fmt(undecided(s))} open</div></div>
+        <button class="btn primary" type="button" data-cull="${node.path}" data-rec="${rec}" ${stats(node, rec).photos ? '' : 'disabled'}>Cull this level${rec ? ' (with subfolders)' : ''}</button></div>`
+    }
+    body += `<div class="chips" role="group" aria-label="Filter">${[['all', 'All'], ['sugg', 'Suggested'], ['new', 'New photos']].map(([k, t]) => `<button class="chip" type="button" data-filter="${k}" aria-pressed="${A.filter === k}">${t}</button>`).join('')}</div>`
+    let rows = ''
+    if (A.filter === 'all') {
+      if (own && node.c.length) rows += rowHtml(node, false, { own: true, label: `Photos directly in ${node.n}` })
+      for (const ch of kids(node)) { const c = compact(ch); rows += rowHtml(c.node, rec, { label: c.label, goTo: c.node.path }) }
+    } else {
+      const all = folderNodes(node).filter(f => A.filter === 'sugg' ? f.d == null && !f.ro : f.d != null && f.p > f.d)
+      const ua = f => undecided(ownStats(f))
+      all.sort((a, b) => (ua(a) === 0 ? 0 : 1) - (ua(b) === 0 ? 0 : 1) || ua(b) - ua(a) || a.path.localeCompare(b.path))
+      rows += all.map(f => rowHtml(f, false, { via: f === node ? 'directly here' : f.parent === node ? node.n : f.parent.path.slice(node.path.length + 1) })).join('')
+      if (!all.length) rows += '<div class="note">No folders on this level.</div>'
+    }
+    el.innerHTML = `<div class="mock-head"><nav class="crumbs" aria-label="Level">${crumbsHtml(node)}</nav>
+      <label class="switch"><input type="checkbox" ${rec ? 'checked' : ''} data-rec-toggle> Include subfolders</label></div>
+      <div class="mock-body">${body}<div class="rows">${rows}</div></div>`
+  }
+  const mock = document.getElementById('mockA')
+  mock.addEventListener('click', e => {
+    const t = e.target.closest('button,[data-go],input'); if (!t) return
+    if (t.dataset.recToggle !== undefined) { A.rec = t.checked; A.menu = null; renderA(); return }
+    if (t.dataset.filter) { A.filter = t.dataset.filter; renderA(); return }
+    if (t.dataset.menu) { A.menu = A.menu === t.dataset.menu ? null : t.dataset.menu; renderA(); return }
+    if (t.dataset.cull) { cull(byPath(t.dataset.cull), t.dataset.rec === 'true', t.dataset.fresh !== undefined); return }
+    if (t.dataset.done) { A.menu = null; markDone(byPath(t.dataset.done), t.dataset.rec === 'true'); return }
+    if (t.dataset.reopen) { A.menu = null; reopen(byPath(t.dataset.reopen), t.dataset.rec === 'true'); return }
+    if (t.dataset.files !== undefined) { say('Opens the folder in Files'); return }
+    if (t.dataset.go !== undefined) { A.at = t.dataset.go; A.filter = 'all'; A.menu = null; renderA() }
+  })
+  mock.addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.row.nav')) { e.preventDefault(); A.at = e.target.dataset.go; renderA() }
+  })
+  renderA()
+})()
+</script>
+</body>
+</html>
