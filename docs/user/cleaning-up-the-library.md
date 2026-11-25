@@ -12,6 +12,8 @@ tick one folder in the tree and press *Add as root*, repeat for more, then press
 
 - A root cannot lie inside another root or be added twice. Your home folder itself is no root;
   choose a folder in it.
+- Once you have roots, the folder pickers of *Open folder*, the similarity scan and the orphaned
+  sidecar scan offer only folders inside them; the rest shows *Outside your library roots*.
 - Shared folders, group folders and external storage cannot be roots. They are not listed yet.
 - Change the roots later in **Settings → Library**: add one the same way, or remove one with
   its ✕ button. Removing a root only takes its folders off the list; it deletes nothing.

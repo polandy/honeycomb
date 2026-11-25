@@ -17,6 +17,7 @@ use OCA\Honeycomb\Tests\Service\FakeFiles;
 use OCA\Honeycomb\Tests\Service\FakeFlagStore;
 use OCA\Honeycomb\Tests\Service\FakeQualityStore;
 use OCA\Honeycomb\Tests\Service\FakeVisualHashStore;
+use OCA\Honeycomb\Tests\Service\Settings\FakeRoots;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -32,16 +33,18 @@ use ReflectionMethod;
 
 final class EntryControllerTest extends TestCase {
 	use FakeFiles;
+	use FakeRoots;
 	use FolderSourceFixture;
 
 	/** @param array<string, mixed> $params */
-	private function controller(IRootFolder $root, ?IUser $user, array $params = []): EntryController {
+	/** @param list<string> $roots */
+	private function controller(IRootFolder $root, ?IUser $user, array $params = [], array $roots = []): EntryController {
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($user);
 		$listing = new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class), new FakeVisualHashStore(), new FakeFlagStore(), new FakeQualityStore()));
 		$request = $this->createStub(IRequest::class);
 		$request->method('getParam')->willReturnCallback(static fn (string $key, mixed $default = null): mixed => $params[$key] ?? $default);
-		return new EntryController(Application::APP_ID, $request, new ApiResponse($session), $this->folderSource(listing: $listing));
+		return new EntryController(Application::APP_ID, $request, new ApiResponse($session), $this->folderSource(listing: $listing), $this->rootsGuard($roots));
 	}
 
 	// spec: LISTING-001.1
@@ -87,6 +90,26 @@ final class EntryControllerTest extends TestCase {
 		$response = $this->controller($this->rootWith(['/Photos' => $photos]), $this->user(), ['excluded' => $excluded])->index('Photos', true);
 
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+	}
+
+	// spec: SETTINGS-001.36
+	public function testAFolderOutsideTheLibraryRootsIsABadRequestAndNotListed(): void {
+		$root = $this->createMock(IRootFolder::class);
+		$root->expects($this->never())->method('getUserFolder');
+
+		$response = $this->controller($root, $this->user(), roots: ['/Photos'])->index('Docs', true);
+
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		$this->assertStringContainsString('bad-path', $response->render());
+	}
+
+	// spec: SETTINGS-001.36
+	public function testAFolderInsideALibraryRootIsListed(): void {
+		$photos = $this->treeOf([$this->file(1, '/Photos/2024/IMG_0001.JPG')]);
+
+		$response = $this->controller($this->rootWith(['/Photos/2024' => $photos]), $this->user(), roots: ['/Photos'])->index('Photos/2024');
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
 
 	// spec: LISTING-001.7

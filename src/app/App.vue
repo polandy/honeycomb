@@ -226,6 +226,7 @@ useHotkeys(() => {
 				:immichOnly="onlyOffer ?? 'asked'"
 				:listFolders="listFolders"
 				:listEntries="props.listEntries"
+				:roots="settings.libraryRoots"
 				:pairing="cull.pairing.value"
 				:recent="recent.items.value"
 				@confirm="openFolderSet"

@@ -17,6 +17,7 @@ use OCA\Honeycomb\Service\Hash\VisualHashService;
 use OCA\Honeycomb\Tests\Service\FakeFileIdSearch;
 use OCA\Honeycomb\Tests\Service\FakeFiles;
 use OCA\Honeycomb\Tests\Service\FakeVisualHashStore;
+use OCA\Honeycomb\Tests\Service\Settings\FakeRoots;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -31,6 +32,7 @@ use ReflectionMethod;
 
 final class VisualHashControllerTest extends TestCase {
 	use FakeFiles;
+	use FakeRoots;
 	use FakeFileIdSearch;
 
 	private const string HASH = '00ff00ff00ff00ff';
@@ -42,7 +44,8 @@ final class VisualHashControllerTest extends TestCase {
 		$this->store = new FakeVisualHashStore();
 	}
 
-	private function controller(bool $loggedIn = true, ?IRootFolder $root = null): VisualHashController {
+	/** @param list<string> $roots */
+	private function controller(bool $loggedIn = true, ?IRootFolder $root = null, array $roots = []): VisualHashController {
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? $this->user() : null);
 		if ($root === null) {
@@ -53,7 +56,15 @@ final class VisualHashControllerTest extends TestCase {
 			$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
 		}
 		$folders = new UserFolderResolver($root);
-		return new VisualHashController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), new VisualHashService($this->store, new UserPhotos($folders)), new MissingVisualHashes($folders, $this->store));
+		return new VisualHashController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), new VisualHashService($this->store, new UserPhotos($folders)), new MissingVisualHashes($folders, $this->store), $this->rootsGuard($roots));
+	}
+
+	// spec: SETTINGS-001.36
+	public function testAFolderOutsideTheLibraryRootsIsABadRequest(): void {
+		$response = $this->controller(roots: ['/Photos'])->missing('Docs', '', 1);
+
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		$this->assertStringContainsString('bad-path', $response->render());
 	}
 
 	// spec: SERIES-003.3, SERIES-003.4

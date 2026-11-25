@@ -97,6 +97,18 @@ describe('SettingsDialog', () => {
 		expect(wrapper.emitted('update')).toBeUndefined()
 	})
 
+	// spec: SETTINGS-001.35
+	it('refuses a root, a folder inside one and a folder holding one in the tree, each with its reason', () => {
+		const wrapper = mountDialog({ libraryRoots: ['/Photos/2019', '/Archive'] })
+		const note = wrapper.findComponent(FolderTree).props('disabledNote') as (path: string) => string | null
+
+		expect(note('/Archive')).toBe(`${MARK}Already a root`)
+		expect(note('/Archive/2020')).toBe(`${MARK}Inside the root /Archive`)
+		expect(note('/Photos')).toBe(`${MARK}Holds the root /Photos/2019`)
+		expect(note('/Photos/2020')).toBeNull()
+		expect(note('/Archive2')).toBeNull()
+	})
+
 	// spec: SETTINGS-001.7
 	it('emits the closing of the dialog', async () => {
 		const wrapper = mountDialog()

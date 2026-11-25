@@ -303,6 +303,30 @@ Withdrawn by ADR 0040 (M8 PR 3); there is no sidecar switch (.28).
 - **Then** the first reads as on, the second as off, the switch shows each, and turning it saves
   `writeFlagsToXmp` with the object; a value that is not a boolean reads as on
 
+### SETTINGS-001.35 – A root is no other root, and none lies in another
+
+- **Given** the *Library* section with roots, and a `PUT /api/v1/settings/lists/libraryRoots`
+- **When** the user looks at the folder tree, or the client writes a list of roots
+- **Then** the tree shows a listed root disabled with *Already a root*, a folder inside one
+  disabled with *Inside the root {root}*, and a folder holding one disabled with *Holds the root
+  {root}*, so none can be chosen; the server refuses a list in which a root repeats as
+  `duplicate`, one in which a root lies inside another, and the home folder (`/`), as `bad-value`,
+  and stores nothing; `/Photos2` is no part of `/Photos`
+
+### SETTINGS-001.36 – Folders to work in lie inside a library root
+
+- **Given** library roots, and a folder picker that chooses a folder to work in (the *Open folder*
+  picker, the similarity scan, the orphaned sidecar scan), or `GET /api/v1/entries`,
+  `/api/v1/visual-hashes/missing` or `/api/v1/sidecars/orphaned` with a `path`
+- **When** the user looks at the tree, or the path is sent
+- **Then** the tree disables every folder outside the roots with *Outside your library roots*
+  (their parents stay open to reach a root), and the server answers `400` with `bad-path` for a
+  path that is no root and lies in none, the home folder and any `..` or `.` step included;
+  `/Photos2` is no part of `/Photos`; while no root is set every folder is offered and accepted.
+  The picker that adds a root (.35) and the target picker of a move are no such picker. A recent
+  folder set that lies outside the roots (a root was removed since) answers `400` too: the user sees
+  *Could not open …* with *Try again*, the cull stays as it was and nothing is stored or deleted
+
 ## Out of scope
 
 What the swipes, auto-advance and flag buttons do in the loupe: LOUPE-002. The vi keys: KEYS-001.
@@ -331,3 +355,5 @@ Pairing itself: LISTING-002.
 | 2026-11-22 | .30 the library roots in the settings (ADR 0049, M12 PR 7) |
 | 2026-11-22 | .31–.33 the lists in their own keys, the object versioned (ADR 0051) |
 | 2026-11-24 | .34 the switch for writing flags to the sidecars, on by default; .28 changed (ADR 0056) |
+| 2026-11-25 | .35 the root picker disables roots and their neighbours; the server refuses nested roots |
+| 2026-11-25 | .36 pickers offer, and the server accepts, only folders inside a library root |

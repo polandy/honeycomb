@@ -23,6 +23,7 @@ import FolderTree from './FolderTree.vue'
 import PickerRecentSets from './PickerRecentSets.vue'
 import { listEntries as apiListEntries, listFolders as apiListFolders } from '../api/index.ts'
 import { useFolderCount } from '../folders/folder-count.ts'
+import { outsideRootsNote } from '../folders/folders-text.ts'
 import { immichOnlyReason } from '../immich/immich-text.ts'
 import { tapFolder } from '../logic/folder-set.ts'
 import { DEFAULT_PAIRING_SETTINGS } from '../logic/pairing.ts'
@@ -42,7 +43,10 @@ const props = withDefaults(defineProps<{
 	closable?: boolean
 	/** Whether the footer offers *I only use Immich* while no cull is open (IMMICH-001.21). */
 	immichOnly?: ImmichOnlyOffer
+	/** The library roots; the folders to open lie inside them while any is set (SETTINGS-001.36). */
+	roots?: readonly string[]
 }>(), {
+	roots: () => [],
 	listFolders: apiListFolders,
 	listEntries: apiListEntries,
 	pairing: () => DEFAULT_PAIRING_SETTINGS,
@@ -132,6 +136,7 @@ function onConfirm() {
 			:subfolders="set.subfolders"
 			:excluded="set.excluded ?? []"
 			:listFolders="props.listFolders"
+			:disabledNote="(path) => outsideRootsNote(props.roots, path)"
 			@toggle="onToggle" />
 		<p class="folder-picker__count" aria-live="polite">
 			{{ summary }}

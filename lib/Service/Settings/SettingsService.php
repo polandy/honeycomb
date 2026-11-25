@@ -9,6 +9,7 @@ namespace OCA\Honeycomb\Service\Settings;
 
 use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Domain\InvalidRequestException;
+use OCA\Honeycomb\Domain\LibraryRootPaths;
 use OCA\Honeycomb\Domain\Reason;
 use OCP\Config\IUserConfig;
 use OCP\IUser;
@@ -24,8 +25,10 @@ final class SettingsService {
 
 	private const string KEY = 'settings';
 
+	private const string ROOTS = 'libraryRoots';
+
 	/** Each list's field in the settings object and its own key. */
-	private const array LISTS = ['moveRecent' => 'move_recent', 'moveFavourites' => 'move_favourites', 'libraryRoots' => 'library_roots'];
+	private const array LISTS = ['moveRecent' => 'move_recent', 'moveFavourites' => 'move_favourites', self::ROOTS => 'library_roots'];
 
 	public function __construct(
 		private IUserConfig $config,
@@ -69,9 +72,35 @@ final class SettingsService {
 			throw InvalidRequestException::because(Reason::NotAList, 'a settings list must be a JSON list of strings');
 		}
 		/** @var list<string> $items */
+		if ($name === self::ROOTS) {
+			$this->checkRoots($items);
+		}
 		$encoded = $this->encode($items, 'a settings list must be at most ' . self::MAX_BYTES . ' bytes');
 		$this->config->setValueString($user->getUID(), Application::APP_ID, $key, $encoded);
 		return $items;
+	}
+
+	/**
+	 * @param list<string> $roots
+	 * @throws InvalidRequestException for the home folder, a root that repeats or one inside another (FOLDERS-004)
+	 */
+	private function checkRoots(array $roots): void {
+		$kept = [];
+		foreach ($roots as $root) {
+			$path = LibraryRootPaths::normalize($root);
+			if ($path === '/') {
+				throw InvalidRequestException::because(Reason::BadValue, 'the home folder cannot be a library root');
+			}
+			foreach ($kept as $other) {
+				if ($other === $path) {
+					throw InvalidRequestException::because(Reason::Duplicate, "$path is already a library root");
+				}
+				if (str_starts_with($path, $other . '/') || str_starts_with($other, $path . '/')) {
+					throw InvalidRequestException::because(Reason::BadValue, "$path and $other lie inside one another");
+				}
+			}
+			$kept[] = $path;
+		}
 	}
 
 	/** Writes each list still in the stored object, from before ADR 0051, into its own key while that is unset. */
