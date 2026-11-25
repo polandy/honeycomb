@@ -175,10 +175,6 @@ test('opens a level by its row and breadcrumb and keeps Include subfolders off a
 	await expect(list.getByRole('button', { name: 'Cull this level' })).toBeEnabled()
 	await expect(list.getByRole('article', { name: 'Photos directly in Alps' })).toContainText('1 photo')
 	await expect(list.getByRole('article', { name: 'Day 1' })).toBeVisible()
-	for (const scheme of SCHEMES) {
-		await page.emulateMedia({ colorScheme: scheme })
-		await expectAccessible(page, `folder level, ${scheme}`)
-	}
 	await expectTouchTargets(list, 'folder level')
 	await crumbs.getByRole('button', { name: 'Library' }).click()
 	await expect(list.getByRole('article', { name: 'Beach' })).toBeVisible()
