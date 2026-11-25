@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
 import { buildHierarchy, findLevel } from '../../../src/logic/folder-hierarchy.ts'
-import { allRows, cullSet, flatRows, ownRow, parentBelow, shownLevel } from '../../../src/logic/folder-level.ts'
+import { allRows, cullSet, flatRows, opensLevel, ownRow, parentBelow, shownLevel, singleRow } from '../../../src/logic/folder-level.ts'
 import { row } from './folder-fixtures.ts'
 
 const ROWS = [
@@ -50,6 +50,27 @@ describe('ownRow', () => {
 	})
 })
 
+describe('opensLevel', () => {
+	// spec: FOLDERS-009.1, FOLDERS-009.3
+	it('opens a row with subfolders, a chain and a root, but not a folder alone', () => {
+		const tree = buildHierarchy(['/Photos'], [row({ path: '/Photos/Archive/Scans' }), ...ROWS])
+		const rows = allRows(tree, findLevel(tree, '/Photos'))
+		expect(rows.map((each) => [each.label, opensLevel(each)])).toEqual([['2024', true], ['Archive / Scans', true]])
+		expect(opensLevel({ label: 'Jura', node: at('/Photos/2024/Jura') })).toBe(false)
+		expect(allRows(TWO_ROOTS, null).map(opensLevel)).toEqual([true, true])
+	})
+})
+
+describe('singleRow', () => {
+	// spec: FOLDERS-009.1, FOLDERS-009.6
+	it('is the node\'s own row when the switch is off or it has no subfolders, else null', () => {
+		expect(singleRow(at('/Photos/2024'), true)).toBeNull()
+		expect(singleRow(at('/Photos/2024'), false)?.fileId).toBe(1)
+		expect(singleRow(at('/Photos/2024/Jura'), true)?.fileId).toBe(2)
+		expect(singleRow(at('/Photos/2024/Iceland'), false)).toBeNull()
+	})
+})
+
 describe('flatRows', () => {
 	// spec: FOLDERS-009.14
 	it('is every row below the level, the level\'s own first, or every row at the Library', () => {
@@ -75,5 +96,6 @@ describe('parentBelow', () => {
 		expect(parentBelow(level, '/Photos/2024/Iceland/Day 1/Raw')).toBe('Iceland/Day 1')
 		expect(parentBelow(level, '/Photos/2024/Jura')).toBe('')
 		expect(parentBelow(level, '/Photos/2024')).toBe('')
+		expect(parentBelow(level, '/Photos/2024x/Jura')).toBe('')
 	})
 })

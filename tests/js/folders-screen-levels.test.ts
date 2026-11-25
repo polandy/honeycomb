@@ -180,7 +180,7 @@ describe('FoldersScreen levels', () => {
 		await open(wrapper, 'b / c / d')
 		await open(wrapper, 'e')
 
-		expect(crumbs(wrapper)).toEqual(['Photos', '…', 'd', 'e'])
+		expect(crumbs(wrapper)).toEqual(['Photos', `${MARK}More levels`, 'd', 'e'])
 		await wrapper.find(`[aria-label="${MARK}More levels"]`).trigger('click')
 		expect(wrapper.findAll('.folder-breadcrumb__between button').map((each) => each.text())).toEqual(['a', 'b', 'c'])
 		await wrapper.findAll('.folder-breadcrumb__between button')[1]!.trigger('click')

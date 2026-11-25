@@ -29,6 +29,9 @@ export interface FoldersHomeOptions extends FoldersOptions {
 	openSet(set: FolderSet): Promise<void>
 	/** Stores the roots the setup chose (FOLDERS-007.5). */
 	saveRoots(roots: string[]): void
+	/** Whether the rows of *Folders* cover their subtrees, as saved per user (FOLDERS-009.5). */
+	includeSubfolders(): boolean
+	setIncludeSubfolders(on: boolean): void
 	/** The current time in Unix seconds; it sets the progress card's month. */
 	now(): number
 	toast: FolderDoneOptions['toast']
@@ -125,6 +128,8 @@ export function useFoldersHome(api: LibraryApi & FolderDoneApi, options: Folders
 		markFinished,
 		back: () => fireAndLog(folders.show(), 'Could not show the folders'),
 		saveRoots: options.saveRoots,
+		includeSubfolders: computed(() => options.includeSubfolders()),
+		setIncludeSubfolders: options.setIncludeSubfolders,
 		now: options.now,
 	}
 }

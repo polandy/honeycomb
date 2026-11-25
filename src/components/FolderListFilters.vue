@@ -9,15 +9,11 @@ import { t } from '@nextcloud/l10n'
 import { filterLabel, sortLabel } from '../folders/folders-text.ts'
 import { formatNumber } from '../shared/l10n.ts'
 
-/** The chosen root, null for *All roots*. */
-const root = defineModel<string | null>('root', { required: true })
-
 const filter = defineModel<FolderFilter>('filter', { required: true })
 
 const sort = defineModel<FolderSort>('sort', { required: true })
 
 const props = defineProps<{
-	roots: readonly string[]
 	/** How many rows each filter keeps. */
 	counts: Record<FolderFilter, number>
 }>()
@@ -28,32 +24,6 @@ const SORTS: readonly FolderSort[] = ['suggested', 'undecided', 'largest', 'olde
 
 <template>
 	<div class="folder-filters">
-		<div
-			v-if="props.roots.length > 1"
-			class="filter-bar__group"
-			role="group"
-			:aria-label="t('honeycomb', 'Library root')">
-			<span class="filter-bar__label" aria-hidden="true">{{ t('honeycomb', 'Library root') }}</span>
-			<div class="filter-bar__chips">
-				<button
-					type="button"
-					class="filter-bar__chip"
-					:aria-pressed="root === null"
-					@click="root = null">
-					{{ t('honeycomb', 'All roots') }}
-				</button>
-				<button
-					v-for="each in props.roots"
-					:key="each"
-					type="button"
-					class="filter-bar__chip"
-					translate="no"
-					:aria-pressed="root === each"
-					@click="root = each">
-					{{ each }}
-				</button>
-			</div>
-		</div>
 		<div class="filter-bar__group" role="group" :aria-label="t('honeycomb', 'Filter')">
 			<span class="filter-bar__label" aria-hidden="true">{{ t('honeycomb', 'Filter') }}</span>
 			<div class="filter-bar__chips">
@@ -69,7 +39,7 @@ const SORTS: readonly FolderSort[] = ['suggested', 'undecided', 'largest', 'olde
 				</button>
 			</div>
 		</div>
-		<label class="folder-filters__sort">
+		<label v-if="filter !== 'all'" class="folder-filters__sort">
 			<span>{{ t('honeycomb', 'Sort') }}</span>
 			<select v-model="sort">
 				<option v-for="each in SORTS" :key="each" :value="each">{{ sortLabel(each) }}</option>

@@ -46,9 +46,9 @@ export async function showAll(wrapper: Screen): Promise<void> {
 	await chip(wrapper, 'Filter', 'All').trigger('click')
 }
 
-/** The breadcrumb's crumbs by their text, the current level last. */
+/** The breadcrumb's crumbs by their text, or label for an icon, the current level last. */
 export function crumbs(wrapper: Screen): string[] {
-	return wrapper.find('.folder-breadcrumb').findAll('.folder-breadcrumb__crumb').map((each) => each.text())
+	return wrapper.find('.folder-breadcrumb').findAll('.folder-breadcrumb__crumb').map((each) => each.text() || (each.attributes('aria-label') ?? ''))
 }
 
 export function chip(wrapper: Screen, group: string, label: string) {

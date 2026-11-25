@@ -28,10 +28,12 @@ const props = defineProps<{
 			:roots="props.home.roots.value"
 			:now="props.home.now"
 			:focusRow="props.home.changed.value"
+			:includeSubfolders="props.home.includeSubfolders.value"
 			@cull="props.home.cull"
 			@markDone="props.home.markDone"
 			@reopen="props.home.reopen"
-			@cullNew="props.home.cullNew" />
+			@cullNew="props.home.cullNew"
+			@update:includeSubfolders="props.home.setIncludeSubfolders" />
 	</div>
 </template>
 
