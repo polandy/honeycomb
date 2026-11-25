@@ -111,7 +111,7 @@ export function largeSubtreeText(): string {
 }
 
 /** The card's subtitle: the roots (only for the whole library), folders and photos below them. */
-export function summaryText(roots: number | null, progress: FolderProgress): string {
+function summaryText(roots: number | null, progress: FolderProgress): string {
 	const parts = [
 		foldersText(progress.folders),
 		photosText(progress.photos),
