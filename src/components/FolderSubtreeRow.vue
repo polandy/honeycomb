@@ -106,3 +106,5 @@ const split = computed(() => ([['picked', sums.value.picked], ['undecided', sums
 </template>
 
 <style scoped src="./folder-row.css" />
+
+<style scoped src="./folder-split.css" />

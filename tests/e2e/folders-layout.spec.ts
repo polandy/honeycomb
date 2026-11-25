@@ -169,6 +169,8 @@ for (const viewport of VIEWPORTS) {
 				const toggle = page.getByRole('button', { name: /navigation$/ })
 				const crumb = (await screen.getByRole('navigation', { name: 'Level' }).getByRole('button', { name: 'Photos' }).boundingBox())!
 				const covered = (await toggle.isVisible()) ? intersection(crumb, (await toggle.boundingBox())!) : null
+				// On touch widths the toggle floats over the crumb, as on the owner's phone, so the check below runs there.
+				expect(covered !== null).toBe(viewport.touch)
 				if (covered !== null) {
 					// Where the toggle meets the crumb, the title row lies over the crumb: beside the toggle the crumb is hidden too.
 					const x = crumb.x + crumb.width - TOLERANCE_PX

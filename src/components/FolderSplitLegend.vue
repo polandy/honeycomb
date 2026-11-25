@@ -22,7 +22,7 @@ const PARTS = [
 	</ul>
 </template>
 
-<style scoped src="./folder-row.css" />
+<style scoped src="./folder-split.css" />
 
 <style scoped>
 .folder-split-legend {

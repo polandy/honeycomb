@@ -244,18 +244,18 @@ folders; a parent's state is derived.
   folder with photos below the level, so it is never fewer than either; its list shows those
   folders as the rows of the level, a row with subfolders standing for several
 
-## Out of scope
-
-The folder summaries and the list's data: FOLDERS-005. The single-folder done endpoints:
-FOLDERS-006. Shares and group
-folders: phase 2.
-
 ### FOLDERS-009.24 – › keeps its slot
 
 - **Given** a level with a row with subfolders and rows without
 - **When** it shows them
 - **Then** › of the row with subfolders stands right of its *Cull*, and the *Cull* and *Mark done*
   of every row share their right edge
+
+## Out of scope
+
+The folder summaries and the list's data: FOLDERS-005. The single-folder done endpoints:
+FOLDERS-006. Shares and group
+folders: phase 2.
 
 ## History
 
