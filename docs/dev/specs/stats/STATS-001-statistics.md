@@ -70,23 +70,23 @@ with *Previous period* and *Next period* and *Today*, which goes to the period t
 *All time* has no stepper, only *Since {day}*. A week starts on the first day of the week of the
 user's Nextcloud locale. Changing the segment keeps the day the user stepped to, so March 2025
 becomes 2025 and back March 2025. The user's day is the `today` the server answers; stepping never
-goes past the period of today nor before the period of the first counted day. Tiles show
-pictures decided (with the change against the period before), moved to the trash bin (with space
-freed and deleted for good), sidecars created / updated (with those from digiKam or darktable) and
-days in a row (with the longest streak; in a past week, month or year the longest run of active
-days inside it); a day counts toward days in a row when any of its counters is above zero. A line
-shows active time, pictures a minute (from one active minute on), series done and RAW files
-removed. Bars show pictures decided and moved to the trash bin per day (week, month), per month
-(year) or per year (all time; per month while the counting lies in one calendar year). Days and
-months after today show as hatched empty slots, those before the first counted day as plain empty
-slots, and the bar of today (week, month, year) is outlined. A period without a count says
-*Nothing counted in this period.* instead of the bars. *Library progress* shows how far the
-library roots have come (below); *Of the pictures read so far* shows the shares picked, rejected, unflagged and
-rated from the XMP cache, counting only the pictures whose XMP honeycomb has read, so a library
-not yet opened shows little. A footnote says *Counted since {date}.* and, when stored series were
-done before the counting began, *Before that: n series done (no date).* There is no start value
-for decided pictures: honeycomb is deployed nowhere with decisions of the old table, so the page
-counts from the first counter on.
+goes past the period of today nor before the period of the first counted day. Tiles show pictures
+decided (with the change against the period before), moved to the trash bin (with space freed and
+deleted for good), sidecars created / updated (with those from digiKam or darktable) and days in a
+row (with the longest streak; in a past week, month or year the longest run of active days inside
+it); a day counts toward days in a row when any of its counters is above zero. A line shows active
+time, pictures a minute (from one active minute on), series done and RAW files removed. Bars show
+pictures decided and moved to the trash bin per day (week, month), per month (year) or per year
+(all time; per month while the counting lies in one calendar year). Days and months after today
+show as hatched empty slots, those before the first counted day as plain empty slots, and the bar
+of today (week, month, year) is outlined. A period without a count says *Nothing counted in this
+period.* instead of the bars. *Library progress* shows how far the library roots have come (below);
+*Of the pictures read so far* shows the shares picked, rejected, unflagged and rated from the XMP
+cache, counting only the pictures whose XMP honeycomb has read, so a library not yet opened shows
+little. A footnote says *Counted since {date}.* and, when stored series were done before the
+counting began, *Before that: n series done (no date).* There is no start value for decided
+pictures: honeycomb is deployed nowhere with decisions of the old table, so the page counts from
+the first counter on.
 
 **The year in review** opens the page from 1 December to 31 January, for the year that ends or
 just ended, above the period tiles: a headline with the pictures decided and the space freed, tiles

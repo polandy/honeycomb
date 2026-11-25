@@ -15,10 +15,10 @@ Open **Statistics** in the navigation, or press **Statistics** on the *Cull fini
   of the week of your Nextcloud locale. *Previous period*, *Next period* and *Today* step through
   the periods, never past today nor before the first counted day. Today is the day in the time
   zone of your Nextcloud account.
-- **Tiles:** *Photos decided*, with the change against the period before (in the current period, up to the same day); *Moved to
-  the trash bin*, with the size and how many were deleted for good; *Sidecars created / updated*;
-  and *Days in a row*, the days you culled without a gap up to today or yesterday, with your
-  longest run (in a past period, the longest run inside it).
+- **Tiles:** *Photos decided*, with the change against the period before (in the current
+  period, up to the same day); *Moved to the trash bin*, with the size and how many were deleted
+  for good; *Sidecars created / updated*; and *Days in a row*, the days you culled without a gap
+  up to today or yesterday, with your longest run (in a past period, the longest run inside it).
 - **A line below:** your active time, the photos a minute, the series done and the RAW files
   removed, each once there is one.
 - **Bars:** the photos decided and moved to the trash bin per day (week, month), per month
