@@ -46,6 +46,11 @@ export async function showAll(wrapper: Screen): Promise<void> {
 	await chip(wrapper, 'Filter', 'All').trigger('click')
 }
 
+/** Shows the filter *Suggested*: every folder below the level, flat. */
+export async function showSuggested(wrapper: Screen): Promise<void> {
+	await chip(wrapper, 'Filter', 'Suggested').trigger('click')
+}
+
 /** The breadcrumb's crumbs by their text, or label for an icon, the current level last. */
 export function crumbs(wrapper: Screen): string[] {
 	return wrapper.find('.folder-breadcrumb').findAll('.folder-breadcrumb__crumb').map((each) => each.text() || (each.attributes('aria-label') ?? ''))
