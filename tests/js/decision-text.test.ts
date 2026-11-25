@@ -23,9 +23,10 @@ describe('changeText', () => {
 		expect(changeText({ kind: 'decision', change, names })).toBe(text)
 	})
 
-	// spec: SERIES-001.9
-	it('words Pick this, reject the rest by the picked name', () => {
-		expect(changeText({ kind: 'pickRest', picked: 'IMG_3', names: ['IMG_3', 'IMG_4'] })).toBe('Picked IMG_3, rejected the rest')
+	// spec: SERIES-001.9, KEYS-001.13
+	it('words Pick this, reject the rest by the one picked and the count rejected', () => {
+		expect(changeText({ kind: 'pickRest', rejected: 3, names: ['IMG_3', 'IMG_4', 'IMG_5', 'IMG_6'] })).toBe('Picked 1, rejected 3')
+		expect(changeText({ kind: 'pickRest', rejected: 0, names: ['IMG_3'] })).toBe('Picked 1, rejected 0')
 	})
 
 	// spec: SERIES-008.5

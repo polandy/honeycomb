@@ -79,12 +79,31 @@ describe('useCull: series', () => {
 		const { cull, picture } = await openedCull()
 		const step = cull.pickRest(picture('IMG_9'), [picture('IMG_10'), picture('IMG_2')])
 
-		expect(step).toMatchObject({ kind: 'pickRest', picked: 'IMG_9' })
+		expect(step).toMatchObject({ kind: 'pickRest', rejected: 2 })
 		expect(['IMG_9', 'IMG_10', 'IMG_2'].map((name) => cull.decisionOf(picture(name)).flag)).toEqual(['picked', 'rejected', 'rejected'])
 		expect(cull.undo()).toBe(step)
 		expect(['IMG_9', 'IMG_10', 'IMG_2'].map((name) => cull.decisionOf(picture(name)).flag)).toEqual(['unflagged', 'unflagged', 'unflagged'])
 		expect(cull.pickRest(picture('IMG_9'), [])).not.toBeNull()
 		expect(cull.pickRest(picture('IMG_9'), [])).toBeNull()
+	})
+
+	// spec: KEYS-001.13
+	it('rejects another picked photo of the series too, and one undo gives every photo its earlier labels back', async () => {
+		const { cull, picture } = await openedCull()
+		cull.decide({ kind: 'flag', flag: 'picked' }, [picture('IMG_10')])
+		cull.decide({ kind: 'rating', rating: 4 }, [picture('IMG_2')])
+		cull.decide({ kind: 'flag', flag: 'rejected' }, [picture('IMG_2')])
+		const names = ['IMG_9', 'IMG_10', 'IMG_2']
+		const before = names.map((name) => cull.decisionOf(picture(name)))
+
+		const step = cull.pickRest(picture('IMG_9'), [picture('IMG_10'), picture('IMG_2')])
+
+		expect(step).toMatchObject({ kind: 'pickRest', rejected: 1 })
+		expect(names.map((name) => cull.decisionOf(picture(name)).flag)).toEqual(['picked', 'rejected', 'rejected'])
+		expect(cull.decisionOf(picture('IMG_2')).rating).toBe(4)
+		expect(cull.undo()).toBe(step)
+		expect(names.map((name) => cull.decisionOf(picture(name)))).toEqual(before)
+		expect(cull.decisionOf(picture('IMG_10')).flag).toBe('picked')
 	})
 })
 

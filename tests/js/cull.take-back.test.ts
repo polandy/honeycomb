@@ -126,6 +126,25 @@ describe('useCull: a failed write is taken back', () => {
 	})
 })
 
+describe('useCull: Pick this, reject the rest with a failed write', () => {
+	// spec: KEYS-001.13, XMP-008.17
+	it('gives back only the photo whose flag the server skips, keeps the others and says how many', async () => {
+		const { cull, flags, picture, open, notSaved } = cullWith()
+		await open(SET, ENTRIES)
+		await flushPromises()
+		const warn = vi.spyOn(logger, 'warn').mockImplementation(() => undefined)
+		flags.api.save = async (items) => ({ saved: items.map(({ fileId }) => fileId).filter((fileId) => fileId !== 4), skipped: [{ fileId: 4, reason: 'notPermitted' }] })
+
+		cull.pickRest(picture('IMG_2'), [picture('IMG_10'), picture('IMG_9')])
+		await flushPromises()
+
+		expect(NAMES.map((name) => cull.decisionOf(picture(name)).flag)).toEqual(['picked', 'rejected', 'unflagged'])
+		expect(notSaved).toEqual([1])
+		expect(warn).toHaveBeenCalledOnce()
+		warn.mockRestore()
+	})
+})
+
 describe('useCull: Clear picks/rejects', () => {
 	// spec: GRID-001.22
 	it('resets the rateable flagged or kept pictures as one undo step, saves their rows and writes no sidecar', async () => {

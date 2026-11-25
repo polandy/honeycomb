@@ -22,6 +22,8 @@ const SHOTS = [
 	listingEntry(5, '/Trip/IMG_5.JPG', { captureTime: 201 }),
 ]
 
+const WITH_LONE = [...SHOTS, listingEntry(6, '/Trip/IMG_6.JPG', { captureTime: 900 })]
+
 /** The app with the loupe open on the picture at `index`. */
 async function openLoupe(index: number) {
 	const mounted = mountApp({}, [], { NcDialog: DialogStub, SeriesCompare: false, PhotoLoupe: false })
@@ -62,10 +64,10 @@ describe('App: the series compare opened from the loupe', () => {
 	})
 
 	// spec: SERIES-001.24
-	it('lands on the first picture after the series on Shift+K', async () => {
+	it('lands on the first picture after the series on Shift+P', async () => {
 		const { wrapper } = await openLoupe(1)
 		await press('n')
-		await press('K', { shiftKey: true })
+		await press('P', { shiftKey: true })
 
 		expect(compare(wrapper).exists()).toBe(false)
 		expect(inLoupe(wrapper)).toBe('IMG_4')
@@ -76,7 +78,7 @@ describe('App: the series compare opened from the loupe', () => {
 		const { wrapper } = await openLoupe(3)
 		await press('n')
 		await press('ArrowRight')
-		await press('K', { shiftKey: true })
+		await press('P', { shiftKey: true })
 
 		expect(inLoupe(wrapper)).toBe('IMG_5')
 	})
@@ -93,12 +95,12 @@ describe('App: the series compare opened from the loupe', () => {
 
 describe('App: Pick this, reject the rest in the loupe', () => {
 	// spec: LOUPE-002.15
-	it('picks the shown photo by Shift+K, rejects the rest in one step and lands on the first photo after the series', async () => {
+	it('picks the shown photo by Shift+P, rejects the rest in one step and lands on the first photo after the series', async () => {
 		const { wrapper } = await openLoupe(1)
-		await press('K', { shiftKey: true })
+		await press('P', { shiftKey: true })
 
 		expect(decidedFlags(wrapper, SHOTS)).toEqual(['1 rejected', '2 picked', '3 rejected'])
-		expect(toastText(wrapper)).toContain('Picked IMG_2, rejected the rest')
+		expect(toastText(wrapper)).toContain('Picked 1, rejected 2')
 		expect(inLoupe(wrapper)).toBe('IMG_4')
 		await press('z', { ctrlKey: true })
 		expect(decidedFlags(wrapper, SHOTS)).toEqual([])
@@ -112,5 +114,48 @@ describe('App: Pick this, reject the rest in the loupe', () => {
 
 		expect(decidedFlags(wrapper, SHOTS)).toEqual(['4 rejected', '5 picked'])
 		expect(inLoupe(wrapper)).toBe('IMG_5')
+	})
+})
+
+describe('App: Pick this, reject the rest in the grid', () => {
+	/** The app's grid on the shots and a lone photo, focused on the picture at `index`. */
+	async function openGrid(index: number) {
+		const mounted = mountApp({}, [], { NcDialog: DialogStub, SeriesCompare: false })
+		await openCull(mounted.wrapper, SET, WITH_LONE)
+		mounted.grid.focused = index
+		return mounted
+	}
+
+	// spec: KEYS-001.13
+	it('picks the focused photo by Shift+P, rejects the rest of its series in one step that one undo takes back', async () => {
+		const { wrapper } = await openGrid(1)
+		await press('P', { shiftKey: true })
+
+		expect(decidedFlags(wrapper, WITH_LONE)).toEqual(['1 rejected', '2 picked', '3 rejected'])
+		expect(toastText(wrapper)).toBe('Picked 1, rejected 2·Undo')
+		await press('z', { ctrlKey: true })
+		expect(decidedFlags(wrapper, WITH_LONE)).toEqual([])
+	})
+
+	// spec: KEYS-001.13
+	it('rejects another picked photo of the series too and says so', async () => {
+		const { wrapper, grid } = await openGrid(0)
+		await press('p')
+		grid.focused = 2
+		await press('P', { shiftKey: true })
+
+		expect(decidedFlags(wrapper, WITH_LONE)).toEqual(['1 rejected', '2 rejected', '3 picked'])
+		expect(toastText(wrapper)).toBe('Picked 1, rejected 2·Undo')
+		await press('z', { ctrlKey: true })
+		expect(decidedFlags(wrapper, WITH_LONE)).toEqual(['1 picked'])
+	})
+
+	// spec: KEYS-001.13
+	it('decides nothing and only gives a short hint by Shift+P on a photo outside a series', async () => {
+		const { wrapper } = await openGrid(5)
+		await press('P', { shiftKey: true })
+
+		expect(decidedFlags(wrapper, WITH_LONE)).toEqual([])
+		expect(toastText(wrapper)).toBe('Not in a series · Shift+P picks a photo and rejects the rest of its series')
 	})
 })

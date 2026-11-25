@@ -49,8 +49,8 @@ describe('ShortcutSheet', () => {
 	})
 
 	// spec: LOUPE-002.15
-	it('names Shift+K for the series compare, the series viewer and the loupe alike', () => {
-		expect(rows(mountSheet()).find(([caps]) => caps?.[0] === 'Shift+K')).toEqual([['Shift+K'], 'Series: pick this, reject the rest'])
+	it('names Shift+P for the series compare, the series viewer and the loupe alike', () => {
+		expect(rows(mountSheet()).find(([caps]) => caps?.[0] === 'Shift+P')).toEqual([['Shift+P'], 'Series: pick this, reject the rest'])
 	})
 
 	// spec: GRID-004.3
