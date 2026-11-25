@@ -122,7 +122,6 @@ function summaryText(roots: number | null, progress: FolderProgress): string {
 	return parts.join(SEPARATOR)
 }
 
-/** The lines of the progress card. */
 /** The title of the progress: the root's path, *Library* for the whole library. */
 export function progressTitle(root: string | null): string {
 	return root ?? t('honeycomb', 'Library')
@@ -133,6 +132,7 @@ export function progressSummary(root: string | null, roots: number, progress: Fo
 	return summaryText(root === null ? roots : null, progress)
 }
 
+/** The lines of the progress card. */
 export function progressTexts(progress: FolderProgress): { headline: string, folders: string, month: string, decided: string } {
 	return {
 		headline: t('honeycomb', '{percent} % of photos in done folders', { percent: progress.donePercent }),
