@@ -199,6 +199,13 @@ and mockup; the folder summaries; the done status; the pure TypeScript ranking a
 list as the start screen; marking done in the UI; statistics and the library roots setting.
 Phase 2: shares and group folders, Immich albums. **Done 2026-11-22**, phase 2 aside (`TODO.md`).
 
+**Folder hierarchy** (decided 2026-11-25, ADR 0060, FOLDERS-009, mockup
+`docs/dev/mockup/folders/hierarchy.html`): *Folders* becomes a drill-down with a breadcrumb and the
+switch *Include subfolders*; done stays per folder and a parent's state is derived. Five pull
+requests: ADR, spec and mockup; the pure module `folder-hierarchy.ts`; the drill-down in the
+screen; the batch endpoints with *Mark all done* and *Reopen all*; previews of a subtree, the
+large-subtree warning and *Cull new* with subfolders (`TODO.md`).
+
 ### Release – first App Store release
 
 Before it: Transifex setup ([Translations](#translations)), the signing certificate and the

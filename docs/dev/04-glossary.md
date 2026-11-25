@@ -36,6 +36,10 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **complete** | A folder with no undecided photo; derived, unlike *done*. |
 | **folder done** | The status a user gives a folder they have been through; shared per folder like the flags, with the user who marked it (cleared when that user is deleted), and needs UPDATE. New photos leave it done and show as *n new* (ADR 0049). Not *series done*. |
 | **excluded folder** | A folder below a ticked one that *Include subfolders* leaves out, with everything inside it but ticked folders (ADR 0035). |
+| **level** | The folder of *Folders* that the view shows with its subfolders as rows; built in the client from the folder summaries, never stored (ADR 0060). |
+| **Include subfolders** | In *Folders*, the switch (on by default, saved per user) that makes a row's numbers and *Cull* cover its whole subtree (ADR 0060); in the folder picker, the choice of the *folder set*. |
+| **Photos directly in ⟨folder⟩** | The row of a level that culls only the photos of that folder, not its subfolders (FOLDERS-009). |
+| **Mark all done** / **Reopen all** | *Mark done* and *Reopen* for every rateable folder with photos in a subtree, in one call; the parent's *done* is derived from them, never stored (ADR 0060). |
 | **resume position** | Where a user stands in a folder set (the current picture and how many are decided), stored on the server so a cull continues on another device. |
 | **undecided** | A picture whose flag is unflagged and that is not in a done series; picked and rejected pictures, and the unflagged pictures of a done series (SERIES-005.14), are *decided*. |
 | **reject review** | The grid of all rejected pictures, where single ones can be rescued before the delete summary. |
@@ -136,8 +140,9 @@ loupe, series compare, series viewer). The controls come from the shared compone
 - **Folders.** The UI says *Folders* for the start screen that lists the folders to cull,
   *Library* for the library roots together and their progress, *Suggested* for the default
   filter and sort, *New photos* for done folders with undecided photos, and *Mark done* and
-  *Reopen* for setting and clearing the done status; not *Clean up*, *Finish* or *Archive*.
-  Code and specs say *library root*, *folder summary* and *folder done*.
+  *Reopen* for setting and clearing the done status, *Mark all done* and *Reopen all* for a
+  subtree, *Include subfolders* for its switch and *Photos directly in ⟨folder⟩*; not *Clean up*,
+  *Finish* or *Archive*. Code and specs say *library root*, *folder summary* and *folder done*.
 - **Series edits.** *New series from n photos*, *Add n photos to series*, *Merge n series*,
   *Merge with the next series*, *Remove from this series*, *Dissolve this series* and *Series
   done* (SERIES-005); not *group*, *split* or *ungroup*.
