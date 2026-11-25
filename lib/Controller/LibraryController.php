@@ -40,6 +40,16 @@ final class LibraryController extends Controller {
 		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->library->list($user, $root, $cursor, $limit)));
 	}
 
+	/** Whether `$root` can be a library root: a folder of the user's own storage (FOLDERS-005.21). */
+	#[NoAdminRequired]
+	#[FrontpageRoute(verb: 'GET', url: '/api/v1/library/root')]
+	public function checkRoot(string $root): Response {
+		return $this->api->forUser(function (IUser $user) use ($root): Response {
+			$this->library->checkRoot($user, $root);
+			return new Response(Http::STATUS_NO_CONTENT);
+		});
+	}
+
 	/** Summarises the next batch of folders below `$root` that changed since their last scan (FOLDERS-005.5). */
 	#[NoAdminRequired]
 	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]

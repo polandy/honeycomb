@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, listAllLibraryFolders, listLibraryFolders, markFolderDone, markFoldersDone, reopenFolder, reopenFolders, scanLibrary } from '../../src/api/index.ts'
+import { ApiResponseError, listAllLibraryFolders, checkLibraryRoot, listLibraryFolders, markFolderDone, markFoldersDone, reopenFolder, reopenFolders, scanLibrary } from '../../src/api/index.ts'
 import { row } from './logic/folder-fixtures.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() } }))
@@ -53,6 +53,16 @@ describe('listAllLibraryFolders', () => {
 
 		await expect(listAllLibraryFolders('/Photos')).resolves.toEqual([ROW, other])
 		expect(vi.mocked(axios.get).mock.calls.slice(-2).map(([, config]) => config)).toEqual([{ params: { root: '/Photos', cursor: 0 } }, { params: { root: '/Photos', cursor: 7 } }])
+	})
+})
+
+describe('checkLibraryRoot', () => {
+	// spec: FOLDERS-005.21
+	it('asks the candidate root apart from the folder list', async () => {
+		vi.mocked(axios.get).mockResolvedValue({ data: '' })
+
+		await expect(checkLibraryRoot('/Archive')).resolves.toBeUndefined()
+		expect(axios.get).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/library/root', { params: { root: '/Archive' } })
 	})
 })
 

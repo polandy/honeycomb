@@ -20,6 +20,7 @@ use OCA\Honeycomb\Service\Files\FolderNotFoundException;
 use OCA\Honeycomb\Service\Files\FolderNotReadableException;
 use OCA\Honeycomb\Service\Files\UserFolderResolver;
 use OCA\Honeycomb\Service\Listing\CaptureTimes;
+use OCA\Honeycomb\Service\Settings\LibraryRootsGuard;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Folder;
 use OCP\IUser;
@@ -36,6 +37,7 @@ final class LibraryFolderService {
 	/** @psalm-suppress PossiblyUnusedMethod Nextcloud constructs it. */
 	public function __construct(
 		private UserFolderResolver $folders,
+		private LibraryRootsGuard $roots,
 		private LibraryFiles $files,
 		private FolderSummaryStore $summaries,
 		private FolderDoneStore $done,
@@ -47,10 +49,11 @@ final class LibraryFolderService {
 	/**
 	 * Summarises the next batch of folders below `$root` without a fresh summary, in path order.
 	 * @return array{scanning: array{done: int, total: int}}
-	 * @throws InvalidRequestException for a root outside the user's own storage
+	 * @throws InvalidRequestException for a root outside the user's own storage or the library roots
 	 * @throws FolderNotReadableException when the user may not read the root
 	 */
 	public function scan(IUser $user, string $root): array {
+		$this->roots->ensureInside($user, $root);
 		$folders = $this->files->folders($this->root($user, $root));
 		$summaries = $this->summaries->find(array_map(static fn (LibraryFolder $folder): int => $folder->fileId, $folders));
 		$stale = array_values(array_filter($folders, static fn (LibraryFolder $folder): bool => !self::isFresh($folder, $summaries)));
@@ -65,7 +68,7 @@ final class LibraryFolderService {
 	/**
 	 * One page, by file id, of the folders below `$root` that have a summary with photos.
 	 * @return array{folders: list<array<string, mixed>>, nextCursor: ?int, scanning: ?array{done: int, total: int}}
-	 * @throws InvalidRequestException for a root outside the user's own storage or a malformed page
+	 * @throws InvalidRequestException for a root outside the user's own storage or the library roots, or a malformed page
 	 * @throws FolderNotReadableException when the user may not read the root
 	 */
 	public function list(IUser $user, string $root, string $after, string $limit): array {
@@ -74,6 +77,7 @@ final class LibraryFolderService {
 		if ($pageSize < 1 || $pageSize > self::MAX_LIMIT) {
 			throw InvalidRequestException::because(Reason::BadValue, 'limit must be from 1 to ' . self::MAX_LIMIT);
 		}
+		$this->roots->ensureInside($user, $root);
 		$rootPath = self::rootPath($root);
 		$folders = $this->files->folders($this->root($user, $root));
 		$summaries = $this->summaries->find(array_map(static fn (LibraryFolder $folder): int => $folder->fileId, $folders));
@@ -89,6 +93,15 @@ final class LibraryFolderService {
 			'nextCursor' => count($listed) > $pageSize ? $listed[$pageSize - 1]->fileId : null,
 			'scanning' => $fresh === count($folders) ? null : ['done' => $fresh, 'total' => count($folders)],
 		];
+	}
+
+	/**
+	 * Refuses a candidate root that is no folder of the user's own storage, whatever the library roots.
+	 * @throws InvalidRequestException
+	 * @throws FolderNotReadableException
+	 */
+	public function checkRoot(IUser $user, string $root): void {
+		$this->root($user, $root);
 	}
 
 	/**
