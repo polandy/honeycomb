@@ -5,6 +5,7 @@ import type { Locator, Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { SCHEMES } from './a11y.ts'
 import { E2E_SETTINGS, putSettings } from './cull.ts'
+import { JPEG } from './files.ts'
 
 const ROOT = '/Photos'
 const LEVEL = 'honeycomb-testset'
@@ -20,6 +21,9 @@ const SCROLL_PX = 180
 const SCROLL_HEIGHT_PX = 600
 // Sub-pixel rounding between rows.
 const TOLERANCE_PX = 1
+// WCAG 1.4.11: a part of a graphic needs 3:1 against what it stands on.
+const MIN_CONTRAST = 3
+const COVER = { fileId: 9901, mtime: 1 }
 const PRIMARY = '.folder-row__cull, .folder-row__mark-done, .folder-row__cull-new, .folder-row__mark-all'
 
 let nextId = 9100
@@ -35,11 +39,12 @@ const FOLDERS = [
 	folder('Iceland/Day 1', { photos: 18, picked: 10, rejected: 3, undecided: 5 }),
 	folder('Iceland/Day 2', { photos: 21, picked: 15, rejected: 6 }),
 	folder('Jura', { photos: 8, picked: 2, undecided: 6 }),
-	folder('Kept', { done: DONE }),
+	folder('Kept', { done: DONE, previews: [COVER] }),
 ]
 
 /** Opens the stubbed level the way the owner did: the root, then the level's row. */
 async function openLevel(page: Page): Promise<Locator> {
+	await page.route(`**/apps/honeycomb/api/v1/images/${COVER.fileId}?**`, (route) => route.fulfill({ contentType: 'image/jpeg', body: JPEG }))
 	await page.route('**/apps/honeycomb/api/v1/library/folders?**', (route) => route.fulfill({ json: { folders: FOLDERS, nextCursor: null, scanning: null } }))
 	await page.goto('/index.php/apps/honeycomb/')
 	// The settings write needs the page's request token; the reload reads the roots.
@@ -73,6 +78,22 @@ function intersection(a: Box, b: Box): Box | null {
 	const width = Math.min(a.x + a.width, b.x + b.width) - x
 	const height = Math.min(a.y + a.height, b.y + b.height) - y
 	return width > 0 && height > 0 ? { x, y, width, height } : null
+}
+
+/** The WCAG contrast ratio of two computed `rgb()` colours. */
+function contrast(a: string, b: string): number {
+	const luminance = (color: string) => {
+		const [red, green, blue] = color.match(/\d+(\.\d+)?/g)!.slice(0, 3).map((part) => Number(part) / 255)
+			.map((part) => (part <= 0.03928 ? part / 12.92 : ((part + 0.055) / 1.055) ** 2.4))
+		return 0.2126 * red + 0.7152 * green + 0.0722 * blue
+	}
+	const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x)
+	return (light + 0.05) / (dark + 0.05)
+}
+
+/** The element's computed style property. */
+function style(element: Locator, property: 'backgroundColor' | 'color'): Promise<string> {
+	return element.evaluate((each, name) => getComputedStyle(each)[name], property)
 }
 
 test.afterEach(async ({ page }) => {
@@ -118,6 +139,19 @@ for (const viewport of VIEWPORTS) {
 					await expect(iceland.locator(`.folder-row__split-${kind}`)).toHaveCSS('background-color', swatch)
 				}
 				expect((await legend.boundingBox())!.y + (await legend.boundingBox())!.height).toBeLessThanOrEqual((await screen.locator('.folder-level-list').boundingBox())!.y)
+			})
+
+			// spec: FOLDERS-007.22
+			test('draws the bar and the done mark in colours that stand out', async ({ page }) => {
+				const screen = await openLevel(page)
+				const iceland = screen.getByRole('article', { name: 'Iceland' })
+				const card = await style(iceland, 'backgroundColor')
+				for (const kind of ['picked', 'undecided', 'rejected']) {
+					expect(contrast(await style(iceland.locator(`.folder-row__split-${kind}`), 'backgroundColor'), card)).toBeGreaterThanOrEqual(MIN_CONTRAST)
+				}
+				const mark = screen.getByRole('article', { name: 'Kept' }).locator('.folder-cover__done')
+				await expect(mark).toBeVisible()
+				expect(contrast(await style(mark, 'backgroundColor'), await style(mark, 'color'))).toBeGreaterThanOrEqual(MIN_CONTRAST)
 			})
 
 			// spec: FOLDERS-007.21

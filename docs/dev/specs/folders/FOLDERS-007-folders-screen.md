@@ -207,6 +207,13 @@ roots worth culling and the library's progress, and opens a folder's cull and re
 - **Then** the title row stays at the top above the content, and the navigation toggle never
   covers a visible crumb of the breadcrumb
 
+### FOLDERS-007.22 – Colours that stand out
+
+- **Given** the list, light and dark
+- **When** it shows a row's bar and a done row's cover
+- **Then** each part of the bar has at least 3:1 contrast against the row, and the done mark's
+  check at least 3:1 against the mark
+
 ## Out of scope
 
 *Mark done*, *Reopen*, *Cull new* and the toast with *Undo*: FOLDERS-008. The roots in *Settings* and
@@ -221,4 +228,4 @@ the statistics headline: M12 PR 7. Filters, sorts and texts: FOLDERS-002, FOLDER
 | 2026-11-25 | The row's cover of preview thumbnails (FOLDERS-007.18) |
 | 2026-11-25 | The root chips gave way to the levels of FOLDERS-009; *All* lists a level |
 | 2026-11-25 | The chip counts follow FOLDERS-009.23 |
-| 2026-11-25 | Owner's phone review: aligned row actions, counts on one line, the bar's legend, a title row that stays (FOLDERS-007.19–.21) |
+| 2026-11-25 | Owner's phone review: aligned row actions, counts on one line, the bar's legend, a title row that stays, colours that stand out (FOLDERS-007.19–.22) |
