@@ -64,9 +64,15 @@ function expectAligned(values: number[]) {
 	}
 }
 
-/** Whether two boxes share any area. */
-function overlap(a: { x: number, y: number, width: number, height: number }, b: { x: number, y: number, width: number, height: number }): boolean {
-	return a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height
+type Box = { x: number, y: number, width: number, height: number }
+
+/** The area two boxes share, null when none. */
+function intersection(a: Box, b: Box): Box | null {
+	const x = Math.max(a.x, b.x)
+	const y = Math.max(a.y, b.y)
+	const width = Math.min(a.x + a.width, b.x + b.width) - x
+	const height = Math.min(a.y + a.height, b.y + b.height) - y
+	return width > 0 && height > 0 ? { x, y, width, height } : null
 }
 
 test.afterEach(async ({ page }) => {
@@ -104,7 +110,7 @@ for (const viewport of VIEWPORTS) {
 			// spec: FOLDERS-007.20
 			test('names the colours of the bar once above the rows', async ({ page }) => {
 				const screen = await openLevel(page)
-				const legend = screen.getByRole('list', { name: 'Bar' })
+				const legend = screen.getByRole('list', { name: 'Colours of the bar' })
 				await expect(legend.getByRole('listitem')).toHaveText(['Picked', 'Undecided', 'Rejected'])
 				const iceland = screen.getByRole('article', { name: 'Iceland' })
 				for (const [index, kind] of ['picked', 'undecided', 'rejected'].entries()) {
@@ -127,9 +133,13 @@ for (const viewport of VIEWPORTS) {
 				expect(Math.abs(title.y - view.y)).toBeLessThanOrEqual(TOLERANCE_PX)
 				const toggle = page.getByRole('button', { name: /navigation$/ })
 				const crumb = (await screen.getByRole('navigation', { name: 'Level' }).getByRole('button', { name: 'Photos' }).boundingBox())!
-				const hidden = crumb.y + crumb.height <= title.y + title.height
-				if (await toggle.isVisible()) {
-					expect(hidden || !overlap(crumb, (await toggle.boundingBox())!)).toBe(true)
+				const covered = (await toggle.isVisible()) ? intersection(crumb, (await toggle.boundingBox())!) : null
+				if (covered !== null) {
+					// Where the toggle meets the crumb, the title row lies over the crumb: beside the toggle the crumb is hidden too.
+					const x = crumb.x + crumb.width - TOLERANCE_PX
+					const y = covered.y + covered.height / 2
+					expect(y >= title.y && y <= title.y + title.height).toBe(true)
+					expect(await page.evaluate(([px, py]) => document.elementFromPoint(px, py)?.closest('.folder-breadcrumb') ?? null, [x, y])).toBeNull()
 				}
 			})
 		})
