@@ -30,6 +30,7 @@ use ReflectionMethod;
 
 final class FlagControllerTest extends TestCase {
 	use FakeUserPhotos;
+	use FolderSourceFixture;
 	use StatsFixture;
 
 	private const array PICKED = ['fileId' => 7, 'flag' => 'picked', 'keepRaw' => false];
@@ -47,7 +48,7 @@ final class FlagControllerTest extends TestCase {
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? $user : null);
 		$service = new FlagService($this->store, $this->userPhotos(7), $this->createStub(ITimeFactory::class), $this->stats());
-		return new FlagController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $service);
+		return new FlagController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $service, $this->folderSource(flags: $service));
 	}
 
 	// spec: DECISIONS-001.23
