@@ -10,7 +10,7 @@ import type { Settings } from '../logic/settings.ts'
 import type { SavedSidecar } from '../logic/sidecar-sync.ts'
 import type { CountSign } from '../logic/stats-counts.ts'
 import type { TagChange } from '../logic/tag.ts'
-import type { DecisionStep, PickRestStep, ReductionStep, StepEffects, TagStep, UndoStep } from '../logic/undo.ts'
+import type { DecisionStep, PickRestStep, ReductionStep, SeriesStep, TagStep, UndoStep } from '../logic/undo.ts'
 import type { ListedAccess } from '../logic/writability.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
@@ -20,8 +20,8 @@ import type { CullApi, SidecarWrites } from './cull-seams.ts'
 import { computed, shallowRef, watch } from 'vue'
 import { sharpnessBy } from '../hashes/quality-of.ts'
 import { prepareCull, warmMembers } from '../logic/cull.ts'
-import { commonDecision, resolveChange, withRows } from '../logic/decision-change.ts'
-import { countsAsDecided, pictureDecision, UNDECIDED } from '../logic/decision.ts'
+import { commonDecision, resolveChange } from '../logic/decision-change.ts'
+import { countsAsDecided, UNDECIDED } from '../logic/decision.ts'
 import { listedPictures } from '../logic/listing.ts'
 import { folderSetOf, folderSource } from '../logic/opened-source.ts'
 import { memberIds } from '../logic/pairing.ts'
@@ -34,7 +34,7 @@ import { readEtags, savedEtags } from '../logic/sidecar-etags.ts'
 import { inDoneSeries } from '../logic/stored-series.ts'
 import { inverseChange } from '../logic/tag.ts'
 import { withoutFiles } from '../logic/trash-report.ts'
-import { applyStep, clearEntry, pickRestEntry, reductionEntry, tagStep, undoEntry } from '../logic/undo.ts'
+import { clearEntry, pickRestEntry, reductionEntry, tagStep, undoEntry } from '../logic/undo.ts'
 import { NO_ACCESS } from '../logic/writability.ts'
 import { useSeriesEdits } from '../series/series-edits.ts'
 import { useSeries } from '../series/series.ts'
@@ -45,9 +45,9 @@ import { nameComparer } from '../shared/l10n.ts'
 import { logger } from '../shared/logger.ts'
 import { usePreviewWarmer } from '../shared/preview-warmer.ts'
 import { useCullAccess } from './cull-access.ts'
+import { useCullSteps } from './cull-core.ts'
 import { syncFlags } from './cull-flag-sync.ts'
 import { useCullFlags } from './cull-flags.ts'
-import { useCullHistory } from './cull-history.ts'
 import { useCullTags } from './cull-tags.ts'
 import { useCullWrites } from './cull-writes.ts'
 
@@ -64,31 +64,28 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const pairingKey = computed(() => JSON.stringify(pairingSettings(settings())))
 	const pairing = computed(() => JSON.parse(pairingKey.value) as PairingSettings)
 	const pictures = computed(() => (settings().showSingles ? paired.value : paired.value.filter((picture) => picture.raw !== null && picture.rendered !== null)))
-	const decisions = shallowRef<ReadonlyMap<PictureId, Decision>>(new Map())
 	/** The file ids a read or a step has set, so a later read leaves them as they are (XMP-003.3). */
 	let settled = new Set<PictureId>()
 	const access = useCullAccess()
 	const flags = useCullFlags(api.flags)
 	let opening = 0
 	const storedSeries = useStoredSeries(api, () => opening)
-	/** Puts each kind of step into effect, or takes it back when `back`. */
-	const effects: StepEffects<Picture<ListingEntry>> = {
-		decision: (step, back) => store(back ? step.before : step.after, back ? -1 : 1),
-		pickRest: (step, back) => store(back ? step.before : step.after, back ? -1 : 1),
-		reduction: (step, back) => store(back ? step.before : step.after, back ? -1 : 1),
-		tags: (step, back) => changeTags(step.pictures, back ? inverseChange(step.change) : step.change, back ? -1 : 1),
-		series: (step, back) => fireAndLog(storedSeries.store(back ? step.before : step.after), 'Could not store the series'),
-	}
-	const history = useCullHistory<CullStep>((step, back) => applyStep(effects, step, back))
+	const steps = useCullSteps<TagStep<Picture<ListingEntry>> | SeriesStep>({
+		storedOf: () => UNDECIDED,
+		write: ({ to, before, back }) => store(to, before, back ? -1 : 1),
+		effects: (step, back) => (step.kind === 'tags'
+			? changeTags(step.pictures, back ? inverseChange(step.change) : step.change, back ? -1 : 1)
+			: fireAndLog(storedSeries.store(back ? step.before : step.after), 'Could not store the series')),
+	})
 	/** Whether a step on the picture is saved and written through (XMP-008.12). */
 	const writesThrough = (picture: Picture<ListingEntry>) => access.writabilityOf(picture) === 'writable'
 	const tags = useCullTags(api.tags, sidecars.writeTags, writesThrough)
-	const writes = useCullWrites(flags, sidecars, { decisions, pictures: () => paired.value, writesThrough, writeFlags: () => settings().writeFlagsToXmp, onFlagsNotSaved })
+	const writes = useCullWrites(flags, sidecars, { decisions: steps, pictures: () => paired.value, writesThrough, writeFlags: () => settings().writeFlagsToXmp, onFlagsNotSaved })
 	const folderPaths = computed(() => pictureFolders(pictures.value, compareNames))
 	const folders = computed(() => folderPaths.value.length)
 	const options = useViewOptions(storage, () => folders.value)
 	const { filters, sortOrder, grouped } = options
-	const decisionOf = (picture: Picture<SourceEntry>) => pictureDecision(picture, decisions.value)
+	const decisionOf = steps.decisionOf
 	const passes = (picture: Picture<SourceEntry>) => matchesFilters(picture, decisionOf(picture), tags.tagsOf(picture), filters.value)
 	const view = computed(() => sortPictures(filterPictures(pictures.value, decisionOf, tags.tagsOf, filters.value), sortOrder.value, compareNames, grouped.value))
 	/** Whether the picture counts as decided, an unflagged one in a done series too (SERIES-005.14). */
@@ -98,7 +95,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const empty = computed(() => emptyReason(filters.value, pictures.value.length))
 	const seriesState = useSeries(api, storage, () => pictures.value, decisionOf, () => storedSeries.rows.value)
 	const warmer = usePreviewWarmer(api.warmPreviews, storage)
-	const seriesEdits = useSeriesEdits({ record: history.record, rows: () => storedSeries.rows.value, newId: storedSeries.newId, seriesOf: () => seriesState.seriesOf.value })
+	const seriesEdits = useSeriesEdits({ record: steps.record, rows: () => storedSeries.rows.value, newId: storedSeries.newId, seriesOf: () => seriesState.seriesOf.value })
 
 	/** Shows the pictures of the confirmed folders with fresh filters and the listing's flags, then reads their sidecars. */
 	function open(set: FolderSet, listed: readonly ListingEntry[], listedAccess: ListedAccess = NO_ACCESS) {
@@ -107,12 +104,12 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		opening++
 		entries.value = listed
 		paired.value = prepareCull(listed, pairing.value).pictures
-		decisions.value = withRows(new Map(), listedRows(paired.value))
+		steps.open()
+		steps.put(listedRows(paired.value))
 		settled = new Set()
 		tags.reset()
 		storedSeries.reset()
 		tags.loadList()
-		history.reset()
 		options.reset()
 		warmer.warm(warmMembers(view.value))
 		loadDecisions(paired.value)
@@ -141,13 +138,13 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 			const stated = new Map(fromSidecars.decided.map(({ picture, decision }) => [picture, decision]))
 			const fresh = read.filter((picture) => !memberIds(picture).some((fileId) => settled.has(fileId)))
 			const rows = fresh.flatMap((picture) => memberIds(picture).map((fileId) => ({ fileId, ...readDecision(pictureFlag(picture), stated.get(picture) ?? UNDECIDED) })))
-			decisions.value = withRows(decisions.value, rows)
+			steps.put(rows)
 			settle(rows)
 			const unlisted = fresh.filter((picture) => pictureFlag(picture) === null)
 			const unlistedIds = new Set(unlisted.flatMap(memberIds))
 			flags.takeOver(rows.filter(({ fileId }) => unlistedIds.has(fileId)), new Map(unlisted.flatMap((picture) => [...readEtags(picture, fromSidecars.rows)])))
 			if (settings().writeFlagsToXmp) {
-				syncFlags(fresh, fromSidecars, flags, sidecars, { decisions, writesThrough })
+				syncFlags(fresh, fromSidecars, flags, sidecars, { decisions: steps, writesThrough })
 			}
 		}).catch((error: unknown) => logger.error('Could not read the sidecars; the photos show the listing\'s flags', { error }))
 	}
@@ -167,18 +164,18 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 
 	/** Decides the writable pictures, keeps the step for undo and returns it, or null when nothing changes or all are locked (XMP-008.9). */
 	function decide(intent: DecisionIntent, chosen: readonly Picture<SourceEntry>[]): DecisionStep | null {
-		return access.gate(listedPictures(chosen), (writable) => history.record(undoEntry(decided(writable), resolveChange(intent, decided(writable)))))
+		return access.gate(listedPictures(chosen), (writable) => steps.record(undoEntry(decided(writable), resolveChange(intent, decided(writable)))))
 	}
 
 	/** Picks one picture and rejects the rest as one undo step (SERIES-001.9), or null when nothing changes. */
 	function pickRest(picked: Picture<SourceEntry>, rest: readonly Picture<SourceEntry>[]): PickRestStep | null {
 		const [listedPick, ...listedRest] = listedPictures([picked, ...rest])
-		return access.gate([listedPick!, ...listedRest], (writable) => history.record(pickRestEntry(decided([listedPick!])[0]!, decided(writable.filter((picture) => picture !== picked)))), listedPick)
+		return access.gate([listedPick!, ...listedRest], (writable) => steps.record(pickRestEntry(decided([listedPick!])[0]!, decided(writable.filter((picture) => picture !== picked)))), listedPick)
 	}
 
 	/** Applies the tag change to the pictures as one undo step and returns it, or null when nothing changes (TAGS-003.10, .11). */
 	function tag(change: TagChange, chosen: readonly Picture<SourceEntry>[]): TagStep<Picture<ListingEntry>> | null {
-		return access.gate(listedPictures(chosen), (writable) => history.record(tagStep(writable, tags.tagsOf, change)))
+		return access.gate(listedPictures(chosen), (writable) => steps.record(tagStep(writable, tags.tagsOf, change)))
 	}
 
 	/** How many rateable pictures *Clear picks/rejects* would reset (GRID-001.22). */
@@ -186,7 +183,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 
 	/** Resets the rateable pictures of the folder set to unflagged without Keep RAW as one undo step, or null when nothing changes (GRID-001.22). */
 	function clearFlags(): DecisionStep | null {
-		return history.record(clearEntry(decided(pictures.value.filter(writesThrough))))
+		return steps.record(clearEntry(decided(pictures.value.filter(writesThrough))))
 	}
 
 	/** The series *Reduce series to the sharpest* would decide (SERIES-008.1). */
@@ -194,13 +191,11 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 
 	/** Picks the sharpest of each planned series and rejects the rest as one undo step, or null when nothing changes (SERIES-008.5). */
 	function reduceSeries(plan: ReductionPlan<Picture<ListingEntry>>): ReductionStep | null {
-		return history.record(reductionEntry(plan.reduced.map(({ kept, rejected }) => ({ picked: decided([kept])[0]!, rest: decided(rejected) }))))
+		return steps.record(reductionEntry(plan.reduced.map(({ kept, rejected }) => ({ picked: decided([kept])[0]!, rest: decided(rejected) }))))
 	}
 
-	/** Shows the rows at once and writes them through, counting by the sign. */
-	function store(rows: readonly StoredDecision[], sign: CountSign) {
-		const before = decisions.value
-		decisions.value = withRows(before, rows)
+	/** Writes the rows a step just showed through, counting by the sign. */
+	function store(rows: readonly StoredDecision[], before: ReadonlyMap<PictureId, Decision>, sign: CountSign) {
 		settle(rows)
 		writes.write(rows, before, sign)
 	}
@@ -228,7 +223,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		const fileIds = new Set(restored.map((entry) => entry.fileId))
 		storedSeries.restore([...fileIds])
 		const pictures = paired.value.filter((picture) => memberIds(picture).some((fileId) => fileIds.has(fileId)))
-		decisions.value = withRows(decisions.value, listedRows(pictures.filter((picture) => !memberIds(picture).some((fileId) => settled.has(fileId)))))
+		steps.put(listedRows(pictures.filter((picture) => !memberIds(picture).some((fileId) => settled.has(fileId)))))
 		readPictures(pictures)
 	}
 
@@ -275,8 +270,8 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 		reduceSeries,
 		tag,
 		...seriesEdits,
-		undo: history.undo,
-		redo: history.redo,
+		undo: steps.undo,
+		redo: steps.redo,
 		open,
 		removeFiles,
 		restoreFiles,

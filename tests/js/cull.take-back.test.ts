@@ -74,6 +74,27 @@ describe('useCull: a failed write is taken back', () => {
 	})
 
 	// spec: XMP-008.17
+	it('gives back the decided flag when the save of its undo fails', async () => {
+		const { cull, flags, picture, open, notSaved } = cullWith()
+		await open(SET, ENTRIES)
+		await flushPromises()
+		cull.decide({ kind: 'flag', flag: 'picked' }, [picture('IMG_9')])
+		await flushPromises()
+		const error = vi.spyOn(logger, 'error').mockImplementation(() => undefined)
+		flags.api.save = async () => {
+			throw new Error('500')
+		}
+
+		cull.undo()
+		expect(cull.decisionOf(picture('IMG_9')).flag).toBe('unflagged')
+		await flushPromises()
+
+		expect(cull.decisionOf(picture('IMG_9')).flag).toBe('picked')
+		expect(notSaved).toEqual([1])
+		error.mockRestore()
+	})
+
+	// spec: XMP-008.17
 	it('saves the flag of a picture whose sidecar is locked', async () => {
 		const { cull, flags, picture, open, notSaved } = cullWith({ failing: { IMG_10: 'locked' } })
 		await open(SET, ENTRIES)
