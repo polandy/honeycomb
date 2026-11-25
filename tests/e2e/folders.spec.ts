@@ -184,7 +184,7 @@ test('opens a level by its row and breadcrumb and keeps Include subfolders off a
 	await expect(list.getByRole('article', { name: 'Beach' })).toBeVisible()
 
 	const saved = page.waitForResponse((response) => SETTINGS_SAVED.test(response.url()) && response.request().method() === 'PUT' && response.ok())
-	await subfolders.click()
+	await list.getByText('Include subfolders', { exact: true }).click()
 	await saved
 	await page.reload()
 
