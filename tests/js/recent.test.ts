@@ -166,6 +166,20 @@ describe('useRecent', () => {
 		expect(error).toHaveBeenCalledWith('Could not list the recent folder set', { error: expect.anything() })
 	})
 
+	// spec: SETTINGS-001.36
+	it('reports a recent folder set the server refuses as outside the library roots', async () => {
+		vi.spyOn(logger, 'error').mockImplementation(() => {})
+		const recent = recentOn(async () => [], async () => {
+			throw new Error('bad-path')
+		})
+
+		await recent.open(trip)
+		await flushPromises()
+
+		expect(recent.opened).toEqual([])
+		expect(recent.toasts).toEqual(['Could not open 2 folders.'])
+	})
+
 	// spec: DECISIONS-002.19
 	it('says the server did not answer in time and lists the folder set again on Try again', async () => {
 		vi.spyOn(logger, 'error').mockImplementation(() => {})

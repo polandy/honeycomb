@@ -2,32 +2,40 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 
+import type { Folder } from '../../../src/api/index.ts'
+
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import FolderPicker from '../../../src/components/FolderPicker.vue'
-import FolderTree from '../../../src/components/FolderTree.vue'
 import { DialogStub } from './stubs.ts'
+
+const folder = (name: string): Folder => ({ name, path: `/${name}`, hasSubfolders: false, pictures: 0, picturesBelow: 0, picturesBelowApproximate: false, orphanedSidecars: 0, orphanedSidecarsBelow: 0 })
 
 async function mountPicker(roots: string[]) {
 	const wrapper = mount(FolderPicker, {
-		props: { current: null, listFolders: async () => [], listEntries: async () => ({ entries: [], truncated: false }), roots },
+		props: { current: null, listFolders: async () => [folder('Photos'), folder('Docs')], listEntries: async () => ({ entries: [], truncated: false }), roots },
 		global: { stubs: { NcDialog: DialogStub } },
 	})
 	await flushPromises()
-	return (wrapper.findComponent(FolderTree).props('disabledNote') as (path: string) => string | null)
+	return (name: string) => wrapper.findAll('[role="treeitem"]').find((row) => row.text().includes(name))!
 }
 
 describe('FolderPicker library roots', () => {
 	// spec: SETTINGS-001.36
-	it('offers only folders inside a library root', async () => {
-		const note = await mountPicker(['/Photos'])
+	it('disables a folder outside the library roots and says why', async () => {
+		const row = await mountPicker(['/Photos'])
 
-		expect(note('/Photos/2025')).toBeNull()
-		expect(note('/Docs')).toContain('Outside your library roots')
+		expect(row('Docs').attributes('aria-disabled')).toBe('true')
+		expect(row('Docs').text()).toContain('Outside your library roots')
+		expect(row('Photos').attributes('aria-disabled')).toBeUndefined()
+		expect(row('Photos').text()).not.toContain('Outside your library roots')
 	})
 
 	// spec: SETTINGS-001.36
 	it('offers every folder while no root is set', async () => {
-		expect((await mountPicker([]))('/Docs')).toBeNull()
+		const row = await mountPicker([])
+
+		expect(row('Docs').attributes('aria-disabled')).toBeUndefined()
+		expect(row('Docs').text()).not.toContain('Outside your library roots')
 	})
 })

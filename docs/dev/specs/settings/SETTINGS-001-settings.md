@@ -323,7 +323,9 @@ Withdrawn by ADR 0040 (M8 PR 3); there is no sidecar switch (.28).
   (their parents stay open to reach a root), and the server answers `400` with `bad-path` for a
   path that is no root and lies in none, the home folder and any `..` or `.` step included;
   `/Photos2` is no part of `/Photos`; while no root is set every folder is offered and accepted.
-  The picker that adds a root (.35) and the target picker of a move are no such picker
+  The picker that adds a root (.35) and the target picker of a move are no such picker. A recent
+  folder set that lies outside the roots (a root was removed since) answers `400` too: the user sees
+  *Could not open …* with *Try again*, the cull stays as it was and nothing is stored or deleted
 
 ## Out of scope
 
