@@ -100,6 +100,11 @@ describe('filmstripFrames', () => {
 	})
 
 	// spec: LOUPE-001.19
+	it('frames a series in one across its rejected photos, without a rejected photo at either end', () => {
+		expect(filmstripFrames(['X', 'B', 'X', 'C', 'D', 'X'], members, (picture) => picture === 'X')).toEqual([{ first: 1, end: 5, count: 3 }])
+	})
+
+	// spec: LOUPE-001.19
 	it('ends a frame where the next series starts and frames nothing outside a series', () => {
 		expect(filmstripFrames(['D', 'F'], members)).toEqual([
 			{ first: 0, end: 1, count: 3 },

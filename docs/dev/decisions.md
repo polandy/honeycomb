@@ -2036,3 +2036,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   `previews`, which the repair migration added as null, and stay fresh while the folder etag holds.
   `Version000200Date20261125150000` drops the summaries with photos and no previews, so the next
   scan rewrites them; a RAW-only folder is scanned once more (0.1.2, autonomous).
+- 2026-11-25: *Pick this, reject the rest* seemed to reject the next series on nc-test: one series
+  of 11 was drawn as two frames, split by rejected photos between its members. A series' frame and
+  bracket now span the rejected photos between its members, and the action stays on the whole
+  series (owner choice of three: one frame, a rejected photo cuts the series, act on the frame only).

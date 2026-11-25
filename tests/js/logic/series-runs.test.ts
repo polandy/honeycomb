@@ -33,6 +33,19 @@ describe('seriesRuns', () => {
 		expect(spans(seriesRuns(PICTURES, seriesOf('BCDE'), [0, 3]))).toEqual(['1-3:0', '3-5:0'])
 	})
 
+	// spec: SERIES-002.12
+	it('spans a rejected picture between two pictures of one series, but no rejected picture at either end', () => {
+		const rejected = (picture: string) => 'ACDH'.includes(picture)
+		expect(spans(seriesRuns(PICTURES, seriesOf('BEFG'), [], rejected))).toEqual(['1-7:0'])
+	})
+
+	// spec: SERIES-002.12
+	it('ends a run at a rejected picture where a folder group starts or another series follows', () => {
+		const rejected = (picture: string) => picture === 'C'
+		expect(spans(seriesRuns(PICTURES, seriesOf('ABDE'), [2], rejected))).toEqual(['0-2:0', '3-5:0'])
+		expect(spans(seriesRuns(PICTURES, seriesOf('AB', 'DE'), [], rejected))).toEqual(['0-2:0', '3-5:1'])
+	})
+
 	it('has no run without series', () => {
 		expect(seriesRuns(PICTURES, new Map())).toEqual([])
 	})
@@ -67,6 +80,15 @@ describe('tileSeries', () => {
 		expect(tileSeries(at, 1, 'B')).toEqual({ series: series.get('A'), position: 2, size: 4, run: null, stored: null })
 		expect(tileSeries(at, 4, 'E')).toEqual({ series: series.get('A'), position: 3, size: 4, run: 2, stored: null })
 		expect(tileSeries(at, 2, 'C')).toBeNull()
+	})
+
+	// spec: SERIES-002.10
+	it('gives a rejected tile inside a run no place and counts only the run\'s pictures of the series', () => {
+		const spanned = runsAt(seriesRuns(PICTURES, series, [], (picture) => 'CD'.includes(picture)), PICTURES.length)
+
+		expect(tileSeries(spanned, 0, 'A')).toEqual({ series: series.get('A'), position: 1, size: 4, run: 4, stored: null })
+		expect(tileSeries(spanned, 2, 'C')).toBeNull()
+		expect(tileSeries(spanned, 4, 'E')?.run).toBeNull()
 	})
 
 	// spec: SERIES-005.17

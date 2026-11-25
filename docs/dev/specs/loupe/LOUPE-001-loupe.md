@@ -203,6 +203,7 @@ IMAGES-001.
 | 2026-11-20 | .7 the key and the button zoom onto the focus tile of a photo with a quality value (SERIES-007, M11 PR 3) |
 | 2026-11-20 | .12 the stage's `data-decoded` counts the decoded sources, for the e2e budget to wait on |
 | 2026-11-25 | .19 the frame's tab is a column before its first photo; the strip grows no band above the photos (owner, iPad) |
+| 2026-11-25 | .19 a rejected photo between two photos of a series stays inside its frame, so a series is not shown as two (owner, iPad) |
 
 ### LOUPE-001.18 – One photo in view
 
@@ -225,8 +226,10 @@ IMAGES-001.
   gets there, never past the last photo; it renders only the photos in view and a few beyond, and a
   scroll shows others without paging. A series (SERIES-001) gets one 2 px primary frame with 8 px
   corners around each run of its photos in the strip, the shown photo's ring inside it; a series
-  counts its photos that are not rejected, decided or not, so a rejected photo stays outside the
-  frame and fewer than two end it. A run split off by the sort or a filter gets its own frame. A frame
+  counts its photos that are not rejected, decided or not, and fewer than two end it; a rejected
+  photo between two of its photos stays inside the frame, dimmed, so one series is one frame and
+  the frame shows what *Pick this, reject the rest* acts on, while a rejected photo at its start or
+  end stays outside. A run split off by the sort or a filter gets its own frame. A frame
   carries a "⧉ N" tab at its start, N the series' whole count, which opens the compare on that
   series as the series chip does (LOUPE-001.25), with the shown picture active while it is in that
   series, else the frame's first; the tab is a 44 px wide column as high as the photos inside the
