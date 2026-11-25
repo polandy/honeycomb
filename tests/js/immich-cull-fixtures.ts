@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { AssetsRequest, CountsRequest, ImmichCullApi } from '../../src/immich/immich-cull.ts'
+import type { ImmichCullApi } from '../../src/immich/immich-picture-source.ts'
 import type { DecisionRow, ImmichEntry } from '../../src/logic/immich-asset.ts'
-import type { ImmichCounts } from '../../src/logic/immich-counts.ts'
-import type { Page } from '../../src/logic/immich-paging.ts'
+import type { CountsRequest, ImmichCounts } from '../../src/logic/immich-counts.ts'
+import type { AssetsRequest, Page } from '../../src/logic/immich-paging.ts'
 
 import { vi } from 'vitest'
 import { useImmichCull } from '../../src/immich/immich-cull.ts'

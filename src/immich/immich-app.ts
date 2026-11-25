@@ -3,7 +3,8 @@ import type { ViewStateApi } from '../settings/view-state.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { BrowserStorage } from '../shared/browser-storage.ts'
-import type { ImmichCullApi, ImmichCullContext } from './immich-cull.ts'
+import type { ImmichCullContext } from './immich-cull.ts'
+import type { ImmichCullApi } from './immich-picture-source.ts'
 import type { ImmichApi } from './immich-source.ts'
 
 import { computed, watch } from 'vue'

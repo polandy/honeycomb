@@ -33,6 +33,7 @@ final class PackageDependencyTest extends TestCase {
 		'Service\\Quality' => ['Domain', 'Service\\Files', 'Service\\Support'],
 		'Service\\Series' => ['Domain', 'Service\\Files', 'Service\\Stats', 'Service\\Support'],
 		'Service\\Settings' => ['Domain', 'AppInfo', 'Immich'],
+		'Service\\Source' => ['Domain', 'Service\\Decision', 'Service\\Image', 'Service\\Listing'],
 		'Service\\Sidecar' => ['Domain', 'Service\\Files', 'Service\\Stats'],
 		'Service\\Stats' => ['Domain', 'Service\\Settings', 'Service\\Support'],
 		'Service\\Support' => ['AppInfo'],

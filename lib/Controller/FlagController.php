@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Controller;
 
 use OCA\Honeycomb\Service\Decision\FlagService;
+use OCA\Honeycomb\Service\Source\FolderPictureSource;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -24,6 +25,7 @@ final class FlagController extends Controller {
 		IRequest $request,
 		private ApiResponse $api,
 		private FlagService $flags,
+		private FolderPictureSource $source,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -33,7 +35,7 @@ final class FlagController extends Controller {
 	#[FrontpageRoute(verb: 'PUT', url: '/api/v1/flags')]
 	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
 	public function save(array $flags = []): Response {
-		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->flags->save($user, $flags)));
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->source->decide($user, $flags)));
 	}
 
 	/** Inserts the flags given of the files the user reaches that have none yet (ADR 0040). */

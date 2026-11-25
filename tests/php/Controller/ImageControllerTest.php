@@ -34,6 +34,8 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 final class ImageControllerTest extends TestCase {
+	use FolderSourceFixture;
+
 	private const int MTIME = 1_700_000_000;
 
 	/** @param array<int, Node> $nodes alice's nodes by file id */
@@ -54,7 +56,7 @@ final class ImageControllerTest extends TestCase {
 			$this->createStub(LoggerInterface::class),
 			new FakePreviewLock(),
 		);
-		return new ImageController(Application::APP_ID, $request, new ApiResponse($session), $images);
+		return new ImageController(Application::APP_ID, $request, new ApiResponse($session), $images, $this->folderSource(images: $images));
 	}
 
 	private function image(bool $readable = true): File {
