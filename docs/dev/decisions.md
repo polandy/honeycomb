@@ -2046,3 +2046,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   of 11 was drawn as two frames, split by rejected photos between its members. A series' frame and
   bracket now span the rejected photos between its members, and the action stays on the whole
   series (owner choice of three: one frame, a rejected photo cuts the series, act on the frame only).
+- 2026-11-25: *All* read 2 beside *Suggested* 5 on nc-test, because it counted the rows of the
+  level while the other chips count every folder below it. All three now count the same folders
+  (FOLDERS-009.23); *All* keeps its drill-down list, so its rows stand for several folders
+  (autonomous).

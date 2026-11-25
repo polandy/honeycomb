@@ -73,9 +73,14 @@ describe('singleRow', () => {
 
 describe('flatRows', () => {
 	// spec: FOLDERS-009.14
-	it('is every row below the level, the level\'s own first, or every row at the Library', () => {
-		expect(flatRows(ROWS, at('/Photos/2024')).map((each) => each.fileId)).toEqual([1, 3, 4, 2])
-		expect(flatRows(ROWS, null)).toBe(ROWS)
+	it('is every row below the level, the level\'s own first, or every row of the tree at the Library', () => {
+		expect(flatRows(TWO_ROOTS, at('/Photos/2024')).map((each) => each.fileId)).toEqual([1, 3, 4, 2])
+		expect(flatRows(TWO_ROOTS, null).map((each) => each.fileId)).toEqual([1, 3, 4, 2, 5])
+	})
+
+	it('leaves out a folder without photos, which the tree does not hold', () => {
+		const tree = buildHierarchy(['/Photos'], [row({ fileId: 1, path: '/Photos/Empty', photos: 0 }), row({ fileId: 2, path: '/Photos/Full' })])
+		expect(flatRows(tree, null).map((each) => each.fileId)).toEqual([2])
 	})
 })
 

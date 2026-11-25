@@ -131,7 +131,7 @@ describe('FoldersScreen', () => {
 
 		expect(chip(wrapper, 'Filter', 'Suggested').text()).toContain('3')
 		expect(chip(wrapper, 'Filter', 'New photos').text()).toContain('1')
-		expect(chip(wrapper, 'Filter', 'All').text()).toContain('2')
+		expect(chip(wrapper, 'Filter', 'All').text()).toContain('4')
 		const chips = wrapper.find(`[role="group"][aria-label="${MARK}Filter"]`).findAll('button')
 		expect(chips[0]!.attributes('aria-pressed')).toBe('true')
 		expect(chips[0]!.text()).toContain('All')

@@ -64,6 +64,10 @@ const SORTS: readonly FolderSort[] = ['suggested', 'undecided', 'largest', 'olde
 	font-variant-numeric: tabular-nums;
 }
 
+.filter-bar__chip[aria-pressed="true"] .folder-filters__count {
+	color: inherit;
+}
+
 .folder-filters__sort {
 	display: flex;
 	align-items: center;

@@ -59,7 +59,7 @@ export function filterRows(rows: readonly FolderRow[], filter: FolderFilter): Fo
 	return rows.filter(FILTERS[filter])
 }
 
-/** How many rows each filter keeps. */
+/** How many rows each filter keeps; *All* counts every folder, as the other filters search them. */
 export function filterCounts(rows: readonly FolderRow[]): Record<FolderFilter, number> {
 	return { suggested: filterRows(rows, 'suggested').length, new: filterRows(rows, 'new').length, all: rows.length }
 }

@@ -222,7 +222,7 @@ describe('FoldersScreen levels', () => {
 		expect(row_(wrapper, 'Day 1').find('.folder-row__parent').text()).toBe('Iceland')
 		expect(row_(wrapper, 'Jura').find('.folder-row__parent').exists()).toBe(false)
 		expect(chip(wrapper, 'Filter', 'Suggested').text()).toContain('4')
-		expect(chip(wrapper, 'Filter', 'All').text()).toContain('3')
+		expect(chip(wrapper, 'Filter', 'All').text()).toContain('5')
 		expect(wrapper.find('select').exists()).toBe(true)
 	})
 

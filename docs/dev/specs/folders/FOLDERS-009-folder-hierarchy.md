@@ -173,7 +173,8 @@ folders; a parent's state is derived.
 - **Given** the level `2024` and the filter *Suggested*
 - **When** the list shows
 - **Then** every folder with photos below `2024`, at any depth, is a row of its own photos, ranked
-  as FOLDERS-002, labelled with its path below `2024`; *All* shows only the direct subfolders
+  as FOLDERS-002, labelled with its path below `2024`; *All* lists only the direct subfolders
+  (its count: FOLDERS-009.23)
 
 ### FOLDERS-009.15 – New photos of a subtree
 
@@ -234,6 +235,14 @@ folders; a parent's state is derived.
   day folders flat; the level card of `2024` reads *Cull this level (with subfolders)*; after the
   breadcrumb *All* is chosen again and `Iceland` is a row
 
+### FOLDERS-009.23 – The counts of the chips
+
+- **Given** a level with subfolders, or the *Library*
+- **When** the filter chips show
+- **Then** *Suggested* and *New photos* count the rows their lists show, and *All* counts every
+  folder with photos below the level, so it is never fewer than either; its list shows those
+  folders as the rows of the level, a row with subfolders standing for several
+
 ## Out of scope
 
 The folder summaries and the list's data: FOLDERS-005. The single-folder done endpoints:
@@ -249,3 +258,4 @@ folders: phase 2.
 | 2026-11-25 | A chain ends at its last subfolder, also one without subfolders; a subtree of read-only folders only reads as a read-only folder (`folder-hierarchy.ts`) |
 | 2026-11-25 | PR 5: previews of a subtree row, the large-subtree line, *Cull new* on a row with subfolders |
 | 2026-11-25 | *Folders* opens on *All*, the first chip, and opening a level shows *All* (mockup `folders/hierarchy.html`, FOLDERS-009.22) |
+| 2026-11-25 | The *All* chip counts every folder below the level, as the other chips do (FOLDERS-009.23) |
