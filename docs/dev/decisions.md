@@ -1982,3 +1982,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-25: `src/immich/immich-cull.ts` no longer re-exports `PAGE_SIZE`, `ImmichCullApi`,
   `AssetsRequest` and `CountsRequest`; their importers use the defining modules (ADR 0058 step 3,
   #187, autonomous).
+- 2026-11-25: A chain row ends at its single subfolder also when that one has no subfolders
+  (*Only / Leaf*), as FOLDERS-009 reads, not one level earlier as the mockup's script does: one tap
+  less (ADR 0060, PR 2, autonomous).
+- 2026-11-25: A subtree whose folders with photos are all read-only has the derived state
+  `read-only`, not *Complete · 0 folders not marked done* or *0 of 0 folders done* (ADR 0060, PR 2,
+  autonomous).
