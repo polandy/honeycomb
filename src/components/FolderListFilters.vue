@@ -18,7 +18,7 @@ const props = defineProps<{
 	counts: Record<FolderFilter, number>
 }>()
 
-const FILTERS: readonly FolderFilter[] = ['suggested', 'new', 'all']
+const FILTERS: readonly FolderFilter[] = ['all', 'suggested', 'new']
 const SORTS: readonly FolderSort[] = ['suggested', 'undecided', 'largest', 'oldest', 'newest', 'name']
 </script>
 

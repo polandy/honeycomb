@@ -19,6 +19,7 @@ const emit = defineEmits<{ cull: [] }>()
 const summary = computed(() => levelSummaryText(scopeSums(props.level, true), scopeSums(props.level, false)))
 const large = computed(() => isLargeSubtree(scopeSums(props.level, true)))
 const cullable = computed(() => scopeSums(props.level, props.includeSubfolders).photos > 0)
+const cullLabel = computed(() => (props.includeSubfolders ? t('honeycomb', 'Cull this level (with subfolders)') : t('honeycomb', 'Cull this level')))
 </script>
 
 <template>
@@ -31,7 +32,7 @@ const cullable = computed(() => scopeSums(props.level, props.includeSubfolders).
 			<span v-if="large" class="folder-level-card__summary">{{ largeSubtreeText() }}</span>
 		</div>
 		<NcButton variant="primary" :disabled="!cullable" @click="emit('cull')">
-			{{ t('honeycomb', 'Cull this level') }}
+			{{ cullLabel }}
 		</NcButton>
 	</section>
 </template>
