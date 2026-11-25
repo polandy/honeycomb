@@ -31,8 +31,8 @@ done status writes, the ranking and the screen follow in their own specs.
   - `previews`: up to 3 pictures that stand for the folder, `{fileId, mtime}` of each one's
     rendered file (a RAW alone is no candidate), taken from the candidates in capture time order
     (those without one come last, in name order) at the first, the middle and the last place
-    (the first and the last of two, the one of one); empty without a candidate. The scan takes them from the files it
-    reads anyway.
+    (the first and the last of two, the one of one); empty without a candidate. The scan takes
+    them from the files it reads anyway.
   - It is **fresh** while it was taken from the folder's current etag. A stale summary is listed
     with its stored values until a scan replaces it.
 - `GET /apps/honeycomb/api/v1/library/folders?root=<path>&cursor=<fileId>&limit=<n>` answers
