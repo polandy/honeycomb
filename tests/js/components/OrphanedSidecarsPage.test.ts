@@ -22,8 +22,8 @@ function seams() {
 	}
 }
 
-function mountPage(fake = seams()) {
-	return mount(OrphanedSidecarsPage, { props: { seams: fake, listFolders: async () => [] } })
+function mountPage(fake = seams(), roots: string[] = []) {
+	return mount(OrphanedSidecarsPage, { props: { seams: fake, listFolders: async () => [], roots } })
 }
 
 const button = (wrapper: ReturnType<typeof mountPage>, label: string) => wrapper.findAll('button').find((each) => each.text() === label)
@@ -120,5 +120,17 @@ describe('OrphanedSidecarsPage', () => {
 		await scanIn(wrapper)
 
 		expect(wrapper.text()).toContain('Could not look for orphaned sidecars. Try again.')
+	})
+
+	// spec: SETTINGS-001.36
+	it('offers only folders inside a library root, and every folder while none is set', () => {
+		const note = (wrapper: ReturnType<typeof mountPage>) => wrapper.findComponent(FolderTree).props('disabledNote') as (path: string) => string | null
+		const limited = note(mountPage(undefined, ['/Photos']))
+
+		expect(limited('/Photos/2025')).toBeNull()
+		expect(limited('/Docs')).toContain('Outside your library roots')
+		expect(note(mountPage())('/Docs')).toBeNull()
+		expect(button(mountPage(undefined, ['/Photos']), 'Whole library')!.attributes('disabled')).toBeDefined()
+		expect(button(mountPage(), 'Whole library')!.attributes('disabled')).toBeUndefined()
 	})
 })

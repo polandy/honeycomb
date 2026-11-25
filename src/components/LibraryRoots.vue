@@ -10,7 +10,7 @@ import { ref } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
 import FolderTree from './FolderTree.vue'
-import { refusalText } from '../folders/folders-text.ts'
+import { refusalText, rootNote } from '../folders/folders-text.ts'
 import { addLibraryRoot, removeLibraryRoot } from '../logic/library-roots.ts'
 import { PLAIN_TEXT } from '../shared/l10n.ts'
 import { logger } from '../shared/logger.ts'
@@ -31,6 +31,12 @@ const emit = defineEmits<{
 const chosen = ref<string | null>(null)
 const refusal = ref<string | null>(null)
 const checking = ref(false)
+
+/** Why a folder of the tree cannot be a root, null when it can. */
+function disabledNote(path: string): string | null {
+	const added = addLibraryRoot(props.roots, path)
+	return rootNote('refused' in added ? added.refused : null)
+}
 
 /** One folder is chosen at a time; pressing it again unchooses it. */
 function onToggle(path: string) {
@@ -73,6 +79,7 @@ async function add() {
 			<FolderTree
 				:ticked="chosen === null ? [] : [chosen]"
 				single
+				:disabledNote="disabledNote"
 				:listFolders="props.listFolders"
 				@toggle="onToggle" />
 		</div>

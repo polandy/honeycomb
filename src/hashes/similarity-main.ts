@@ -3,6 +3,7 @@
 import { createApp } from 'vue'
 import SimilarityPage from '../components/SimilarityPage.vue'
 import { imageUrl, listFolders, listMissingVisualHashes, saveVisualHashes } from '../api/index.ts'
+import { loadLibraryRoots } from '../api/library-roots.ts'
 import { waitSeconds } from '../logic/retry-after.ts'
 import { browserSchedule } from '../shared/browser-schedule.ts'
 import { logger } from '../shared/logger.ts'
@@ -17,7 +18,8 @@ const seams = {
 	wait: waitSeconds(browserSchedule),
 	workers: workers.size,
 }
-const app = createApp(SimilarityPage, { seams, listFolders })
+const roots = await loadLibraryRoots()
+const app = createApp(SimilarityPage, { seams, listFolders, roots })
 app.config.errorHandler = (error, _instance, info) => {
 	logger.error('Unhandled error in the honeycomb similarity page', { error, info })
 }

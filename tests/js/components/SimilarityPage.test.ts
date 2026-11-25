@@ -36,8 +36,8 @@ function seams() {
 	return { fake, finish: () => nextPage({ pictures: [picture(4)], nextCursor: null }) }
 }
 
-function mountPage(fake = seams().fake) {
-	return mount(SimilarityPage, { props: { seams: fake, listFolders: async () => [] } })
+function mountPage(fake = seams().fake, roots: string[] = []) {
+	return mount(SimilarityPage, { props: { seams: fake, listFolders: async () => [], roots } })
 }
 
 const button = (wrapper: ReturnType<typeof mountPage>, label: string) => wrapper.findAll('button').find((each) => each.text() === label)
@@ -143,5 +143,15 @@ describe('SimilarityPage', () => {
 		await startIn(wrapper)
 
 		expect(wrapper.text()).toContain('Done: every photo in this folder has its similarity.')
+	})
+
+	// spec: SETTINGS-001.36
+	it('offers only folders inside a library root, and every folder while none is set', () => {
+		const note = (wrapper: ReturnType<typeof mountPage>) => wrapper.findComponent(FolderTree).props('disabledNote') as (path: string) => string | null
+		const limited = note(mountPage(undefined, ['/Photos']))
+
+		expect(limited('/Photos/2025')).toBeNull()
+		expect(limited('/Docs')).toContain('Outside your library roots')
+		expect(note(mountPage())('/Docs')).toBeNull()
 	})
 })

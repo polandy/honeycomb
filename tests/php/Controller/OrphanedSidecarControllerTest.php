@@ -18,6 +18,7 @@ use OCA\Honeycomb\Service\Trash\TrashBinGuard;
 use OCA\Honeycomb\Service\Trash\TrashNameSpacing;
 use OCA\Honeycomb\Tests\Service\FakeClock;
 use OCA\Honeycomb\Tests\Service\FakeTree;
+use OCA\Honeycomb\Tests\Service\Settings\FakeRoots;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
@@ -34,9 +35,11 @@ use Psr\Log\LoggerInterface;
 use ReflectionMethod;
 
 final class OrphanedSidecarControllerTest extends TestCase {
+	use FakeRoots;
 	use FakeTree;
 
-	private function controller(bool $trashBin = true): OrphanedSidecarController {
+	/** @param list<string> $roots */
+	private function controller(bool $trashBin = true, array $roots = []): OrphanedSidecarController {
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($this->treeUser());
 		$folders = new UserFolderResolver($this->treeRoot());
@@ -50,7 +53,17 @@ final class OrphanedSidecarControllerTest extends TestCase {
 		$time = $this->createStub(ITimeFactory::class);
 		$time->method('getTime')->willReturnCallback(static fn (): int => $clock->now);
 		$trash = new OrphanedSidecarTrash(new UserPhotos($folders), $apps, new TrashBinGuard($userConfig, $appConfig), new TrashNameSpacing($time, $clock), $this->createStub(LoggerInterface::class));
-		return new OrphanedSidecarController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), new OrphanedSidecarScan($folders), $trash);
+		return new OrphanedSidecarController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), new OrphanedSidecarScan($folders), $trash, $this->rootsGuard($roots));
+	}
+
+	// spec: SETTINGS-001.36
+	public function testAFolderOutsideTheLibraryRootsIsABadRequest(): void {
+		$this->addFiles([1 => '/P/a.xmp']);
+
+		$response = $this->controller(roots: ['/Photos'])->orphaned('/P', '');
+
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		$this->assertStringContainsString('bad-path', $response->render());
 	}
 
 	// spec: XMP-009.3
