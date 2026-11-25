@@ -222,6 +222,14 @@ folders; a parent's state is derived.
 - **Then** the first says *A large subtree: loading it takes a while.* and the second does not;
   *Cull this level* is enabled on both
 
+### FOLDERS-009.22 – The counts of the chips
+
+- **Given** a level with subfolders, or the *Library*
+- **When** the filter chips show
+- **Then** *Suggested* and *New photos* count the rows their lists show, and *All* counts every
+  folder with photos below the level, so it is never fewer than either; its list shows those
+  folders as the rows of the level, a row with subfolders standing for several
+
 ## Out of scope
 
 The folder summaries and the list's data: FOLDERS-005. The single-folder done endpoints:
@@ -236,3 +244,4 @@ folders: phase 2.
 | 2026-11-25 | PR 3: the *Library* crumb with several roots, a row without subfolders culls without them, *Sort* only for the flat filters |
 | 2026-11-25 | A chain ends at its last subfolder, also one without subfolders; a subtree of read-only folders only reads as a read-only folder (`folder-hierarchy.ts`) |
 | 2026-11-25 | PR 5: previews of a subtree row, the large-subtree line, *Cull new* on a row with subfolders |
+| 2026-11-25 | The *All* chip counts every folder below the level, as the other chips do (FOLDERS-009.22) |

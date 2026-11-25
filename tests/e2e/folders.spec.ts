@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
@@ -242,4 +242,33 @@ test('marks a subtree done in one call from its menu and undoes it in one call',
 	await list.getByRole('group', { name: 'Filter' }).getByRole('button', { name: /^All/ }).click()
 	await list.getByRole('button', { name: 'More for Alps' }).click()
 	await expect(page.getByRole('dialog', { name: 'Alps' }).getByRole('button', { name: 'Reopen all' })).toBeDisabled()
+})
+
+/** The number on a filter chip. */
+async function chipCount(list: Locator, name: string): Promise<number> {
+	return Number(await list.getByRole('group', { name: 'Filter' }).getByRole('button', { name: new RegExp(`^${name}`) }).locator('.folder-filters__count').innerText())
+}
+
+// spec: FOLDERS-009.22
+test('counts each filter chip over the folders its list covers, All never fewer than Suggested', async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 844 })
+	await addDays(page)
+	const list = await openList(page)
+	const filters = list.getByRole('group', { name: 'Filter' })
+
+	expect(await chipCount(list, 'Suggested')).toBe(FOLDERS.length + DAYS.length)
+	expect(await chipCount(list, 'All')).toBe(FOLDERS.length + DAYS.length)
+	expect(await chipCount(list, 'New photos')).toBe(0)
+	await expect(list.getByRole('article')).toHaveCount(await chipCount(list, 'Suggested'))
+	await filters.getByRole('button', { name: /^New photos/ }).click()
+	await expect(list.getByRole('article')).toHaveCount(0)
+	await filters.getByRole('button', { name: /^All/ }).click()
+	await expect(list.getByRole('article')).toHaveCount(FOLDERS.length)
+
+	await list.getByRole('button', { name: 'Open Alps' }).click()
+
+	expect(await chipCount(list, 'All')).toBe(1 + DAYS.length)
+	await filters.getByRole('button', { name: /^Suggested/ }).click()
+	await expect(list.getByRole('article')).toHaveCount(await chipCount(list, 'Suggested'))
+	expect(await chipCount(list, 'All')).toBeGreaterThanOrEqual(await chipCount(list, 'Suggested'))
 })

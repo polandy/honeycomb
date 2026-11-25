@@ -2036,3 +2036,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   `previews`, which the repair migration added as null, and stay fresh while the folder etag holds.
   `Version000200Date20261125150000` drops the summaries with photos and no previews, so the next
   scan rewrites them; a RAW-only folder is scanned once more (0.1.2, autonomous).
+- 2026-11-25: *All* read 2 beside *Suggested* 5 on nc-test, because it counted the rows of the
+  level while the other chips count every folder below it. All three now count the same folders
+  (FOLDERS-009.22); *All* keeps its drill-down list, so its rows stand for several folders
+  (autonomous).

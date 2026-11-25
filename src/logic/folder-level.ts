@@ -39,9 +39,9 @@ export function singleRow(node: FolderNode, includeSubfolders: boolean): FolderR
 	return includeSubfolders && node.children.length > 0 ? null : node.row
 }
 
-/** The rows of *Suggested* and *New photos*: every folder below the level, or every row at the *Library*. */
-export function flatRows(rows: readonly FolderRow[], level: FolderNode | null): readonly FolderRow[] {
-	return level === null ? rows : subtreeRows(level)
+/** The rows every filter and its count work on: every folder below the level, or of the tree at the Library. */
+export function flatRows(tree: readonly FolderNode[], level: FolderNode | null): readonly FolderRow[] {
+	return (level === null ? tree : [level]).flatMap((node) => subtreeRows(node))
 }
 
 /** The folder set *Cull* opens: with subfolders only when the switch is on and the node has some (FOLDERS-009.6). */

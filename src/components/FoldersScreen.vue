@@ -64,14 +64,14 @@ const rows = computed(() => props.folders.rows.value)
 const tree = computed(() => buildHierarchy(props.roots, rows.value))
 const level = computed(() => shownLevel(tree.value, chosen.value))
 const crumbs = computed(() => (level.value === null ? [] : breadcrumb(level.value.root, level.value.path)))
-const flat = computed(() => flatRows(rows.value, level.value).filter((each) => props.roots.includes(each.root)))
+const flat = computed(() => flatRows(tree.value, level.value).filter((each) => props.roots.includes(each.root)))
 const listing = computed(() => buildFolderList(flat.value, { roots: level.value === null ? props.roots : [level.value.root], root: null, filter: filter.value, sort: sort.value }))
 const entries = computed(() => allRows(tree.value, level.value))
 const own = computed(() => ownRow(level.value))
 const empty = computed(() => (filter.value === 'all'
 	? entries.value.length === 0 && own.value === null
 	: listing.value.sections.every((section) => section.groups.every((group) => group.rows.length === 0))))
-const counts = computed(() => ({ ...filterCounts(flat.value), all: entries.value.length + (own.value === null ? 0 : 1) }))
+const counts = computed(() => filterCounts(flat.value))
 /** The root of the shown level for the progress card; null for the whole library, also of one root. */
 const root = computed(() => (tree.value.length > 1 ? level.value?.root ?? null : null))
 const library = computed(() => folderProgress(rows.value, props.roots, new Date(props.now() * 1000)))
