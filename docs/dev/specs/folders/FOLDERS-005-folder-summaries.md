@@ -42,7 +42,8 @@ done status writes, the ranking and the screen follow in their own specs.
     default 200). `nextCursor` is the last listed file id when more follow, else `null`.
   - Each row: `fileId`, `root` and `path` (paths in the user's files, `/` first), `photos`,
     `bytes`, `rawBytes`, `bursts`, `oldest`, `newest`, `lastActivity`, `picked`, `rejected`,
-    `undecided`, `previews` (the summary's), `permissions` (the folder's Nextcloud permission bits) and `done`:
+    `undecided`, `previews` (the summary's), `permissions` (the folder's Nextcloud permission
+    bits) and `done`:
     `{"by": <user id>, "at": <Unix seconds>, "photos": n}` when the folder is marked done, else
     `null`.
   - `picked` and `rejected`: the folder's pictures with that flag now (DECISIONS-001; a picture

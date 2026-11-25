@@ -1966,4 +1966,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-24: `scripts/words.sh` fails the build on picture, Retry, Done (display only) and the
   old name of the primary frame in UI text and docs; the ⋯ menu is grouped under View, Cull,
   Files and Picks and rejects (#187, autonomous).
-- 2026-11-25: *Folders* rows show 1 to 3 preview thumbnails instead of the folder icon; the scan picks them (first, middle, last by capture time, rendered files only) and stores them in the folder summary, so the list reads nothing more (FOLDERS-005.18, FOLDERS-007.18; autonomous).
+- 2026-11-25: *Folders* rows show 1 to 3 preview thumbnails instead of the folder icon; the scan
+  picks them (first, middle, last by capture time, rendered files only) and stores them in the
+  folder summary, so the list reads nothing more (FOLDERS-005.18, FOLDERS-007.18; autonomous).

@@ -155,8 +155,8 @@ final class LibraryFolderServiceTest extends TestCase {
 
 		$this->assertNull($list['scanning']);
 		$this->assertSame([
-			['fileId' => 10, 'root' => '/Photos', 'path' => '/Photos', 'photos' => 4, 'bytes' => 100, 'rawBytes' => 60, 'bursts' => 1, 'oldest' => 1_600_000_000, 'newest' => 1_600_000_100, 'lastActivity' => 1_700_000_000, 'picked' => 0, 'rejected' => 0, 'undecided' => 4, 'permissions' => Constants::PERMISSION_ALL, 'done' => null],
-			['fileId' => 11, 'root' => '/Photos', 'path' => '/Photos/2024', 'photos' => 4, 'bytes' => 100, 'rawBytes' => 60, 'bursts' => 1, 'oldest' => 1_600_000_000, 'newest' => 1_600_000_100, 'lastActivity' => 1_700_000_000, 'picked' => 0, 'rejected' => 0, 'undecided' => 4, 'permissions' => Constants::PERMISSION_READ, 'done' => ['by' => 'bob', 'at' => 1_750_000_000, 'photos' => 3]],
+			['fileId' => 10, 'root' => '/Photos', 'path' => '/Photos', 'photos' => 4, 'bytes' => 100, 'rawBytes' => 60, 'bursts' => 1, 'oldest' => 1_600_000_000, 'newest' => 1_600_000_100, 'lastActivity' => 1_700_000_000, 'previews' => [], 'picked' => 0, 'rejected' => 0, 'undecided' => 4, 'permissions' => Constants::PERMISSION_ALL, 'done' => null],
+			['fileId' => 11, 'root' => '/Photos', 'path' => '/Photos/2024', 'photos' => 4, 'bytes' => 100, 'rawBytes' => 60, 'bursts' => 1, 'oldest' => 1_600_000_000, 'newest' => 1_600_000_100, 'lastActivity' => 1_700_000_000, 'previews' => [], 'picked' => 0, 'rejected' => 0, 'undecided' => 4, 'permissions' => Constants::PERMISSION_READ, 'done' => ['by' => 'bob', 'at' => 1_750_000_000, 'photos' => 3]],
 		], $list['folders']);
 	}
 

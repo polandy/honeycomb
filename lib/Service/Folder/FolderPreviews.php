@@ -17,7 +17,7 @@ final class FolderPreviews {
 
 	/**
 	 * The rendered files of up to `COUNT` pictures, spread over the folder's capture time order (names for pictures without one, last).
-	 * @param list<array{fileId: int, name: string, mtime: int, captureTime: ?int}> $files
+	 * @param list<array{fileId: int, name: string, size?: int, mtime: int, captureTime: ?int}> $files
 	 * @return list<array{fileId: int, mtime: int}>
 	 */
 	public static function pick(array $files, PairingExtensions $extensions): array {

@@ -52,7 +52,7 @@ final class FolderSummaryMapperTest extends DbTestCase {
 		$this->summaries->replace([self::row(7)]);
 		$this->summaries->carryOver(7, 20);
 
-		$this->assertEquals([20 => new FolderSummary(20, 'etag-7', 600, 30_000_000_000, 25_000_000_000, 12, 1_600_000_000, 1_600_000_900, 1_700_000_000, 1_800_000_000)], $this->summaries->find([7, 20]));
+		$this->assertEquals([20 => new FolderSummary(20, 'etag-7', 600, 30_000_000_000, 25_000_000_000, 12, 1_600_000_000, 1_600_000_900, 1_700_000_000, 1_800_000_000, self::PREVIEWS)], $this->summaries->find([7, 20]));
 	}
 
 	// spec: FOLDERS-005.17
