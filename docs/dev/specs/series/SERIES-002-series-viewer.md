@@ -142,7 +142,8 @@ first photo of the previous or next run.
 - **Given** an open cull
 - **When** a picture is in a series, offered or settled
 - **Then** its tile's label says "Series, photo 2 of 5"; the first tile of each run shows the
-  badge "⧉ 5" when the run holds the whole series, else "⧉ 2 of 5", faded for a settled series;
+  badge "⧉ 5" when the run holds the whole series, else "⧉ 2 of 5", counting the run's pictures of
+  the series, faded for a settled series;
   a tile outside every series has neither
 
 ### SERIES-002.11 – Reject the other N after a Pick in the viewer
@@ -159,7 +160,8 @@ first photo of the previous or next run.
 - **When** they are neighbours in the grid's order
 - **Then** a bracket runs above them, bridging the tile gaps and continuing over a row wrap, with
   a cap at the run's start and end; another series, a picture outside every series or the start
-  of a folder group ends the run; a settled series' bracket is faded, the bracket moves no tile
+  of a folder group ends the run, but a rejected picture between two of its pictures stays inside
+  it; a settled series' bracket is faded, the bracket moves no tile
 
 ### SERIES-002.13 – The badge opens the compare
 
@@ -198,3 +200,4 @@ loupe, fit or 100 %.
 | 2026-11-14 | Opened by *View full screen*, a double tap or `Enter` instead of a single tap; the close button becomes *Back to the series*; *Pick this, reject the rest* leaves the compare on the next series (series concept step 6, owner point 4). |
 | 2026-11-14 | .11 *Reject the other N* in the undo toast after a *Pick* in the viewer (series concept step 10). |
 | 2026-11-17 | .10 badge on the first tile of a run, for every series; .12 to .15 bracket, badge tap and `Alt+←` `Alt+→` (owner decision *Series in the grid*, variant B). |
+| 2026-11-25 | .12 a rejected picture between two pictures of a series stays inside its bracket; .10 the run's badge counts its pictures of the series (owner, iPad). |
