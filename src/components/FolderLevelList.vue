@@ -123,6 +123,7 @@ defineExpose({ focus })
 				:label="entry.label"
 				:includeSubfolders="props.includeSubfolders"
 				@cull="emit('cull', cullSet(entry.node, props.includeSubfolders))"
+				@cullNew="emit('cullNew', cullSet(entry.node, props.includeSubfolders))"
 				@markAllDone="emit('markAllDone', entry.node)"
 				@menu="subtreeMenu = entry">
 				<NcButton

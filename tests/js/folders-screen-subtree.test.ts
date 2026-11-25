@@ -62,9 +62,9 @@ describe('FoldersScreen subtree rows', () => {
 		const card = () => wrapper.find('.folder-level-card')
 
 		expect(card().text()).toContain(`${MARK}A large subtree: loading it takes a while.`)
-		expect(card().find('button').attributes('disabled')).toBeUndefined()
 		await wrapper.setProps({ includeSubfolders: true })
 		expect(card().text()).toContain(`${MARK}A large subtree: loading it takes a while.`)
+		expect(card().find('button').attributes('disabled')).toBeUndefined()
 	})
 
 	it('adds no line to the level card of a small subtree', async () => {

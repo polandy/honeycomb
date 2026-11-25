@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { FolderRow } from './folder-row.ts'
+import type { FolderPreview, FolderRow } from './folder-row.ts'
 
 import { isRateable, newCount } from './folder-row.ts'
 
@@ -49,6 +49,10 @@ export type Crumb
 	= | ({ readonly kind: 'level' } & Level)
 		| { readonly kind: 'gap', readonly levels: readonly Level[] }
 
+/** How many pictures stand for a row, as on the server (FOLDERS-005.18). */
+const PREVIEW_COUNT = 3
+/** The photos above which a subtree is large (FOLDERS-009). */
+const LARGE_SUBTREE_PHOTOS = 20_000
 const CHAIN_SEPARATOR = ' / '
 const BREADCRUMB_MAX = 4
 const BREADCRUMB_TAIL = 2
@@ -135,6 +139,19 @@ export function scopeSums(node: FolderNode, includeSubfolders: boolean): FolderS
 		done: rateable.filter((row) => row.done !== null).length,
 		fresh: sum(newCount),
 	}
+}
+
+/** Up to 3 previews spread evenly over those of the scope's folders in subtree order (FOLDERS-009.20). */
+export function subtreePreviews(node: FolderNode, includeSubfolders: boolean): FolderPreview[] {
+	const rows = includeSubfolders ? subtreeRows(node) : node.row === null ? [] : [node.row]
+	const all = rows.flatMap((row) => row.previews)
+	const count = Math.min(PREVIEW_COUNT, all.length)
+	return Array.from({ length: count }, (_, place) => all[count === 1 ? 0 : Math.floor(place * (all.length - 1) / (count - 1))]!)
+}
+
+/** Whether the sums cover more photos than a level loads quickly (FOLDERS-009.21). */
+export function isLargeSubtree(sums: FolderSums): boolean {
+	return sums.photos > LARGE_SUBTREE_PHOTOS
 }
 
 /** The derived state of the sums: done when every rateable folder is, complete when nothing is undecided. */

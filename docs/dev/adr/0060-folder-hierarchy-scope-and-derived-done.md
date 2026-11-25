@@ -136,8 +136,8 @@ setting.
   full Vitest coverage; PHP gains only the batch endpoints.
 - Every combination of path and switch is a folder set with its own resume position and shows
   under *Recent*.
-- Previews of a subtree row come from its whole subtree; whether the previews endpoint takes
-  `subfolders` or the client picks the largest subfolders is decided with that pull request.
+- Previews of a subtree row come from its whole subtree, picked by the client from the folders' own
+  `previews` (FOLDERS-009.20); the endpoint gains nothing.
 - FOLDERS-009 specifies the screen; FOLDERS-006 and FOLDERS-008 gain the batch rules with the
   pull request that builds them.
 
