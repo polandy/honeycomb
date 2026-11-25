@@ -45,8 +45,6 @@ async function openList(page: Page) {
 	await page.reload()
 	const list = page.locator('.folders-screen')
 	await expect(list.getByRole('article', { name: 'Complete' })).toBeVisible()
-	// *Suggested* hides done folders; *All* keeps every row in view.
-	await list.getByRole('group', { name: 'Filter' }).getByRole('button', { name: /^All/ }).click()
 	return list
 }
 

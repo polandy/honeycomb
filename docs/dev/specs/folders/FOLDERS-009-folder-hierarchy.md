@@ -35,12 +35,15 @@ folders; a parent's state is derived.
   position and *Mark done* on *Cull finished* (FOLDERS-008.8) stay.
 - **Level card.** Below the header, on every level but the *Library*: the level's name, its photos
   with subfolders and directly in it, its open photos and *Cull this level*, which opens the level
-  as *Cull* does with the switch's scope.
+  as *Cull* does with the switch's scope and reads *Cull this level (with subfolders)* while the
+  switch is on.
 - **Photos directly in ⟨folder⟩.** A level with photos of its own and subfolders also lists a
   separate row of that name, whatever the switch says. It shows the folder's own numbers and
   status, and its *Cull* opens `subfolders: false`.
-- **Filters.** *All* lists the direct subfolders of the level. *Suggested* and *New photos* list
-  every folder below the level flat, one row each with its own photos, ranked and sorted as
+- **Filters.** The chips read *All*, *Suggested*, *New photos*; *Folders* opens on *All*, and
+  opening a level by its row or the breadcrumb shows *All* again. *All* lists the direct
+  subfolders of the level. *Suggested* and *New photos* list every folder below the level flat,
+  one row each with its own photos, ranked and sorted as
   FOLDERS-002, each labelled with its path below the level. At the *Library* level *Suggested* and
   *New photos* are the lists of FOLDERS-007 and *All* lists the roots. *Sort* shows for *Suggested*
   and *New photos*; *All* keeps the natural order of the names, the roots in their order.
@@ -222,6 +225,15 @@ folders; a parent's state is derived.
 - **Then** the first says *A large subtree: loading it takes a while.* and the second does not;
   *Cull this level* is enabled on both
 
+### FOLDERS-009.22 – The hierarchy is the start
+
+- **Given** a library root with `2024/Iceland/Day 1`, `2024/Iceland/Day 2` and `2024/Jura`
+- **When** *Folders* opens, and later the user picks *Suggested* in `Iceland` and opens `2024` by
+  the breadcrumb
+- **Then** the first chip *All* is chosen and `2024` is one row of 3 photos in 3 folders, not its
+  day folders flat; the level card of `2024` reads *Cull this level (with subfolders)*; after the
+  breadcrumb *All* is chosen again and `Iceland` is a row
+
 ## Out of scope
 
 The folder summaries and the list's data: FOLDERS-005. The single-folder done endpoints:
@@ -236,3 +248,4 @@ folders: phase 2.
 | 2026-11-25 | PR 3: the *Library* crumb with several roots, a row without subfolders culls without them, *Sort* only for the flat filters |
 | 2026-11-25 | A chain ends at its last subfolder, also one without subfolders; a subtree of read-only folders only reads as a read-only folder (`folder-hierarchy.ts`) |
 | 2026-11-25 | PR 5: previews of a subtree row, the large-subtree line, *Cull new* on a row with subfolders |
+| 2026-11-25 | *Folders* opens on *All*, the first chip, and opening a level shows *All* (mockup `folders/hierarchy.html`, FOLDERS-009.22) |

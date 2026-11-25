@@ -4,7 +4,7 @@
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
-import { chip, COMPLETE, dialogButton, DONE, fakeList, MARK, mountScreen, OPEN, READ_ONLY, row_ } from './folders-screen-fixture.ts'
+import { chip, COMPLETE, dialogButton, DONE, fakeList, MARK, mountScreen, OPEN, READ_ONLY, row_, showSuggested } from './folders-screen-fixture.ts'
 import { installMarkedCatalogue, uninstallMarkedCatalogue, untranslatedText } from './l10n/marked-catalogue.ts'
 import { doneRow } from './logic/folder-fixtures.ts'
 
@@ -43,6 +43,7 @@ describe('FoldersScreen: the done status', () => {
 	// spec: FOLDERS-008.2
 	it('marks an open folder done from its menu and closes the menu', async () => {
 		const wrapper = mountScreen(fakeList([OPEN]))
+		await showSuggested(wrapper)
 		await openMenu(wrapper, 'Trip')
 		expect(menuEntries()).not.toContain(`${MARK}Reopen`)
 

@@ -22,21 +22,23 @@ tick one folder in the tree and press *Add as root*, repeat for more, then press
 
 ## Suggested
 
-*Suggested* is the default filter and sort: the folders with undecided photos, the most worthwhile
-first. A folder ranks higher with more undecided photos, with photos taken in bursts and with
-large (RAW-heavy) files. Each row says why in words, for example *63 % undecided · 18 in bursts ·
-4.2 GB · 2019*. A folder where every photo is decided, and not yet done, comes first with *Mark
-done* in its row.
+*Folders* opens on the chip *All*, the folders of the level you see (see *Levels*). *Suggested*
+lists the folders with undecided photos, the most worthwhile first. A folder ranks higher with
+more undecided photos, with photos taken in bursts and with large (RAW-heavy) files. Each row
+says why in words, for example *63 % undecided · 18 in bursts · 4.2 GB · 2019*. A folder where
+every photo is decided, and not yet done, comes first with *Mark done* in its row.
 
-The other chips are *New photos* and *All*; *Suggested* and *New photos* sort by *Most undecided*,
-*Largest*, *Oldest*, *Newest* or *Name* too. Each chip lists only the folders of the level you see.
+The third chip is *New photos*; *Suggested* and *New photos* sort by *Most undecided*, *Largest*,
+*Oldest*, *Newest* or *Name* too. Each chip lists only the folders of the level you see, and
+opening a level shows *All* again.
 
 ## Levels
 
 *Folders* shows one level of your library at a time, starting at your root. The breadcrumb
 above the list names the levels above it; tap one to go up. With several roots it starts at
 *Library*, where *All* lists the roots. The card on top of a level
-counts its photos and offers *Cull this level*.
+counts its photos and offers *Cull this level*, which reads *Cull this level (with subfolders)*
+while *Include subfolders* is on.
 
 On *All*, a folder with subfolders opens its level: tap the row or its arrow. The row *Photos
 directly in* holds a level's own photos, without its subfolders. A chain of single subfolders
