@@ -66,7 +66,7 @@ function current(page: Page): Locator {
 
 for (const viewport of VIEWPORTS) {
 	// spec: FOLDERS-009.1, FOLDERS-009.2, FOLDERS-009.3, FOLDERS-009.20, FOLDERS-009.22
-	test(`opens the library on its hierarchy and walks it by row and breadcrumb on ${viewport.name}`, async ({ page }) => {
+	test(`opens the library on its hierarchy and walks it by row and breadcrumb on ${viewport.name}`, async ({ page }, testInfo) => {
 		await page.setViewportSize({ width: viewport.width, height: viewport.height })
 		await page.goto('/index.php/apps/honeycomb/')
 		const list = page.locator('.folders-screen')
@@ -81,6 +81,7 @@ for (const viewport of VIEWPORTS) {
 		await expect(list.getByRole('article', { name: 'Day 1' })).toHaveCount(0)
 		await expect(list.getByText('Documents')).toHaveCount(0)
 		await expectCover(year)
+		await list.screenshot({ path: testInfo.outputPath('folders-library-level.png') })
 
 		await year.click({ position: { x: 4, y: 4 } })
 		await expect(current(page)).toHaveText('2024')
@@ -90,6 +91,7 @@ for (const viewport of VIEWPORTS) {
 		await list.getByRole('button', { name: 'Open Iceland' }).click()
 		await expect(current(page)).toHaveText('Iceland')
 		await expect(list.getByRole('article', { name: 'Day 2' })).toBeVisible()
+		await list.screenshot({ path: testInfo.outputPath('folders-iceland-level.png') })
 
 		await list.getByRole('group', { name: 'Filter' }).getByRole('button', { name: /^Suggested/ }).click()
 		await list.getByRole('navigation', { name: 'Level' }).getByRole('button', { name: '2024' }).click()
