@@ -3,7 +3,7 @@
 import type { FolderNode } from '../../../src/logic/folder-hierarchy.ts'
 
 import { describe, expect, it } from 'vitest'
-import { breadcrumb, buildHierarchy, findLevel, levelRows, scopeSums, startLevel, subtreeRows, subtreeState } from '../../../src/logic/folder-hierarchy.ts'
+import { batchMarks, breadcrumb, buildHierarchy, findLevel, levelRows, scopeSums, startLevel, subtreeRows, subtreeState } from '../../../src/logic/folder-hierarchy.ts'
 import { doneRow, row } from './folder-fixtures.ts'
 
 const names = (nodes: readonly FolderNode[]) => nodes.map((node) => node.name)
@@ -193,5 +193,33 @@ describe('breadcrumb', () => {
 	it('is empty for a path outside the root', () => {
 		expect(breadcrumb('/Photos', '/Photoshop/a')).toEqual([])
 		expect(breadcrumb('/Photos', '/')).toEqual([])
+	})
+})
+
+describe('batchMarks', () => {
+	// spec: FOLDERS-009.11, FOLDERS-009.13
+	it('marks every rateable open folder of the subtree with its photos and reopens each done one with the photos it was marked with', () => {
+		const tree = buildHierarchy(['/Photos'], [
+			row({ fileId: 1, path: '/Photos/2024', photos: 37 }),
+			doneRow({ fileId: 2, path: '/Photos/2024/Day 1', photos: 12 }, 10),
+			row({ fileId: 3, path: '/Photos/2024/Day 2', photos: 5 }),
+			row({ fileId: 4, path: '/Photos/2024/Shared', permissions: readOnly }),
+			doneRow({ fileId: 5, path: '/Photos/2024/Old', permissions: readOnly }),
+			row({ fileId: 6, path: '/Photos/Other', photos: 9 }),
+		])
+
+		expect(batchMarks(level(tree, '/Photos/2024'))).toEqual({
+			mark: [{ fileId: 1, photos: 37 }, { fileId: 3, photos: 5 }],
+			reopen: [{ fileId: 2, photos: 10 }],
+			readOnly: 2,
+		})
+	})
+
+	// spec: FOLDERS-009.12
+	it('has nothing to mark in a subtree that is all done and nothing to reopen in one that is all open', () => {
+		const tree = buildHierarchy(['/Photos'], [doneRow({ fileId: 1, path: '/Photos/A/B' }), row({ fileId: 2, path: '/Photos/C/D' })])
+
+		expect(batchMarks(level(tree, '/Photos/A'))).toEqual({ mark: [], reopen: [{ fileId: 1, photos: 100 }], readOnly: 0 })
+		expect(batchMarks(level(tree, '/Photos/C'))).toEqual({ mark: [{ fileId: 2, photos: 100 }], reopen: [], readOnly: 0 })
 	})
 })

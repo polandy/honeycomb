@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, listAllLibraryFolders, listLibraryFolders, markFolderDone, reopenFolder, scanLibrary } from '../../src/api/index.ts'
+import { ApiResponseError, listAllLibraryFolders, listLibraryFolders, markFolderDone, markFoldersDone, reopenFolder, reopenFolders, scanLibrary } from '../../src/api/index.ts'
 import { row } from './logic/folder-fixtures.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() } }))
@@ -104,5 +104,50 @@ describe('reopenFolder', () => {
 
 		await expect(reopenFolder(7)).resolves.toBeUndefined()
 		expect(axios.delete).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/library/folders/7/done')
+	})
+})
+
+describe('markFoldersDone', () => {
+	const DONE = { by: 'andy', at: 1_800_000_000, photos: 412 }
+
+	// spec: FOLDERS-009.11
+	it('marks the folders in one call and answers the written and the skipped ones', async () => {
+		const batch = { done: [{ fileId: 7, done: DONE }], skipped: [{ fileId: 8, reason: 'read-only' }, { fileId: 9, reason: 'done' }] }
+		vi.mocked(axios.put).mockReset().mockResolvedValue({ data: batch })
+
+		await expect(markFoldersDone([{ fileId: 7, photos: 412 }, { fileId: 8, photos: 3 }, { fileId: 9, photos: 1 }])).resolves.toEqual(batch)
+		expect(axios.put).toHaveBeenCalledOnce()
+		expect(axios.put).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/library/done', { folders: [{ fileId: 7, photos: 412 }, { fileId: 8, photos: 3 }, { fileId: 9, photos: 1 }] })
+	})
+
+	// spec: FOLDERS-006.16
+	it('sends more than 500 folders in calls of 500 and joins the answers', async () => {
+		const folders = Array.from({ length: 501 }, (_, index) => ({ fileId: index + 1, photos: 1 }))
+		vi.mocked(axios.put).mockReset()
+			.mockResolvedValueOnce({ data: { done: [{ fileId: 1, done: DONE }], skipped: [] } })
+			.mockResolvedValueOnce({ data: { done: [], skipped: [{ fileId: 501, reason: 'done' }] } })
+
+		await expect(markFoldersDone(folders)).resolves.toEqual({ done: [{ fileId: 1, done: DONE }], skipped: [{ fileId: 501, reason: 'done' }] })
+		expect(vi.mocked(axios.put).mock.calls.map((call) => (call[1] as { folders: unknown[] }).folders.length)).toEqual([500, 1])
+	})
+
+	it('refuses an answer of the wrong shape', async () => {
+		for (const data of [null, { done: [] }, { done: [{ fileId: 7, done: null }], skipped: [] }, { done: [], skipped: [{ fileId: 7, reason: 'gone' }] }, { done: [], skipped: [{ fileId: '7', reason: 'done' }] }]) {
+			vi.mocked(axios.put).mockReset().mockResolvedValue({ data })
+			await expect(markFoldersDone([{ fileId: 7, photos: 1 }])).rejects.toThrow(ApiResponseError)
+		}
+	})
+})
+
+describe('reopenFolders', () => {
+	// spec: FOLDERS-009.13
+	it('removes the done status of the folders in one call, more than 500 in calls of 500', async () => {
+		vi.mocked(axios.delete).mockReset().mockResolvedValue({ data: '' })
+
+		await expect(reopenFolders([7, 8])).resolves.toBeUndefined()
+		await reopenFolders(Array.from({ length: 501 }, (_, index) => index + 1))
+
+		expect(axios.delete).toHaveBeenNthCalledWith(1, '/index.php/apps/honeycomb/api/v1/library/done', { data: { fileIds: [7, 8] } })
+		expect(vi.mocked(axios.delete).mock.calls.slice(1).map((call) => (call[1] as { data: { fileIds: number[] } }).data.fileIds.length)).toEqual([500, 1])
 	})
 })
