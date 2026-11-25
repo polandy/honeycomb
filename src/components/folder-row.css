@@ -6,8 +6,8 @@
 	--folder-cover-size: 56px;
 
 	display: grid;
-	grid-template-areas: "cover head counts" "cover meta meta" "cover actions actions";
-	grid-template-columns: var(--folder-cover-size) 1fr auto;
+	grid-template-areas: "cover head" "cover counts" "cover meta" "cover actions";
+	grid-template-columns: var(--folder-cover-size) minmax(0, 1fr);
 	gap: var(--default-grid-baseline) calc(2 * var(--default-grid-baseline));
 	align-items: start;
 	padding: calc(2.5 * var(--default-grid-baseline)) calc(3 * var(--default-grid-baseline));
@@ -20,9 +20,14 @@
 	.folder-row {
 		--folder-cover-size: 72px;
 
-		grid-template-areas: "cover head counts actions" "cover meta meta actions";
-		grid-template-columns: var(--folder-cover-size) 1fr auto auto;
+		grid-template-areas: "cover head actions" "cover counts actions" "cover meta actions";
+		grid-template-columns: var(--folder-cover-size) minmax(0, 1fr) auto;
 		align-items: center;
+	}
+
+	/* One width for every row, so the bars line up; six areas fit the widest primary, More and ›. */
+	.folder-row__actions {
+		min-width: calc(6 * var(--default-clickable-area));
 	}
 }
 
@@ -58,13 +63,17 @@
 
 .folder-row__counts {
 	display: flex;
+	flex-wrap: wrap;
 	grid-area: counts;
-	flex-direction: column;
-	align-items: flex-end;
 	color: var(--color-text-maxcontrast);
 	font-size: 13px;
 	font-variant-numeric: tabular-nums;
 	white-space: nowrap;
+}
+
+.folder-row__counts > span + span::before {
+	padding: 0 var(--default-grid-baseline);
+	content: "·";
 }
 
 .folder-row__meta {
@@ -80,18 +89,6 @@
 	height: 8px;
 	border-radius: 4px;
 	background: var(--color-background-darker);
-}
-
-.folder-row__split-picked {
-	background: var(--color-success);
-}
-
-.folder-row__split-undecided {
-	background: var(--color-border-maxcontrast);
-}
-
-.folder-row__split-rejected {
-	background: var(--color-error);
 }
 
 .folder-row__state {

@@ -24,6 +24,14 @@
 	}
 }
 
+/* A scrolling page keeps its title row, and with it the toggle's gutter, above the content. */
+.page-title-row--sticky {
+	position: sticky;
+	z-index: 1;
+	top: 0;
+	background: var(--color-main-background);
+}
+
 .page-title-row__title {
 	margin: 0;
 	font-size: 16px;

@@ -40,6 +40,9 @@ const emit = defineEmits<{
 /** The row with subfolders whose ⋯ menu is open. */
 const subtreeMenu = shallowRef<LevelRow | null>(null)
 
+/** Whether a row of the level has ›, whose slot the other rows then keep empty (FOLDERS-009.24). */
+const anyOpens = computed(() => props.entries.some(opensLevel))
+
 /** Each entry with the row it shows as one folder, null for a row of its subtree. */
 const items = computed(() => props.entries.map((entry) => ({ entry, single: singleRow(entry.node, props.includeSubfolders) })))
 
@@ -91,7 +94,9 @@ defineExpose({ focus })
 			@cull="emit('cull', { paths: [props.own.path], subfolders: false })"
 			@markDone="emit('markDone', props.own)"
 			@cullNew="emit('cullNew', { paths: [props.own.path], subfolders: false })"
-			@menu="emit('menu', props.own)" />
+			@menu="emit('menu', props.own)">
+			<span v-if="anyOpens" class="folder-level-list__slot" />
+		</FolderListRow>
 		<div
 			v-for="{ entry, single } in items"
 			:key="entry.node.path"
@@ -116,6 +121,7 @@ defineExpose({ focus })
 						<AppIcon name="chevronRight" />
 					</template>
 				</NcButton>
+				<span v-else-if="anyOpens" class="folder-level-list__slot" />
 			</FolderListRow>
 			<FolderSubtreeRow
 				v-else
@@ -152,6 +158,11 @@ defineExpose({ focus })
 .folder-level-list {
 	display: grid;
 	gap: calc(2 * var(--default-grid-baseline));
+}
+
+.folder-level-list__slot {
+	flex: none;
+	width: var(--default-clickable-area);
 }
 
 .folder-level-list__opens {

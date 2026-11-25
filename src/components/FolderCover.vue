@@ -93,7 +93,7 @@ function fail(fileId: number) {
 	width: 20px;
 	height: 20px;
 	border-radius: 50%;
-	background: var(--color-success);
+	background: var(--color-element-success, var(--color-success));
 	color: var(--color-main-background);
 }
 </style>

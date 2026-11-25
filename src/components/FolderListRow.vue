@@ -84,7 +84,7 @@ defineExpose({ focus })
 					<span v-if="newBadgeText(props.row) !== null" class="folder-row__badge">{{ newBadgeText(props.row) }}</span>
 					<span>{{ doneText(props.row) }}</span>
 				</template>
-				<span v-else-if="rateable && isComplete(props.row)" class="folder-row__badge">{{ t('honeycomb', 'Complete · not marked done') }}</span>
+				<span v-else-if="rateable && isComplete(props.row)">{{ t('honeycomb', 'Complete · not marked done') }}</span>
 				<template v-else>
 					<span v-if="!rateable" class="folder-row__badge">{{ t('honeycomb', 'Read-only') }}</span>
 					<span>{{ reasonText(props.row) }}</span>
@@ -116,7 +116,6 @@ defineExpose({ focus })
 				@click="emit('cullNew')">
 				{{ t('honeycomb', 'Cull new') }}
 			</NcButton>
-			<slot />
 			<NcButton
 				ref="more"
 				variant="tertiary"
@@ -126,8 +125,11 @@ defineExpose({ focus })
 					<AppIcon name="more" />
 				</template>
 			</NcButton>
+			<slot />
 		</div>
 	</article>
 </template>
 
 <style scoped src="./folder-row.css" />
+
+<style scoped src="./folder-split.css" />

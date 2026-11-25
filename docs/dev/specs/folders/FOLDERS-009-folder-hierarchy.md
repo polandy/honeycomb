@@ -22,9 +22,10 @@ folders; a parent's state is derived.
   is a level when a folder below it has photos; a folder with no photos in its subtree is not
   shown, and no text says it is missing.
 - **Rows.** A row shows the folder as the list does (FOLDERS-007), and › when it has subfolders
-  with photos; a tap on it opens that level. A chain of folders without photos of their own, each
-  with exactly one subfolder with photos, is one row labelled with the names joined by ` / `; it
-  ends at that last subfolder, with or without subfolders of its own.
+  with photos, at the right edge after *More*; while a row of the level has ›, the others keep its
+  slot empty, so the actions line up; a tap on it opens that level. A chain of folders without
+  photos of their own, each with exactly one subfolder with photos, is one row labelled with the
+  names joined by ` / `; it ends at that last subfolder, with or without subfolders of its own.
 - **Breadcrumb length.** More than 4 levels show the first, "…" and the last two; "…" shows the
   levels in between.
 - **Include subfolders.** A switch in the header, on by default, saved per user as the setting
@@ -243,6 +244,13 @@ folders; a parent's state is derived.
   folder with photos below the level, so it is never fewer than either; its list shows those
   folders as the rows of the level, a row with subfolders standing for several
 
+### FOLDERS-009.24 – › keeps its slot
+
+- **Given** a level with a row with subfolders and rows without
+- **When** it shows them
+- **Then** › of the row with subfolders stands right of its *Cull*, and the *Cull* and *Mark done*
+  of every row share their right edge
+
 ## Out of scope
 
 The folder summaries and the list's data: FOLDERS-005. The single-folder done endpoints:
@@ -259,3 +267,4 @@ folders: phase 2.
 | 2026-11-25 | PR 5: previews of a subtree row, the large-subtree line, *Cull new* on a row with subfolders |
 | 2026-11-25 | *Folders* opens on *All*, the first chip, and opening a level shows *All* (mockup `folders/hierarchy.html`, FOLDERS-009.22) |
 | 2026-11-25 | The *All* chip counts every folder below the level, as the other chips do (FOLDERS-009.23) |
+| 2026-11-25 | › at the right edge, its slot kept in every row of the level (FOLDERS-009.24) |

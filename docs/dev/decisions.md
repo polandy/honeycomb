@@ -2050,3 +2050,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   level while the other chips count every folder below it. All three now count the same folders
   (FOLDERS-009.23); *All* keeps its drill-down list, so its rows stand for several folders
   (autonomous).
+- 2026-11-25: The owner's phone review of *Folders*: › moved to the right edge after *More*, its
+  slot kept empty in the level's other rows, so *Cull* and *Mark done* line up; the counts stand on
+  one line below the name; a legend names the bar's colours; *Complete · not marked done* is plain
+  text, as *Mark done* carries the emphasis; the title row stays when the list scrolls, so the
+  navigation toggle no longer clips the breadcrumb; the bar and the done mark use Nextcloud's
+  element colours, as `--color-success` and `--color-error` became light tints (FOLDERS-007.19–.22,
+  FOLDERS-009.24) (autonomous).
