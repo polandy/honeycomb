@@ -46,7 +46,14 @@ can still be replaced (architecture report 2026-11-22, A1).
 
 The architecture and data model review of 2026-11-24 found gaps the baseline can still close
 before 0.2.0 is released; the owner approved them. Until that release the baseline may change;
-an instance that already ran it (a test server) reinstalls as above.
+an instance that already ran it (a test server) reinstalls as above. Amended 2026-11-25: nc-test
+ran the first form on PostgreSQL and lost every flag and visual hash save, so
+`Version000200Date20261125120000` adds what this amendment lists to that form, each change only
+where it is missing, and a schema from the baseline today stays as it is. Making
+`honeycomb_positions.file_id` nullable and widening `asset_id` are in-place changes, which every
+supported database makes without losing a value. `SchemaRepairTest` builds the first form from
+`tests/fixtures/schema/honeycomb-first-baseline.json` and checks the migrations bring it to the
+fixture on SQLite, MariaDB and PostgreSQL.
 
 - **`honeycomb_decisions.updated_by`** (`string(64)`, null) notes who saved or took a row over
   last, for information like `honeycomb_folder_done.user_id`: nothing reads it to decide, and
