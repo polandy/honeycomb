@@ -1969,3 +1969,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-25: *Folders* rows show 1 to 3 preview thumbnails instead of the folder icon; the scan
   picks them (first, middle, last by capture time, rendered files only) and stores them in the
   folder summary, so the list reads nothing more (FOLDERS-005.18, FOLDERS-007.18; autonomous).
+- 2026-11-25: The folder cull takes the cull core's lower layer `useCullSteps` (decided map and
+  undo history of every step kind) instead of the queued `useCullCore`; its write-through keeps
+  `useCullWrites` with its field-wise take back (ADR 0058, #187, autonomous).
+- 2026-11-25: `PictureSource` has a `saved` type, so the folder adapter answers the flag save's
+  skipped ids; Immich answers `void` (ADR 0058, #187, autonomous).
+- 2026-11-25: Step 2 wires the folder adapter's `decide` only; the listing flows and the image URLs
+  move onto `list`, `counts` and `imageUrl` in a follow-up (ADR 0058, #187, autonomous).
