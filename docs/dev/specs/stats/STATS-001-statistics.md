@@ -80,8 +80,8 @@ removed. Bars show pictures decided and moved to the trash bin per day (week, mo
 (year) or per year (all time; per month while the counting lies in one calendar year). Days and
 months after today show as hatched empty slots, those before the first counted day as plain empty
 slots, and the bar of today (week, month, year) is outlined. A period without a count says
-*Nothing counted in this period.* instead of the bars. *Library progress* shows how far the library roots
-have come (below); *Of the pictures read so far* shows the shares picked, rejected, unflagged and
+*Nothing counted in this period.* instead of the bars. *Library progress* shows how far the
+library roots have come (below); *Of the pictures read so far* shows the shares picked, rejected, unflagged and
 rated from the XMP cache, counting only the pictures whose XMP honeycomb has read, so a library
 not yet opened shows little. A footnote says *Counted since {date}.* and, when stored series were
 done before the counting began, *Before that: n series done (no date).* There is no start value
