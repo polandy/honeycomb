@@ -3,7 +3,7 @@
 import type { FolderNode } from '../../../src/logic/folder-hierarchy.ts'
 
 import { describe, expect, it } from 'vitest'
-import { batchMarks, breadcrumb, buildHierarchy, findLevel, levelRows, scopeSums, startLevel, subtreeRows, subtreeState } from '../../../src/logic/folder-hierarchy.ts'
+import { batchMarks, breadcrumb, buildHierarchy, findLevel, isLargeSubtree, levelRows, scopeSums, startLevel, subtreePreviews, subtreeRows, subtreeState } from '../../../src/logic/folder-hierarchy.ts'
 import { doneRow, row } from './folder-fixtures.ts'
 
 const names = (nodes: readonly FolderNode[]) => nodes.map((node) => node.name)
@@ -221,5 +221,42 @@ describe('batchMarks', () => {
 
 		expect(batchMarks(level(tree, '/Photos/A'))).toEqual({ mark: [], reopen: [{ fileId: 1, photos: 100 }], readOnly: 0 })
 		expect(batchMarks(level(tree, '/Photos/C'))).toEqual({ mark: [{ fileId: 2, photos: 100 }], reopen: [], readOnly: 0 })
+	})
+})
+
+describe('subtreePreviews', () => {
+	const shot = (fileId: number) => ({ fileId, mtime: fileId })
+	const tree = buildHierarchy(['/Photos'], [
+		row({ fileId: 1, path: '/Photos/Trip', previews: [] }),
+		row({ fileId: 2, path: '/Photos/Trip/A', previews: [shot(21), shot(22)] }),
+		row({ fileId: 3, path: '/Photos/Trip/B', previews: [shot(31), shot(32), shot(33), shot(34)] }),
+	])
+	const trip = findLevel(tree, '/Photos/Trip')!
+
+	// spec: FOLDERS-009.20
+	it('spreads three pictures evenly over the previews of the subtree in its order', () => {
+		expect(subtreePreviews(trip, true).map((preview) => preview.fileId)).toEqual([21, 31, 34])
+	})
+
+	// spec: FOLDERS-009.20
+	it('takes the folder\'s own previews only without the subfolders', () => {
+		const own = buildHierarchy(['/Photos'], [row({ fileId: 1, path: '/Photos/Trip', previews: [shot(11)] }), row({ fileId: 2, path: '/Photos/Trip/A', previews: [shot(21)] })])
+		expect(subtreePreviews(findLevel(own, '/Photos/Trip')!, false)).toEqual([shot(11)])
+		expect(subtreePreviews(trip, false)).toEqual([])
+	})
+
+	it('shows all of fewer than three, and none for a subtree without previews', () => {
+		expect(subtreePreviews(findLevel(tree, '/Photos/Trip/A')!, true)).toEqual([shot(21), shot(22)])
+		const bare = buildHierarchy(['/Photos'], [row({ path: '/Photos/Trip/A', previews: [] })])
+		expect(subtreePreviews(bare[0]!, true)).toEqual([])
+	})
+})
+
+describe('isLargeSubtree', () => {
+	// spec: FOLDERS-009.21
+	it('is true above 20,000 photos and false at 20,000', () => {
+		const at = (photos: number) => scopeSums(buildHierarchy(['/Photos'], [row({ path: '/Photos/a', photos })])[0]!, true)
+		expect(isLargeSubtree(at(20_001))).toBe(true)
+		expect(isLargeSubtree(at(20_000))).toBe(false)
 	})
 })

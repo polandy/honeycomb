@@ -49,8 +49,10 @@ folders; a parent's state is derived.
   undecided photo in the subtree and k < n it reads *Complete · n − k folders not marked done*
   and offers *Mark all done*. Otherwise it reads the open share and *k of n folders done*. Read-only
   folders are in no n and k; with n = 0 the row reads as a read-only folder does.
-- **New photos.** The row's *n new* is the sum over the done folders below it; *Cull new* opens
-  the subtree with the flag filter *Unflagged* only.
+- **New photos.** The row's *n new* is the sum over the done folders in its scope; *Cull new*
+  shows when it is above 0 and opens the row as *Cull* does, with the flag filter *Unflagged* only.
+- **Previews.** A row with subfolders shows up to 3 pictures of its scope as its cover: the
+  `previews` of its folders (FOLDERS-005.18) in subtree order, spread evenly over that list.
 - **Mark all done.** In the ⋯ menu of every row with subfolders, with open photos too, and in
   the row of a complete subtree. It sends one `PUT /library/done` with every rateable folder
   with photos in the subtree that is not done, each with its photos. A toast says *Marked n
@@ -71,8 +73,8 @@ folders; a parent's state is derived.
   and scroll.
 - **Failure.** A failed batch leaves the rows as they were and shows the error toast *Could not
   mark the folders done.* or *Could not reopen the folders.*, never the server's text.
-- **Large subtrees.** A level card whose subtree holds more than 20,000 photos says so and that
-  loading takes a while; *Cull* stays enabled.
+- **Large subtrees.** A level card whose subtree holds more than 20,000 photos, whatever the
+  switch says, adds the line *A large subtree: loading it takes a while.*; *Cull* stays enabled.
 
 ## Acceptance criteria
 
@@ -175,7 +177,8 @@ folders; a parent's state is derived.
 - **Given** two done folders below a level with 12 and 5 *new*
 - **When** the row shows and the user presses *Cull new*
 - **Then** the row shows *17 new* and the subtree opens with `subfolders: true` and the flag filter
-  *Unflagged* only
+  *Unflagged* only; with the switch off the row shows its own folder's *new* and opens `subfolders:
+  false`
 
 ### FOLDERS-009.16 – Back restores the level
 
@@ -205,10 +208,24 @@ folders; a parent's state is derived.
 - **Then** every control is at least 44 px, the breadcrumb wraps without a horizontal scroll and
   axe finds no serious fault
 
+### FOLDERS-009.20 – Previews of a subtree
+
+- **Given** a row with subfolders whose folders hold 0, 2 and 4 previews
+- **When** the row shows
+- **Then** its cover shows 3 of the 6 pictures: the first, the third and the last; with the
+  switch off only the folder's own previews, and a subtree without previews shows the folder icon
+
+### FOLDERS-009.21 – A large subtree
+
+- **Given** a level whose subtree holds 20,001 photos, and one that holds 20,000
+- **When** its level card shows
+- **Then** the first says *A large subtree: loading it takes a while.* and the second does not;
+  *Cull this level* is enabled on both
+
 ## Out of scope
 
 The folder summaries and the list's data: FOLDERS-005. The single-folder done endpoints:
-FOLDERS-006. The previews of a subtree row: a later pull request (ADR 0060). Shares and group
+FOLDERS-006. Shares and group
 folders: phase 2.
 
 ## History
@@ -218,3 +235,4 @@ folders: phase 2.
 | 2026-11-25 | Written with ADR 0060 |
 | 2026-11-25 | PR 3: the *Library* crumb with several roots, a row without subfolders culls without them, *Sort* only for the flat filters |
 | 2026-11-25 | A chain ends at its last subfolder, also one without subfolders; a subtree of read-only folders only reads as a read-only folder (`folder-hierarchy.ts`) |
+| 2026-11-25 | PR 5: previews of a subtree row, the large-subtree line, *Cull new* on a row with subfolders |
