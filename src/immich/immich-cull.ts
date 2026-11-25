@@ -3,10 +3,9 @@
 import type { DecisionMove } from '../cull/cull-core.ts'
 import type { Decision } from '../logic/decision.ts'
 import type { DecisionRow, ImmichEntry, ImmichSourceEntry } from '../logic/immich-asset.ts'
-import type { CountsRequest, ImmichCounts } from '../logic/immich-counts.ts'
+import type { ImmichCounts } from '../logic/immich-counts.ts'
 import type { StoredImmichFilters } from '../logic/immich-filter-storage.ts'
 import type { Calendar, ImmichFilters, RequestFilters, TimeOption } from '../logic/immich-filters.ts'
-import type { AssetsRequest } from '../logic/immich-paging.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { PictureId } from '../logic/picture-id.ts'
 import type { PictureSource } from '../logic/picture-source.ts'
@@ -24,9 +23,6 @@ import { EMPTY_LIST, pageArrived, pageAsked, pageFailed, shownList, wantsNext } 
 import { fireAndLog } from '../shared/fire-and-log.ts'
 import { logger } from '../shared/logger.ts'
 import { immichPictureSource } from './immich-picture-source.ts'
-
-export type { AssetsRequest, CountsRequest, ImmichCullApi }
-export { PAGE_SIZE } from './immich-picture-source.ts'
 
 /** What the Immich cull is given: the server, the clock, the calendar, the toast and where the filters are kept. */
 export interface ImmichCullContext {

@@ -9,6 +9,7 @@ namespace OCA\Honeycomb\Controller;
 
 use OCA\Honeycomb\Service\Hash\MissingVisualHashes;
 use OCA\Honeycomb\Service\Hash\VisualHashService;
+use OCA\Honeycomb\Service\Settings\LibraryRootsGuard;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -31,6 +32,7 @@ final class VisualHashController extends Controller {
 		private ApiResponse $api,
 		private VisualHashService $service,
 		private MissingVisualHashes $missing,
+		private LibraryRootsGuard $roots,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -47,6 +49,9 @@ final class VisualHashController extends Controller {
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/api/v1/visual-hashes/missing')]
 	public function missing(string $path = '', string $cursor = '', int $method = 0): Response {
-		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->missing->page($user, $path, $cursor, $method)));
+		return $this->api->forUser(function (IUser $user) use ($path, $cursor, $method): Response {
+			$this->roots->ensureInside($user, $path);
+			return new JSONResponse($this->missing->page($user, $path, $cursor, $method));
+		});
 	}
 }

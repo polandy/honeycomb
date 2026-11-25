@@ -15,14 +15,20 @@ import NcContent from '@nextcloud/vue/components/NcContent'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import AppIcon from './AppIcon.vue'
 import FolderTree from './FolderTree.vue'
+import { outsideRootsNote } from '../folders/folders-text.ts'
+import { isInsideRoots } from '../logic/library-roots.ts'
 import { formatFileSize } from '../shared/l10n.ts'
 import { useOrphanedSidecars } from '../trash/orphaned-sidecars-run.ts'
 import { folderText, moveText, reportText, skipReason, totalText } from '../trash/orphaned-sidecars-text.ts'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
 	seams: OrphanedSidecarSeams
 	listFolders: (path: string) => Promise<Folder[]>
-}>()
+	/** The library roots; the folders to scan lie inside them while any is set (SETTINGS-001.36). */
+	roots?: readonly string[]
+}>(), {
+	roots: () => [],
+})
 
 /** The user's folder, which *Whole library* chooses. */
 const WHOLE_LIBRARY = '/'
@@ -54,10 +60,11 @@ function choose(path: string) {
 				<FolderTree
 					:ticked="chosen === null ? [] : [chosen]"
 					:listFolders="props.listFolders"
+					:disabledNote="(path) => outsideRootsNote(props.roots, path)"
 					single
 					@toggle="choose" />
 				<div class="orphaned-sidecars__actions">
-					<NcButton :pressed="chosen === WHOLE_LIBRARY" :disabled="busy" @click="choose(WHOLE_LIBRARY)">
+					<NcButton :pressed="chosen === WHOLE_LIBRARY" :disabled="busy || !isInsideRoots(props.roots, WHOLE_LIBRARY)" @click="choose(WHOLE_LIBRARY)">
 						{{ t('honeycomb', 'Whole library') }}
 					</NcButton>
 					<NcButton variant="primary" :disabled="chosen === null || busy" @click="run.scan(chosen!)">

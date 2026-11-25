@@ -17,7 +17,7 @@ final class FolderTally {
 
 	/**
 	 * A picture's shot time is its earliest member's capture time; a burst is a shot at most the gap after the one before.
-	 * @param list<array{name: string, size: int, mtime: int, captureTime: ?int}> $files
+	 * @param list<array{fileId?: int, name: string, size: int, mtime: int, captureTime: ?int}> $files
 	 * @return array{photos: int, bytes: int, rawBytes: int, bursts: int, oldest: ?int, newest: ?int, lastActivity: ?int}
 	 */
 	public static function of(array $files, PairingExtensions $extensions): array {

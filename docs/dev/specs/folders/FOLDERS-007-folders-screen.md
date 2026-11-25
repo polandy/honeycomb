@@ -37,6 +37,11 @@ roots worth culling and the library's progress, and opens a folder's cull and re
   the rows of the list and the progress. The filter chips *Suggested*, *New photos* and *All*
   carry their counts; the *Sort* menu offers the sorts of FOLDERS-002. Year and root headings as
   FOLDERS-002.
+- **A row's cover:** left of the name, the folder's `previews` (FOLDERS-005) as thumbnails, one
+  square for one, a large and a small one side by side for two, a large one and two stacked for
+  three, each the small preview tier loaded lazily; a done folder keeps a check mark over the
+  cover. A folder without previews, or whose previews all fail to load, shows the folder icon (the
+  check icon when done) instead.
 - **A row:** the folder's name and its parent path, its photos and undecided photos, a bar split
   into picked, undecided and rejected, and one state line: the reason (FOLDERS-001), *Complete ·
   not marked done*, the done line with the badge *n new*, or *Read-only* before the reason. An open
@@ -171,6 +176,14 @@ roots worth culling and the library's progress, and opens a folder's cull and re
 - **When** they are scanned and measured
 - **Then** axe finds no serious fault and every control is at least 44 px on a coarse pointer
 
+### FOLDERS-007.18 – The row's cover
+
+- **Given** rows with three previews, one, none, and one whose previews fail to load
+- **When** the list shows them
+- **Then** the first shows three lazily loaded thumbnails of the small tier, the second one, the
+  third and fourth the folder icon; no cover image has a text alternative (the row's name is the
+  label)
+
 ## Out of scope
 
 *Mark done*, *Reopen*, *Cull new* and the toast with *Undo*: FOLDERS-008. The roots in *Settings* and
@@ -182,3 +195,4 @@ the statistics headline: M12 PR 7. Filters, sorts and texts: FOLDERS-002, FOLDER
 |---|---|
 | 2026-11-22 | Written with M12 PR 5 |
 | 2026-11-22 | The row's menu and actions for the done status moved to FOLDERS-008 |
+| 2026-11-25 | The row's cover of preview thumbnails (FOLDERS-007.18) |

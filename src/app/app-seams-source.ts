@@ -6,7 +6,7 @@ import type { ListEntries } from '../folders/folder-count.ts'
 import type { FolderDoneApi } from '../folders/folder-done.ts'
 import type { LibraryApi } from '../folders/folders.ts'
 import type { ResumeApi } from '../folders/resume.ts'
-import type { ImmichCullApi } from '../immich/immich-cull.ts'
+import type { ImmichCullApi } from '../immich/immich-picture-source.ts'
 import type { ImmichApi } from '../immich/immich-source.ts'
 
 import { listEntries as apiListEntries, listFolders as apiListFolders, immichAssets, immichCounts, immichImageUrl, immichStatus, listImmichConnections, listLibraryFolders, loadPositions, markFolderDone, reopenFolder, saveImmichDecisions, savePosition, scanLibrary } from '../api/index.ts'

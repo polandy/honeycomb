@@ -101,6 +101,13 @@ rules (CLAUDE.md names them in one line).
 - **A baseline with `hasTable` guards**: an old instance updates without an error, but keeps the
   old index names and misses the new indexes, so its schema differs from a fresh one unnoticed.
 
+## Amendment 2026-11-25: folder previews
+
+- **`honeycomb_folder_summary.previews`** (`string(100)`, null): up to three `fileId:mtime`
+  pairs, comma separated, of the pictures that stand for the folder on *Folders* (FOLDERS-005.18).
+  The scan fills it from the files it reads anyway, so the list needs no further read; null is
+  none. Added to the baseline because 0.2.0 is not released.
+
 ## Consequences
 
 - A fresh install runs one migration.

@@ -9,6 +9,7 @@ namespace OCA\Honeycomb\Domain;
 
 /** What a scan found in one folder's own photo files, at the folder etag it read (FOLDERS-005). */
 final readonly class FolderSummary {
+	/** @param list<array{fileId: int, mtime: int}> $previews the files of the pictures that stand for the folder */
 	public function __construct(
 		public int $fileId,
 		public string $etag,
@@ -20,6 +21,7 @@ final readonly class FolderSummary {
 		public ?int $newest,
 		public ?int $lastActivity,
 		public int $scannedAt,
+		public array $previews = [],
 	) {
 	}
 }

@@ -101,13 +101,13 @@ final class LibraryFolderService {
 		$photos = $this->files->photoFiles(array_map(static fn (LibraryFolder $folder): int => $folder->fileId, $folders));
 		$times = $this->captureTimes->of(array_column($photos, 'fileId'));
 		foreach ($photos as $photo) {
-			$byFolder[$photo['parent']][] = ['name' => $photo['name'], 'size' => $photo['size'], 'mtime' => $photo['mtime'], 'captureTime' => $times[$photo['fileId']] ?? null];
+			$byFolder[$photo['parent']][] = ['fileId' => $photo['fileId'], 'name' => $photo['name'], 'size' => $photo['size'], 'mtime' => $photo['mtime'], 'captureTime' => $times[$photo['fileId']] ?? null];
 		}
 		$now = $this->time->getTime();
 		$extensions = PairingExtensions::defaults();
 		return array_map(static function (LibraryFolder $folder) use ($byFolder, $now, $extensions): FolderSummary {
 			$tally = FolderTally::of($byFolder[$folder->fileId] ?? [], $extensions);
-			return new FolderSummary($folder->fileId, $folder->etag, $tally['photos'], $tally['bytes'], $tally['rawBytes'], $tally['bursts'], $tally['oldest'], $tally['newest'], $tally['lastActivity'], $now);
+			return new FolderSummary($folder->fileId, $folder->etag, $tally['photos'], $tally['bytes'], $tally['rawBytes'], $tally['bursts'], $tally['oldest'], $tally['newest'], $tally['lastActivity'], $now, FolderPreviews::pick($byFolder[$folder->fileId] ?? [], $extensions));
 		}, $folders);
 	}
 
@@ -128,6 +128,7 @@ final class LibraryFolderService {
 			'oldest' => $summary->oldest,
 			'newest' => $summary->newest,
 			'lastActivity' => $summary->lastActivity,
+			'previews' => $summary->previews,
 			'picked' => $decisions['picked'],
 			'rejected' => $decisions['rejected'],
 			'undecided' => max(0, $summary->photos - $decisions['picked'] - $decisions['rejected'] - $decisions['doneUnflagged']),

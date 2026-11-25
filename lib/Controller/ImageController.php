@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Controller;
 
 use OCA\Honeycomb\Service\Image\ImageService;
+use OCA\Honeycomb\Service\Source\FolderPictureSource;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
@@ -29,6 +30,7 @@ final class ImageController extends Controller {
 		IRequest $request,
 		private ApiResponse $api,
 		private ImageService $images,
+		private FolderPictureSource $source,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -48,7 +50,7 @@ final class ImageController extends Controller {
 			if ($this->request->getHeader('If-None-Match') === "\"$etag\"") {
 				$response = new Response(Http::STATUS_NOT_MODIFIED, ['Cache-Control' => $cacheControl]);
 			} else {
-				$image = $size === ImageService::FULL ? $this->images->full($file) : $this->images->preview($file, $size);
+				$image = $this->source->image($user, ['file' => $file, 'size' => $size]);
 				$response = new FileDisplayResponse($image, Http::STATUS_OK, ['Content-Type' => $image->getMimeType(), 'Cache-Control' => $cacheControl]);
 			}
 			$response->setETag($etag);

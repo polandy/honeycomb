@@ -1973,6 +1973,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   the 0.2.0 baseline; a new idempotent migration adds what the baseline gained since, instead of a
   reinstall, and `SchemaRepairTest` proves it on every database. `info.xml` and `package.json` go to
   0.1.1 so Nextcloud runs it; release-please's next patch release is the same 0.1.1 (owner, lane c).
+- 2026-11-25: *Folders* rows show 1 to 3 preview thumbnails instead of the folder icon; the scan
+  picks them (first, middle, last by capture time, rendered files only) and stores them in the
+  folder summary, so the list reads nothing more (FOLDERS-005.18, FOLDERS-007.18; autonomous).
 - 2026-11-25: The folder cull takes the cull core's lower layer `useCullSteps` (decided map and
   undo history of every step kind) instead of the queued `useCullCore`; its write-through keeps
   `useCullWrites` with its field-wise take back (ADR 0058, #187, autonomous).
@@ -1980,3 +1983,18 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   skipped ids; Immich answers `void` (ADR 0058, #187, autonomous).
 - 2026-11-25: Step 2 wires the folder adapter's `decide` only; the listing flows and the image URLs
   move onto `list`, `counts` and `imageUrl` in a follow-up (ADR 0058, #187, autonomous).
+- 2026-11-25: The PHP picture source splits into `PictureSource` (`listing`, `image`, `decide`) and
+  `CountedPictureSource` (adds `counts`): the folders count in the browser, so their class has no
+  `counts` to leave empty (ADR 0058 step 3, #187, autonomous).
+- 2026-11-25: Each PHP picture source method takes the source (user or Immich connection) and one
+  query value typed by Psalm templates, so the classes stay stateless DI services; the image route
+  keeps its file lookup and 304 answer (ADR 0058 step 3, #187, autonomous).
+- 2026-11-25: `src/immich/immich-cull.ts` no longer re-exports `PAGE_SIZE`, `ImmichCullApi`,
+  `AssetsRequest` and `CountsRequest`; their importers use the defining modules (ADR 0058 step 3,
+  #187, autonomous).
+- 2026-11-25: A chain row ends at its single subfolder also when that one has no subfolders
+  (*Only / Leaf*), as FOLDERS-009 reads, not one level earlier as the mockup's script does: one tap
+  less (ADR 0060, PR 2, autonomous).
+- 2026-11-25: A subtree whose folders with photos are all read-only has the derived state
+  `read-only`, not *Complete · 0 folders not marked done* or *0 of 0 folders done* (ADR 0060, PR 2,
+  autonomous).

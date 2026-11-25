@@ -15,7 +15,7 @@ const DONE = { by: 'e2e', at: 1_800_000_000, photos: 3 }
 
 /** A rateable row of the stubbed list. */
 function folder(fileId: number, name: string, fields: object) {
-	return { fileId, root: ROOT, path: `${ROOT}/${name}`, photos: 3, bytes: 3_000_000, rawBytes: 0, picked: 3, rejected: 0, undecided: 0, bursts: 0, oldest: 1_600_000_000, newest: 1_600_000_100, lastActivity: null, permissions: 31, done: null, ...fields }
+	return { fileId, root: ROOT, path: `${ROOT}/${name}`, photos: 3, bytes: 3_000_000, rawBytes: 0, picked: 3, rejected: 0, undecided: 0, bursts: 0, oldest: 1_600_000_000, newest: 1_600_000_100, lastActivity: null, previews: [], permissions: 31, done: null, ...fields }
 }
 
 const FOLDERS = [

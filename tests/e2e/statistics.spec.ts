@@ -31,6 +31,7 @@ function libraryFolder(path: string, doneAt: number | null) {
 		oldest: 1_590_000_000,
 		newest: 1_590_100_000,
 		lastActivity: null,
+		previews: [],
 		permissions: 31,
 		done: doneAt === null ? null : { by: 'e2e', at: doneAt, photos: 100 },
 	}

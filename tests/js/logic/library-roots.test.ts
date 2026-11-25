@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { addLibraryRoot, normalizeRoot, removeLibraryRoot, validateLibraryRoots } from '../../../src/logic/library-roots.ts'
+import { addLibraryRoot, isInsideRoots, normalizeRoot, removeLibraryRoot, validateLibraryRoots } from '../../../src/logic/library-roots.ts'
 
 describe('normalizeRoot', () => {
 	// spec: FOLDERS-004.1
@@ -64,5 +64,26 @@ describe('validateLibraryRoots', () => {
 		expect(validateLibraryRoots(['/Photos', '/Photos/2019', '/Photos'])).toEqual({ reason: 'inside', path: '/Photos/2019', other: '/Photos' })
 		expect(validateLibraryRoots(['/a', ''])).toEqual({ reason: 'empty', path: '' })
 		expect(validateLibraryRoots(['/a', 'b'])).toBeNull()
+	})
+})
+
+describe('isInsideRoots', () => {
+	// spec: SETTINGS-001.36
+	it('takes a root and every folder below one, and no sibling that shares a prefix', () => {
+		const roots = ['/Photos', '/Archive/2020']
+
+		expect(isInsideRoots(roots, '/Photos')).toBe(true)
+		expect(isInsideRoots(roots, '/Photos/Italy/Rome')).toBe(true)
+		expect(isInsideRoots(roots, '/Archive/2020/May')).toBe(true)
+		expect(isInsideRoots(roots, '/Photos2')).toBe(false)
+		expect(isInsideRoots(roots, '/Archive')).toBe(false)
+		expect(isInsideRoots(roots, '/')).toBe(false)
+		expect(isInsideRoots(roots, '/Photos/../Docs')).toBe(false)
+	})
+
+	// spec: SETTINGS-001.36
+	it('takes every folder while no root is set', () => {
+		expect(isInsideRoots([], '/Anything')).toBe(true)
+		expect(isInsideRoots([], '/')).toBe(true)
 	})
 })

@@ -25,6 +25,8 @@ const props = withDefaults(defineProps<{
 	single?: boolean
 	/** Folders that cannot be chosen, e.g. the open folder set's as a move target. */
 	blocked?: readonly string[]
+	/** Why a folder cannot be chosen, null when it can; shown on its row. */
+	disabledNote?: (path: string) => string | null
 	/** *Include subfolders* is on: the folders below a ticked one come along. */
 	subfolders?: boolean
 	/** The folders *Include subfolders* leaves out. */
@@ -32,6 +34,7 @@ const props = withDefaults(defineProps<{
 }>(), {
 	listFolders: apiListFolders,
 	blocked: () => [],
+	disabledNote: () => null,
 	excluded: () => [],
 })
 
@@ -102,7 +105,7 @@ function flip(folder: Folder) {
 }
 
 /** Whether a folder is shown disabled. */
-const isDisabled = (folder: Folder) => isHiddenFolder(folder.name) || props.blocked.includes(folder.path)
+const isDisabled = (folder: Folder) => isHiddenFolder(folder.name) || props.blocked.includes(folder.path) || props.disabledNote(folder.path) !== null
 
 /** The badges of a folder above ticked or excluded ones, shown and spoken. */
 function badges(folder: Folder) {
@@ -258,6 +261,7 @@ for (const path of [ROOT, ...foldersToExpand([...props.ticked, ...effectiveExclu
 					<span class="folder-tree__name" :class="{ 'folder-tree__name--excluded': marks.get(row.folder.path)?.excluded }">{{ row.folder.name }}</span>
 					<span v-if="isHiddenFolder(row.folder.name)" class="folder-tree__meta">{{ t('honeycomb', 'Hidden folder, always skipped') }}</span>
 					<span v-else-if="props.blocked.includes(row.folder.path)" class="folder-tree__meta">{{ t('honeycomb', 'Open folder, cannot be the target') }}</span>
+					<span v-else-if="props.disabledNote(row.folder.path) !== null" class="folder-tree__meta">{{ props.disabledNote(row.folder.path) }}</span>
 				</span>
 				<span v-if="marks.has(row.folder.path)" :class="marks.get(row.folder.path)?.excluded ? 'folder-tree__excluded' : 'folder-tree__included'">
 					<span aria-hidden="true">{{ marks.get(row.folder.path)?.excluded ? t('honeycomb', 'excluded') : t('honeycomb', 'included') }}</span>

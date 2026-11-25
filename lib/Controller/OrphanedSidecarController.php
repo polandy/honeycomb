@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
+use OCA\Honeycomb\Service\Settings\LibraryRootsGuard;
 use OCA\Honeycomb\Service\Trash\OrphanedSidecarScan;
 use OCA\Honeycomb\Service\Trash\OrphanedSidecarTrash;
 use OCP\AppFramework\Controller;
@@ -26,6 +27,7 @@ final class OrphanedSidecarController extends Controller {
 		private ApiResponse $api,
 		private OrphanedSidecarScan $scan,
 		private OrphanedSidecarTrash $trash,
+		private LibraryRootsGuard $roots,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -34,7 +36,10 @@ final class OrphanedSidecarController extends Controller {
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/api/v1/sidecars/orphaned')]
 	public function orphaned(string $path = '', string $cursor = ''): Response {
-		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->scan->page($user, $path, $cursor)));
+		return $this->api->forUser(function (IUser $user) use ($path, $cursor): Response {
+			$this->roots->ensureInside($user, $path);
+			return new JSONResponse($this->scan->page($user, $path, $cursor));
+		});
 	}
 
 	/** Moves the confirmed sidecars that are still orphaned into the trash bin and reports each (XMP-009). */
