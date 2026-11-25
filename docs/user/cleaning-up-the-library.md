@@ -23,10 +23,10 @@ tick one folder in the tree and press *Add as root*, repeat for more, then press
 ## Suggested
 
 *Folders* opens on the chip *All*, the folders of the level you see (see *Levels*). *Suggested*
-lists the folders with undecided photos, the most worthwhile first. A folder ranks higher with more undecided photos, with photos taken in bursts and with
-large (RAW-heavy) files. Each row says why in words, for example *63 % undecided · 18 in bursts ·
-4.2 GB · 2019*. A folder where every photo is decided, and not yet done, comes first with *Mark
-done* in its row.
+lists the folders with undecided photos, the most worthwhile first. A folder ranks higher with
+more undecided photos, with photos taken in bursts and with large (RAW-heavy) files. Each row
+says why in words, for example *63 % undecided · 18 in bursts · 4.2 GB · 2019*. A folder where
+every photo is decided, and not yet done, comes first with *Mark done* in its row.
 
 The third chip is *New photos*; *Suggested* and *New photos* sort by *Most undecided*, *Largest*,
 *Oldest*, *Newest* or *Name* too. Each chip lists only the folders of the level you see, and

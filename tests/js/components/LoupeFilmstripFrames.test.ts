@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { ListingEntry } from '../../../src/logic/listing.ts'
+import type { Decision } from '../../../src/logic/decision.ts'
+import type { ListingEntry, SourceEntry } from '../../../src/logic/listing.ts'
 import type { Picture } from '../../../src/logic/pairing.ts'
 import type { Series } from '../../../src/logic/series.ts'
 
@@ -24,13 +25,13 @@ function seriesOf(...runs: [first: number, end: number][]) {
 	}))
 }
 
-async function mountStrip(index: number, members: ReadonlyMap<Picture<ListingEntry>, Series<Picture<ListingEntry>>>, onCompareSeries?: (index: number) => void) {
+async function mountStrip(index: number, members: ReadonlyMap<Picture<ListingEntry>, Series<Picture<ListingEntry>>>, onCompareSeries?: (index: number) => void, decisionOf: (picture: Picture<SourceEntry>) => Decision = () => UNDECIDED) {
 	const wrapper = mount(LoupeFilmstrip, {
 		props: {
 			pictures: PICTURES,
 			index,
 			pinned: false,
-			decisionOf: () => UNDECIDED,
+			decisionOf,
 			seriesOf: members,
 			imageUrl: (fileId: number, size: number) => `/img/${fileId}/${size}`,
 			observeSize: (_element: Element, onSize: (width: number, height: number) => void) => {
@@ -56,6 +57,16 @@ describe('LoupeFilmstrip: the series frame', () => {
 			`left: ${5 * FILMSTRIP_THUMB}px; width: ${2 * FILMSTRIP_THUMB}px;`,
 		])
 		expect(wrapper.find('.loupe-filmstrip__frame').element.closest('.loupe-filmstrip__track')).not.toBeNull()
+	})
+
+	// spec: LOUPE-001.19
+	it('draws one frame across a rejected photo between two photos of a series, its ring inside the frame', async () => {
+		const series = { key: 3, members: [PICTURES[2]!, PICTURES[4]!] }
+		const members = new Map(series.members.map((picture) => [picture, series] as const))
+		const wrapper = await mountStrip(3, members, undefined, (picture) => (picture.baseName === PICTURES[3]!.baseName ? { ...UNDECIDED, flag: 'rejected' } : UNDECIDED))
+
+		expect(frames(wrapper)).toEqual([`left: ${2 * FILMSTRIP_THUMB}px; width: ${3 * FILMSTRIP_THUMB}px;`])
+		expect(wrapper.find('button[aria-label="IMG_04"]').classes()).toContain('loupe-filmstrip__photo--framed')
 	})
 
 	// spec: LOUPE-001.19

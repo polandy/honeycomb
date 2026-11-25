@@ -2042,3 +2042,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   folders flat on nc-test (owner, 2026-11-25, FOLDERS-009.22).
 - 2026-11-25: *Cull this level* reads *Cull this level (with subfolders)* while the switch is on,
   as in the mockup, so the card names its scope (FOLDERS-009, autonomous).
+- 2026-11-25: *Pick this, reject the rest* seemed to reject the next series on nc-test: one series
+  of 11 was drawn as two frames, split by rejected photos between its members. A series' frame and
+  bracket now span the rejected photos between its members, and the action stays on the whole
+  series (owner choice of three: one frame, a rejected photo cuts the series, act on the frame only).

@@ -84,7 +84,7 @@ export interface FilmstripFrame {
 	readonly count: number
 }
 
-/** The frames around each run of neighbouring photos that share a series; a picture outside every series breaks a run. */
-export function filmstripFrames<P>(pictures: readonly P[], seriesOf: ReadonlyMap<P, Series<P>>): FilmstripFrame[] {
-	return seriesRuns(pictures, seriesOf).map(({ first, end, series }) => ({ first, end, count: series.members.length }))
+/** The frames around each run of neighbouring photos that share a series; a picture outside every series breaks a run unless `spans` lets it in. */
+export function filmstripFrames<P>(pictures: readonly P[], seriesOf: ReadonlyMap<P, Series<P>>, spans?: (picture: P) => boolean): FilmstripFrame[] {
+	return seriesRuns(pictures, seriesOf, [], spans).map(({ first, end, series }) => ({ first, end, count: series.members.length }))
 }
