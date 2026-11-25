@@ -21,6 +21,8 @@ use OCP\Migration\SimpleMigrationStep;
 final class Version000200Date20261125120000 extends SimpleMigrationStep {
 	private const int USER_ID_LENGTH = 64;
 	private const int ASSET_ID_LENGTH = 255;
+	/** Three `fileId:mtime` pairs: 3 times 21 characters and two commas. */
+	private const int PREVIEWS_LENGTH = 100;
 	/** dHash, the first visual hash method (ADR 0024). */
 	private const int FIRST_METHOD = 1;
 	/** The tables whose `asset_id` the baseline widened from a UUID's 36 characters. */
@@ -39,6 +41,7 @@ final class Version000200Date20261125120000 extends SimpleMigrationStep {
 			self::addColumn($schema, 'honeycomb_positions', 'asset_id', Types::STRING, ['notnull' => false, 'length' => self::ASSET_ID_LENGTH]),
 			self::addColumn($schema, 'honeycomb_positions', 'taken_at', Types::BIGINT, ['notnull' => false]),
 			self::allowNull($schema, 'honeycomb_positions', 'file_id'),
+			self::addColumn($schema, 'honeycomb_folder_summary', 'previews', Types::STRING, ['notnull' => false, 'length' => self::PREVIEWS_LENGTH]),
 			...array_map(static fn (string $table): bool => self::widenAssetId($schema, $table), self::ASSET_ID_TABLES),
 		];
 		return in_array(true, $changes, true) ? $schema : null;

@@ -1973,6 +1973,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   the 0.2.0 baseline; a new idempotent migration adds what the baseline gained since, instead of a
   reinstall, and `SchemaRepairTest` proves it on every database. `info.xml` and `package.json` go to
   0.1.1 so Nextcloud runs it; release-please's next patch release is the same 0.1.1 (owner, lane c).
+- 2026-11-25: The repair migration also adds the folder summary's `previews`, which #405 put into
+  the baseline; `SchemaRepairTest` fails for every column the baseline gains without it (lane c).
 - 2026-11-25: *Folders* rows show 1 to 3 preview thumbnails instead of the folder icon; the scan
   picks them (first, middle, last by capture time, rendered files only) and stores them in the
   folder summary, so the list reads nothing more (FOLDERS-005.18, FOLDERS-007.18; autonomous).
