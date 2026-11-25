@@ -8,10 +8,11 @@ import type { FolderRow } from '../logic/folder-row.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
 
 import { t } from '@nextcloud/l10n'
-import { computed } from 'vue'
+import { computed, shallowRef } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import AppIcon from './AppIcon.vue'
 import FolderListRow from './FolderListRow.vue'
+import FolderSubtreeMenu from './FolderSubtreeMenu.vue'
 import FolderSubtreeRow from './FolderSubtreeRow.vue'
 import { cullSet, opensLevel, singleRow } from '../logic/folder-level.ts'
 import { PLAIN_TEXT } from '../shared/l10n.ts'
@@ -31,7 +32,13 @@ const emit = defineEmits<{
 	markDone: [row: FolderRow]
 	cullNew: [set: FolderSet]
 	menu: [row: FolderRow]
+	/** Mark done every rateable open folder of the subtree, or reopen every done one (FOLDERS-009.11, .13). */
+	markAllDone: [node: FolderNode]
+	reopenAll: [node: FolderNode]
 }>()
+
+/** The row with subfolders whose ⋯ menu is open. */
+const subtreeMenu = shallowRef<LevelRow | null>(null)
 
 /** Each entry with the row it shows as one folder, null for a row of its subtree. */
 const items = computed(() => props.entries.map((entry) => ({ entry, single: singleRow(entry.node, props.includeSubfolders) })))
@@ -48,6 +55,18 @@ function rowRef(fileId: number) {
 function tap(event: MouseEvent, entry: LevelRow) {
 	if (opensLevel(entry) && !(event.target as Element).closest('button, a, input')) {
 		emit('open', entry.node.path)
+	}
+}
+
+/** Closes the subtree menu and passes its choice on. */
+function choose(event: 'cull' | 'markAllDone' | 'reopenAll', entry: LevelRow) {
+	subtreeMenu.value = null
+	if (event === 'cull') {
+		emit('cull', cullSet(entry.node, props.includeSubfolders))
+	} else if (event === 'markAllDone') {
+		emit('markAllDone', entry.node)
+	} else {
+		emit('reopenAll', entry.node)
 	}
 }
 
@@ -103,7 +122,9 @@ defineExpose({ focus })
 				:node="entry.node"
 				:label="entry.label"
 				:includeSubfolders="props.includeSubfolders"
-				@cull="emit('cull', cullSet(entry.node, props.includeSubfolders))">
+				@cull="emit('cull', cullSet(entry.node, props.includeSubfolders))"
+				@markAllDone="emit('markAllDone', entry.node)"
+				@menu="subtreeMenu = entry">
 				<NcButton
 					variant="tertiary"
 					:aria-label="t('honeycomb', 'Open {name}', { name: entry.label }, undefined, PLAIN_TEXT)"
@@ -114,6 +135,15 @@ defineExpose({ focus })
 				</NcButton>
 			</FolderSubtreeRow>
 		</div>
+		<FolderSubtreeMenu
+			v-if="subtreeMenu !== null"
+			:node="subtreeMenu.node"
+			:label="subtreeMenu.label"
+			:includeSubfolders="props.includeSubfolders"
+			@cull="choose('cull', subtreeMenu)"
+			@markAllDone="choose('markAllDone', subtreeMenu)"
+			@reopenAll="choose('reopenAll', subtreeMenu)"
+			@close="subtreeMenu = null" />
 	</div>
 </template>
 

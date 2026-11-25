@@ -95,7 +95,7 @@ final class FolderDoneBatchTest extends TestCase {
 			'file id 0' => [[['fileId' => 0, 'photos' => 1]], Reason::BadFileId],
 			'file id string' => [[['fileId' => '10', 'photos' => 1]], Reason::BadFileId],
 			'twice' => [[['fileId' => 10, 'photos' => 1], ['fileId' => 10, 'photos' => 2]], Reason::Duplicate],
-			'501' => [array_fill(0, 501, ['fileId' => 10, 'photos' => 1]), Reason::TooMany],
+			'over 500' => [array_fill(0, 501, ['fileId' => 10, 'photos' => 1]), Reason::TooMany],
 		];
 	}
 
@@ -114,11 +114,12 @@ final class FolderDoneBatchTest extends TestCase {
 			'object' => [['a' => 10], Reason::NotAList],
 			'file id 0' => [[0], Reason::BadFileId],
 			'twice' => [[10, 10], Reason::Duplicate],
-			'501' => [range(1, 501), Reason::TooMany],
+			'over 500' => [range(1, 501), Reason::TooMany],
 		];
 	}
 
 	// spec: FOLDERS-006.17
+	/** @param class-string<\Throwable> $exception */
 	#[DataProvider('failingMarks')]
 	public function testOneFolderThatFailsTheCheckFailsTheWholeMark(int $fileId, string $exception): void {
 		$this->expectException($exception);

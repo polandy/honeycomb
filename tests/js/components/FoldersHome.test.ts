@@ -29,6 +29,8 @@ function fakeHome(roots: readonly string[]) {
 		hide: vi.fn(),
 		markDone: vi.fn(async () => undefined),
 		reopen: vi.fn(async () => undefined),
+		markAllDone: vi.fn(async () => undefined),
+		reopenAll: vi.fn(async () => undefined),
 		changed: shallowRef({ fileId: 1 }),
 		finishing: computed(() => null),
 		markFinished: vi.fn(async () => undefined),

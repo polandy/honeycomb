@@ -33,6 +33,8 @@ function openApp(rows: FolderRow[] = [TRIP]) {
 		reopenFolder: async (fileId) => {
 			writes.push(`DELETE ${fileId}`)
 		},
+		markFoldersDone: async () => ({ done: [], skipped: [] }),
+		reopenFolders: async () => undefined,
 	}
 	const mounted = mountApp({
 		library,

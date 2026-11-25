@@ -7,9 +7,10 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Service\Folder;
 
+use OCA\Honeycomb\Domain\DoneSkip;
 use OCA\Honeycomb\Domain\FolderDone;
+use OCA\Honeycomb\Domain\FolderDoneBatch;
 use OCA\Honeycomb\Domain\InvalidRequestException;
-use OCA\Honeycomb\Domain\Reason;
 use OCA\Honeycomb\Domain\StatsMetric;
 use OCA\Honeycomb\Domain\Store\FolderDoneStore;
 use OCA\Honeycomb\Service\Files\FolderNotFoundException;
@@ -22,7 +23,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Folder;
 use OCP\IUser;
 
-/** Marks a folder done and reopens it, counting each mark (FOLDERS-006, ADR 0049). */
+/** Marks a folder or a batch done and reopens them, counting each mark (FOLDERS-006, ADR 0049, ADR 0060). */
 final class FolderDoneService {
 	private const string OWN_MOUNT = '';
 
@@ -43,10 +44,10 @@ final class FolderDoneService {
 	 * @throws \OCP\DB\Exception
 	 */
 	public function mark(IUser $user, int $fileId, mixed $photos): FolderDone {
-		if (!is_int($photos) || $photos < 0) {
-			throw InvalidRequestException::because(Reason::BadValue, 'photos must be a whole number from 0');
+		$photos = FolderDoneRequest::photos($photos);
+		if (!$this->rateable($this->photos->userFolder($user), $fileId)) {
+			throw new FolderNotReadableException((string)$fileId);
 		}
-		$this->checkRateable($user, $fileId);
 		$done = new FolderDone($fileId, $user->getUID(), $this->time->getTime(), $photos);
 		RetryOnConflict::run(fn () => $this->store->put($done));
 		$this->stats->count($user, new StatsCount(StatsMetric::FoldersDone, 1));
@@ -60,22 +61,71 @@ final class FolderDoneService {
 	 * @throws \OCP\DB\Exception
 	 */
 	public function reopen(IUser $user, int $fileId): void {
-		$this->checkRateable($user, $fileId);
-		$this->store->remove($fileId);
+		$this->reopenAll($user, [$fileId]);
 	}
 
 	/**
-	 * Rechecks that `$fileId` is a folder of the user's own storage the user may rate.
+	 * Marks each rateable folder of `$folders` that is not done, in one write, and counts each;
+	 * a read-only or done folder is skipped and keeps its status.
+	 * @throws InvalidRequestException for a malformed body, before any lookup
+	 * @throws FolderNotFoundException when a folder is none of the user's own, and nothing is written
+	 * @throws FolderNotReadableException when the user may not read a folder, and nothing is written
+	 * @throws \OCP\DB\Exception
+	 */
+	public function markAll(IUser $user, mixed $folders): FolderDoneBatch {
+		$marks = FolderDoneRequest::marks($folders);
+		$userFolder = $this->photos->userFolder($user);
+		$known = $this->store->find(array_keys($marks));
+		$now = $this->time->getTime();
+		$done = [];
+		$skipped = [];
+		foreach ($marks as $fileId => $photos) {
+			if (!$this->rateable($userFolder, $fileId)) {
+				$skipped[$fileId] = DoneSkip::ReadOnly;
+			} elseif (isset($known[$fileId])) {
+				$skipped[$fileId] = DoneSkip::Done;
+			} else {
+				$done[] = new FolderDone($fileId, $user->getUID(), $now, $photos);
+			}
+		}
+		if ($done !== []) {
+			RetryOnConflict::run(fn () => $this->store->put(...$done));
+			$this->stats->count($user, new StatsCount(StatsMetric::FoldersDone, count($done)));
+		}
+		return new FolderDoneBatch($done, $skipped);
+	}
+
+	/**
+	 * Removes the status of each folder of `$fileIds` in one write; a folder that is not done is no error.
+	 * @throws InvalidRequestException for a malformed body, before any lookup
+	 * @throws FolderNotFoundException when a folder is none of the user's own, and nothing is written
+	 * @throws FolderNotReadableException when the user may not read or rate a folder, and nothing is written
+	 * @throws \OCP\DB\Exception
+	 */
+	public function reopenAll(IUser $user, mixed $fileIds): void {
+		$fileIds = FolderDoneRequest::fileIds($fileIds);
+		$userFolder = $this->photos->userFolder($user);
+		foreach ($fileIds as $fileId) {
+			if (!$this->rateable($userFolder, $fileId)) {
+				throw new FolderNotReadableException((string)$fileId);
+			}
+		}
+		RetryOnConflict::run(fn () => $this->store->remove(...$fileIds));
+	}
+
+	/**
+	 * Whether the user may rate `$fileId`, rechecked as a folder of the user's own storage they may read.
 	 * @throws FolderNotFoundException
 	 * @throws FolderNotReadableException
 	 */
-	private function checkRateable(IUser $user, int $fileId): void {
-		$folder = $this->photos->userFolder($user)->getFirstNodeById($fileId);
+	private function rateable(Folder $userFolder, int $fileId): bool {
+		$folder = $userFolder->getFirstNodeById($fileId);
 		if (!$folder instanceof Folder || $folder->getMountPoint()->getMountType() !== self::OWN_MOUNT) {
 			throw new FolderNotFoundException((string)$fileId);
 		}
-		if (!$folder->isReadable() || !$this->photos->folderRateable($folder)) {
+		if (!$folder->isReadable()) {
 			throw new FolderNotReadableException((string)$fileId);
 		}
+		return $this->photos->folderRateable($folder);
 	}
 }

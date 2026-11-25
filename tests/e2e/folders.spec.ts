@@ -212,3 +212,25 @@ test('shows a level on a phone without a horizontal scroll and goes back to it f
 	await expect(list.getByRole('navigation', { name: 'Level' }).locator('[aria-current="location"]')).toHaveText('Alps')
 	await expect(list.getByRole('group', { name: 'Filter' }).getByRole('button', { name: /^All/ })).toHaveAttribute('aria-pressed', 'true')
 })
+
+// spec: FOLDERS-006.15, FOLDERS-006.18, FOLDERS-009.11
+test('marks a subtree done in one call from its menu and undoes it in one call', async ({ page }) => {
+	await addDays(page)
+	const list = await openList(page)
+	await list.getByRole('group', { name: 'Filter' }).getByRole('button', { name: /^All/ }).click()
+	const batch = (method: string) => page.waitForResponse((response) => response.url().endsWith('/api/v1/library/done') && response.request().method() === method)
+
+	await list.getByRole('button', { name: 'More for Alps' }).click()
+	const marked = batch('PUT')
+	await page.getByRole('dialog', { name: 'Alps' }).getByRole('button', { name: 'Mark all done' }).click()
+	expect((await marked).status()).toBe(200)
+	const toast = page.getByRole('status').filter({ hasText: 'Marked 3 folders done' })
+	const reopened = batch('DELETE')
+	await toast.getByRole('button', { name: 'Undo' }).click()
+
+	expect((await reopened).status()).toBe(204)
+	await page.reload()
+	await list.getByRole('group', { name: 'Filter' }).getByRole('button', { name: /^All/ }).click()
+	await list.getByRole('button', { name: 'More for Alps' }).click()
+	await expect(page.getByRole('dialog', { name: 'Alps' }).getByRole('button', { name: 'Reopen all' })).toBeDisabled()
+})

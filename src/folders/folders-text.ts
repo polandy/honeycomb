@@ -66,6 +66,17 @@ export function foldersText(count: number): string {
 	return n('honeycomb', '{count} folder', '{count} folders', count, { count: formatNumber(count) })
 }
 
+/** "Marked 4 folders done · 1 read-only skipped", the toast of *Mark all done* (FOLDERS-009.11). */
+export function markedAllText(marked: number, readOnly: number): string {
+	const text = n('honeycomb', 'Marked {count} folder done', 'Marked {count} folders done', marked, { count: formatNumber(marked) })
+	return readOnly === 0 ? text : `${text}${SEPARATOR}${n('honeycomb', '{count} read-only skipped', '{count} read-only skipped', readOnly, { count: formatNumber(readOnly) })}`
+}
+
+/** "Reopened 3 folders", the toast of *Reopen all* (FOLDERS-009.13). */
+export function reopenedAllText(count: number): string {
+	return n('honeycomb', 'Reopened {count} folder', 'Reopened {count} folders', count, { count: formatNumber(count) })
+}
+
 /** "63 undecided". */
 export function undecidedText(count: number): string {
 	return t('honeycomb', '{count} undecided', { count: formatNumber(count) })

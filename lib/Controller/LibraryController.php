@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Controller;
 
+use OCA\Honeycomb\Domain\DoneSkip;
+use OCA\Honeycomb\Domain\FolderDone;
 use OCA\Honeycomb\Service\Folder\FolderDoneService;
 use OCA\Honeycomb\Service\Folder\LibraryFolderService;
 use OCP\AppFramework\Controller;
@@ -52,8 +54,7 @@ final class LibraryController extends Controller {
 	#[FrontpageRoute(verb: 'PUT', url: '/api/v1/library/folders/{fileId}/done')]
 	public function markDone(int $fileId, mixed $photos = null): Response {
 		return $this->api->forUser(function (IUser $user) use ($fileId, $photos): Response {
-			$done = $this->done->mark($user, $fileId, $photos);
-			return new JSONResponse(['fileId' => $fileId, 'done' => ['by' => $done->userId, 'at' => $done->doneAt, 'photos' => $done->photos]]);
+			return new JSONResponse(self::doneRow($this->done->mark($user, $fileId, $photos)));
 		});
 	}
 
@@ -66,5 +67,38 @@ final class LibraryController extends Controller {
 			$this->done->reopen($user, $fileId);
 			return new Response(Http::STATUS_NO_CONTENT);
 		});
+	}
+
+	/** Marks each rateable folder of `$folders` done that is not, skipping the others with the reason (FOLDERS-006.15). */
+	#[NoAdminRequired]
+	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
+	#[FrontpageRoute(verb: 'PUT', url: '/api/v1/library/done')]
+	public function markAllDone(mixed $folders = null): Response {
+		return $this->api->forUser(function (IUser $user) use ($folders): Response {
+			$batch = $this->done->markAll($user, $folders);
+			return new JSONResponse([
+				'done' => array_map(self::doneRow(...), $batch->done),
+				'skipped' => array_map(static fn (int $fileId, DoneSkip $reason): array => ['fileId' => $fileId, 'reason' => $reason->value], array_keys($batch->skipped), $batch->skipped),
+			]);
+		});
+	}
+
+	/** Reopens each folder of `$fileIds`, also one that is not done (FOLDERS-006.18). */
+	#[NoAdminRequired]
+	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
+	#[FrontpageRoute(verb: 'DELETE', url: '/api/v1/library/done')]
+	public function reopenAll(mixed $fileIds = null): Response {
+		return $this->api->forUser(function (IUser $user) use ($fileIds): Response {
+			$this->done->reopenAll($user, $fileIds);
+			return new Response(Http::STATUS_NO_CONTENT);
+		});
+	}
+
+	/**
+	 * The folder's done row as the list shows it (FOLDERS-006.1).
+	 * @return array{fileId: int, done: array{by: ?string, at: int, photos: int}}
+	 */
+	private static function doneRow(FolderDone $done): array {
+		return ['fileId' => $done->fileId, 'done' => ['by' => $done->userId, 'at' => $done->doneAt, 'photos' => $done->photos]];
 	}
 }

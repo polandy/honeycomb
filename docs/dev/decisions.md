@@ -2014,3 +2014,15 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-25: The progress card keeps the whole library with one root, and shows the level's root
   with several; only the switch is saved, the shown level is not kept across reloads (ADR 0060,
   PR 3, autonomous).
+- 2026-11-25: The batch done endpoints check each folder like the single endpoint (own mount,
+  readable, rateable) and make no library-roots recheck (ADR 0060, PR 4, autonomous).
+- 2026-11-25: *Mark all done* skips a read-only or an already done folder and names it with its
+  reason; *Reopen all* refuses the whole call for a read-only folder, as a reopen it cannot do is
+  a client error (ADR 0060, PR 4, autonomous).
+- 2026-11-25: The client sends more than 500 folders in calls of 500 each; the Undo of *Reopen
+  all* marks each folder again with its earlier photo count (ADR 0060, PR 4, autonomous).
+- 2026-11-25: *Mark all done* sits in the ⋯ menu of a subtree row, and in the row itself only when
+  the shown and the whole subtree are complete; not on the level card, and the batch keeps the
+  focus where it is (ADR 0060, PR 4, autonomous).
+- 2026-11-25: A batch that marked no folder offers no Undo, and the subtree menu's *Cull* is
+  disabled unless the subtree has open photos (ADR 0060, PR 4, autonomous).

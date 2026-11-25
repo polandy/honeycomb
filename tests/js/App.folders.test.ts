@@ -30,6 +30,8 @@ function openApp() {
 		scanLibrary: async () => ({ done: 0, total: 0 }),
 		markFolderDone: async () => ({ by: '', at: 0, photos: 0 }),
 		reopenFolder: async () => undefined,
+		markFoldersDone: async () => ({ done: [], skipped: [] }),
+		reopenFolders: async () => undefined,
 	}
 	const mounted = mountApp({
 		library,

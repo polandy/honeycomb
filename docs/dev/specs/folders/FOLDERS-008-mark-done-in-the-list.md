@@ -1,6 +1,6 @@
 # FOLDERS-008 – *Mark done*, *Reopen* and *Cull new* in the list
 
-- Status: accepted
+- Status: implemented
 - Area: folders
 - Origin: ADR 0049 The done status, New photos (N1); `docs/dev/mockup/folders/index.html`
 - Depends on: FOLDERS-006, FOLDERS-007, APP-001, STATS-001

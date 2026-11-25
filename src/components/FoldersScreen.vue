@@ -4,6 +4,7 @@
 -->
 <script setup lang="ts">
 import type { FolderList } from '../folders/folders.ts'
+import type { FolderNode } from '../logic/folder-hierarchy.ts'
 import type { FolderFilter, FolderSort } from '../logic/folder-list.ts'
 import type { FolderRow } from '../logic/folder-row.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
@@ -41,9 +42,11 @@ const props = defineProps<{
 const emit = defineEmits<{
 	/** Cull one folder, with its subfolders or without (FOLDERS-007.13). */
 	cull: [set: FolderSet]
-	/** Mark the folder done, or reopen it, without a dialog (FOLDERS-008). */
+	/** Mark the folder done, or reopen it, or each folder of a subtree, without a dialog (FOLDERS-008). */
 	markDone: [row: FolderRow]
 	reopen: [row: FolderRow]
+	markAllDone: [node: FolderNode]
+	reopenAll: [node: FolderNode]
 	/** Cull a done folder's new photos (FOLDERS-008.7). */
 	cullNew: [set: FolderSet]
 	'update:includeSubfolders': [on: boolean]
@@ -187,7 +190,9 @@ function cull(row: FolderRow, subfolders: boolean) {
 				@open="chosen = $event"
 				@markDone="change('markDone', $event)"
 				@cullNew="emit('cullNew', $event)"
-				@menu="menuRow = $event" />
+				@menu="menuRow = $event"
+				@markAllDone="emit('markAllDone', $event)"
+				@reopenAll="emit('reopenAll', $event)" />
 			<template v-else>
 				<section v-for="section in listing.sections" :key="section.root" class="folders-screen__section">
 					<h3 v-if="listing.rootHeadings" class="folders-screen__root-heading">

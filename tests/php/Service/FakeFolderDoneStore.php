@@ -23,13 +23,17 @@ final class FakeFolderDoneStore implements FolderDoneStore {
 	}
 
 	#[\Override]
-	public function put(FolderDone $done): void {
-		$this->rows[$done->fileId] = $done;
+	public function put(FolderDone ...$done): void {
+		foreach ($done as $row) {
+			$this->rows[$row->fileId] = $row;
+		}
 	}
 
 	#[\Override]
-	public function remove(int $fileId): void {
-		unset($this->rows[$fileId]);
+	public function remove(int ...$fileIds): void {
+		foreach ($fileIds as $fileId) {
+			unset($this->rows[$fileId]);
+		}
 	}
 
 	#[\Override]

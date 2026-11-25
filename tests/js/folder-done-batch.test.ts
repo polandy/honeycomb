@@ -80,6 +80,19 @@ describe('useFolderDone batches', () => {
 		expect(toasts[0]!.message).toBe('Marked 0 folders done · 2 read-only skipped')
 	})
 
+	// spec: FOLDERS-009.11
+	it('names no skipped folder when none was read-only, and offers no Undo when the server marked none', async () => {
+		const fresh = findLevel(buildHierarchy(['/Photos'], [row({ fileId: 9, path: '/Photos/Fresh/A', photos: 2 })]), '/Photos/Fresh')!
+		const marking = flow()
+		const refused = flow({ markFoldersDone: async () => ({ done: [], skipped: [{ fileId: 9, reason: 'done' }] }) })
+
+		await marking.done.markAllDone(fresh)
+		await refused.done.markAllDone(fresh)
+
+		expect(marking.toasts[0]!.message).toBe('Marked 1 folder done')
+		expect(refused.toasts).toEqual([{ message: 'Marked 0 folders done', action: null, duration: UNDO_MS }])
+	})
+
 	// spec: FOLDERS-009.12
 	it('sends nothing and says so when nothing is left to mark', async () => {
 		const { done, calls, toasts } = flow()

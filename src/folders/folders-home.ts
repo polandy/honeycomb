@@ -123,6 +123,8 @@ export function useFoldersHome(api: LibraryApi & FolderDoneApi, options: Folders
 		hide,
 		markDone: done.markDone,
 		reopen: done.reopen,
+		markAllDone: done.markAllDone,
+		reopenAll: done.reopenAll,
 		changed: done.changed,
 		finishing,
 		markFinished,
