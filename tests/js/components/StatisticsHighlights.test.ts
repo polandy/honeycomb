@@ -4,7 +4,7 @@
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { METRIC } from '../../../src/logic/statistics.ts'
-import { chip, mountPage, TODAY } from './statistics-page-fixtures.ts'
+import { chip, fakeLocation, mountPage, TODAY } from './statistics-page-fixtures.ts'
 
 vi.mock('../../../src/shared/logger.ts', () => ({ logger: { error: vi.fn() } }))
 
@@ -56,9 +56,12 @@ describe('StatisticsPage highlights', () => {
 
 	// spec: STATS-001.68
 	it('shows the week of the best day with Show day, and offers none in a week', async () => {
-		const wrapper = mountPage({ counters: COUNTERS })
+		const location = fakeLocation()
+		const wrapper = mountPage({ counters: COUNTERS }, undefined, undefined, location)
 		await flushPromises()
 		await wrapper.findAll('button').find((each) => each.text() === 'Show day')!.trigger('click')
+
+		expect(location.hash).toBe('#week')
 
 		expect(chip(wrapper, 'Week').attributes('aria-pressed')).toBe('true')
 		expect(wrapper.find('.statistics-bars').findAll('.statistics-bars__bar')).toHaveLength(7)
