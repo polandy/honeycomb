@@ -48,6 +48,19 @@ describe('StatisticsPage highlights', () => {
 		expect(card(wrapper, 'Pace').text()).toMatch(/^Pace\s*7\.3\s*▲ 1\.3 faster than Oct\s1\s*–\s*20$/u)
 	})
 
+	// spec: STATS-001.69
+	it('reads "1 photo" for an average of one and keeps a decimal for an average below one', async () => {
+		const one = mountPage({ counters: [{ day: '2026-11-02', metric: METRIC.decided, value: 3 }] })
+		await flushPromises()
+		expect(card(one, 'Busiest weekday').text()).toContain('1 photo on average')
+
+		const below = mountPage({ counters: [{ day: '2026-11-02', metric: METRIC.decided, value: 1 }] })
+		await flushPromises()
+		const weekday = card(below, 'Busiest weekday')
+		expect(weekday.text()).toContain('0.3 photos on average')
+		expect(weekday.find('[role="img"]').attributes('aria-label')).toContain('Mon 0.3, Tue 0')
+	})
+
 	// spec: STATS-001.67
 	it('says so instead of the cards in a period without a counter', async () => {
 		const wrapper = mountPage({ counters: COUNTERS, firstDay: '2026-09-01' })
