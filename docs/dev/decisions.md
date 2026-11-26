@@ -2166,6 +2166,11 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   statistics, settings and library loads answered) with `locator.waitFor`, bounded by the test's
   timeout, instead of the period label under the five-second assertion timeout; the main app's
   start helper follows in its own PR, see `TODO.md` (autonomous).
+- 2026-11-26: The folders-layout flake was Chromium aborting queued loads with
+  `net::ERR_NETWORK_CHANGED` when a container joined or left Docker's bridge, not a settings
+  write racing the reload (`putSettings` awaits its answer); verify.sh keeps the bridge still while
+  Playwright runs; no other e2e reloads before its write landed (a reload keeps the open cull in
+  the address, DECISIONS-002.17) (autonomous).
 - 2026-11-26: The RAW header parser tells the format by its bytes, not by the extension, so a
   renamed or unusual RAW extension still reads; a format it does not know stores `{}` (LISTING-004,
   ADR 0061) (autonomous).
