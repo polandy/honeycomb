@@ -41,12 +41,12 @@ final class CaptureTimes {
 		return $times;
 	}
 
-	/** The capture time in `$metadata`, null without one. */
+	/** The capture time in `$metadata`, Photos' first, else the RAW header's (ADR 0061). */
 	public static function from(?IFilesMetadata $metadata): ?int {
 		try {
 			return $metadata?->getInt(self::KEY);
 		} catch (FilesMetadataException) {
-			return null;
+			return RawExif::in($metadata)['DateTimeOriginal'] ?? null;
 		}
 	}
 }

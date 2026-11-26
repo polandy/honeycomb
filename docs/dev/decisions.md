@@ -2184,3 +2184,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-26: The real camera fixtures in `tests/fixtures/raw-headers/` are sanitized copies
   (`scripts/raw-header-fixture.sh`) that keep only the header structure and the four fields; CR3,
   NEF, ORF, RW2, PEF and SRW are built in the tests, as no samples of them exist (autonomous).
+- 2026-11-26: The listing takes the RAW header's camera only when Photos' `Make` and `Model` give
+  none, never one field from each, so a camera name never mixes two sources (ADR 0061, PR 3,
+  autonomous).

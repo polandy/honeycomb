@@ -72,7 +72,7 @@ final class EntryFactory {
 			self::intOrNull($ifd0['Orientation'] ?? null),
 			$complete ? $width : null,
 			$complete ? $height : null,
-			self::camera($ifd0),
+			self::camera($ifd0) ?? self::camera(RawExif::in($metadata)),
 			$hash !== null && $hash->etag === $file->getEtag() ? $hash : null,
 			$quality !== null && $quality->etag === $file->getEtag() ? $quality : null,
 			Exposure::fromExif($this->arrayOf($metadata, self::EXIF)),
