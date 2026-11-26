@@ -10,7 +10,7 @@ TAG=honeycomb-xmp-interop
 
 docker build --quiet --tag "$TAG" --build-arg "BASE=$XMP_INTEROP_IMAGE" tests/interop > /dev/null
 run() {
-  docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD:$PWD" -w "$PWD" "$TAG" "$@"
+  docker run --rm --network none --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD:$PWD" -w "$PWD" "$TAG" "$@"
 }
 # The tool versions name what the nightly run proved against.
 run sh -c 'echo "exiftool $(exiftool -ver), $(exiv2 --version | head -n 1)"'
