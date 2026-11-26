@@ -23,14 +23,21 @@ export const NOTHING_READ = { pictures: 0, picked: 0, rejected: 0, rated: 0 }
 export const ROOTS = { libraryRoots: ['/Photos'] }
 export const ROWS = [doneRow({ path: '/Photos/Wedding' }), row({ path: '/Photos/Italy 2025' })]
 
+/** An address that remembers the hash written to it. */
+export function fakeLocation(hash = '') {
+	const location = { hash, writes: [] as string[], read: () => location.hash, write: (next: string) => { location.hash = next; location.writes.push(next) } }
+	return location
+}
+
 /** Mounts the statistics page on stubbed seams, the counters overridable per test. */
-export function mountPage(answer: Partial<StatsAnswer> = {}, settings: unknown = ROOTS, folders = vi.fn(async (_root: string) => ROWS)) {
+export function mountPage(answer: Partial<StatsAnswer> = {}, settings: unknown = ROOTS, folders = vi.fn(async (_root: string) => ROWS), location = fakeLocation()) {
 	const seams = {
 		loadStatistics: vi.fn(async () => ({ counters: COUNTERS, firstDay: '2026-11-01', today: TODAY, seriesDoneBefore: 0, read: NOTHING_READ, ...answer })),
 		loadLibraryFolders: folders,
 		loadSettings: vi.fn(async () => settings),
 		saveViewState: vi.fn(async (_patch: { year_review_hint_closed: number }) => undefined),
 		firstWeekDay: () => MONDAY,
+		location,
 	}
 	return mount(StatisticsPage, { props: { seams, navigation: fakePageNavigation().seams } })
 }
