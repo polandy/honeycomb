@@ -42,8 +42,9 @@ status per subtree and no new table: [0060](0060-folder-hierarchy-scope-and-deri
   library?*) instead of the list. *Settings* edits the roots later.
 - **Stored and validated:** the user setting `libraryRoots`, paths relative to the home folder.
   The client validates them (nested, duplicate, empty) in `src/logic`, because the settings
-  endpoint stores the blob (ADR 0014). `GET /library/folders` rechecks its `root`: below the
-  user's folder and on the home storage (mount type `''`), else `400`.
+  endpoint stores the blob (ADR 0014). `GET /library/folders` and `POST /library/scan` recheck
+  their `root`: below the user's folder, on the home storage (mount type `''`) and inside a
+  library root, else `400`; `GET /library/root` checks a candidate root without the last rule.
 - **Per root and in total:** the list groups its rows by root, a chip row chooses one root or *All
   roots*, and the progress shows the total and one bar per root.
 - Shares, group folders and external storage stay out, as in the walker of ADR 0025: phase 2.
@@ -135,6 +136,7 @@ status per subtree and no new table: [0060](0060-folder-hierarchy-scope-and-deri
 ```text
 GET    /apps/honeycomb/api/v1/library/folders?root=<path>&after=<fileId>&limit=200
        → { folders: [...], next, scanning: { done, total } | null }
+GET    /apps/honeycomb/api/v1/library/root?root=<path>  → 204   (a candidate root, FOLDERS-005.21)
 POST   /apps/honeycomb/api/v1/library/scan  { root }  → { scanning: { done, total } }
 PUT    /apps/honeycomb/api/v1/library/folders/{fileId}/done  { photos }  → the row
 DELETE /apps/honeycomb/api/v1/library/folders/{fileId}/done              → 204   (undo, reopen)
