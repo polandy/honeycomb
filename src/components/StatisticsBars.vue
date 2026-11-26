@@ -9,7 +9,7 @@ import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
 import { formatDay, formatDayRange, formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
 
-const props = defineProps<{ bars: readonly PeriodBar[], kind: PeriodKind, unit: BarUnit }>()
+const props = defineProps<{ bars: readonly PeriodBar[], kind: PeriodKind, unit: BarUnit, counted: boolean }>()
 
 const PERCENT = 100
 const WEEK_DAYS = 7
@@ -22,7 +22,6 @@ const heading = computed(() => ({
 	year: t('honeycomb', 'Per year'),
 }[props.unit]))
 const highest = computed(() => Math.max(1, ...props.bars.flatMap((bar) => [bar.decided, bar.trashed])))
-const empty = computed(() => props.bars.every((bar) => bar.decided === 0 && bar.trashed === 0))
 
 /** The label under a bar: the weekday, every seventh day of a month from the 1st, the month or the year. */
 function label(bar: PeriodBar): string {
@@ -55,7 +54,7 @@ const height = (value: number) => `${(value / highest.value) * PERCENT}%`
 <template>
 	<section class="statistics-bars">
 		<h3>{{ heading }}</h3>
-		<p v-if="empty" class="statistics-bars__empty">
+		<p v-if="!props.counted" class="statistics-bars__empty">
 			{{ t('honeycomb', 'Nothing counted in this period.') }}
 		</p>
 		<ul v-else class="statistics-bars__chart">
@@ -73,7 +72,7 @@ const height = (value: number) => `${(value / highest.value) * PERCENT}%`
 				<span class="statistics-bars__label" aria-hidden="true">{{ label(bar) }}</span>
 			</li>
 		</ul>
-		<p v-if="!empty" class="statistics-bars__legend">
+		<p v-if="props.counted" class="statistics-bars__legend">
 			<span class="statistics-bars__key statistics-bars__key--decided" />{{ t('honeycomb', 'Photos decided') }}
 			<span class="statistics-bars__key statistics-bars__key--trashed" />{{ t('honeycomb', 'Moved to the trash bin') }}
 		</p>

@@ -45,8 +45,9 @@ export interface Compared {
 	readonly whole: boolean
 }
 
-/** The numbers of one period: the tiles, the line below them and the bars. */
+/** The numbers of one period: whether any counter lies in it, the tiles, the line below them and the bars. */
 export interface PeriodNumbers {
+	readonly counted: boolean
 	readonly decided: number
 	readonly decidedChange: number | null
 	readonly compared: Compared | null
@@ -172,6 +173,7 @@ export function periodNumbers(counters: readonly Counter[], period: Period, boun
 	const decided = sums(METRIC.decided)
 	const activeMs = sums(METRIC.activeSeconds) * SECOND_MS
 	return {
+		counted: counters.some((each) => holds(period.range, each.day)),
 		decided,
 		decidedChange: compared === null ? null : percentChange(decided, periodSums(counters, compared.range)(METRIC.decided)),
 		compared,

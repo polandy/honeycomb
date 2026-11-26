@@ -183,7 +183,11 @@ onMounted(async () => {
 						<p v-if="line" class="statistics-page__line">
 							{{ line }}
 						</p>
-						<StatisticsBars :bars="numbers!.bars" :kind="kind" :unit="numbers!.unit" />
+						<StatisticsBars
+							:bars="numbers!.bars"
+							:kind="kind"
+							:unit="numbers!.unit"
+							:counted="numbers!.counted" />
 					</template>
 					<p v-else>
 						{{ t('honeycomb', 'Nothing counted yet. Cull a folder and the numbers show here.') }}
