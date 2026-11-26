@@ -261,4 +261,48 @@ test.describe('the grid and the loupe of an Immich connection', () => {
 		await expect(toast).toContainText(`Undid: Rejected ${uploadName(3)}`)
 		expect((await cleared).status()).toBe(200)
 	})
+
+	// spec: IMMICH-002.36, GRID-002.3
+	test('filters by rating on the filter bar, by the comparison too, and turns the filter off', async ({ page }) => {
+		const rated = (op: string | null) => page.waitForRequest((request) => request.method() === 'POST' && request.url().endsWith('/api/v1/immich/family/assets')
+			&& JSON.stringify(request.postDataJSON().filters.rating) === JSON.stringify(op === null ? null : { op, value: 2 }))
+		const saved = async (key: string) => {
+			const answer = page.waitForResponse((response) => response.url().endsWith('/api/v1/immich/family/decisions'))
+			await page.keyboard.press(key)
+			expect((await answer).status()).toBe(200)
+		}
+		const main = await openFamily(page)
+		await openLoupe(page)
+		await saved('2')
+		await page.keyboard.press('Escape')
+		const rating = main.getByRole('group', { name: 'Rating' })
+		const clear = main.getByRole('button', { name: 'Clear filters' })
+		await expect(rating.getByRole('button', { name: 'Any' })).toHaveAttribute('aria-pressed', 'true')
+		await expect(clear).toBeHidden()
+
+		const atLeast = rated('atLeast')
+		await rating.getByRole('button', { name: 'At least 2 stars' }).click()
+		await atLeast
+		await expect(tile(page, 2)).toBeHidden()
+		await expect(tile(page, 1)).toBeVisible()
+		await expect(tile(page, 1).locator('img')).toHaveJSProperty('complete', true)
+		expect(await tile(page, 1).locator('img').evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0)
+		await expect(clear).toBeVisible()
+
+		const atMost = rated('atMost')
+		await rating.getByRole('button', { name: /^Rating comparison: At least/ }).click()
+		await atMost
+		await expect(tile(page, 2)).toBeVisible()
+		await expect(tile(page, 1)).toBeVisible()
+
+		const off = rated(null)
+		await rating.getByRole('button', { name: 'At most 2 stars' }).click()
+		await off
+		await expect(rating.getByRole('button', { name: 'Any' })).toHaveAttribute('aria-pressed', 'true')
+		await expect(clear).toBeHidden()
+
+		await tile(page, 1).click()
+		await expect(page.getByRole('dialog', { name: 'Loupe' }).getByRole('heading', { name: uploadName(1) })).toBeVisible()
+		await saved('0')
+	})
 })

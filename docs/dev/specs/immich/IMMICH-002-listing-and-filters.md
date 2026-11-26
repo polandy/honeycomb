@@ -40,8 +40,9 @@ what is on screen is loaded, and every number comes from the server.
   device (camera models and *No camera data*, any number), kind (*Photos*, *Motion photos*,
   *Videos*, any number) and the flag filter of GRID-002 with its rating filter. Groups
   combine with AND, chips in a group with OR. Changing a filter starts the listing over.
-- **The filter bar** shows the time, device and kind options as chips in the style of the
-  folder filter bar (GRID-002), each with its count once the counts arrive; while they are asked
+- **The filter bar** shows the rating group of the folder filter bar (GRID-002.3) first, then
+  the time, device and kind options as chips in its style, each with its count once the counts
+  arrive; while they are asked
   again the device chips of the last answer stay. *Clear filters* shows only while a filter
   differs from its default and brings back every default, the flag filter's included.
 - **Kept per connection:** the chosen filters are stored in the view state (LOUPE-003.10) and come
@@ -324,6 +325,14 @@ what is on screen is loaded, and every number comes from the server.
 - **When** it carries `from` with a cursor, a `from` without an asset id or capture time, or
   `from` under *Picked* alone
 - **Then** the answer is a bad request and Immich is not asked
+
+### IMMICH-002.36 – The rating filter
+
+- **Given** an Immich connection with a picture rated two stars
+- **When** the user picks *2★* in the filter bar's rating group and cycles the comparison
+- **Then** the listing starts over with the rating `atLeast` 2, then `atMost` 2, in the request
+  and only the pictures that pass show; *Clear filters* shows, and *Any* or the pressed star chip
+  turns the filter off
 
 ## History
 

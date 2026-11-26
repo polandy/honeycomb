@@ -30,7 +30,7 @@ type Bar = ReturnType<typeof mountBar>
 
 const group = (wrapper: Bar, label: string) => wrapper.findAll('[role="group"]').find((found) => found.attributes('aria-label') === label)!
 const chips = (wrapper: Bar, label: string) => group(wrapper, label).findAll('button').map((button) => ({ label: button.attributes('aria-label'), text: button.text(), pressed: button.attributes('aria-pressed') }))
-const chip = (wrapper: Bar, label: string) => wrapper.findAll('button').find((button) => button.attributes('aria-label') === label)!
+const chip = (wrapper: Bar, label: string) => wrapper.findAll('button').find((button) => button.attributes('aria-label') === label || button.text() === label)!
 const emitted = (wrapper: Bar) => wrapper.emitted<[ImmichFilters]>('update:filters')!.map(([filters]) => filters)
 
 describe('ImmichFilterBar', () => {
@@ -62,6 +62,37 @@ describe('ImmichFilterBar', () => {
 			{ ...DEFAULTS, devices: new Set(['Pixel 9 Pro', null]) },
 			{ ...DEFAULTS, devices: new Set() },
 			{ ...DEFAULTS, devices: new Set(['Pixel 9 Pro']), kinds: new Set(['video']) },
+		])
+	})
+
+	// spec: IMMICH-002.36
+	it('shows the rating group first, with Any selected and the comparison off', () => {
+		const wrapper = mountBar()
+
+		expect(wrapper.findAll('[role="group"]').map((found) => found.attributes('aria-label'))).toEqual(['Rating', 'Time', 'Device', 'Kind'])
+		expect(chips(wrapper, 'Rating').map(({ text, pressed }) => ({ text, pressed }))).toEqual([
+			{ text: '≥', pressed: undefined },
+			{ text: 'Any', pressed: 'true' },
+			...['0★', '1★', '2★', '3★', '4★', '5★'].map((text) => ({ text, pressed: 'false' })),
+		])
+		expect(group(wrapper, 'Rating').find('.filter-bar__comparison').attributes('disabled')).toBeDefined()
+	})
+
+	// spec: IMMICH-002.36
+	it('picks stars, cycles the comparison and turns the rating filter off', async () => {
+		const wrapper = mountBar({ rating: 2, comparison: 'at-least' })
+
+		expect(chip(wrapper, 'At least 2 stars').attributes('aria-pressed')).toBe('true')
+		await chip(wrapper, 'At least 4 stars').trigger('click')
+		await group(wrapper, 'Rating').find('.filter-bar__comparison').trigger('click')
+		await chip(wrapper, 'At least 2 stars').trigger('click')
+		await chip(wrapper, 'Any').trigger('click')
+
+		expect(emitted(wrapper)).toEqual([
+			{ ...DEFAULTS, rating: 4, comparison: 'at-least' },
+			{ ...DEFAULTS, rating: 2, comparison: 'at-most' },
+			{ ...DEFAULTS, rating: null, comparison: 'at-least' },
+			{ ...DEFAULTS, rating: null, comparison: 'at-least' },
 		])
 	})
 
