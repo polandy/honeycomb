@@ -19,13 +19,17 @@ a reject goes to the Immich trash bin by default and can be restored.
   favourite only on a connection with `picksAsFavorites`; a rating 1–5 is set, 0 clears Immich's
   rating; colour label and *Keep RAW* are not written. A reject taken back restores the asset from
   the trash bin or the archive. `force:true` is never sent.
+- **What is pending:** an asset whose flag or rating differs from what honeycomb last wrote for it,
+  or, never written, one that is picked, rejected or rated. A field already as decided in Immich
+  is not sent; an asset with nothing left to send counts as written. A trashed reject gets nothing
+  else; a pick taken back stops being a favourite on a connection with `picksAsFavorites`.
 - **Blocks of 100:** `write/check` and `write` take at most 100 assets per request; the browser
   sends the blocks in sequence and shows the progress per block.
 - **The check:** before writing, every affected asset is reloaded and its `updatedAt` compared with
   the one saved with the decision. A changed rating is resolved per asset (*Keep honeycomb’s*, the
   default, or *Keep Immich’s*); an asset in a shared album offers *Trash anyway*, *Archive
   instead* or *Skip*; one already in Immich's trash bin counts as done; the top of a stack goes
-  alone.
+  alone. *Keep Immich’s* saves Immich's rating in honeycomb, Immich's −1 as no stars.
 - **The dialog** names the counts of rejects, of rejects taken back, of picks and of ratings, the
   choice for rejects and the conflicts. With more than 100 affected assets it shows numbers and
   the conflicts only, never a thumbnail per asset. *Write N changes* is disabled at 0 or while
