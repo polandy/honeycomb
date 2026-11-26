@@ -21,7 +21,6 @@ use OCA\Honeycomb\Tests\Service\FakeFolderDoneStore;
 use OCA\Honeycomb\Tests\Service\FakeFolderSummaryStore;
 use OCA\Honeycomb\Tests\Service\FakeLibraryFiles;
 use OCA\Honeycomb\Tests\Service\ReasonOf;
-use OCA\Honeycomb\Tests\Service\Settings\FakeRoots;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Constants;
 use OCP\FilesMetadata\IFilesMetadataManager;
@@ -30,7 +29,6 @@ use PHPUnit\Framework\TestCase;
 
 final class LibraryFolderServiceTest extends TestCase {
 	use FakeFiles;
-	use FakeRoots;
 
 	private const int NOW = 1_800_000_000;
 
@@ -47,11 +45,8 @@ final class LibraryFolderServiceTest extends TestCase {
 		$this->done = new FakeFolderDoneStore();
 	}
 
-	/**
-	 * @param array<string, \OCP\Files\Node|\Throwable> $nodes
-	 * @param list<string> $roots
-	 */
-	private function service(array $nodes = [], array $roots = []): LibraryFolderService {
+	/** @param array<string, \OCP\Files\Node|\Throwable> $nodes */
+	private function service(array $nodes = []): LibraryFolderService {
 		$metadata = $this->createStub(IFilesMetadataManager::class);
 		$metadata->method('getMetadataForFiles')->willReturnCallback(fn (array $ids): array => array_map(
 			fn (int $time): \OCP\FilesMetadata\Model\IFilesMetadata => $this->metadata([CaptureTimes::KEY => $time]),
@@ -60,7 +55,7 @@ final class LibraryFolderServiceTest extends TestCase {
 		$time = $this->createStub(ITimeFactory::class);
 		$time->method('getTime')->willReturn(self::NOW);
 		$root = $this->rootWith($nodes + ['/Photos' => $this->folder('/Photos', fileId: 10)]);
-		return new LibraryFolderService(new UserFolderResolver($root), $this->rootsGuard($roots), $this->files, $this->summaries, $this->done, new CaptureTimes($metadata), $time);
+		return new LibraryFolderService(new UserFolderResolver($root), $this->files, $this->summaries, $this->done, new CaptureTimes($metadata), $time);
 	}
 
 	private function libraryFolder(int $fileId, string $path, string $etag = 'e', int $permissions = Constants::PERMISSION_ALL): LibraryFolder {
@@ -213,36 +208,9 @@ final class LibraryFolderServiceTest extends TestCase {
 		$this->service(['/Locked' => $this->folder('/Locked', readable: false)])->list($this->user(), '/Locked', '', '');
 	}
 
-	/** @return array<string, array{string}> */
-	public static function outsideRoots(): array {
-		return ['the home folder' => ['/'], 'a sibling sharing the prefix' => ['/Photos-old'], 'a parent segment' => ['/Photos/../Other'], 'a removed root' => ['/Archive']];
-	}
-
-	// spec: FOLDERS-005.20
-	#[DataProvider('outsideRoots')]
-	public function testAFolderOutsideTheLibraryRootsIsNeitherListedNorScanned(string $root): void {
-		$nodes = ['/' => $this->folder('/', fileId: 1), '/Photos-old' => $this->folder('/Photos-old', fileId: 11), '/Archive' => $this->folder('/Archive', fileId: 12), '/Other' => $this->folder('/Other', fileId: 13)];
-		$this->files->folders = [$this->libraryFolder(11, '')];
-		$service = $this->service($nodes, ['/Photos']);
-
-		$this->assertSame(Reason::BadPath, ReasonOf::call(fn () => $service->list($this->user(), $root, '', '')));
-		$this->assertSame(Reason::BadPath, ReasonOf::call(fn () => $service->scan($this->user(), $root)));
-		$this->assertSame([], $this->summaries->rows);
-	}
-
-	// spec: FOLDERS-005.20
-	public function testAFolderInsideALibraryRootIsListed(): void {
-		$this->files->folders = [$this->libraryFolder(11, '')];
-		$this->summaries->rows[11] = $this->summary(11);
-
-		$page = $this->service(['/Photos/2024' => $this->folder('/Photos/2024', fileId: 11)], ['/Photos'])->list($this->user(), '/Photos/2024', '', '');
-
-		$this->assertSame([11], array_column($page['folders'], 'fileId'));
-	}
-
 	// spec: FOLDERS-005.21
 	public function testACandidateRootIsCheckedWhateverTheRoots(): void {
-		$service = $this->service(['/Archive' => $this->folder('/Archive', fileId: 12), '/Shared' => $this->folder('/Shared', mountType: 'shared', fileId: 20)], ['/Photos']);
+		$service = $this->service(['/Archive' => $this->folder('/Archive', fileId: 12), '/Shared' => $this->folder('/Shared', mountType: 'shared', fileId: 20)]);
 
 		$service->checkRoot($this->user(), '/Archive');
 		$this->assertSame(Reason::BadPath, ReasonOf::call(fn () => $service->checkRoot($this->user(), '/Shared')));
