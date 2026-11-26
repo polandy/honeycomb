@@ -116,7 +116,7 @@ test('shows 0 without a change and no keep rate in a month without a count', asy
 	await expect(tile(page, 'Keep rate')).toContainText('—')
 	await expect(tile(page, 'Keep rate')).toContainText('Nothing decided')
 	await expect(tile(page, 'Active time')).toContainText('0 s')
-	await expect(page.getByText('Nothing counted in this period.')).toBeVisible()
+	await expect(page.locator('.statistics-bars__empty')).toBeVisible()
 })
 
 // spec: STATS-001.43

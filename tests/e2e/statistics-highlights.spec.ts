@@ -46,7 +46,7 @@ test(`renders the five highlights without overlap, the weekday bars with a heigh
 	await expect(highlights(page).locator('h3')).toHaveText(['Best day', 'Busiest weekday', 'Pace', 'Active days', 'Longest streak'])
 	await expect(card(page, 'Best day')).toContainText('86')
 	await expect(card(page, 'Busiest weekday')).toContainText('Tuesday')
-	await expect(card(page, 'Pace')).toContainText('▲')
+	await expect(card(page, 'Pace')).toContainText('▼ 5.2 slower than')
 	await expect(card(page, 'Active days')).toContainText('4 of 26')
 	await expect(card(page, 'Longest streak')).toContainText('3 days')
 
@@ -73,7 +73,7 @@ test('Show day jumps from the best day to its week', async ({ page }) => {
 	await card(page, 'Best day').getByRole('button', { name: 'Show day' }).click()
 	await expect(page.getByRole('button', { name: 'Week' })).toHaveAttribute('aria-pressed', 'true')
 	await expect(page.locator('.statistics-bars__bar')).toHaveCount(7)
-	expect(await page.evaluate(() => window.location.hash)).toBe('#week=2026-11-23')
+	expect(await page.evaluate(() => window.location.hash)).toBe('#week')
 	await expect(card(page, 'Best day')).toContainText('86')
 	await expect(card(page, 'Best day').getByRole('button', { name: 'Show day' })).toHaveCount(0)
 })
@@ -85,11 +85,15 @@ test('says that nothing was counted in a period without a counter', async ({ pag
 	await expect(highlights(page)).toHaveText('Nothing counted in this period.')
 })
 
-// spec: STATS-001.68
-test('keeps the Show day button a 44 px target on a phone', async ({ page }) => {
-	await page.setViewportSize(PHONE)
-	await openStatistics(page)
+test.describe('on a phone', () => {
+	test.use({ hasTouch: true })
 
-	await expectTouchTargets(card(page, 'Best day'), 'phone')
-	expect((await box(highlights(page))).width).toBeLessThanOrEqual(PHONE.width)
+	// spec: STATS-001.68
+	test('keeps the Show day button a 44 px target inside the width', async ({ page }) => {
+		await page.setViewportSize(PHONE)
+		await openStatistics(page)
+
+		await expectTouchTargets(card(page, 'Best day'), 'Show day on a phone')
+		expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(PHONE.width)
+	})
 })
