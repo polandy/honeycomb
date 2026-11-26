@@ -24,13 +24,11 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
-use OCP\AppFramework\Http\Attribute\UserRateLimit;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Config\IUserConfig;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use ReflectionMethod;
@@ -74,39 +72,34 @@ final class StatsControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller()->index('19.11.2026')->getStatus());
 	}
 
-	// spec: STATS-001.3
-	public function testResetAnswersNoContentAndLeavesOtherUsers(): void {
-		$response = $this->controller()->reset();
-
-		$this->assertSame(Http::STATUS_NO_CONTENT, $response->getStatus());
-		$this->assertArrayNotHasKey('alice', $this->store->rows);
-		$this->assertArrayHasKey('bob', $this->store->rows);
-	}
-
 	// spec: STATS-001.4
-	public function testWithoutAUserNothingIsReadOrReset(): void {
+	public function testWithoutAUserNothingIsRead(): void {
 		$controller = $this->controller(loggedIn: false);
 
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $controller->index()->getStatus());
-		$this->assertSame(Http::STATUS_UNAUTHORIZED, $controller->reset()->getStatus());
 		$this->assertArrayHasKey('alice', $this->store->rows);
 	}
 
-	/** @return array<string, array{string, string, bool}> */
-	public static function routes(): array {
-		return ['index' => ['index', 'GET', false], 'reset' => ['reset', 'DELETE', true]];
+	// spec: STATS-001.3
+	public function testTheOnlyRouteReadsAndNoneRemovesCounters(): void {
+		$routed = [];
+		foreach ((new \ReflectionClass(StatsController::class))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+			if ($method->getAttributes(FrontpageRoute::class) !== []) {
+				$routed[] = $method->getName();
+			}
+		}
+
+		$this->assertSame(['index'], $routed);
 	}
 
 	// spec: STATS-001.4
-	#[DataProvider('routes')]
-	public function testEachActionIsARouteForEveryUserWithTheCsrfCheck(string $action, string $verb, bool $rateLimited): void {
-		$method = new ReflectionMethod(StatsController::class, $action);
+	public function testTheCountersAreARouteForEveryUserWithTheCsrfCheck(): void {
+		$method = new ReflectionMethod(StatsController::class, 'index');
 
 		$routes = $method->getAttributes(FrontpageRoute::class);
 		$this->assertCount(1, $routes);
-		$this->assertSame(['verb' => $verb, 'url' => '/api/v1/stats'], $routes[0]->getArguments());
+		$this->assertSame(['verb' => 'GET', 'url' => '/api/v1/stats'], $routes[0]->getArguments());
 		$this->assertCount(1, $method->getAttributes(NoAdminRequired::class));
 		$this->assertCount(0, $method->getAttributes(NoCSRFRequired::class));
-		$this->assertCount($rateLimited ? 1 : 0, $method->getAttributes(UserRateLimit::class));
 	}
 }

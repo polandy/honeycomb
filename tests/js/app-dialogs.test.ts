@@ -14,7 +14,7 @@ function dialogs(fail = false) {
 		}
 	}
 	const shown = useAppDialogs(
-		{ clearCache: act('clear'), cleanUp: async () => (await act('clean up')(), 2), resetStatistics: act('reset') },
+		{ clearCache: act('clear'), cleanUp: async () => (await act('clean up')(), 2) },
 		{ show: () => calls.push('toast'), showError: () => calls.push('error') },
 	)
 	return { calls, shown }
@@ -51,7 +51,6 @@ describe('useAppDialogs', () => {
 	it.each([
 		['clearCache', 'clear'],
 		['cleanUp', 'clean up'],
-		['resetStatistics', 'reset'],
 	] as const)('runs the settings action %s with a toast', async (action, call) => {
 		const { calls, shown } = dialogs()
 

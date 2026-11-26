@@ -46,7 +46,6 @@ const emit = defineEmits<{
 	/** The admin wants the flags of deleted and trashed files removed. */
 	cleanUp: []
 	/** The user confirmed that their statistics go. */
-	resetStatistics: []
 }>()
 
 const LISTS = [
@@ -229,7 +228,7 @@ function rename(field: 'rawSubfolder' | 'renderedSubfolder', name: string) {
 			<XmpSidecarSettings :settings="settings" @update="emit('update', $event)" />
 		</NcAppSettingsSection>
 		<NcAppSettingsSection id="statistics" :name="t('honeycomb', 'Statistics')">
-			<StatisticsSettings :settings="settings" @update="emit('update', $event)" @reset="emit('resetStatistics')" />
+			<StatisticsSettings :settings="settings" @update="emit('update', $event)" />
 		</NcAppSettingsSection>
 		<NcAppSettingsSection id="cache" :name="t('honeycomb', 'Cache')">
 			<CacheSettings :admin="admin" @clearCache="emit('clearCache')" @cleanUp="emit('cleanUp')" />

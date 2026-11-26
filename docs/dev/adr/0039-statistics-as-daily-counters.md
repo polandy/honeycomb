@@ -48,11 +48,12 @@ Three ways to record:
   no time stamp, no history entry. A sidecar save is byte for byte what it is without statistics,
   so digiKam and darktable see no difference (ADR 0032 keeps sidecars for decisions only).
 - **On by default**, per user: the settings field `keepStatistics` (missing means on); the server
-  reads it before it counts. *Reset statistics* deletes the user's rows. *Clear cache* leaves them:
-  statistics are app state, not a cache. Deleting a user deletes their rows.
+  reads it before it counts. Only an admin resets them, with
+  `occ honeycomb:stats:reset` (amended 2026-11-26: no reset in the settings).
+  *Clear cache* leaves them: statistics are app state, not a cache. Deleting a user deletes their rows.
 - **API:** `GET /apps/honeycomb/api/v1/stats?from=&to=` answers the user's rows of those days,
   the first counted day and the user's today, so the page needs no clock of its own;
-  `DELETE /apps/honeycomb/api/v1/stats` resets. Both only for the user themselves; no admin view,
+  the URL has no `DELETE` (amended 2026-11-26). It answers only the user themselves; no admin view,
   nothing leaves the server.
 - **No start value for decided pictures (amended 2026-11-20):** honeycomb is deployed nowhere
   with decisions of the old table, so the page counts from the first counter on; M9 PR 7 does not

@@ -27,11 +27,12 @@ previews and faster first visits: [installing](installing.md#recommended-apps).
 
 ## occ commands
 
-honeycomb has three commands:
+honeycomb has these commands:
 
 | Command | Does |
 |---|---|
 | `occ honeycomb:cache:clear [<user>]` | Clears what honeycomb read from sidecars and photos, for one user or every user ([cache](../cache.md)) |
+| `occ honeycomb:stats:reset <user>\|--all [--dry-run] [--force]` | Deletes the statistics of one user or of every user after a question, or without one with `--force`; prints the rows each user lost; with `--dry-run` only prints the counts. Photos, sidecars and decisions stay ([statistics](../statistics.md#switch-it-off-or-reset-it)) |
 | `occ honeycomb:jobs` | Shows, for each background job (sweep, warm-up), its status, the time of its last run and its last error; changes nothing |
 | `occ honeycomb:cleanup` | Removes the picks and rejects of files that no longer exist or lie in a trash bin, for every user, and prints how many rows went |
 | `occ honeycomb:cleanup --all [--dry-run]` | Deletes every honeycomb row of every user and their honeycomb settings; with `--dry-run` only prints the row counts ([removing](removing.md#deleting-the-data-on-purpose)) |

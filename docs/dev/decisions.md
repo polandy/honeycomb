@@ -2105,6 +2105,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-26: The statistics address writes the period of today as the bare `#week` and `#year`
   (the month of today as no hash), so a reload or a saved link follows today instead of pinning
   the day (STATS-001.57) (autonomous).
+- 2026-11-26: Statistics are reset only by an admin with `occ honeycomb:stats:reset <user>|--all
+  [--dry-run] [--force]`; the settings control and the `DELETE /api/v1/stats` route go, since
+  nothing else used the route (STATS-001.3) (owner).
 - 2026-11-26: *Resume* on an Immich connection opens under the open filters unless they leave the
   stored asset's capture time out or admit no undecided picture; then every filter goes back to its
   default over the whole time (IMMICH-003.14) (autonomous).

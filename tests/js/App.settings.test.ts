@@ -136,19 +136,6 @@ describe('App: the settings', () => {
 		expect(wrapper.findComponent(UndoToast).text()).toContain('Cache cleared')
 	})
 
-	// spec: STATS-001.3
-	it('resets the statistics from the dialog and says so', async () => {
-		let resets = 0
-		const { wrapper } = mountApp({ resetStatistics: async () => void resets++ })
-		await openCull(wrapper)
-
-		wrapper.findComponent(SettingsDialog).vm.$emit('resetStatistics')
-		await flushPromises()
-
-		expect(resets).toBe(1)
-		expect(wrapper.findComponent(UndoToast).text()).toContain('Statistics reset')
-	})
-
 	// spec: SETTINGS-001.27
 	it('cleans up the orphaned data for an admin and says how much', async () => {
 		let cleanUps = 0

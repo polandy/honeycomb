@@ -3,7 +3,7 @@
 import type { SettingsList, StoredSettings } from '../logic/settings.ts'
 import type { ViewStateApi } from '../settings/view-state.ts'
 
-import { loadSettings as apiLoadSettings, saveSettings as apiSaveSettings, cleanUpOrphanedData, loadViewState, resetStatistics, saveSettingsList, saveViewState } from '../api/index.ts'
+import { loadSettings as apiLoadSettings, saveSettings as apiSaveSettings, cleanUpOrphanedData, loadViewState, saveSettingsList, saveViewState } from '../api/index.ts'
 import { clearCache } from '../sidecars/xmp-cache-api.ts'
 
 /** The element the server renders the app into, which carries its data attributes. */
@@ -19,7 +19,6 @@ export interface DialogSeams {
 	/** Whether the user is an admin, who may clean up the orphaned data (SETTINGS-001.27). */
 	admin?: () => boolean
 	cleanUp?: () => Promise<number>
-	resetStatistics?: () => Promise<void>
 }
 
 /** The dialogs seams the app uses in production. */
@@ -31,5 +30,4 @@ export const DIALOG_SEAMS = {
 	clearCache,
 	admin: () => document.getElementById(APP_ELEMENT)?.dataset.admin === 'true',
 	cleanUp: cleanUpOrphanedData,
-	resetStatistics,
 }

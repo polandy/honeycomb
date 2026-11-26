@@ -21,7 +21,6 @@ type Wrapper = ReturnType<typeof mountSection>
 
 const plain = (text: string) => text.replaceAll(MARK, '').replace(/\s+/g, ' ').trim()
 const keepSwitch = (wrapper: Wrapper) => wrapper.find('.checkbox-radio-switch input')
-const resetButton = (wrapper: Wrapper) => wrapper.findAll('button').find((item) => plain(item.text()) === 'Reset statistics')!
 
 describe('StatisticsSettings', () => {
 	beforeEach(installMarkedCatalogue)
@@ -50,39 +49,11 @@ describe('StatisticsSettings', () => {
 	})
 
 	// spec: STATS-001.3
-	it('asks before it resets, with Cancel focused and a destructive confirm', async () => {
+	it('offers no way to reset the statistics', () => {
 		const wrapper = mountSection()
+
+		expect(wrapper.findAll('button')).toEqual([])
 		expect(wrapper.findComponent(ConfirmDialog).exists()).toBe(false)
-
-		await resetButton(wrapper).trigger('click')
-
-		const dialog = wrapper.findComponent(ConfirmDialog)
-		expect(dialog.props()).toMatchObject({ title: `${MARK}Reset all statistics?`, confirmLabel: `${MARK}Reset statistics`, cancel: true, danger: true, focusCancel: true })
-		expect(plain(dialog.text())).toContain('Your photos and sidecars stay as they are.')
-		expect(wrapper.emitted('reset')).toBeUndefined()
-	})
-
-	// spec: STATS-001.3
-	it('resets on confirm and closes the question', async () => {
-		const wrapper = mountSection()
-		await resetButton(wrapper).trigger('click')
-
-		wrapper.findComponent(ConfirmDialog).vm.$emit('confirm')
-		await wrapper.vm.$nextTick()
-
-		expect(wrapper.emitted('reset')).toHaveLength(1)
-		expect(wrapper.findComponent(ConfirmDialog).exists()).toBe(false)
-	})
-
-	// spec: STATS-001.3
-	it('changes nothing on Cancel', async () => {
-		const wrapper = mountSection()
-		await resetButton(wrapper).trigger('click')
-
-		wrapper.findComponent(ConfirmDialog).vm.$emit('cancel')
-		await wrapper.vm.$nextTick()
-
-		expect(wrapper.emitted('reset')).toBeUndefined()
-		expect(wrapper.findComponent(ConfirmDialog).exists()).toBe(false)
+		expect(plain(wrapper.text())).not.toMatch(/reset/i)
 	})
 })
