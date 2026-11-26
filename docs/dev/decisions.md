@@ -2057,6 +2057,21 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   navigation toggle no longer clips the breadcrumb; the bar and the done mark use Nextcloud's
   element colours, as `--color-success` and `--color-error` became light tints (FOLDERS-007.19–.22,
   FOLDERS-009.24) (autonomous).
+- 2026-11-26: *Choose folders* could not be closed on its first opening. Every modal panel now
+  builds on one `ModalPanel` around `NcDialog`: close button, `Esc`, backdrop, focus trap and
+  return, `aria-modal`, a scroll lock on the page and a bottom sheet on a phone; a busy panel is
+  locked instead (APP-001.23, .24, owner request, d-71).
+- 2026-11-26: `ModalPanel` has no side-panel variant, as no modal side panel exists; every size but
+  `full` is a bottom sheet below 520 px (autonomous).
+- 2026-11-26: `ModalPanel` reports a close at `NcDialog`'s `closing`, not 300 ms later at
+  `update:open`, so the app's state matches the screen and a key pressed at once reopens the panel
+  (autonomous).
+- 2026-11-26: The gesture guide and the tag entry keep their own modal (`useModalDialog`); the
+  series hint, the loupe, the series viewer and the settings dialog are not modal panels; moving
+  the first two onto `ModalPanel` is a `TODO.md` item (autonomous).
+- 2026-11-26: The `Esc` that closes a modal panel is marked handled, so the screen's keys behind it
+  skip it; with the close no longer 300 ms late, `Esc` on *Move* had also left selection mode
+  (APP-001.23, autonomous).
 - 2026-11-26: `Shift+P` is *Pick this, reject the rest* everywhere: in a series (compare, viewer,
   loupe, grid) it picks the photo and rejects the rest of its series, a picked one too, as one undo
   step with the toast "Picked 1, rejected N"; outside a series it only gives a short hint, and on a

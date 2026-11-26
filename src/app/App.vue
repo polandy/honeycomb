@@ -223,7 +223,6 @@ useHotkeys(() => {
 			<FolderPicker
 				v-if="pickerOpen && immichOnly.started.value"
 				:current="folderSet"
-				:closable="immich.offered.value"
 				:immichOnly="onlyOffer ?? 'asked'"
 				:listFolders="listFolders"
 				:listEntries="props.listEntries"

@@ -17,8 +17,13 @@ navigation. The entry opens the app's page for the logged-in user. The page star
 (FOLDERS-007), or on the library setup while the user has no library root; the folder picker
 opens only from the navigation. Every
 text the user reads comes from the translation catalogue (`t()`), except names taken from the
-user's files. On a phone, below 520 px, every confirm dialog is a bottom sheet: full width, at
-the bottom edge, rounded at the top only, its footer clear of the home indicator. When the
+user's files. Every modal panel (a confirm dialog, the folder picker, the series compare, the
+keyboard shortcuts and every other dialog) is one shared component, `ModalPanel`, so they all close
+alike: by the close button, `Esc` and a click or tap on the backdrop, unless the panel is busy and
+says so; the focus stays inside while it is open and returns to its opener after, and the page
+behind it neither scrolls nor takes input. On a phone, below 520 px, every modal panel but the
+full-screen series compare is a bottom sheet: full width, at the bottom edge, rounded at the top
+only, its footer clear of the home indicator. When the
 browser asks for reduced motion, a dialog opens and closes without a fade or a zoom, which
 `NcModal` would otherwise play.
 
@@ -73,7 +78,7 @@ stays the same.
 ### APP-001.6 – A dialog is a bottom sheet on a phone
 
 - **Given** a screen at most 520 px wide
-- **When** a confirm dialog opens, e.g. the folder picker
+- **When** a modal panel opens, e.g. the folder picker or the keyboard shortcuts
 - **Then** it spans the full width, rests on the bottom edge, leaves at least 24 px above it and
   has rounded top corners only
 
@@ -202,6 +207,24 @@ stays the same.
   of the toggle, so their boxes do not overlap; with the navigation open on a wide screen the
   title sits flush left
 
+### APP-001.23 – Every modal panel closes by its close button, Esc and the backdrop
+
+- **Given** a modal panel open on a desktop, a tablet or a phone, such as the folder picker on
+  its first opening, a confirm dialog, the keyboard shortcuts or a toast's details
+- **When** the user chooses its close button, presses `Esc` or clicks or taps the backdrop beside
+  it
+- **Then** it closes as by *Cancel* and the focus is back on the control that opened it; the
+  `Esc` that closes it acts on nothing behind it, e.g. a selection stays; a click inside the
+  panel, and a panel that cannot be closed while it works (e.g. a running send), stays open with
+  no close button
+
+### APP-001.24 – A modal panel is modal and holds the page still
+
+- **Given** a modal panel open
+- **When** the user presses `Tab` past its last control or scrolls over the backdrop
+- **Then** it is a `dialog` marked `aria-modal` and named by its title, the focus wraps inside it,
+  and the page behind does not scroll; once the last panel closes the page scrolls as before
+
 ## Out of scope
 
 - The folder picker itself: LISTING-003.
@@ -227,3 +250,4 @@ stays the same.
 | 2026-11-24 | The gesture guide and the tag entry are modal: inert page, focus trap, `Esc` (APP-001.20; Fable review) |
 | 2026-11-24 | The page opts in to `viewport-fit=cover` and pads its edges with the safe areas (APP-001.21; Fable review) |
 | 2026-11-22 | The page starts on *Folders* or the library setup, the picker no longer opens by itself (APP-001.3, M12 PR 5) |
+| 2026-11-26 | One `ModalPanel` for every modal panel: close button, `Esc`, backdrop, focus return, scroll lock, bottom sheet on a phone (APP-001.6, .23, .24; owner request) |

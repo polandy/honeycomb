@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { defineComponent, h, provide } from 'vue'
 
-/** NcDialog in place: its name as an attribute, its body and its actions, no teleport or focus trap. */
+/** NcDialog in place: its name and close paths as attributes, its body and its actions, no teleport or focus trap. */
 export const DialogStub = defineComponent({
-	props: { name: { type: String, required: true }, noClose: Boolean },
-	emits: ['update:open'],
+	props: { name: { type: String, required: true }, noClose: Boolean, closeOnClickOutside: Boolean, size: { type: String, default: 'small' }, container: { type: String, default: 'body' } },
+	emits: ['closing'],
 	setup(props, { slots }) {
-		return () => h('div', { role: 'dialog', name: props.name, 'data-no-close': props.noClose }, [slots.default?.(), slots.actions?.()])
+		return () => h('div', { role: 'dialog', name: props.name, 'data-no-close': props.noClose, 'data-close-outside': props.closeOnClickOutside, 'data-size': props.size, 'data-container': props.container }, [slots.default?.(), slots.actions?.()])
 	},
 })
 

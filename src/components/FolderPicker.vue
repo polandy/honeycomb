@@ -39,8 +39,6 @@ const props = withDefaults(defineProps<{
 	pairing?: PairingSettings
 	/** The folder sets culled before, newest first. */
 	recent?: readonly RecentFolderSet[]
-	/** Whether it can be closed while no cull is open, so another source is reachable. */
-	closable?: boolean
 	/** Whether the footer offers *I only use Immich* while no cull is open (IMMICH-001.21). */
 	immichOnly?: ImmichOnlyOffer
 	/** The library roots; the folders to open lie inside them while any is set (SETTINGS-001.36). */
@@ -117,7 +115,7 @@ function onConfirm() {
 		:title="t('honeycomb', 'Choose folders')"
 		:confirmLabel="confirmLabel"
 		:confirmDisabled="!canCull"
-		:cancel="props.current !== null || props.closable"
+		cancel
 		@cancel="emit('cancel')"
 		@confirm="onConfirm">
 		<p v-if="props.current === null" class="folder-picker__intro">
