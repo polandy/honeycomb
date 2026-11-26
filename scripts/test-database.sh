@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # SPDX-FileCopyrightText: 2026 honeycomb contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Test for scripts/database.sh: each engine gives Nextcloud its own settings, a labelled and removable database.
+# Test for scripts/database.sh: each engine gives Nextcloud its own settings, a labelled and removable database,
+# and no container joins Docker's bridge: Nextcloud shares the database's network namespace.
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
@@ -33,24 +34,26 @@ run() {
 }
 calls() { grep -c -e "$1" "$work/docker.log"; }
 
-check sqlite-args "-e SQLITE_DATABASE=nextcloud" "$(run sqlite)"
+check sqlite-args "--network none -e SQLITE_DATABASE=nextcloud" "$(run sqlite)"
 check sqlite-no-docker 0 "$(calls .)"
-check default-is-sqlite "-e SQLITE_DATABASE=nextcloud" "$(env -u HONEYCOMB_DB PATH="$work/bin:$PATH" DOCKER_LOG="$work/docker.log" bash -c 'source scripts/e2e-names.sh; source scripts/database.sh; database_start 8190 && echo "${DATABASE_DOCKER_ARGS[*]}"')"
+check default-is-sqlite "--network none -e SQLITE_DATABASE=nextcloud" "$(env -u HONEYCOMB_DB PATH="$work/bin:$PATH" DOCKER_LOG="$work/docker.log" bash -c 'source scripts/e2e-names.sh; source scripts/database.sh; database_start 8190 && echo "${DATABASE_DOCKER_ARGS[*]}"')"
 
 mariadb_args=$(run mariadb)
-check mariadb-host 1 "$(grep -c -- '-e MYSQL_HOST=honeycomb-db-8190 ' <<<"$mariadb_args ")"
+check mariadb-host 1 "$(grep -c -- '-e MYSQL_HOST=127.0.0.1 ' <<<"$mariadb_args ")"
 check mariadb-database 1 "$(grep -c -- '-e MYSQL_DATABASE=nextcloud' <<<"$mariadb_args")"
-check mariadb-network 1 "$(grep -c -- '--network honeycomb-db-8190' <<<"$mariadb_args")"
+check mariadb-network 1 "$(grep -c -- '--network container:honeycomb-db-8190' <<<"$mariadb_args")"
 check mariadb-no-sqlite 0 "$(grep -c SQLITE <<<"$mariadb_args")"
-check mariadb-network-created 1 "$(calls '^network create honeycomb-db-8190')"
+check mariadb-no-network 0 "$(calls '^network')"
+check mariadb-off-the-bridge 1 "$(calls '^run .*--network none ')"
 check mariadb-image-pinned 1 "$(calls "mariadb:.*@sha256:")"
 check mariadb-labelled 1 "$(calls '^run .*--label honeycomb.e2e.owner=7@test-host')"
 check mariadb-waits-healthy 1 "$(calls '^inspect')"
 check mariadb-removed 1 "$(calls '^rm --force honeycomb-db-8190')"
-check mariadb-network-removed 1 "$(calls '^network rm honeycomb-db-8190')"
 
 postgres_args=$(run postgres)
-check postgres-host 1 "$(grep -c -- '-e POSTGRES_HOST=honeycomb-db-8190 ' <<<"$postgres_args ")"
+check postgres-host 1 "$(grep -c -- '-e POSTGRES_HOST=127.0.0.1 ' <<<"$postgres_args ")"
+check postgres-network 1 "$(grep -c -- '--network container:honeycomb-db-8190' <<<"$postgres_args")"
+check postgres-off-the-bridge 1 "$(calls '^run .*--network none ')"
 check postgres-database 1 "$(grep -c -- '-e POSTGRES_DB=nextcloud' <<<"$postgres_args")"
 check postgres-image-pinned 1 "$(calls "postgres:.*@sha256:")"
 check postgres-removed 1 "$(calls '^rm --force honeycomb-db-8190')"
