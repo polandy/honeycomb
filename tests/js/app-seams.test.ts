@@ -14,7 +14,7 @@ describe('APP_SEAMS', () => {
 		expect(Object.keys(APP_SEAMS.flags())).toEqual(['save', 'takeOver', 'saveSidecarEtags'])
 		expect(Object.keys(APP_SEAMS.viewState())).toEqual(['loadViewState', 'saveViewState'])
 		expect(Object.keys(APP_SEAMS.positions())).toEqual(['loadPositions', 'savePosition'])
-		expect(Object.keys(APP_SEAMS.library())).toEqual(['listLibraryFolders', 'scanLibrary', 'markFolderDone', 'reopenFolder', 'markFoldersDone', 'reopenFolders'])
+		expect(Object.keys(APP_SEAMS.library())).toEqual(['listLibraryFolders', 'checkLibraryRoot', 'scanLibrary', 'markFolderDone', 'reopenFolder', 'markFoldersDone', 'reopenFolders'])
 		expect(Object.keys(APP_SEAMS.sidecars())).toEqual(['lookupSidecars', 'lookupEmbeddedXmp', 'saveSidecars', 'lookupXmpCache', 'saveXmpCache', 'now'])
 		expect(Object.keys(APP_SEAMS.move())).toEqual(['probeTargets', 'movePictures'])
 		expect(Object.keys(APP_SEAMS.tags())).toEqual(['loadTagList'])

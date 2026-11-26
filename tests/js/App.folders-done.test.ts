@@ -24,6 +24,7 @@ function openApp(rows: FolderRow[] = [TRIP]) {
 	let listed = rows
 	const library: LibraryApi & FolderDoneApi = {
 		listLibraryFolders: async () => ({ folders: listed, nextCursor: null, scanning: null }),
+		checkLibraryRoot: async () => undefined,
 		scanLibrary: async () => ({ done: 0, total: 0 }),
 		markFolderDone: async (fileId, photos) => {
 			writes.push(`PUT ${fileId} ${photos}`)

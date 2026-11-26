@@ -27,6 +27,7 @@ function openApp() {
 			reads.push(root)
 			return { folders: [row({ path: '/Photos/Trip' })], nextCursor: null, scanning: null }
 		},
+		checkLibraryRoot: async () => undefined,
 		scanLibrary: async () => ({ done: 0, total: 0 }),
 		markFolderDone: async () => ({ by: '', at: 0, photos: 0 }),
 		reopenFolder: async () => undefined,

@@ -22,6 +22,7 @@ use OCA\Honeycomb\Tests\Service\FakeFiles;
 use OCA\Honeycomb\Tests\Service\FakeFolderDoneStore;
 use OCA\Honeycomb\Tests\Service\FakeFolderSummaryStore;
 use OCA\Honeycomb\Tests\Service\FakeLibraryFiles;
+use OCA\Honeycomb\Tests\Service\Settings\FakeRoots;
 use OCA\Honeycomb\Tests\Service\StatsFixture;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
@@ -32,11 +33,13 @@ use OCP\FilesMetadata\IFilesMetadataManager;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 
 final class LibraryControllerTest extends TestCase {
 	use FakeFiles;
+	use FakeRoots;
 	use StatsFixture;
 
 	private FakeFolderSummaryStore $summaries;
@@ -48,7 +51,8 @@ final class LibraryControllerTest extends TestCase {
 		$this->done = new FakeFolderDoneStore();
 	}
 
-	private function controller(?IUser $user = null, bool $loggedIn = true): LibraryController {
+	/** @param list<string> $roots */
+	private function controller(?IUser $user = null, bool $loggedIn = true, array $roots = []): LibraryController {
 		$session = $this->createStub(IUserSession::class);
 		$session->method('getUser')->willReturn($loggedIn ? ($user ?? $this->user()) : null);
 		$files = new FakeLibraryFiles();
@@ -58,7 +62,7 @@ final class LibraryControllerTest extends TestCase {
 		$time->method('getTime')->willReturn(1_772_407_800);
 		$service = new LibraryFolderService(new UserFolderResolver($root), $files, $this->summaries, $this->done, new CaptureTimes($this->createStub(IFilesMetadataManager::class)), $time);
 		$done = new FolderDoneService(new UserPhotos(new UserFolderResolver($root)), $this->done, $time, $this->stats());
-		return new LibraryController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $service, $done);
+		return new LibraryController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $service, $this->rootsGuard($roots), $done);
 	}
 
 	// spec: FOLDERS-005.5, FOLDERS-005.8
@@ -114,6 +118,41 @@ final class LibraryControllerTest extends TestCase {
 		$this->assertSame(['verb' => 'GET', 'url' => '/api/v1/library/folders'], $route('folders'));
 		$this->assertSame(['verb' => 'POST', 'url' => '/api/v1/library/scan'], $route('scan'));
 		$this->assertSame(['limit' => 600, 'period' => 60], $limits[0]->getArguments());
+	}
+
+	/** @return array<string, array{string}> */
+	public static function outsideRoots(): array {
+		return ['the home folder' => ['/'], 'a sibling sharing the prefix' => ['/Photos-old'], 'a parent segment' => ['/Photos/../Other'], 'a removed root' => ['/Archive']];
+	}
+
+	// spec: FOLDERS-005.20
+	#[DataProvider('outsideRoots')]
+	public function testAFolderOutsideTheLibraryRootsIsNeitherListedNorScanned(string $root): void {
+		$controller = $this->controller(roots: ['/Photos']);
+
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $controller->folders($root)->getStatus());
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $controller->scan($root)->getStatus());
+		$this->assertSame([], $this->summaries->rows);
+	}
+
+	// spec: FOLDERS-005.20
+	public function testAFolderInsideALibraryRootIsListedAndScanned(): void {
+		$controller = $this->controller(roots: ['/Photos']);
+
+		$this->assertSame(Http::STATUS_OK, $controller->folders('/Photos')->getStatus());
+		$this->assertSame(Http::STATUS_OK, $controller->scan('/Photos')->getStatus());
+	}
+
+	// spec: FOLDERS-005.21
+	public function testChecksACandidateRootWithoutListingIt(): void {
+		$route = (new ReflectionMethod(LibraryController::class, 'checkRoot'))->getAttributes(FrontpageRoute::class)[0]->getArguments();
+
+		$this->assertSame(['verb' => 'GET', 'url' => '/api/v1/library/root'], $route);
+		$ok = $this->controller(roots: ['/Archive'])->checkRoot('/Photos');
+		$this->assertSame([Http::STATUS_NO_CONTENT, ''], [$ok->getStatus(), $ok->render()]);
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $this->controller()->checkRoot('/Shared')->getStatus());
+		$this->assertSame(Http::STATUS_FORBIDDEN, $this->controller()->checkRoot('/Locked')->getStatus());
+		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller(loggedIn: false)->checkRoot('/Photos')->getStatus());
 	}
 
 	// spec: FOLDERS-006.1, FOLDERS-006.3
