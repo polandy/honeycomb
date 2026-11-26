@@ -30,7 +30,8 @@ export type ChangeDirection = 'more' | 'fewer' | 'same'
 
 const SECOND_MS = 1000
 const PERCENT = 100
-const PACE_STEPS = 10
+/** The pace's steps in a whole: one decimal. */
+export const PACE_STEPS = 10
 
 /** The share of `part` in `whole` as a whole percent, null without a whole. */
 const share = (part: number, whole: number): number | null => (whole === 0 ? null : Math.round(part * PERCENT / whole))
