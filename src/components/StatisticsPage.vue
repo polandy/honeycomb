@@ -20,6 +20,7 @@ import DeleteStats from './DeleteStats.vue'
 import PageLayout from './PageLayout.vue'
 import StatisticsBars from './StatisticsBars.vue'
 import StatisticsHero from './StatisticsHero.vue'
+import StatisticsHighlights from './StatisticsHighlights.vue'
 import StatisticsLibrary from './StatisticsLibrary.vue'
 import StatisticsPeriod from './StatisticsPeriod.vue'
 import StatisticsRead from './StatisticsRead.vue'
@@ -27,6 +28,7 @@ import YearReview from './YearReview.vue'
 import { yearOf } from '../logic/days.ts'
 import { folderProgress } from '../logic/folder-progress.ts'
 import { parseSettings } from '../logic/settings.ts'
+import { periodHighlights } from '../logic/stats-highlights.ts'
 import { parsePeriodHash, periodHash, resolveLocation } from '../logic/stats-location.ts'
 import { periodOverview } from '../logic/stats-overview.ts'
 import { periodAt, periodNumbers, periodRun } from '../logic/stats-period.ts'
@@ -71,6 +73,7 @@ const review = computed(() => {
 	return year === null ? null : yearReview(answer.value!.counters, year, answer.value!.firstDay)
 })
 const numbers = computed(() => answer.value && periodNumbers(answer.value.counters, period.value, bounds.value))
+const highlights = computed(() => periodHighlights(answer.value!.counters, period.value, bounds.value))
 const overview = computed(() => periodOverview(answer.value!.counters, period.value.range))
 const roots = ref<readonly string[]>([])
 /** The library's progress as of the user's today, whose month counts as this month (STATS-001.42). */
@@ -208,6 +211,11 @@ onMounted(async () => {
 							@drill="kind = $event.kind; anchor = $event.anchor" />
 					</div>
 					<DeleteStats :stats="stats" tiles fit />
+					<StatisticsHighlights
+						:highlights="highlights"
+						:kind="kind"
+						:compared="comparedName(numbers!.compared)"
+						@showDay="kind = 'week'; anchor = $event" />
 					<p v-if="line" class="statistics-page__line">
 						{{ line }}
 					</p>

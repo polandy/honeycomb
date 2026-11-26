@@ -611,6 +611,35 @@ Strings are English, translated per ADR 0007; the mockup lists them.
   first counted day on and one column per part of the chosen chart, *Show as chart* brings the
   bars back, and the switch and the table stay when the user steps to another period
 
+### STATS-001.67 – Five highlights of the period
+
+- **Given** a period with a count
+- **When** the page shows the highlights below the tiles
+- **Then** it shows *Best day*, *Busiest weekday*, *Pace*, *Active days* and *Longest streak*, each
+  with its figure and a line of words; a period without a counter shows the line *Nothing counted
+  in this period.* instead
+
+### STATS-001.68 – Best day and Show day
+
+- **Given** a period with pictures decided
+- **When** the page shows *Best day*
+- **Then** it names the day with the most pictures decided, the earlier day when two tie, with the
+  count and the active time of that day; in a month, a year and all time *Show day* shows the week
+  of that day (the segment and the address follow), in a week there is no such button
+
+### STATS-001.69 – Busiest weekday, pace, active days and longest streak
+
+- **Given** a period with a count
+- **When** the page shows the other four highlights
+- **Then** *Busiest weekday* names the weekday with the most pictures decided on average over the
+  days of the period up to today and from the first counted day on (the first in the locale's
+  week when two tie) with seven small bars from the locale's first weekday, the highest marked,
+  and the figures as text; *Pace* shows the pictures decided a minute as the tile *Active time*
+  does, with ▲, ▼ or *Same as* against the days compared with (STATS-001.41), or no comparison
+  when either has no pace; *Active days* shows the days with a counter of those days and their
+  share; *Longest streak* shows the longest run of days with a counter inside the period with
+  its first and last day, the earlier run when two tie
+
 ## History
 
 | Date | Change |
@@ -628,3 +657,4 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | 2026-11-26 | The period in the address hash (.57, .58; statistics slice 2) |
 | 2026-11-26 | Redesign R1: the hero *Photos decided* with picked against rejected, the tiles *Space freed* with the RAW files removed, *Keep rate*, *Active time* with pace (.41, .55 reworded; .59–.62) |
 | 2026-11-26 | Redesign R2: the main chart with *Decided*, *Space freed* and *Active time*, the detail panel, the drill-down and the table (.63–.66) |
+| 2026-11-26 | Redesign R3: the highlights Best day, Busiest weekday, Pace, Active days and Longest streak (.67–.69) |

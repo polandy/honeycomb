@@ -67,7 +67,7 @@ test(`steps through the calendar periods on the desktop and the iPad ${WEBKIT}`,
 
 	await page.getByRole('button', { name: 'Previous period' }).click()
 	await expect(page.locator('.statistics-period__label')).toHaveText('October 2026')
-	await expect(page.getByText('Nothing counted in this period.')).toBeVisible()
+	await expect(page.locator('.statistics-bars__empty')).toBeVisible()
 	await expect(page.locator('.statistics-bars__bar')).toHaveCount(0)
 	await expect(page.getByRole('button', { name: 'Next period' })).toBeEnabled()
 	await page.getByRole('button', { name: 'Today' }).click()
