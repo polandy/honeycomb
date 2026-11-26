@@ -27,6 +27,7 @@ import { useLoupeDecisions } from '../loupe/loupe-decisions.ts'
 import { useLoupePanels } from '../loupe/loupe-panels.ts'
 import { decodeSource, usePrefetch } from '../loupe/loupe-prefetch.ts'
 import { useLoupeSeries } from '../series/loupe-series.ts'
+import { notInSeriesHint } from '../series/not-in-series.ts'
 import { useSeriesHint } from '../series/series-hint.ts'
 import { browserSchedule } from '../shared/browser-schedule.ts'
 import { toggleBrowserFullscreen } from '../shared/fullscreen.ts'
@@ -84,6 +85,7 @@ const loupeSeries = useLoupeSeries({
 	dismissHint: () => seriesHint.dismiss(),
 	compare: (series, shown) => emit('compareSeries', series, shown),
 	pickRest: (series, shown) => emit('pickRest', series, shown),
+	notInSeries: () => emit('toast', { message: notInSeriesHint(), action: null }),
 })
 const sourcesAt = (index: number) => loupeSources(imageMember(props.pictures[index]!), props.imageUrl)
 
