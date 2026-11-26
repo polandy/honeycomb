@@ -373,7 +373,8 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **Given** the cull page or the *Cull finished* card
 - **When** the user picks *Statistics* in the navigation or on the card
 - **Then** the statistics page opens at `/apps/honeycomb/statistics`, a page of its own like
-  *Similarity* with *Back to the cull*; the navigation's page entries come from one list
+  *Similarity* with the navigation (APP-001.25) and *Back to the cull*; the navigation's page
+  entries come from one list
 
 ### STATS-001.41 – The period before
 

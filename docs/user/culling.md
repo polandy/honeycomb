@@ -23,6 +23,9 @@ or more folders, with or without their subfolders ([choosing folders](choosing-f
 *Change folders* opens it again, and **Recent** in the navigation lists your last folder sets
 with how many photos are decided.
 
+The navigation is on every honeycomb page. The button at its top left opens and closes it, and
+honeycomb remembers your choice in this browser; on a phone it slides in over the page.
+
 ## 3. Look through the grid
 
 The grid shows every photo of the folder set as a thumbnail; a RAW and a JPEG with the same name

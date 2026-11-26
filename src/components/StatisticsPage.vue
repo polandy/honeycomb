@@ -5,17 +5,17 @@
 <script setup lang="ts">
 import type { FolderRow } from '../logic/folder-row.ts'
 import type { Period, StatsAnswer } from '../logic/statistics.ts'
+import type { PageNavigationSeams } from './PageLayout.vue'
 
 import { n, t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import { computed, onMounted, ref } from 'vue'
-import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import NcContent from '@nextcloud/vue/components/NcContent'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import AppIcon from './AppIcon.vue'
 import DeleteStats from './DeleteStats.vue'
+import PageLayout from './PageLayout.vue'
 import StatisticsBars from './StatisticsBars.vue'
 import StatisticsLibrary from './StatisticsLibrary.vue'
 import StatisticsRead from './StatisticsRead.vue'
@@ -36,7 +36,7 @@ export interface StatisticsSeams {
 	readonly saveViewState: (patch: { year_review_hint_closed: number }) => Promise<void>
 }
 
-const props = defineProps<{ seams: StatisticsSeams }>()
+const props = defineProps<{ seams: StatisticsSeams, navigation: PageNavigationSeams }>()
 
 /** Rounds pictures a minute to one decimal. */
 const RATE_STEPS = 10
@@ -134,57 +134,54 @@ onMounted(async () => {
 </script>
 
 <template>
-	<NcContent appName="honeycomb">
-		<NcAppContent>
-			<div class="statistics-page">
-				<NcButton variant="tertiary" :href="cullUrl">
-					<template #icon>
-						<AppIcon name="back" />
-					</template>
-					{{ t('honeycomb', 'Back to the cull') }}
-				</NcButton>
-				<h2>{{ t('honeycomb', 'Statistics') }}</h2>
-				<NcNoteCard v-if="failed" type="error">
-					{{ t('honeycomb', 'The statistics could not be loaded.') }}
-				</NcNoteCard>
-				<NcLoadingIcon v-else-if="answer === null" />
-				<template v-else>
-					<NcNoteCard v-if="!keepStatistics" type="info">
-						{{ t('honeycomb', 'Statistics are off. Turn on Keep statistics in the settings to count again.') }}
-					</NcNoteCard>
-					<template v-if="counted">
-						<YearReview v-if="review" :review="review" />
-						<div class="statistics-page__periods" role="group" :aria-label="t('honeycomb', 'Period')">
-							<NcButton
-								v-for="each in periods"
-								:key="each.period"
-								:pressed="period === each.period"
-								@update:pressed="period = each.period">
-								{{ each.label }}
-							</NcButton>
-						</div>
-						<DeleteStats :stats="stats" tiles fit />
-						<p v-if="line" class="statistics-page__line">
-							{{ line }}
-						</p>
-						<StatisticsBars :bars="numbers!.bars" :period="period" />
-					</template>
-					<p v-else>
-						{{ t('honeycomb', 'Nothing counted yet. Cull a folder and the numbers show here.') }}
-					</p>
-					<StatisticsLibrary :roots="roots" :progress="library" :failed="libraryFailed" />
-					<StatisticsRead :read="answer.read" />
-					<p v-if="counted && answer.firstDay" class="statistics-page__line">
-						{{ t('honeycomb', 'Counted since {day}.', { day: formatDay(answer.firstDay) }, undefined, PLAIN_TEXT) }}
-						<template v-if="answer.seriesDoneBefore > 0">
-							{{ n('honeycomb', 'Before that: %n series done (no date).', 'Before that: %n series done (no date).', answer.seriesDoneBefore, undefined, PLAIN_TEXT) }}
-						</template>
-						{{ t('honeycomb', 'Space is freed when the trash bin is emptied.') }}
-					</p>
+	<PageLayout page="statistics" :seams="props.navigation">
+		<div class="statistics-page">
+			<NcButton variant="tertiary" :href="cullUrl">
+				<template #icon>
+					<AppIcon name="back" />
 				</template>
-			</div>
-		</NcAppContent>
-	</NcContent>
+				{{ t('honeycomb', 'Back to the cull') }}
+			</NcButton>
+			<NcNoteCard v-if="failed" type="error">
+				{{ t('honeycomb', 'The statistics could not be loaded.') }}
+			</NcNoteCard>
+			<NcLoadingIcon v-else-if="answer === null" />
+			<template v-else>
+				<NcNoteCard v-if="!keepStatistics" type="info">
+					{{ t('honeycomb', 'Statistics are off. Turn on Keep statistics in the settings to count again.') }}
+				</NcNoteCard>
+				<template v-if="counted">
+					<YearReview v-if="review" :review="review" />
+					<div class="statistics-page__periods" role="group" :aria-label="t('honeycomb', 'Period')">
+						<NcButton
+							v-for="each in periods"
+							:key="each.period"
+							:pressed="period === each.period"
+							@update:pressed="period = each.period">
+							{{ each.label }}
+						</NcButton>
+					</div>
+					<DeleteStats :stats="stats" tiles fit />
+					<p v-if="line" class="statistics-page__line">
+						{{ line }}
+					</p>
+					<StatisticsBars :bars="numbers!.bars" :period="period" />
+				</template>
+				<p v-else>
+					{{ t('honeycomb', 'Nothing counted yet. Cull a folder and the numbers show here.') }}
+				</p>
+				<StatisticsLibrary :roots="roots" :progress="library" :failed="libraryFailed" />
+				<StatisticsRead :read="answer.read" />
+				<p v-if="counted && answer.firstDay" class="statistics-page__line">
+					{{ t('honeycomb', 'Counted since {day}.', { day: formatDay(answer.firstDay) }, undefined, PLAIN_TEXT) }}
+					<template v-if="answer.seriesDoneBefore > 0">
+						{{ n('honeycomb', 'Before that: %n series done (no date).', 'Before that: %n series done (no date).', answer.seriesDoneBefore, undefined, PLAIN_TEXT) }}
+					</template>
+					{{ t('honeycomb', 'Space is freed when the trash bin is emptied.') }}
+				</p>
+			</template>
+		</div>
+	</PageLayout>
 </template>
 
 <style src="../shared/coarse-controls.css" />

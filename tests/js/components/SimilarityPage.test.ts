@@ -9,6 +9,7 @@ import { describe, expect, it, vi } from 'vitest'
 import FolderTree from '../../../src/components/FolderTree.vue'
 import SimilarityPage from '../../../src/components/SimilarityPage.vue'
 import { RateLimitedError } from '../../../src/logic/retry-after.ts'
+import { fakePageNavigation } from '../page-navigation.ts'
 
 vi.mock('../../../src/shared/logger.ts', () => ({ logger: { warn: vi.fn() } }))
 
@@ -37,7 +38,7 @@ function seams() {
 }
 
 function mountPage(fake = seams().fake, roots: string[] = []) {
-	return mount(SimilarityPage, { props: { seams: fake, listFolders: async () => [], roots } })
+	return mount(SimilarityPage, { props: { seams: fake, listFolders: async () => [], roots, navigation: fakePageNavigation().seams } })
 }
 
 const button = (wrapper: ReturnType<typeof mountPage>, label: string) => wrapper.findAll('button').find((each) => each.text() === label)

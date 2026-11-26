@@ -3,6 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
+import type { Page } from '../folders/navigation-items.ts'
 import type { SourceKind } from '../immich/immich-source.ts'
 import type { ConnectionLine } from '../immich/immich-text.ts'
 import type { RecentFolderSet } from '../logic/recent.ts'
@@ -39,6 +40,10 @@ const props = withDefaults(defineProps<{
 	connections?: readonly ConnectionLine[]
 	/** The opened connection's id. */
 	connectionId?: string | null
+	/** The page of its own shown, none on the cull page. */
+	page?: Page | null
+	/** The Nextcloud user whose navigation choice is kept, none when unknown; the logged-in user by default. */
+	user?: string | null | undefined
 }>(), {
 	viewportWidth: () => window.innerWidth,
 	hintYear: null,
@@ -46,6 +51,8 @@ const props = withDefaults(defineProps<{
 	offersImmich: false,
 	connections: () => [],
 	connectionId: null,
+	page: null,
+	user: undefined,
 })
 
 const emit = defineEmits<{
@@ -63,7 +70,8 @@ const emit = defineEmits<{
 const isMobile = useIsMobile()
 const pageItems = useNavigationItems()
 const statisticsHref = pageItems.find((item) => item.page === 'statistics')!.href
-useNavigationChoice(props.storage, props.viewportWidth)
+// Nextcloud names the logged-in user on the page's head, as @nextcloud/auth reads it.
+useNavigationChoice(props.storage, props.viewportWidth, props.user === undefined ? (document.head.dataset.user ?? null) : props.user)
 
 /** NcAppNavigation closes only through this event, as NcAppNavigationItem does for router links. */
 function closeOnNarrowScreen() {
@@ -101,7 +109,8 @@ function closeOnNarrowScreen() {
 				v-for="item in pageItems"
 				:key="item.page"
 				:name="item.name"
-				:href="item.href">
+				:href="item.href"
+				:active="item.page === props.page">
 				<template #icon>
 					<AppIcon :name="item.icon" />
 				</template>
