@@ -1,14 +1,16 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { ActivityLevel } from './activity-level.ts'
 import type { Counter } from './statistics.ts'
 
+import { activityLevel } from './activity-level.ts'
 import { picturesPerMinute } from './active-time.ts'
 import { METRIC, streak } from './statistics.ts'
 
 /** One square of the calendar of active days; shade 0 is a day without a counter, 1 to 3 the share of the busiest day. */
 export interface CalendarDay {
 	readonly day: string
-	readonly shade: 0 | 1 | 2 | 3
+	readonly shade: ActivityLevel
 }
 
 /** The numbers of one year in review (STATS-001.46, .47). */
@@ -42,7 +44,6 @@ const YEAR_START = 0
 const YEAR_END = 4
 const DAY_MS = 86_400_000
 const SECOND_MS = 1000
-const THIRDS = 3
 const FIRST_YEAR = 1970
 const LAST_YEAR = 9999
 
@@ -77,17 +78,6 @@ function daysOf(year: number): string[] {
 	return days
 }
 
-/** The shade of a day by its pictures decided against the busiest day's (STATS-001.47). */
-function shadeOf(decided: number, busiest: number, active: boolean): CalendarDay['shade'] {
-	if (!active) {
-		return 0
-	}
-	if (decided === 0 || decided * THIRDS <= busiest) {
-		return 1
-	}
-	return decided * THIRDS <= 2 * busiest ? 2 : 3
-}
-
 /** The year in review of `year`: sums, longest streak, busiest day and the calendar of active days (STATS-001.46, .47, .49). */
 export function yearReview(counters: readonly Counter[], year: number, firstDay: string | null): YearReview {
 	const prefix = `${year}-`
@@ -119,7 +109,7 @@ export function yearReview(counters: readonly Counter[], year: number, firstDay:
 		activeMs,
 		perMinute: picturesPerMinute(decided, activeMs),
 		busiest,
-		calendar: days.map((day) => ({ day, shade: shadeOf(decidedOn.get(day) ?? 0, busiest?.decided ?? 0, activeOn.has(day)) })),
+		calendar: days.map((day) => ({ day, shade: activityLevel(decidedOn.get(day) ?? 0, busiest?.decided ?? 0, activeOn.has(day)) })),
 		activeDays: activeOn.size,
 		countedSince: firstDay !== null && firstDay.startsWith(prefix) ? firstDay : null,
 	}
