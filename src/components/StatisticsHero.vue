@@ -126,11 +126,11 @@ const perDay = computed(() => {
 }
 
 .statistics-hero__picked {
-	background: var(--color-success);
+	background: var(--color-success-text);
 }
 
 .statistics-hero__rejected {
-	background: repeating-linear-gradient(135deg, var(--color-error) 0 3px, transparent 3px 6px);
+	background: repeating-linear-gradient(135deg, var(--color-error-text) 0 3px, transparent 3px 6px);
 }
 
 .statistics-hero__key {
