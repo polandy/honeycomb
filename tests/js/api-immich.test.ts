@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, immichAssets, immichCounts, immichImageUrl, immichStatus, listImmichConnections, saveImmichDecisions } from '../../src/api/index.ts'
+import { ApiResponseError, immichAssets, immichCounts, immichImageUrl, immichStatus, listImmichConnections, saveImmichDecisions, saveImmichPosition } from '../../src/api/index.ts'
 import { immichEntry } from './logic/immich-fixtures.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }))
@@ -121,5 +121,16 @@ describe('immichImageUrl', () => {
 	// spec: IMMICH-002.16
 	it('names the asset\'s image at the size and its version', () => {
 		expect(immichImageUrl('andy-phone', 'a1', 'thumbnail', '2026-11-20T12:00:00.000Z')).toBe(`${BASE}/assets/a1/image?size=thumbnail&v=2026-11-20T12%3A00%3A00.000Z`)
+	})
+})
+
+describe('saveImmichPosition', () => {
+	// spec: IMMICH-003.14
+	it('puts the connection\'s position under its id', async () => {
+		vi.mocked(axios.put).mockResolvedValue({ data: {} })
+
+		await saveImmichPosition({ connectionId: 'andy-phone', assetId: 'a6', takenAt: 60, decided: 2, total: 9 })
+
+		expect(axios.put).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/positions', { immich: 'andy-phone', assetId: 'a6', takenAt: 60, decided: 2, total: 9 })
 	})
 })

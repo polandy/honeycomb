@@ -205,6 +205,7 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			sidecars: sidecarApi(sidecarSaves),
 			immich: NO_IMMICH_API,
 			immichCull: SILENT_IMMICH_CULL,
+			immichPositions: { loadPositions: async () => [], savePosition: async () => undefined },
 			now: () => NOW_SECONDS,
 			library: NO_LIBRARY,
 			...props,
