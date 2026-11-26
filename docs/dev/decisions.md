@@ -2194,3 +2194,12 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-26: The listing takes the RAW header's camera only when Photos' `Make` and `Model` give
   none, never one field from each, so a camera name never mixes two sources (ADR 0061, PR 3,
   autonomous).
+- 2026-11-26: The write plan of *Write to Immich* takes what honeycomb last wrote per asset (flag,
+  rating and the rating Immich got) as its input; where that is stored is the write-back
+  endpoint's PR (ADR 0041 PR 13, autonomous).
+- 2026-11-26: A rating counts as changed in Immich when its `updatedAt` moved and its rating is
+  neither the one honeycomb last wrote nor honeycomb's decision; *Keep Immich’s* takes −1 as no
+  stars (IMMICH-004.7, autonomous).
+- 2026-11-26: A trashed reject sends only the trash, a pick taken back drops the favourite with
+  `picksAsFavorites`, and the stack note shows for a reject to trash or archive (IMMICH-004,
+  autonomous).
