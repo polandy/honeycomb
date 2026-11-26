@@ -28,6 +28,7 @@ const ANSWER = {
 
 /** Opens the statistics page on the stubbed counters. */
 async function openStatistics(page: Page, hash = ''): Promise<void> {
+	await page.goto('about:blank')
 	await page.route('**/apps/honeycomb/api/v1/stats', (route) => (route.request().method() === 'GET' ? route.fulfill({ json: ANSWER }) : route.continue()))
 	await page.goto(`/index.php/apps/honeycomb/statistics${hash}`)
 	await expect(page.locator('.statistics-period__label')).toBeVisible()
