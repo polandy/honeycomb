@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import type { FolderSetOpeningCull } from '../../src/app/app-source.ts'
-import type { LocationApi } from '../../src/cull/cull-location.ts'
 import type { FolderSet } from '../../src/logic/folder-set.ts'
+import type { LocationApi } from '../../src/shared/browser-location.ts'
 
 import { describe, expect, it } from 'vitest'
 import { useFolderSetOpening } from '../../src/app/app-source.ts'

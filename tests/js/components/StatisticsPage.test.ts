@@ -9,7 +9,7 @@ import { formatDay, formatDayRange } from '../../../src/shared/l10n.ts'
 import { logger } from '../../../src/shared/logger.ts'
 import { row } from '../logic/folder-fixtures.ts'
 import { fakePageNavigation } from '../page-navigation.ts'
-import { chip, MONDAY, mountPage, periodLabel, ROOTS, ROWS, step, tile } from './statistics-page-fixtures.ts'
+import { chip, fakeLocation, MONDAY, mountPage, periodLabel, ROOTS, ROWS, step, tile } from './statistics-page-fixtures.ts'
 
 vi.mock('../../../src/shared/logger.ts', () => ({ logger: { error: vi.fn() } }))
 
@@ -169,7 +169,7 @@ describe('StatisticsPage', () => {
 
 	it('says so and logs when the numbers cannot be loaded', async () => {
 		const error = new Error('down')
-		const wrapper = mount(StatisticsPage, { props: { seams: { loadStatistics: async () => Promise.reject(error), loadLibraryFolders: async () => [], loadSettings: async () => ({}), saveViewState: async () => undefined, firstWeekDay: () => MONDAY }, navigation: fakePageNavigation().seams } })
+		const wrapper = mount(StatisticsPage, { props: { seams: { loadStatistics: async () => Promise.reject(error), loadLibraryFolders: async () => [], loadSettings: async () => ({}), saveViewState: async () => undefined, firstWeekDay: () => MONDAY, location: fakeLocation() }, navigation: fakePageNavigation().seams } })
 		await flushPromises()
 
 		expect(wrapper.text()).toContain('The statistics could not be loaded.')

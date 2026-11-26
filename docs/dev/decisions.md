@@ -2102,3 +2102,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-26: A statistics period counts as counted when any counter lies in it, active time
   alone too, so its bars show instead of *Nothing counted in this period.* (STATS-001.55)
   (autonomous).
+- 2026-11-26: The statistics address writes the period of today as the bare `#week` and `#year`
+  (the month of today as no hash), so a reload or a saved link follows today instead of pinning
+  the day (STATS-001.57) (autonomous).

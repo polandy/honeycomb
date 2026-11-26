@@ -3,22 +3,11 @@
 import type { CullLocation } from '../logic/cull-location.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
 import type { PictureId } from '../logic/picture-id.ts'
+import type { LocationApi } from '../shared/browser-location.ts'
 
 import { watch } from 'vue'
 import { locationHash, parseLocation } from '../logic/cull-location.ts'
 import { fireAndLog } from '../shared/fire-and-log.ts'
-
-/** The page address, which keeps the open cull across a browser reload (DECISIONS-002.17). */
-export interface LocationApi {
-	read(): string
-	write(hash: string): void
-}
-
-/** The browser's address, replaced in place so the back button is not filled. */
-export const browserLocation: LocationApi = {
-	read: () => window.location.hash,
-	write: (hash) => window.history.replaceState(null, '', hash === '' ? window.location.pathname + window.location.search : hash),
-}
 
 /** What the address follows: the open folder set and the picture of the open loupe. */
 export interface LocatedCull {
