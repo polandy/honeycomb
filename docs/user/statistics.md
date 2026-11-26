@@ -25,8 +25,12 @@ Open **Statistics** in the navigation, or press **Statistics** on the *Cull fini
   longest run inside it).
 - **A line below:** the sidecars created and updated, those from digiKam or darktable and the
   series done, each once there is one.
-- **Bars:** the photos decided and moved to the trash bin per day (week, month), per month
-  (year) or per year (all time). Days to come are hatched, and a period without a count says so.
+- **Chart:** one bar per day (week, month), per month (year) or per year (all time). *Chart shows*
+  picks *Decided* (picked ✓ filled under rejected ✕ hatched), *Space freed* (trash bin filled,
+  deleted for good hatched, RAW files removed dotted) or *Active time*. Days to come are hatched.
+  Tap or click a bar to hold its numbers in the panel below; a held month or year offers *Show
+  {month}* or *Show {year}*. *Show as table* lists the same values. A period without a count says
+  so.
 - **Library progress:** the share of your photos in done folders, for the library and each root,
   with the folders done, those marked done this month and the share of photos decided; *Open
   Folders* leads to the list ([cleaning up the library](cleaning-up-the-library.md)).
