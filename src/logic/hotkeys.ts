@@ -52,11 +52,11 @@ export const KEYMAP: readonly KeymapEntry[] = [
 	{ id: 'pick', group: 'flags', caps: ['P'] },
 	{ id: 'reject', group: 'flags', caps: ['X'] },
 	{ id: 'unflag', group: 'flags', caps: ['U'] },
-	{ id: 'flag-next', group: 'flags', caps: ['Shift+P', 'Shift+X', 'Shift+U'] },
+	{ id: 'flag-next', group: 'flags', caps: ['Shift+X', 'Shift+U'] },
 	{ id: 'auto-advance', group: 'flags', caps: ['Caps Lock'] },
 	{ id: 'toggle-pick', group: 'flags', caps: ['`'] },
 	{ id: 'flag-buttons', group: 'flags', caps: ['B'] },
-	{ id: 'pick-rest', group: 'flags', caps: ['Shift+K'] },
+	{ id: 'pick-rest', group: 'flags', caps: ['Shift+P'] },
 	{ id: 'rating', group: 'rating', caps: ['0', '5'], range: true },
 	{ id: 'rating-next', group: 'rating', caps: ['Shift+0', 'Shift+5'], range: true },
 	{ id: 'star-down', group: 'rating', caps: ['['] },
@@ -157,7 +157,7 @@ function ctrlKey(event: HotkeyEvent, key: string): HotkeyAction | null {
 	return event.shiftKey && !['+', '/'].includes(key) ? null : command(CTRL_COMMANDS[key])
 }
 
-const SHIFT_COMMANDS: Readonly<Record<string, HotkeyCommand>> = { '?': 'shortcuts', k: 'pick-rest', j: 'file-names' }
+const SHIFT_COMMANDS: Readonly<Record<string, HotkeyCommand>> = { '?': 'shortcuts', p: 'pick-rest', j: 'file-names' }
 
 /** The action of a key with Shift: decide and go to the next photo, pick-rest, the file names or the help sheet. */
 function shiftKey(event: HotkeyEvent, key: string): HotkeyAction | null {
@@ -165,7 +165,7 @@ function shiftKey(event: HotkeyEvent, key: string): HotkeyAction | null {
 	if (digit !== null) {
 		return decide({ kind: 'rating', rating: Number(digit[1]) }, true)
 	}
-	const flag = key === '`' ? undefined : FLAGS[key]
+	const flag = key === '`' || key in SHIFT_COMMANDS ? undefined : FLAGS[key]
 	return flag !== undefined ? decide({ kind: 'flag', flag }, true) : command(SHIFT_COMMANDS[key])
 }
 

@@ -2057,3 +2057,11 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   navigation toggle no longer clips the breadcrumb; the bar and the done mark use Nextcloud's
   element colours, as `--color-success` and `--color-error` became light tints (FOLDERS-007.19–.22,
   FOLDERS-009.24) (autonomous).
+- 2026-11-26: `Shift+P` is *Pick this, reject the rest* everywhere: in a series (compare, viewer,
+  loupe, grid) it picks the photo and rejects the rest of its series, a picked one too, as one undo
+  step with the toast "Picked 1, rejected N"; outside a series it only gives a short hint, and on a
+  source without series (Immich) it stays unbound. Pick and advance moves to `Caps Lock` with `P`;
+  `Shift+K` goes, as nothing depended on it (owner, overrides the 2026-11-09 Lightroom mapping).
+- 2026-11-26: A failed flag write during *Pick this, reject the rest* takes back only the photo
+  that failed and counts it in "flags not saved", as `P` and `X` do; the photos that were saved
+  keep their new flags and the undo step still restores all of them (KEYS-001.13).

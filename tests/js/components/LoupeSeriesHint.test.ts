@@ -36,7 +36,7 @@ describe('PhotoLoupe: the first-series hint', () => {
 
 		expect(hint.exists()).toBe(true)
 		expect(hint.text()).toContain('This photo is part of a series of 3.')
-		expect(hint.text()).toContain('⧉ or N compares them; Shift+K picks this one and rejects the rest.')
+		expect(hint.text()).toContain('⧉ or N compares them; Shift+P picks this one and rejects the rest.')
 		expect(hint.find('button').text()).toBe('Got it')
 		expect(wrapper.find(CHIP).classes()).toContain(PULSE)
 	})
@@ -99,7 +99,7 @@ describe('PhotoLoupe: the first-series hint', () => {
 		['the chip', 'compareSeries', ({ wrapper }: Mounted) => wrapper.find(CHIP).trigger('click')],
 		['N', 'compareSeries', ({ root }: Mounted) => root.trigger('keydown', { key: 'n' })],
 		['the filmstrip frame\'s tab', 'compareSeries', ({ wrapper }: Mounted) => wrapper.find('.loupe-filmstrip__tab').trigger('click')],
-		['Shift+K', 'pickRest', ({ root }: Mounted) => root.trigger('keydown', { key: 'K', shiftKey: true })],
+		['Shift+P', 'pickRest', ({ root }: Mounted) => root.trigger('keydown', { key: 'P', shiftKey: true })],
 	] as const)('goes for good when %s does what it tells', async (_name, event, act) => {
 		const mounted = await mountWithHint()
 

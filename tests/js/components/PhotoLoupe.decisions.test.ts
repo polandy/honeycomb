@@ -180,9 +180,9 @@ describe('PhotoLoupe: decision keys', () => {
 	// spec: KEYS-001.4
 	it('goes to the next photo after Shift and a flag only when the flag did not move already', async () => {
 		const { wrapper, root, decided } = await mountDeciding(4, { 6: 'picked' })
-		await root.trigger('keydown', { key: 'P', shiftKey: true })
+		await root.trigger('keydown', { key: 'X', shiftKey: true })
 		await root.trigger('keydown', { key: 'U', shiftKey: true })
-		expect(decided).toEqual([[{ kind: 'flag', flag: 'picked' }, 'IMG_5'], [{ kind: 'flag', flag: 'unflagged' }, 'IMG_7']])
+		expect(decided).toEqual([[{ kind: 'flag', flag: 'rejected' }, 'IMG_5'], [{ kind: 'flag', flag: 'unflagged' }, 'IMG_7']])
 		expect(indices(wrapper)).toEqual([6, 7])
 	})
 

@@ -6,6 +6,7 @@ import type { FocusMove } from '../logic/grid-layout.ts'
 import type { HotkeyIntent } from '../logic/hotkeys.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
+import type { Series } from '../logic/series.ts'
 import type { HotkeyHandlers } from '../shared/hotkeys.ts'
 import type { useSelectionMode } from './selection-mode.ts'
 
@@ -30,6 +31,10 @@ export interface GridHotkeyTargets {
 	selection: ReturnType<typeof useSelectionMode>
 	common: (chosen: Pictures) => CommonDecision
 	decide: (intent: DecisionIntent, chosen: Pictures) => void
+	seriesOf: () => ReadonlyMap<Picture<ListingEntry>, Series<Picture<ListingEntry>>>
+	pickRest: (picked: Picture<ListingEntry>, rest: Pictures) => void
+	/** Tells that the focused photo is in no series (KEYS-001.13). */
+	notInSeries: () => void
 	toggleFiltersOff: () => void
 	openLoupe: (index: number) => void
 	openTags: (chosen: Pictures) => boolean
@@ -61,6 +66,17 @@ export function gridHotkeys(targets: GridHotkeyTargets): HotkeyHandlers {
 			grid()?.reveal(Math.min(index, view().length - 1))
 		}
 		return true
+	}
+
+	/** Picks the focused photo and rejects the rest of its series, else tells it is in none (KEYS-001.13). */
+	function pickRest() {
+		const picked = view()[focusedIndex()]
+		const series = picked === undefined ? undefined : targets.seriesOf().get(picked)
+		if (series === undefined) {
+			targets.notInSeries()
+			return
+		}
+		targets.pickRest(picked!, series.members.filter((member) => member !== picked))
 	}
 
 	/** Opens the filter bar, with the toolbar, and focuses its first control. */
@@ -125,5 +141,6 @@ export function gridHotkeys(targets: GridHotkeyTargets): HotkeyHandlers {
 		close: whileSelecting(() => selection.setSelecting(false)),
 		fullscreen: targets.toggleFullscreen,
 		tag: () => targets.openTags(chosenAt(focusedIndex())),
+		'pick-rest': pickRest,
 	}
 }

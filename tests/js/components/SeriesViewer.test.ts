@@ -196,7 +196,7 @@ describe('SeriesViewer', () => {
 		await press('u')
 		expect(indices(wrapper)).toBeUndefined()
 
-		await press('P', { shiftKey: true })
+		await press('U', { shiftKey: true })
 		await press('X', { shiftKey: true })
 		await press(']')
 
@@ -204,7 +204,7 @@ describe('SeriesViewer', () => {
 			[{ kind: 'rating', rating: 4 }, 'IMG_1'],
 			[{ kind: 'flag', flag: 'picked' }, 'IMG_1'],
 			[{ kind: 'flag', flag: 'unflagged' }, 'IMG_1'],
-			[{ kind: 'flag', flag: 'picked' }, 'IMG_1'],
+			[{ kind: 'flag', flag: 'unflagged' }, 'IMG_1'],
 			[{ kind: 'flag', flag: 'rejected' }, 'IMG_2'],
 			[{ kind: 'rating', rating: 1 }, 'IMG_2'],
 		])
@@ -228,10 +228,10 @@ describe('SeriesViewer', () => {
 	})
 
 	// spec: SERIES-002.7
-	it('picks the shown photo and rejects the rest by the button and Shift+K', async () => {
+	it('picks the shown photo and rejects the rest by the button and Shift+P', async () => {
 		const { wrapper, press } = await mountViewer(2)
 		await wrapper.find('.pick-rest-button').trigger('click')
-		await press('K', { shiftKey: true })
+		await press('P', { shiftKey: true })
 
 		expect(wrapper.emitted('pickRest')).toEqual([[SERIES[2]], [SERIES[2]]])
 	})

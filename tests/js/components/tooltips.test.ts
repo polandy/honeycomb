@@ -93,7 +93,7 @@ describe('the tooltips of the icon-only controls', () => {
 			['No label', null],
 		])
 		const pickRest = mount(PickRestButton)
-		expect(tips(pickRest)).toEqual([['Pick this, reject the rest', 'Shift+K']])
+		expect(tips(pickRest)).toEqual([['Pick this, reject the rest', 'Shift+P']])
 		expect(hasTitle(pickRest)).toBe(false)
 	})
 })

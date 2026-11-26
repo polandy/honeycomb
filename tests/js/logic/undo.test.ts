@@ -44,6 +44,13 @@ describe('undoEntry', () => {
 describe('pickRestEntry', () => {
 	const C = pictureOf(listingEntry(4, '/P/C.JPG'))
 
+	// spec: KEYS-001.13
+	it('counts as rejected only the others that were not rejected before', () => {
+		const entry = pickRestEntry({ picture: JPEG, decision: decided({ flag: 'picked' }) }, [{ picture: PAIR, decision: decided({ flag: 'rejected' }) }, { picture: C, decision: UNDECIDED }])
+
+		expect(entry).toMatchObject({ kind: 'pickRest', rejected: 1, names: ['C'] })
+	})
+
 	// spec: SERIES-001.9
 	it('picks the one picture and rejects the rest in one step that puts back every flag', () => {
 		const entry = pickRestEntry(
@@ -53,7 +60,7 @@ describe('pickRestEntry', () => {
 
 		expect(entry).toEqual({
 			kind: 'pickRest',
-			picked: 'B',
+			rejected: 2,
 			names: ['B', 'A', 'C'],
 			after: [
 				{ fileId: 3, ...decided({ flag: 'picked' }) },
