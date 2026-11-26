@@ -14,7 +14,8 @@ a glance, at any size, without waiting for a sharp image of every tile.
 ## Behaviour
 
 - The grid is virtual: only the rows near the viewport exist, so 20,000 pictures scroll as
-  smoothly as 20. A new cull starts at the top.
+  smoothly as 20. A new cull starts at the top; when photos only leave the grid, as a decision
+  the filters refuse, the focus stays on its photo, or the one that takes its place.
 - A tile shows the image member's 256 px preview once it has arrived, then requests the sharp
   tier (1024 px, when tile size × device pixel ratio exceeds 256) and swaps it in once it has
   decoded; a failed decode keeps the small one.
