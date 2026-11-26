@@ -14,7 +14,9 @@ a glance, at any size, without waiting for a sharp image of every tile.
 ## Behaviour
 
 - The grid is virtual: only the rows near the viewport exist, so 20,000 pictures scroll as
-  smoothly as 20. A new cull starts at the top.
+  smoothly as 20. A new cull or a wider filter starts at the top; when photos only leave the
+  grid, as a decision the filters refuse or a narrower filter, the focus stays on its photo, or
+  the one that takes its place (GRID-001.24).
 - A tile shows the image member's 256 px preview once it has arrived, then requests the sharp
   tier (1024 px, when tile size × device pixel ratio exceeds 256) and swaps it in once it has
   decoded; a failed decode keeps the small one.
@@ -229,6 +231,14 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
   44 × 44 px, no control is clipped or off screen, and none is covered by another, the series tab on
   a filmstrip thumbnail included (LOUPE-001.19)
 
+### GRID-001.24 – The focus stays when photos only leave the grid
+
+- **Given** a grid with a focused tile further down
+- **When** a decision or a narrower filter takes other photos out, and later a wider filter brings
+  them back
+- **Then** the focused photo keeps the focus and the scroll position, or the photo that takes its
+  place does; the wider listing starts at the top again
+
 ## History
 
 | Date | Change |
@@ -247,3 +257,4 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 | 2026-11-19 | M8 PR 7: *Write picks/rejects to XMP* with its count (.21 implemented) |
 | 2026-11-21 | GRID-001.23: a failed preview shows a dimmed tile with a broken-image glyph and loads again on a tap (E8/U4, owner 2026-11-19) |
 | 2026-11-21 | GRID-001.18: *Reduce series to the sharpest…* among the actions (SERIES-008) |
+| 2026-11-26 | GRID-001.24: the focus stays when photos only leave the grid (PR 10c) |

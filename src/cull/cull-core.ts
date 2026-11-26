@@ -11,7 +11,7 @@ import type { useToast } from '../shared/toast.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed, shallowRef } from 'vue'
-import { resolveChange, withRows } from '../logic/decision-change.ts'
+import { commonDecision, resolveChange, withRows } from '../logic/decision-change.ts'
 import { decisionsByFileId } from '../logic/decision.ts'
 import { imageMember } from '../logic/image-tiers.ts'
 import { saveQueue } from '../logic/save-queue.ts'
@@ -86,13 +86,19 @@ export function useCullSteps<Other extends DescribedStep = never>(context: CullS
 		return decided.value.get(id) ?? (picture.raw && decided.value.get(picture.raw.fileId)) ?? context.storedOf(id)
 	}
 
+	/** The pictures with their decisions, as the decision rules take them. */
+	const current = (targets: readonly Picture<SourceEntry>[]) => targets.map((picture) => ({ picture, decision: decisionOf(picture) }))
+
+	/** What the pictures share, for the action bar of a selection. */
+	const common = (targets: readonly Picture<SourceEntry>[]) => commonDecision(current(targets))
+
 	/** Decides on the pictures as one undo step and returns it, or null when nothing changes. */
 	function decide(intent: DecisionIntent, targets: readonly Picture<SourceEntry>[]): DecisionStep | null {
-		const current = targets.map((picture) => ({ picture, decision: decisionOf(picture) }))
-		return history.record(undoEntry(current, resolveChange(intent, current)))
+		const now = current(targets)
+		return history.record(undoEntry(now, resolveChange(intent, now)))
 	}
 
-	return { decided: computed(() => decided.value), open, clear, put, decisionOf, decide, record: history.record, undo: history.undo, redo: history.redo }
+	return { decided: computed(() => decided.value), open, clear, put, decisionOf, common, decide, record: history.record, undo: history.undo, redo: history.redo }
 }
 
 /** The decisions shown, as the folder cull's writes read and take them back. */
@@ -173,5 +179,5 @@ export function useCullCore<Row>(context: CullCoreContext<Row>) {
 		}
 	}
 
-	return { decided: steps.decided, open, clear, decisionOf: steps.decisionOf, decide, undo, redo }
+	return { decided: steps.decided, open, clear, decisionOf: steps.decisionOf, common: steps.common, decide, undo, redo }
 }

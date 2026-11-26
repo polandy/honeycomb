@@ -20,7 +20,7 @@ import type { CullApi, SidecarWrites } from './cull-seams.ts'
 import { computed, shallowRef, watch } from 'vue'
 import { sharpnessBy } from '../hashes/quality-of.ts'
 import { prepareCull, warmMembers } from '../logic/cull.ts'
-import { commonDecision, resolveChange } from '../logic/decision-change.ts'
+import { resolveChange } from '../logic/decision-change.ts'
 import { countsAsDecided, UNDECIDED } from '../logic/decision.ts'
 import { listedPictures } from '../logic/listing.ts'
 import { folderSetOf, folderSource } from '../logic/opened-source.ts'
@@ -160,7 +160,7 @@ export function useCull(api: CullApi, storage: BrowserStorage, settings: () => S
 	const decided = <P extends Picture<SourceEntry>>(chosen: readonly P[]) => chosen.map((picture) => ({ picture, decision: decisionOf(picture) }))
 
 	/** What the pictures share, for the action bar. */
-	const common = (chosen: readonly Picture<SourceEntry>[]) => commonDecision(decided(chosen))
+	const common = steps.common
 
 	/** Decides the writable pictures, keeps the step for undo and returns it, or null when nothing changes or all are locked (XMP-008.9). */
 	function decide(intent: DecisionIntent, chosen: readonly Picture<SourceEntry>[]): DecisionStep | null {

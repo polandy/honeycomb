@@ -12,9 +12,9 @@ import PhotoTile from './PhotoTile.vue'
 import SeriesBrackets from './SeriesBrackets.vue'
 import TileInfo from './TileInfo.vue'
 import { useGridPinch } from '../grid/grid-pinch.ts'
+import { useKeptFocus } from '../grid/kept-focus.ts'
 import { useTileInfo } from '../grid/tile-info.ts'
 import { useTileSelection } from '../grid/tile-selection.ts'
-import { isAppended } from '../logic/appended.ts'
 import { autoScrollStep } from '../logic/auto-scroll.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { UNDECIDED } from '../logic/decision.ts'
@@ -138,14 +138,9 @@ function scrollBy(step: number): boolean {
 // The drag's pressed tile stays in the DOM: a touch's events keep going to the element it started on.
 const rendered = computed(() => renderedRows(layout.value, scrollTop.value, height.value, Math.ceil(height.value / (layout.value.tileWidth + GAP)), tiles.dragOrigin.value))
 
-watch(() => props.pictures, (next, previous) => {
-	if (isAppended(previous, next)) {
-		return
-	}
-	scroller.value!.scrollTop = 0
-	scrollTop.value = 0
-	focused.value = 0
-})
+useKeptFocus({ pictures: () => props.pictures, focused, scroller: () => scroller.value, reveal, toTop: () => {
+	scroller.value!.scrollTop = scrollTop.value = focused.value = 0
+} })
 watch(rendered, (rows) => {
 	const last = rows.findLast((row) => row.kind === 'tiles')
 	if (last?.kind === 'tiles') {

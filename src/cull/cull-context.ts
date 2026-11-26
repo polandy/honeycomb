@@ -25,7 +25,7 @@ import { inject, provide } from 'vue'
 /** What the cull's screens share: App provides it once instead of passing it down as props (ADR 0028). */
 export interface CullContext {
 	readonly cull: ReturnType<typeof useCull>
-	readonly selection: ReturnType<typeof useSelectionMode>
+	readonly selection: ReturnType<typeof useSelectionMode<Picture<ListingEntry>>>
 	readonly decide: ReturnType<typeof useToastedDecisions>['decide']
 	readonly clearFlags: ReturnType<typeof useToastedDecisions>['clearFlags']
 	readonly reduceSeries: ReturnType<typeof useToastedDecisions>['reduceSeries']

@@ -2126,6 +2126,19 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   `RatingFilter` component, first in the bar with *Any* and 0–5 stars, not the mockup's 1–5 row in
   the toolbar: one rating filter looks and works the same on both sources (GRID-002.3,
   IMMICH-002.36) (autonomous).
+- 2026-11-26: The Immich grid takes the folder grid's keys from one shared `gridCoreHotkeys`; `Tab`,
+  `\`, `Ctrl+L` and `/` do nothing there and the shortcut sheet leaves them out, since its toolbar and
+  filter bar cannot be hidden or focused by key yet (IMMICH-003.25) (autonomous).
+- 2026-11-26: *Select all (loaded)* in the Immich grid takes the loaded pages, not the whole
+  connection: a step stays one save under the entry limit with no paging through the server, and
+  the label says what it takes (IMMICH-003.27) (autonomous).
+- 2026-11-26: The Immich selection bar is the shared action bar without *Keep RAW* and tags, and its
+  selection row (count, all, none, done) is one `SelectionRow` component shared with the folder
+  toolbar (IMMICH-003.26) (autonomous).
+- 2026-11-26: An Immich selection ends on a filter or connection change, as a folder selection does
+  on a new listing, so a step never reaches assets no longer shown (IMMICH-003.28) (autonomous).
+- 2026-11-26: The Immich grid's key e2e lives in `tests/e2e/immich-grid-keys.spec.ts`, since
+  `immich-grid.spec.ts` is near the 300-line limit (autonomous).
 - 2026-11-26: The statistics redesign R1 reuses `DeleteStats` for the four tiles and keeps a line
   of the sidecars and series done until *Work done* (R5) takes them; the RAW part of the *Space
   freed* note shows from one RAW file on (STATS-001.61) (autonomous).
@@ -2135,3 +2148,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-26: The hero stands beside the bars from 960 px of content width (a container query on
   the page, whose width grows to 1280 px), below them otherwise; the redesign mockup stays outside
   the repository as the UX reference (STATS-001.59) (autonomous).
+- 2026-11-26: A narrower filter keeps the grid's focused photo and scroll like a decision does, since
+  the grid sees only that photos left; a wider filter or another cull starts at the top
+  (GRID-001.24) (autonomous).

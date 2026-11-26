@@ -5,7 +5,7 @@
 set -uo pipefail
 
 # Buttons that leave a mode keep "Done"; every display-only dialog says "Close".
-DONE_OK='/(GridToolbar|TagEntry)\.vue$'
+DONE_OK='/(SelectionRow|TagEntry)\.vue$'
 
 PICTURE='(^|[^[:alnum:]])[Pp]ictures?([^[:alnum:]]|$)'
 RETRY='(^|[^[:alnum:]])[Rr]etry([^[:alnum:]]|$)'

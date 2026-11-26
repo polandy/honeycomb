@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { WatchSource } from 'vue'
-import type { ListingEntry } from '../logic/listing.ts'
+import type { SourceEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { Selection } from '../logic/selection.ts'
 
@@ -10,11 +10,11 @@ import { imageMember } from '../logic/image-tiers.ts'
 import { keepShown, NO_SELECTION, selectAll } from '../logic/selection.ts'
 
 /** Selection mode over the shown pictures; it ends when `reset` changes. */
-export function useSelectionMode(view: () => readonly Picture<ListingEntry>[], reset: WatchSource) {
+export function useSelectionMode<P extends Picture<SourceEntry>>(view: () => readonly P[], reset: WatchSource) {
 	const selecting = ref(false)
 	const selection = shallowRef<Selection>(NO_SELECTION)
-	const order = computed(() => view().map((picture) => imageMember(picture).fileId))
-	const selected = computed(() => view().filter((picture) => selection.value.ids.has(imageMember(picture).fileId)))
+	const order = computed(() => view().map((picture) => imageMember<SourceEntry>(picture).fileId))
+	const selected = computed(() => view().filter((picture) => selection.value.ids.has(imageMember<SourceEntry>(picture).fileId)))
 
 	/** Keeps the selection to the pictures the view shows, so a change never reaches a hidden one. */
 	function select(next: Selection) {
