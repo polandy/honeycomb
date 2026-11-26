@@ -13,7 +13,9 @@ use OCA\Honeycomb\Service\Listing\RawHeaderParser;
 use OCA\Honeycomb\Service\Listing\TiffFields;
 use OCA\Honeycomb\Tests\Service\MemoryStream;
 use OCP\Files\File;
+use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
+use OCP\Files\StorageNotAvailableException;
 use OCP\Lock\LockedException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -65,7 +67,13 @@ final class RawExifReaderTest extends TestCase {
 
 	/** @return array<string, array{\Throwable|false}> */
 	public static function failedOpens(): array {
-		return ['not permitted' => [new NotPermittedException('no')], 'locked' => [new LockedException('/alice/files/a.nef')], 'no stream' => [false]];
+		return [
+			'not permitted' => [new NotPermittedException('no')],
+			'locked' => [new LockedException('/alice/files/a.nef')],
+			'vanished' => [new NotFoundException('gone')],
+			'storage not available' => [new StorageNotAvailableException('offline')],
+			'no stream' => [false],
+		];
 	}
 
 	// spec: LISTING-004.10
