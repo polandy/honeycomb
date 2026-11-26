@@ -58,3 +58,5 @@ export const chip = (wrapper: ReturnType<typeof mountPage>, label: string) => wr
 export const step = (wrapper: ReturnType<typeof mountPage>, label: 'Previous period' | 'Next period') => wrapper.find(`button[aria-label="${label}"]`)
 /** The stepper's name of the period shown. */
 export const periodLabel = (wrapper: ReturnType<typeof mountPage>) => wrapper.find('.statistics-period__label').text()
+/** The text of the hero *Photos decided*. */
+export const hero = (wrapper: ReturnType<typeof mountPage>) => wrapper.find('.statistics-hero').text()

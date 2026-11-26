@@ -9,7 +9,7 @@ import { formatDay, formatDayRange } from '../../../src/shared/l10n.ts'
 import { logger } from '../../../src/shared/logger.ts'
 import { row } from '../logic/folder-fixtures.ts'
 import { fakePageNavigation } from '../page-navigation.ts'
-import { chip, fakeLocation, MONDAY, mountPage, periodLabel, ROOTS, ROWS, step, tile } from './statistics-page-fixtures.ts'
+import { chip, fakeLocation, hero, MONDAY, mountPage, periodLabel, ROOTS, ROWS, step, tile } from './statistics-page-fixtures.ts'
 
 vi.mock('../../../src/shared/logger.ts', () => ({ logger: { error: vi.fn() } }))
 
@@ -23,7 +23,7 @@ describe('StatisticsPage', () => {
 
 		expect(chip(wrapper, 'Month').attributes('aria-pressed')).toBe('true')
 		expect(periodLabel(wrapper)).toBe('November 2026')
-		expect(tile(wrapper, 'Photos decided')).toContain('118')
+		expect(hero(wrapper)).toContain('118')
 		expect(wrapper.findAll('.statistics-bars__bar')).toHaveLength(30)
 		expect(wrapper.find('.statistics-bars h3').text()).toBe('Per day')
 
@@ -31,7 +31,7 @@ describe('StatisticsPage', () => {
 
 		expect(chip(wrapper, 'Week').attributes('aria-pressed')).toBe('true')
 		expect(periodLabel(wrapper)).toBe(formatDayRange('2026-11-16', '2026-11-22', { month: 'short', day: 'numeric', year: 'numeric' }))
-		expect(tile(wrapper, 'Photos decided')).toContain('18')
+		expect(hero(wrapper)).toContain('18')
 		expect(wrapper.findAll('.statistics-bars__bar')).toHaveLength(7)
 
 		await chip(wrapper, 'Year').trigger('click')
@@ -48,12 +48,13 @@ describe('StatisticsPage', () => {
 	})
 
 	// spec: STATS-001.21
-	it('shows moved to the trash bin and the sidecars created and updated', async () => {
+	it('shows the four tiles in order and the sidecars created and updated in the line', async () => {
 		const wrapper = mountPage()
 		await flushPromises()
 
-		expect(tile(wrapper, 'Moved to the trash bin')).toContain('4')
-		expect(tile(wrapper, 'Sidecars created / updated')).toContain('7 / 3')
+		expect(wrapper.findAll('.delete-stats__label').map((each) => each.text())).toEqual(['Space freed', 'Keep rate', 'Active time', 'Days in a row'])
+		expect(tile(wrapper, 'Space freed')).toContain('4 photos')
+		expect(wrapper.find('.statistics-page__line').text()).toBe('7 sidecars created · 3 sidecars updated')
 	})
 
 	// spec: STATS-001.22
@@ -72,6 +73,7 @@ describe('StatisticsPage', () => {
 
 		expect(wrapper.text()).toContain('Nothing counted yet. Cull a folder and the numbers show here.')
 		expect(wrapper.find('.delete-stats').exists()).toBe(false)
+		expect(wrapper.find('.statistics-hero').exists()).toBe(false)
 		expect(wrapper.text()).toContain('50 % of photos in done folders')
 		expect(wrapper.text()).not.toContain('Counted since')
 	})
@@ -153,7 +155,7 @@ describe('StatisticsPage', () => {
 		await flushPromises()
 
 		expect(wrapper.find('.statistics-library').text()).toContain('The library progress could not be loaded.')
-		expect(tile(wrapper, 'Photos decided')).toContain('118')
+		expect(hero(wrapper)).toContain('118')
 		expect(logger.error).toHaveBeenCalledWith('Could not load the library progress', { error })
 	})
 
@@ -163,7 +165,7 @@ describe('StatisticsPage', () => {
 		await flushPromises()
 
 		expect(wrapper.text()).toContain('Statistics are off. Turn on Keep statistics in the settings to count again.')
-		expect(tile(wrapper, 'Photos decided')).toContain('118')
+		expect(hero(wrapper)).toContain('118')
 		expect(mountPage().text()).not.toContain('Statistics are off.')
 	})
 

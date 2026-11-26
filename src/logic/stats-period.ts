@@ -3,7 +3,6 @@
 import type { DayRange } from './days.ts'
 import type { Counter } from './statistics.ts'
 
-import { picturesPerMinute } from './active-time.ts'
 import { addDays, dayCount, monthEnd, monthStart, weekDay, yearOf, yearRange } from './days.ts'
 import { METRIC, percentChange, periodSums, streak } from './statistics.ts'
 
@@ -45,28 +44,17 @@ export interface Compared {
 	readonly whole: boolean
 }
 
-/** The numbers of one period: whether any counter lies in it, the tiles, the line below them and the bars. */
+/** The numbers of one period: whether any counter lies in it, the pictures decided against the period before and the bars. */
 export interface PeriodNumbers {
 	readonly counted: boolean
 	readonly decided: number
 	readonly decidedChange: number | null
 	readonly compared: Compared | null
-	readonly trashed: number
-	readonly freedBytes: number
-	readonly deletedForGood: number
-	readonly sidecarsCreated: number
-	readonly sidecarsUpdated: number
-	readonly sidecarsForeign: number
-	readonly activeMs: number
-	readonly perMinute: number | null
-	readonly seriesDone: number
-	readonly rawsRemoved: number
 	readonly unit: BarUnit
 	readonly bars: readonly PeriodBar[]
 }
 
 const WEEK_DAYS = 7
-const SECOND_MS = 1000
 
 /** The first day stepping may reach: the first counted day, or today without one. */
 const firstOf = (bounds: PeriodBounds): string => bounds.firstDay ?? bounds.today
@@ -166,27 +154,16 @@ export function periodRun(counters: readonly Counter[], period: Period, today: s
 	return { days: streak(counters.filter((each) => holds(period.range, each.day)), today).longest, longest: null }
 }
 
-/** The numbers of a period, with pictures decided compared to the period before (STATS-001.21, STATS-001.41). */
+/** The pictures decided of a period compared to the period before, no change without a count, and its bars (STATS-001.41, STATS-001.55). */
 export function periodNumbers(counters: readonly Counter[], period: Period, bounds: PeriodBounds): PeriodNumbers {
-	const sums = periodSums(counters, period.range)
 	const compared = comparedRange(period, bounds)
-	const decided = sums(METRIC.decided)
-	const activeMs = sums(METRIC.activeSeconds) * SECOND_MS
+	const counted = counters.some((each) => holds(period.range, each.day))
+	const decided = periodSums(counters, period.range)(METRIC.decided)
 	return {
-		counted: counters.some((each) => holds(period.range, each.day)),
+		counted,
 		decided,
-		decidedChange: compared === null ? null : percentChange(decided, periodSums(counters, compared.range)(METRIC.decided)),
+		decidedChange: compared === null || !counted ? null : percentChange(decided, periodSums(counters, compared.range)(METRIC.decided)),
 		compared,
-		trashed: sums(METRIC.trashPictures),
-		freedBytes: sums(METRIC.trashBytes) + sums(METRIC.deletedBytes),
-		deletedForGood: sums(METRIC.deletedPictures),
-		sidecarsCreated: sums(METRIC.sidecarsCreated),
-		sidecarsUpdated: sums(METRIC.sidecarsUpdated),
-		sidecarsForeign: sums(METRIC.sidecarsForeign),
-		activeMs,
-		perMinute: picturesPerMinute(decided, activeMs),
-		seriesDone: sums(METRIC.seriesDone),
-		rawsRemoved: sums(METRIC.rawsRemoved),
 		...periodBars(counters, period, bounds),
 	}
 }

@@ -2126,3 +2126,12 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   `RatingFilter` component, first in the bar with *Any* and 0–5 stars, not the mockup's 1–5 row in
   the toolbar: one rating filter looks and works the same on both sources (GRID-002.3,
   IMMICH-002.36) (autonomous).
+- 2026-11-26: The statistics redesign R1 reuses `DeleteStats` for the four tiles and keeps a line
+  of the sidecars and series done until *Work done* (R5) takes them; the RAW part of the *Space
+  freed* note shows from one RAW file on (STATS-001.61) (autonomous).
+- 2026-11-26: A period without a count shows no change, even with numbers in the period before;
+  the change reads *▲ / ▼ n % more / fewer than …* or *Same as …*, the arrow hidden from screen
+  readers (STATS-001.41, STATS-001.55) (autonomous).
+- 2026-11-26: The hero stands beside the bars from 960 px of content width (a container query on
+  the page, whose width grows to 1280 px), below them otherwise; the redesign mockup stays outside
+  the repository as the UX reference (STATS-001.59) (autonomous).
