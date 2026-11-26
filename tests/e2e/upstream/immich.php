@@ -33,7 +33,7 @@ function keyed(\Closure $answer): \Closure {
 
 /**
  * The page of the library at the request's cursor in the asked order: the search fixture's plain photo with the upload's id, name and time.
- * The cursor is the offset of the page's first upload; of the filter the stub honours only the capture time's bounds.
+ * The cursor is the offset of the page's first upload; of the filter the stub honours only the capture time's bounds and the asked ids.
  */
 function searchPage(): StubAnswer {
 	$body = stubBody();
@@ -42,13 +42,25 @@ function searchPage(): StubAnswer {
 	/** @var array{assets: array{items: list<array<string, mixed>>}} $fixture */
 	$fixture = json_decode((string)file_get_contents(FIXTURES . '/search-page.json'), true, 512, JSON_THROW_ON_ERROR);
 	$photo = $fixture['assets']['items'][0];
-	$indexes = array_values(array_filter(range(0, LIBRARY_SIZE - 1), static fn (int $index): bool => takenWithin($body['filter']['takenAt'] ?? [], NEWEST_TAKEN - $index * SECONDS_PER_UPLOAD)));
+	$ids = askedIds($body['filter']['or'] ?? []);
+	$indexes = array_values(array_filter(range(0, LIBRARY_SIZE - 1), static fn (int $index): bool => takenWithin($body['filter']['takenAt'] ?? [], NEWEST_TAKEN - $index * SECONDS_PER_UPLOAD)
+		&& ($ids === null || in_array(sprintf(ASSET_ID, $index), $ids, true))));
 	if (($body['orderBy']['direction'] ?? 'desc') === 'asc') {
 		$indexes = array_reverse($indexes);
 	}
 	$items = array_map(static fn (int $index): array => upload($photo, $index), array_slice($indexes, $offset, $size));
 	$next = $offset + $size < count($indexes) ? (string)($offset + $size) : null;
 	return StubAnswer::json(['assets' => ['total' => count($items), 'count' => count($items), 'items' => $items, 'facets' => [], 'nextPage' => $next, 'nextCursor' => $next]]);
+}
+
+/**
+ * The ids the filter's `or` branches ask for, or null when it asks for none.
+ * @param mixed $branches
+ * @return ?list<string>
+ */
+function askedIds(mixed $branches): ?array {
+	$ids = is_array($branches) ? array_values(array_filter(array_map(static fn (mixed $branch): mixed => is_array($branch) ? ($branch['id']['eq'] ?? null) : null, $branches), 'is_string')) : [];
+	return $ids === [] ? null : $ids;
 }
 
 /**

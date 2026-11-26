@@ -2122,3 +2122,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-26: The connection's position is a row of `honeycomb_positions` keyed
   `immich:<connectionId>` with its `asset_id` and `taken_at`, not a new table
   (IMMICH-003.14) (autonomous).
+- 2026-11-26: The Immich filter bar takes the folder filter bar's rating group as one shared
+  `RatingFilter` component, first in the bar with *Any* and 0–5 stars, not the mockup's 1–5 row in
+  the toolbar: one rating filter looks and works the same on both sources (GRID-002.3,
+  IMMICH-002.36) (autonomous).
