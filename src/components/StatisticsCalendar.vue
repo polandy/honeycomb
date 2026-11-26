@@ -147,7 +147,8 @@ async function drill(target: DrillTarget) {
 
 .statistics-calendar--all .statistics-calendar__group {
 	display: grid;
-	grid-template-columns: 3rem 1fr;
+	grid-template-columns: auto 1fr;
+	gap: calc(2 * var(--default-grid-baseline));
 	align-items: center;
 }
 
