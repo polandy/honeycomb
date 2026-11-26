@@ -245,4 +245,12 @@ describe('periodNumbers', () => {
 		expect(periodNumbers(counters, periodAt('all', TODAY, BOUNDS), BOUNDS)).toMatchObject({ decidedChange: null, compared: null })
 		expect(periodNumbers(counters, periodAt('month', '2026-09-10', BOUNDS), BOUNDS)).toMatchObject({ decided: 0, decidedChange: null })
 	})
+
+	// spec: STATS-001.55
+	it('counts a period by any counter in it, also one of active time alone', () => {
+		const active = [{ day: TODAY, metric: METRIC.activeSeconds, value: 1 }]
+
+		expect(periodNumbers(counters, periodAt('month', '2026-09-10', BOUNDS), BOUNDS).counted).toBe(false)
+		expect(periodNumbers(active, periodAt('week', TODAY, BOUNDS), BOUNDS)).toMatchObject({ counted: true, decided: 0 })
+	})
 })
