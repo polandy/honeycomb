@@ -862,6 +862,7 @@ takes its sizes from the pointer type ([Control sizes](#control-sizes)), not fro
 | `SharpestMark` (mockup quality, `.sharp`) | the *Sharpest* badge, or its icon alone with the tooltip | series compare card, series viewer title row, loupe filmstrip | `sharpness` |
 | `StarRating` (`starRating`, `stars`) | 0–5 buttons, or read-only stars | action bar, `PhotoTile`, series compare card | `decisions` |
 | `ColourLabels` (`colourLabel`, `showPalette`) | the label button and the nine-colour palette | action bar, filter bar | `decisions`, `hotkeys` |
+| `RatingFilter` (`.seg.rating`) | the rating group of a filter bar: the comparison (≥, ≤, =), *Any* and 0–5 stars (GRID-002.3) | filter bar, Immich filter bar | `picture-filter` |
 | `ActionBar` (`actionBar`) | rating, colour label, *Keep RAW* and flags; flags in a large row of their own (portrait) or at the side edges (landscape, [Loupe layout](#loupe-layout)), plus a slot | grid selection, loupe, series viewer | `decisions`, `hotkeys` |
 | `FlagButtonsToggle` (`flagBtnsToggle`) | the title-row icon button that shows or hides the large flag buttons ([Flag buttons and vi keys](#flag-buttons-and-vi-keys)) | loupe, series viewer | — |
 | `PickRestButton` (`pickRestBtn`) | *Pick this, reject the rest* | series compare bottom bar, series viewer, loupe on a series photo | `series` |
