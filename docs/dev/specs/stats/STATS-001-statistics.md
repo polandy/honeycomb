@@ -97,7 +97,8 @@ year with a count offers *Show {month}* or *Show {year}*, which opens that month
 as table* swaps the bars for a table of the same values, one row per day, month or year up to
 today from the first counted day on, and *Show as chart* swaps back; the switch and the table
 stay when the period changes, a held bar does not. A period without a count says *Nothing
-counted in this period.* instead of the chart. *Library progress* shows how far the library roots have come (below);
+counted in this period.* instead of the chart.
+*Library progress* shows how far the library roots have come (below);
 *Of the pictures read so far* shows the shares picked, rejected, unflagged and rated from the XMP
 cache, counting only the pictures whose XMP honeycomb has read, so a library not yet opened shows
 little. A footnote says *Counted since {date}.* and, when stored series were done before the

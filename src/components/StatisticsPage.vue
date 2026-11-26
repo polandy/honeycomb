@@ -200,7 +200,8 @@ onMounted(async () => {
 							:bars="numbers!.bars"
 							:kind="kind"
 							:unit="numbers!.unit"
-							:counted="numbers!.counted" />
+							:counted="numbers!.counted"
+							@drill="kind = $event.kind; anchor = $event.anchor" />
 					</div>
 					<DeleteStats :stats="stats" tiles fit />
 					<p v-if="line" class="statistics-page__line">

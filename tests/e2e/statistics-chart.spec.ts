@@ -7,6 +7,8 @@ import { expectTouchTargets } from './touch-targets.ts'
 import { WEBKIT } from './webkit.ts'
 
 const PHONE = { width: 390, height: 844 }
+/** formatFileSize counts binary megabytes. */
+const MB = 1024 * 1024
 
 /** Counted since 14 March 2025, today Thursday 26 November 2026. */
 const ANSWER = {
@@ -18,13 +20,13 @@ const ANSWER = {
 		{ day: '2026-11-02', metric: 'pictures_decided', value: 40 },
 		{ day: '2026-11-02', metric: 'pictures_picked', value: 15 },
 		{ day: '2026-11-02', metric: 'pictures_rejected', value: 25 },
-		{ day: '2026-11-02', metric: 'trash_bytes', value: 40_000_000 },
+		{ day: '2026-11-02', metric: 'trash_bytes', value: 40 * MB },
 		{ day: '2026-11-24', metric: 'pictures_decided', value: 86 },
 		{ day: '2026-11-24', metric: 'pictures_picked', value: 31 },
 		{ day: '2026-11-24', metric: 'pictures_rejected', value: 55 },
-		{ day: '2026-11-24', metric: 'trash_bytes', value: 20_000_000 },
-		{ day: '2026-11-24', metric: 'deleted_bytes', value: 5_000_000 },
-		{ day: '2026-11-24', metric: 'raws_removed_bytes', value: 75_000_000 },
+		{ day: '2026-11-24', metric: 'trash_bytes', value: 20 * MB },
+		{ day: '2026-11-24', metric: 'deleted_bytes', value: 5 * MB },
+		{ day: '2026-11-24', metric: 'raws_removed_bytes', value: 75 * MB },
 		{ day: '2026-11-24', metric: 'active_seconds', value: 1260 },
 		{ day: '2026-11-26', metric: 'pictures_decided', value: 20 },
 		{ day: '2026-11-26', metric: 'pictures_picked', value: 8 },
@@ -160,16 +162,20 @@ test('drills down from a month of the year to that month', async ({ page }) => {
 	expect(await page.evaluate(() => window.location.hash)).toBe('#month=2026-10')
 })
 
-// spec: STATS-001.63, STATS-001.64
-test('fits the switch, the chart and the panel into the width of a phone', async ({ page }, testInfo) => {
-	await page.setViewportSize(PHONE)
-	await openStatistics(page)
+test.describe('on a phone', () => {
+	test.use({ hasTouch: true })
 
-	await expectTouchTargets(page.getByRole('group', { name: 'Chart shows' }), 'chart switch on a phone')
-	await expectTouchTargets(page.locator('.statistics-bars__table-switch'), 'table switch on a phone')
-	await bar(page, 'Tue, Nov 24, 2026').click()
-	await expect(detail(page)).toContainText('86 decided')
-	await expectPanelBelow(page)
-	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(PHONE.width)
-	await page.screenshot({ path: testInfo.outputPath('statistics-chart-phone.png'), fullPage: true, animations: 'disabled' })
+	// spec: STATS-001.63, STATS-001.64
+	test('fits the switch, the chart and the panel into the width of a phone', async ({ page }, testInfo) => {
+		await page.setViewportSize(PHONE)
+		await openStatistics(page)
+
+		await expectTouchTargets(page.getByRole('group', { name: 'Chart shows' }), 'chart switch on a phone')
+		await expectTouchTargets(page.locator('.statistics-bars__table-switch'), 'table switch on a phone')
+		await bar(page, 'Tue, Nov 24, 2026').click()
+		await expect(detail(page)).toContainText('86 decided')
+		await expectPanelBelow(page)
+		expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(PHONE.width)
+		await page.screenshot({ path: testInfo.outputPath('statistics-chart-phone.png'), fullPage: true, animations: 'disabled' })
+	})
 })

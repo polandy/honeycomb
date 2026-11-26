@@ -12,6 +12,8 @@ vi.mock('../../../src/shared/logger.ts', () => ({ logger: { error: vi.fn() } }))
 enableAutoUnmount(afterEach)
 
 const DAY = '2026-11-19'
+/** formatFileSize counts binary megabytes. */
+const MB = 1024 * 1024
 const COUNTERS = [
 	{ day: '2026-11-02', metric: METRIC.decided, value: 50 },
 	{ day: '2026-11-02', metric: METRIC.picked, value: 25 },
@@ -19,9 +21,9 @@ const COUNTERS = [
 	{ day: DAY, metric: METRIC.decided, value: 100 },
 	{ day: DAY, metric: METRIC.picked, value: 25 },
 	{ day: DAY, metric: METRIC.rejected, value: 75 },
-	{ day: DAY, metric: METRIC.trashBytes, value: 40_000_000 },
-	{ day: DAY, metric: METRIC.deletedBytes, value: 20_000_000 },
-	{ day: DAY, metric: METRIC.rawsRemovedBytes, value: 20_000_000 },
+	{ day: DAY, metric: METRIC.trashBytes, value: 40 * MB },
+	{ day: DAY, metric: METRIC.deletedBytes, value: 20 * MB },
+	{ day: DAY, metric: METRIC.rawsRemovedBytes, value: 20 * MB },
 	{ day: DAY, metric: METRIC.activeSeconds, value: 1260 },
 	{ day: '2026-10-05', metric: METRIC.decided, value: 9 },
 ]

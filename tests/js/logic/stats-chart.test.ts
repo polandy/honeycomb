@@ -3,21 +3,23 @@
 import type { PeriodBar } from '../../../src/logic/stats-period.ts'
 
 import { describe, expect, it } from 'vitest'
-import { barDetail, barSegments, barTotal, chartParts, chartScale, drillTarget, tableBars } from '../../../src/logic/stats-chart.ts'
 import { METRIC } from '../../../src/logic/statistics.ts'
+import { barDetail, barSegments, barTotal, chartParts, chartScale, drillTarget, tableBars } from '../../../src/logic/stats-chart.ts'
 
 const DAY = '2026-11-24'
 
 /** A bar of one day with the given sums. */
-const bar = (sums: PeriodBar['sums'], overrides: Partial<PeriodBar> = {}): PeriodBar => ({
-	range: { from: DAY, to: DAY },
-	sums,
-	counted: Object.keys(sums).length > 0,
-	future: false,
-	beforeFirst: false,
-	today: false,
-	...overrides,
-})
+function bar(sums: PeriodBar['sums'], overrides: Partial<PeriodBar> = {}): PeriodBar {
+	return {
+		range: { from: DAY, to: DAY },
+		sums,
+		counted: Object.keys(sums).length > 0,
+		future: false,
+		beforeFirst: false,
+		today: false,
+		...overrides,
+	}
+}
 
 const COUNTED = bar({
 	[METRIC.decided]: 86,
