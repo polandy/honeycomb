@@ -9,7 +9,9 @@ namespace OCA\Honeycomb\Service\Listing;
 
 use DateTimeZone;
 use OCP\Files\File;
+use OCP\Files\NotFoundException;
 use OCP\Files\NotPermittedException;
+use OCP\Files\StorageNotAvailableException;
 use OCP\Lock\LockedException;
 use Psr\Log\LoggerInterface;
 
@@ -31,7 +33,7 @@ final class RawExifReader {
 	public function read(File $file, DateTimeZone $zone): ?array {
 		try {
 			$handle = $file->fopen('r');
-		} catch (NotPermittedException|LockedException $exception) {
+		} catch (NotPermittedException|LockedException|NotFoundException|StorageNotAvailableException $exception) {
 			$this->logger->warning('Could not open the RAW file {fileId} to read its header', ['fileId' => $file->getId(), 'exception' => $exception]);
 			return null;
 		}
