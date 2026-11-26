@@ -49,17 +49,30 @@ async function expectRendered(page: Page, panel: Locator) {
 	expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflow)).toBe('hidden')
 }
 
+/** Checks that `Tab` and `Shift+Tab` keep the focus inside the panel, wrapping at its ends. */
+async function expectFocusWraps(page: Page, panel: Locator) {
+	const inside = () => panel.evaluate((element) => element.contains(document.activeElement))
+	await expect.poll(inside).toBe(true)
+	for (const key of ['Shift+Tab', 'Shift+Tab', 'Tab', 'Tab', 'Tab']) {
+		await page.keyboard.press(key)
+		expect(await inside()).toBe(true)
+	}
+}
+
 for (const [device, options] of Object.entries(DEVICES)) {
 	test.describe(device, () => {
 		test.use(options)
 
 		for (const path of CLOSE_PATHS) {
-			// spec: APP-001.23, APP-001.24, APP-001.6, LISTING-003.11
+			// spec: APP-001.23, APP-001.24, APP-001.6, LISTING-003.11 (focus return and wrap on the desktop)
 			test(`closes Choose folders on its first opening by the ${path}`, async ({ page }) => {
 				await page.goto('/index.php/apps/honeycomb/')
 				const picker = await openFolderPicker(page)
 				const opener = page.getByRole('navigation', { name: 'honeycomb navigation' }).getByRole('link', { name: 'Folder', exact: true })
 				await expectRendered(page, picker)
+				if (device === 'desktop') {
+					await expectFocusWraps(page, picker)
+				}
 
 				await closeBy(page, picker, path)
 

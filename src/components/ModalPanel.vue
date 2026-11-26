@@ -48,7 +48,6 @@ function onEscape(event: KeyboardEvent) {
 	}
 	event.preventDefault()
 }
-
 </script>
 
 <template>
