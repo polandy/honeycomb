@@ -2191,3 +2191,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-26: The calendar's detail panel is the chart's `StatisticsBarDetail` with its own hint,
   so a held month of all time offers *Show {month}* like a month bar; the year view's day squares
   stay small (2 px gap, no 44 px target), as 365 targets cannot all be a finger wide (autonomous).
+- 2026-11-26: The listing takes the RAW header's camera only when Photos' `Make` and `Model` give
+  none, never one field from each, so a camera name never mixes two sources (ADR 0061, PR 3,
+  autonomous).

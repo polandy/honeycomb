@@ -18,6 +18,16 @@ const EXIF_DATE_TIME_LENGTH = 20
 
 /** `jpeg` with an EXIF block whose DateTimeOriginal is `dateTime` (`YYYY:MM:DD HH:MM:SS`), so the photo gets a capture time, and with `orientation` as its IFD0 Orientation. */
 export function withCaptureTime(jpeg: Buffer, dateTime: string, orientation: number | null = null): Buffer {
+	return withExif(jpeg, captureTimeTiff(dateTime, orientation))
+}
+
+/** A stand-in RAW like `RAW` whose TIFF header holds `dateTime` as its DateTimeOriginal, which honeycomb reads (ADR 0061). */
+export function rawWithCaptureTime(dateTime: string): Buffer {
+	return Buffer.concat([captureTimeTiff(dateTime, null), Buffer.alloc(512, 0x11), JPEG, Buffer.alloc(512, 0x22)])
+}
+
+/** A TIFF whose IFD0 holds `orientation`, if given, and points to an Exif IFD with `dateTime` as DateTimeOriginal. */
+function captureTimeTiff(dateTime: string, orientation: number | null): Buffer {
 	const ifd0Entries = orientation === null ? 1 : 2
 	const exifIfd = 10 + ifd0Entries * 12 + 4
 	const text = exifIfd + 18
@@ -46,7 +56,7 @@ export function withCaptureTime(jpeg: Buffer, dateTime: string, orientation: num
 	tiff.writeUInt32LE(EXIF_DATE_TIME_LENGTH, exifIfd + 6)
 	tiff.writeUInt32LE(text, exifIfd + 10)
 	tiff.write(dateTime, text, 'latin1')
-	return withExif(jpeg, tiff)
+	return tiff
 }
 
 /** `jpeg` with `tiff` as its EXIF segment, right after the start marker. */
