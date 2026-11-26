@@ -10,6 +10,7 @@ namespace OCA\Honeycomb\Service\Settings;
 use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Domain\InvalidRequestException;
 use OCA\Honeycomb\Domain\LibraryRootPaths;
+use OCA\Honeycomb\Domain\PairingExtensions;
 use OCA\Honeycomb\Domain\Reason;
 use OCP\Config\IUserConfig;
 use OCP\IUser;
@@ -37,7 +38,7 @@ final class SettingsService {
 
 	/** The stored settings with each stored list, an empty object when none or no object is stored. */
 	public function get(IUser $user): stdClass {
-		$settings = $this->storedObject($user);
+		$settings = $this->storedObject($user->getUID());
 		foreach (self::LISTS as $field => $key) {
 			$list = $this->storedList($user, $key);
 			if ($list !== null) {
@@ -45,6 +46,16 @@ final class SettingsService {
 			}
 		}
 		return $settings;
+	}
+
+	/** The user's pairing extension lists (LISTING-002), the defaults when the stored ones are unset or invalid. */
+	public function pairing(string $userId): PairingExtensions {
+		$settings = $this->storedObject($userId);
+		try {
+			return PairingExtensions::fromRequest($settings->rawExtensions ?? null, $settings->renderedExtensions ?? null);
+		} catch (InvalidRequestException) {
+			return PairingExtensions::defaults();
+		}
 	}
 
 	/**
@@ -105,7 +116,7 @@ final class SettingsService {
 
 	/** Writes each list still in the stored object, from before ADR 0051, into its own key while that is unset. */
 	private function carryOverLists(IUser $user): void {
-		$stored = $this->storedObject($user);
+		$stored = $this->storedObject($user->getUID());
 		foreach (self::LISTS as $field => $key) {
 			if (property_exists($stored, $field) && $this->storedList($user, $key) === null) {
 				$this->config->setValueString($user->getUID(), Application::APP_ID, $key, json_encode($stored->{$field}, JSON_THROW_ON_ERROR));
@@ -114,9 +125,9 @@ final class SettingsService {
 	}
 
 	/** The stored object, an empty one when none or no object is stored. */
-	private function storedObject(IUser $user): stdClass {
+	private function storedObject(string $userId): stdClass {
 		/** @var mixed $stored */
-		$stored = json_decode($this->config->getValueString($user->getUID(), Application::APP_ID, self::KEY, '{}'));
+		$stored = json_decode($this->config->getValueString($userId, Application::APP_ID, self::KEY, '{}'));
 		return $stored instanceof stdClass ? $stored : new stdClass();
 	}
 

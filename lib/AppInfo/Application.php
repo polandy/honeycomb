@@ -47,6 +47,7 @@ use OCA\Honeycomb\Immich\LocalFiles;
 use OCA\Honeycomb\Immich\PhpLocalFiles;
 use OCA\Honeycomb\Listener\ForgetDeletedUser;
 use OCA\Honeycomb\Listener\RenderWrittenPhotos;
+use OCA\Honeycomb\Listener\WriteRawExif;
 use OCA\Honeycomb\Preview\JpegDecoder;
 use OCA\Honeycomb\Preview\OcpJpegDecoder;
 use OCA\Honeycomb\Preview\RawPreviewProvider;
@@ -59,6 +60,8 @@ use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\Files\Events\Node\NodeWrittenEvent;
+use OCP\FilesMetadata\Event\MetadataBackgroundEvent;
+use OCP\FilesMetadata\Event\MetadataLiveEvent;
 use OCP\User\Events\UserDeletedEvent;
 
 /** @psalm-suppress UnusedClass Nextcloud loads it by the namespace in info.xml. */
@@ -96,6 +99,8 @@ final class Application extends App implements IBootstrap {
 		$context->registerServiceAlias(ImmichPositionStore::class, ImmichPositionMapper::class);
 		$context->registerEventListener(UserDeletedEvent::class, ForgetDeletedUser::class);
 		$context->registerEventListener(NodeWrittenEvent::class, RenderWrittenPhotos::class);
+		$context->registerEventListener(MetadataLiveEvent::class, WriteRawExif::class);
+		$context->registerEventListener(MetadataBackgroundEvent::class, WriteRawExif::class);
 		$context->registerPreviewProvider(RawPreviewProvider::class, RawPreviewProvider::MIME_TYPE_REGEX);
 	}
 

@@ -48,6 +48,7 @@ use OCA\Honeycomb\Immich\LocalFiles;
 use OCA\Honeycomb\Immich\PhpLocalFiles;
 use OCA\Honeycomb\Listener\ForgetDeletedUser;
 use OCA\Honeycomb\Listener\RenderWrittenPhotos;
+use OCA\Honeycomb\Listener\WriteRawExif;
 use OCA\Honeycomb\Preview\JpegDecoder;
 use OCA\Honeycomb\Preview\OcpJpegDecoder;
 use OCA\Honeycomb\Preview\RawPreviewProvider;
@@ -57,6 +58,8 @@ use OCA\Honeycomb\Service\Support\Pause;
 use OCA\Honeycomb\Service\Support\SystemPause;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\Files\Events\Node\NodeWrittenEvent;
+use OCP\FilesMetadata\Event\MetadataBackgroundEvent;
+use OCP\FilesMetadata\Event\MetadataLiveEvent;
 use OCP\User\Events\UserDeletedEvent;
 use PHPUnit\Framework\TestCase;
 
@@ -83,6 +86,12 @@ final class ApplicationTest extends TestCase {
 	// spec: IMAGES-001.16
 	public function testRendersWrittenPhotosInTheBackground(): void {
 		$this->assertContains([NodeWrittenEvent::class, RenderWrittenPhotos::class], $this->listeners());
+	}
+
+	// spec: LISTING-004.8
+	public function testWritesTheRawExifWhenCoreGeneratesMetadata(): void {
+		$this->assertContains([MetadataLiveEvent::class, WriteRawExif::class], $this->listeners());
+		$this->assertContains([MetadataBackgroundEvent::class, WriteRawExif::class], $this->listeners());
 	}
 
 	/** @return list<array{string, string}> the event listeners the app registers, by event and listener class */
