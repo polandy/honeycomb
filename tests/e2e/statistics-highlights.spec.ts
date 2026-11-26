@@ -3,6 +3,7 @@
 import type { Locator, Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
+import { openStatistics } from './statistics.ts'
 import { expectTouchTargets } from './touch-targets.ts'
 import { WEBKIT } from './webkit.ts'
 
@@ -27,21 +28,13 @@ const ANSWER = {
 	read: { pictures: 0, picked: 0, rejected: 0, rated: 0 },
 }
 
-/** Opens the statistics page on the stubbed counters. */
-async function openStatistics(page: Page, hash = ''): Promise<void> {
-	await page.goto('about:blank')
-	await page.route('**/apps/honeycomb/api/v1/stats', (route) => (route.request().method() === 'GET' ? route.fulfill({ json: ANSWER }) : route.continue()))
-	await page.goto(`/index.php/apps/honeycomb/statistics${hash}`)
-	await expect(page.locator('.statistics-period__label')).toBeVisible()
-}
-
 const highlights = (page: Page) => page.locator('.statistics-highlights')
 const card = (page: Page, title: string) => highlights(page).locator('.statistics-highlights__card', { has: page.getByRole('heading', { name: title }) })
 const box = async (locator: Locator) => (await locator.boundingBox())!
 
 // spec: STATS-001.67, STATS-001.69
 test(`renders the five highlights without overlap, the weekday bars with a height ${WEBKIT}`, async ({ page }, testInfo) => {
-	await openStatistics(page)
+	await openStatistics(page, ANSWER)
 
 	await expect(highlights(page).locator('h3')).toHaveText(['Best day', 'Busiest weekday', 'Pace', 'Active days', 'Longest streak'])
 	await expect(card(page, 'Best day')).toContainText('86')
@@ -68,7 +61,7 @@ test(`renders the five highlights without overlap, the weekday bars with a heigh
 
 // spec: STATS-001.68
 test('Show day jumps from the best day to its week', async ({ page }) => {
-	await openStatistics(page)
+	await openStatistics(page, ANSWER)
 
 	await card(page, 'Best day').getByRole('button', { name: 'Show day' }).click()
 	await expect(page.getByRole('button', { name: 'Week' })).toHaveAttribute('aria-pressed', 'true')
@@ -80,7 +73,7 @@ test('Show day jumps from the best day to its week', async ({ page }) => {
 
 // spec: STATS-001.67
 test('says that nothing was counted in a period without a counter', async ({ page }) => {
-	await openStatistics(page, '#month=2026-09')
+	await openStatistics(page, ANSWER, '#month=2026-09')
 
 	await expect(highlights(page)).toHaveText('Nothing counted in this period.')
 })
@@ -91,7 +84,7 @@ test.describe('on a phone', () => {
 	// spec: STATS-001.68
 	test('keeps the Show day button a 44 px target inside the width', async ({ page }) => {
 		await page.setViewportSize(PHONE)
-		await openStatistics(page)
+		await openStatistics(page, ANSWER)
 
 		await expectTouchTargets(card(page, 'Best day'), 'Show day on a phone')
 		expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(PHONE.width)
