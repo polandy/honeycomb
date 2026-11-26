@@ -2090,3 +2090,15 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-26: A failed flag write during *Pick this, reject the rest* takes back only the photo
   that failed and counts it in "flags not saved", as `P` and `X` do; the photos that were saved
   keep their new flags and the undo step still restores all of them (KEYS-001.13).
+- 2026-11-26: The statistics bars carry one set of labels on every viewport — weekdays for a week,
+  the 1st, 8th, 15th, 22nd and 29th for a month, short months for a year, the year for all time —
+  instead of the mockup's separate phone and iPad sets, which kept them apart at 390 px too
+  (STATS-001.21) (autonomous).
+- 2026-11-26: In the period of today Photos decided compares with the period before from its
+  start for as many days, cut at its end, so the last day of a month compares with the whole month
+  before (STATS-001.41) (autonomous).
+- 2026-11-26: Changing the segment keeps the shown day, not its period's first day, so October
+  stays October through Year and back to Month (STATS-001.52) (autonomous).
+- 2026-11-26: A statistics period counts as counted when any counter lies in it, active time
+  alone too, so its bars show instead of *Nothing counted in this period.* (STATS-001.55)
+  (autonomous).

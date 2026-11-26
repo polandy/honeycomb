@@ -4,7 +4,8 @@
 -->
 <script setup lang="ts">
 import type { FolderRow } from '../logic/folder-row.ts'
-import type { Period, StatsAnswer } from '../logic/statistics.ts'
+import type { StatsAnswer } from '../logic/statistics.ts'
+import type { PeriodBounds, PeriodKind, PeriodNumbers } from '../logic/stats-period.ts'
 import type { PageNavigationSeams } from './PageLayout.vue'
 
 import { n, t } from '@nextcloud/l10n'
@@ -18,13 +19,15 @@ import DeleteStats from './DeleteStats.vue'
 import PageLayout from './PageLayout.vue'
 import StatisticsBars from './StatisticsBars.vue'
 import StatisticsLibrary from './StatisticsLibrary.vue'
+import StatisticsPeriod from './StatisticsPeriod.vue'
 import StatisticsRead from './StatisticsRead.vue'
 import YearReview from './YearReview.vue'
+import { yearOf } from '../logic/days.ts'
 import { folderProgress } from '../logic/folder-progress.ts'
 import { parseSettings } from '../logic/settings.ts'
-import { periodNumbers, streak } from '../logic/statistics.ts'
+import { periodAt, periodNumbers, periodRun } from '../logic/stats-period.ts'
 import { reviewYear, yearReview } from '../logic/year-review.ts'
-import { formatDay, formatDuration, formatFileSize, formatNumber, formatPercent, PLAIN_TEXT } from '../shared/l10n.ts'
+import { formatDay, formatDayRange, formatDuration, formatFileSize, formatNumber, formatPercent, PLAIN_TEXT } from '../shared/l10n.ts'
 import { logger } from '../shared/logger.ts'
 
 /** How the page reads the counters, the library's folders below a root and the settings. */
@@ -34,6 +37,8 @@ export interface StatisticsSeams {
 	readonly loadSettings: () => Promise<unknown>
 	/** Stores the year whose year in review was opened, which closes the navigation's hint (STATS-001.48). */
 	readonly saveViewState: (patch: { year_review_hint_closed: number }) => Promise<void>
+	/** The locale's first day of the week, 0 for Sunday (STATS-001.53). */
+	readonly firstWeekDay: () => number
 }
 
 const props = defineProps<{ seams: StatisticsSeams, navigation: PageNavigationSeams }>()
@@ -46,32 +51,31 @@ const libraryRows = ref<FolderRow[]>([])
 const libraryFailed = ref(false)
 const keepStatistics = ref(true)
 const failed = ref(false)
-const period = ref<Period>('month')
+const kind = ref<PeriodKind>('month')
+/** The day whose period shows, kept when the segment changes; null for today (STATS-001.52). */
+const anchor = ref<string | null>(null)
+const YEAR_STYLE: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', year: 'numeric' }
 
-const periods = computed(() => [
-	{ period: 'week' as const, label: t('honeycomb', '7 days') },
-	{ period: 'month' as const, label: t('honeycomb', '30 days') },
-	{ period: 'year' as const, label: answer.value?.today.slice(0, 4) ?? '' },
-	{ period: 'all' as const, label: t('honeycomb', 'All time') },
-])
+const bounds = computed<PeriodBounds>(() => ({ today: answer.value!.today, firstDay: answer.value!.firstDay, firstWeekDay: props.seams.firstWeekDay() }))
+const period = computed(() => periodAt(kind.value, anchor.value ?? bounds.value.today, bounds.value))
 const counted = computed(() => answer.value !== null && answer.value.counters.length > 0)
 const review = computed(() => {
 	const year = answer.value === null || !counted.value ? null : reviewYear(answer.value.today)
 	return year === null ? null : yearReview(answer.value!.counters, year, answer.value!.firstDay)
 })
-const numbers = computed(() => answer.value && periodNumbers(answer.value.counters, period.value, answer.value.today, answer.value.firstDay))
+const numbers = computed(() => answer.value && periodNumbers(answer.value.counters, period.value, bounds.value))
 const roots = ref<readonly string[]>([])
 /** The library's progress as of the user's today, whose month counts as this month (STATS-001.42). */
 const library = computed(() => answer.value === null ? null : folderProgress(libraryRows.value, roots.value, new Date(`${answer.value.today}T00:00:00Z`)))
 const cullUrl = generateUrl('/apps/honeycomb/')
 const stats = computed(() => {
 	const sums = numbers.value!
-	const run = streak(answer.value!.counters, answer.value!.today)
+	const run = periodRun(answer.value!.counters, period.value, bounds.value.today)
 	return [
 		{
 			value: formatNumber(sums.decided),
 			label: t('honeycomb', 'Photos decided'),
-			note: sums.decidedChange === null ? undefined : n('honeycomb', '{change} on the day before', '{change} on the %n days before', sums.days, { change: formatPercent(sums.decidedChange, true) }, PLAIN_TEXT),
+			note: compareNote(sums),
 		},
 		{
 			value: formatNumber(sums.trashed),
@@ -84,9 +88,9 @@ const stats = computed(() => {
 			note: sums.sidecarsForeign === 0 ? undefined : n('honeycomb', '%n from digiKam or darktable', '%n from digiKam or darktable', sums.sidecarsForeign, undefined, PLAIN_TEXT),
 		},
 		{
-			value: formatNumber(run.current),
+			value: formatNumber(run.days),
 			label: t('honeycomb', 'Days in a row'),
-			note: t('honeycomb', 'Longest {longest}', { longest: formatNumber(run.longest) }, undefined, PLAIN_TEXT),
+			note: run.longest === null ? t('honeycomb', 'Longest in this period') : t('honeycomb', 'Longest {longest}', { longest: formatNumber(run.longest) }, undefined, PLAIN_TEXT),
 		},
 	]
 })
@@ -99,6 +103,23 @@ const line = computed(() => {
 		sums.rawsRemoved > 0 ? n('honeycomb', '%n RAW file removed', '%n RAW files removed', sums.rawsRemoved, undefined, PLAIN_TEXT) : null,
 	].filter((part) => part !== null).join(' · ')
 })
+
+/** Pictures decided against the period before, named by its days, or by the month, year or week when whole (STATS-001.41). */
+function compareNote(sums: PeriodNumbers): string | undefined {
+	const { decidedChange, compared } = sums
+	if (decidedChange === null || compared === null) {
+		return undefined
+	}
+	const change = formatPercent(decidedChange, true)
+	const { from, to } = compared.range
+	if (compared.whole && kind.value === 'week') {
+		return t('honeycomb', '{change} on the week before', { change }, undefined, PLAIN_TEXT)
+	}
+	const named = compared.whole
+		? (kind.value === 'month' ? formatDay(from, { month: 'long' }) : String(yearOf(from)))
+		: formatDayRange(from, to, kind.value === 'year' ? YEAR_STYLE : undefined)
+	return t('honeycomb', '{change} on {period}', { change, period: named }, undefined, PLAIN_TEXT)
+}
 
 /** Opening the year in review closes the hint for its year; a failed write is only logged. */
 function closeHint() {
@@ -152,20 +173,20 @@ onMounted(async () => {
 				</NcNoteCard>
 				<template v-if="counted">
 					<YearReview v-if="review" :review="review" />
-					<div class="statistics-page__periods" role="group" :aria-label="t('honeycomb', 'Period')">
-						<NcButton
-							v-for="each in periods"
-							:key="each.period"
-							:pressed="period === each.period"
-							@update:pressed="period = each.period">
-							{{ each.label }}
-						</NcButton>
-					</div>
+					<StatisticsPeriod
+						:period="period"
+						:bounds="bounds"
+						@kind="kind = $event"
+						@anchor="anchor = $event" />
 					<DeleteStats :stats="stats" tiles fit />
 					<p v-if="line" class="statistics-page__line">
 						{{ line }}
 					</p>
-					<StatisticsBars :bars="numbers!.bars" :period="period" />
+					<StatisticsBars
+						:bars="numbers!.bars"
+						:kind="kind"
+						:unit="numbers!.unit"
+						:counted="numbers!.counted" />
 				</template>
 				<p v-else>
 					{{ t('honeycomb', 'Nothing counted yet. Cull a folder and the numbers show here.') }}
@@ -193,12 +214,6 @@ onMounted(async () => {
 	gap: calc(2 * var(--default-grid-baseline));
 	max-width: 960px;
 	padding: calc(4 * var(--default-grid-baseline));
-}
-
-.statistics-page__periods {
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--default-grid-baseline);
 }
 
 .statistics-page__line {

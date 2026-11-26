@@ -1,63 +1,50 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { StatsAnswer } from '../../../src/logic/statistics.ts'
-
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import StatisticsPage from '../../../src/components/StatisticsPage.vue'
 import { METRIC } from '../../../src/logic/statistics.ts'
-import { formatDay } from '../../../src/shared/l10n.ts'
+import { formatDay, formatDayRange } from '../../../src/shared/l10n.ts'
 import { logger } from '../../../src/shared/logger.ts'
-import { doneRow, row } from '../logic/folder-fixtures.ts'
+import { row } from '../logic/folder-fixtures.ts'
 import { fakePageNavigation } from '../page-navigation.ts'
+import { chip, MONDAY, mountPage, periodLabel, ROOTS, ROWS, step, tile } from './statistics-page-fixtures.ts'
 
 vi.mock('../../../src/shared/logger.ts', () => ({ logger: { error: vi.fn() } }))
-
-const TODAY = '2026-11-20'
-const COUNTERS = [
-	{ day: '2026-11-01', metric: METRIC.decided, value: 100 },
-	{ day: '2026-11-19', metric: METRIC.decided, value: 18 },
-	{ day: TODAY, metric: METRIC.trashPictures, value: 4 },
-	{ day: TODAY, metric: METRIC.sidecarsCreated, value: 7 },
-	{ day: TODAY, metric: METRIC.sidecarsUpdated, value: 3 },
-]
-const NOTHING_READ = { pictures: 0, picked: 0, rejected: 0, rated: 0 }
-const ROOTS = { libraryRoots: ['/Photos'] }
-const ROWS = [doneRow({ path: '/Photos/Wedding' }), row({ path: '/Photos/Italy 2025' })]
-
-function mountPage(answer: Partial<StatsAnswer> = {}, settings: unknown = ROOTS, folders = vi.fn(async (_root: string) => ROWS)) {
-	const seams = {
-		loadStatistics: vi.fn(async () => ({ counters: COUNTERS, firstDay: '2026-11-01', today: TODAY, seriesDoneBefore: 0, read: NOTHING_READ, ...answer })),
-		loadLibraryFolders: folders,
-		loadSettings: vi.fn(async () => settings),
-		saveViewState: vi.fn(async (_patch: { year_review_hint_closed: number }) => undefined),
-	}
-	return mount(StatisticsPage, { props: { seams, navigation: fakePageNavigation().seams } })
-}
-
-const tile = (wrapper: ReturnType<typeof mountPage>, label: string) => wrapper.findAll('.delete-stats__item').find((each) => each.text().includes(label))!.text()
-const chip = (wrapper: ReturnType<typeof mountPage>, label: string) => wrapper.findAll('button').find((each) => each.text() === label)!
 
 enableAutoUnmount(afterEach)
 
 describe('StatisticsPage', () => {
-	// spec: STATS-001.21
-	it('shows the sums of 30 days first and of the period picked', async () => {
+	// spec: STATS-001.21, STATS-001.53
+	it('opens on the current month and shows the calendar week, year and all time picked', async () => {
 		const wrapper = mountPage()
 		await flushPromises()
 
-		expect(chip(wrapper, '30 days').attributes('aria-pressed')).toBe('true')
+		expect(chip(wrapper, 'Month').attributes('aria-pressed')).toBe('true')
+		expect(periodLabel(wrapper)).toBe('November 2026')
 		expect(tile(wrapper, 'Photos decided')).toContain('118')
-		expect(wrapper.findAll('.statistics-bars__bar')).toHaveLength(5)
+		expect(wrapper.findAll('.statistics-bars__bar')).toHaveLength(30)
+		expect(wrapper.find('.statistics-bars h3').text()).toBe('Per day')
 
-		await chip(wrapper, '7 days').trigger('click')
+		await chip(wrapper, 'Week').trigger('click')
 
-		expect(chip(wrapper, '7 days').attributes('aria-pressed')).toBe('true')
+		expect(chip(wrapper, 'Week').attributes('aria-pressed')).toBe('true')
+		expect(periodLabel(wrapper)).toBe(formatDayRange('2026-11-16', '2026-11-22', { month: 'short', day: 'numeric', year: 'numeric' }))
 		expect(tile(wrapper, 'Photos decided')).toContain('18')
 		expect(wrapper.findAll('.statistics-bars__bar')).toHaveLength(7)
-		expect(chip(wrapper, '2026').exists()).toBe(true)
-		expect(chip(wrapper, 'All time').exists()).toBe(true)
+
+		await chip(wrapper, 'Year').trigger('click')
+
+		expect(periodLabel(wrapper)).toBe('2026')
+		expect(wrapper.findAll('.statistics-bars__bar')).toHaveLength(12)
+		expect(wrapper.find('.statistics-bars h3').text()).toBe('Per month')
+
+		await chip(wrapper, 'All time').trigger('click')
+
+		expect(periodLabel(wrapper)).toBe(`Since ${formatDay('2026-11-01')}`)
+		expect(step(wrapper, 'Previous period').exists()).toBe(false)
+		expect(wrapper.findAll('.statistics-bars__bar')).toHaveLength(1)
 	})
 
 	// spec: STATS-001.21
@@ -67,21 +54,6 @@ describe('StatisticsPage', () => {
 
 		expect(tile(wrapper, 'Moved to the trash bin')).toContain('4')
 		expect(tile(wrapper, 'Sidecars created / updated')).toContain('7 / 3')
-	})
-
-	// spec: STATS-001.41
-	it('adds the change against the period before to Photos decided', async () => {
-		const wrapper = mountPage()
-		await flushPromises()
-		await chip(wrapper, '7 days').trigger('click')
-
-		expect(tile(wrapper, 'Photos decided')).not.toContain('%')
-
-		const before = mountPage({ counters: [...COUNTERS, { day: '2026-11-10', metric: METRIC.decided, value: 9 }] })
-		await flushPromises()
-		await chip(before, '7 days').trigger('click')
-
-		expect(tile(before, 'Photos decided')).toMatch(/\+100\s?% on the 7 days before/)
 	})
 
 	// spec: STATS-001.22
@@ -197,7 +169,7 @@ describe('StatisticsPage', () => {
 
 	it('says so and logs when the numbers cannot be loaded', async () => {
 		const error = new Error('down')
-		const wrapper = mount(StatisticsPage, { props: { seams: { loadStatistics: async () => Promise.reject(error), loadLibraryFolders: async () => [], loadSettings: async () => ({}), saveViewState: async () => undefined }, navigation: fakePageNavigation().seams } })
+		const wrapper = mount(StatisticsPage, { props: { seams: { loadStatistics: async () => Promise.reject(error), loadLibraryFolders: async () => [], loadSettings: async () => ({}), saveViewState: async () => undefined, firstWeekDay: () => MONDAY }, navigation: fakePageNavigation().seams } })
 		await flushPromises()
 
 		expect(wrapper.text()).toContain('The statistics could not be loaded.')
@@ -223,7 +195,7 @@ describe('StatisticsPage', () => {
 			await flushPromises()
 
 			expect(december.find('.year-review').exists()).toBe(true)
-			expect(december.find('.year-review').element.compareDocumentPosition(december.find('.statistics-page__periods').element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+			expect(december.find('.year-review').element.compareDocumentPosition(december.find('.statistics-period').element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 			expect(november.find('.year-review').exists()).toBe(false)
 		})
 

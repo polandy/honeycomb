@@ -61,9 +61,9 @@ export function formatMonth(year: number, month: number): string {
 	return new Intl.DateTimeFormat(getCanonicalLocale(), { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(Date.UTC(year, month - 1, 1))
 }
 
-/** The days from `from` to `to` in the user's locale, e.g. "Oct 24 – 30". */
-export function formatDayRange(from: string, to: string): string {
-	return new Intl.DateTimeFormat(getCanonicalLocale(), { month: 'short', day: 'numeric', timeZone: 'UTC' }).formatRange(Date.parse(from), Date.parse(to))
+/** The days from `from` to `to` in the user's locale, by default e.g. "Oct 24 – 30". */
+export function formatDayRange(from: string, to: string, style: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' }): string {
+	return new Intl.DateTimeFormat(getCanonicalLocale(), { ...style, timeZone: 'UTC' }).formatRange(Date.parse(from), Date.parse(to))
 }
 
 /** A whole percent in the user's locale, e.g. "79 %", or signed, e.g. "+18 %". */

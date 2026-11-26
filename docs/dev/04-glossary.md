@@ -89,6 +89,7 @@ Binding terms. Code, UI strings and docs use these words and no synonyms.
 | **statistics** | The daily counters of what honeycomb did for a user (pictures decided, moved to the trash bin, sidecars created and updated, series done, active time), and the page that shows them; no file ids (ADR 0039). |
 | **active time** | The seconds of a cull with an input at most 2 minutes earlier; a longer pause counts its first 2 minutes only. |
 | **year in review** | The section of the statistics page with the year's totals, the calendar of active days, the busiest day and the longest streak; shown in December and January, with a one-time hint in the navigation from 1 December. |
+| **period** | What the statistics page sums: a calendar week (from the locale's first day of the week), month or year, or all time since the first counted day; *Previous period*, *Next period* and *Today* step through them (STATS-001.52). |
 | **streak** | Consecutive days, up to today or yesterday, with at least one counted action. Not a *series*. |
 | **Immich source** | The second source beside Nextcloud folders: one connection's upload library, reached only through the Immich API, never as files (ADR 0041). |
 | **capabilities** | What the opened source allows beside deciding: series, similarity, tags, delete, move, RAW removal, *Keep RAW* and XMP. Nextcloud folders allow all of them, the Immich source none in Phase 1 (ADR 0041, IMMICH-002.17). |
