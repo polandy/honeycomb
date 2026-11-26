@@ -2159,3 +2159,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   (autonomous).
 - 2026-11-26: A failed page without a connection state keeps *Could not load more photos.*; with
   one it names the state and says the photos above stay (IMMICH-002.19) (autonomous).
+- 2026-11-26: RAW capture time and camera go into an own file metadata key, `honeycomb-raw_exif`,
+  read by an own header parser through `OCP\Files` and backfilled by a queued job from the listing
+  and the library scan; no table, so no migration (ADR 0061) (autonomous).
