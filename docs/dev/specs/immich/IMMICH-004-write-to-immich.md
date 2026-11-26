@@ -83,7 +83,8 @@ a reject goes to the Immich trash bin by default and can be restored.
 - **Given** more than 100 affected assets
 - **When** the dialog opens
 - **Then** it shows the counts per kind of change and the conflicts, with a thumbnail for each
-  conflict only
+  conflict only; the counts leave out what is not sent: a skipped asset, and the rating of a reject
+  going to the trash bin or rated −1
 
 ### IMMICH-004.7 – A rating changed in Immich
 
@@ -135,3 +136,22 @@ a reject goes to the Immich trash bin by default and can be restored.
 - **Given** a write that trashed and rated assets
 - **When** the statistics are read
 - **Then** they count the written results
+
+### IMMICH-004.15 – What is pending
+
+- **Given** assets decided in honeycomb, some of them written before
+- **When** the write is planned
+- **Then** an asset is pending when its flag or rating differs from what was last written, or,
+  never written, when it is picked, rejected or rated; a colour label or *Keep RAW* alone is not
+
+### IMMICH-004.16 – The top of a stack
+
+- **Given** a reject that is the top of a stack, and the trash or the archive choice
+- **When** the check runs
+- **Then** the dialog names the stack's size and that only this asset goes
+
+### IMMICH-004.17 – A pick taken back
+
+- **Given** an asset written as a pick on a connection with `picksAsFavorites`, now unflagged
+- **When** the user writes
+- **Then** it stops being a favourite in Immich; without `picksAsFavorites` nothing is sent for it

@@ -25,12 +25,14 @@ function checks(...assets: CheckedAsset[]): ReadonlyMap<string, CheckedAsset> {
 }
 
 describe('isPending', () => {
+	// spec: IMMICH-004.15
 	it('is pending once decided and nothing was written, and not while undecided', () => {
 		expect(isPending(candidate('a', { flag: 'rejected' }))).toBe(true)
 		expect(isPending(candidate('a', { rating: 2 }))).toBe(true)
 		expect(isPending(candidate('a', {}))).toBe(false)
 	})
 
+	// spec: IMMICH-004.15
 	it('compares the flag and the rating with what was written, never the colour label or Keep RAW', () => {
 		const written: WrittenState = { flag: 'picked', rating: 3, immichRating: 3 }
 
@@ -69,6 +71,7 @@ describe('planWrite', () => {
 		expect(planWrite(pending, immich, TRASH, NO_CHOICES).counts).toEqual({ assets: 2, rejects: 0, restores: 0, picks: 1, ratings: 2 })
 	})
 
+	// spec: IMMICH-004.17
 	it('takes a written pick back as a favourite, with picksAsFavorites only', () => {
 		const taken = [candidate('a', { rating: 3 }, { flag: 'picked', rating: 3, immichRating: 3 })]
 		const immich = checks(checked('a', { rating: 3, favorite: true }))
@@ -104,6 +107,25 @@ describe('planWrite', () => {
 		expect(planWrite(pending, immich, TRASH, { ...NO_CHOICES, rating: new Map([['a', 'immich']]) }).adopted).toEqual([{ assetId: 'a', rating: 0 }])
 	})
 
+	// spec: IMMICH-004.7
+	it('offers a rating Immich cleared and adopts it as no stars', () => {
+		const pending = [candidate('a', { rating: 4 }, { flag: 'unflagged', rating: 2, immichRating: 2 })]
+		const plan = planWrite(pending, checks(checked('a', { updatedAt: CHANGED_AT })), TRASH, { ...NO_CHOICES, rating: new Map([['a', 'immich']]) })
+
+		expect(plan).toMatchObject({ conflicts: [{ kind: 'rating', assetId: 'a', immichRating: null, honeycombRating: 4 }], adopted: [{ assetId: 'a', rating: 0 }] })
+	})
+
+	// spec: IMMICH-004.6
+	it('counts what is sent: no skipped asset, and no rating for a reject going to the trash bin or rated −1', () => {
+		const pending = [candidate('a', { flag: 'rejected', rating: 4 }), candidate('b', { flag: 'rejected', rating: 2 }), candidate('c', { flag: 'rejected', rating: 3 })]
+		const immich = checks(checked('a'), checked('b', { sharedAlbum: { name: 'Family', others: 2 } }), checked('c', { trashed: true }))
+		const skipB: WriteChoices = { ...NO_CHOICES, shared: new Map([['b', 'skip']]) }
+
+		expect(planWrite(pending, immich, TRASH, skipB).counts).toEqual({ assets: 2, rejects: 1, restores: 0, picks: 0, ratings: 0 })
+		expect(planWrite(pending, immich, { ...TRASH, rejectAs: 'rating' }, NO_CHOICES).counts).toEqual({ assets: 3, rejects: 2, restores: 0, picks: 0, ratings: 0 })
+		expect(planWrite(pending, immich, { ...TRASH, rejectAs: 'archive' }, NO_CHOICES).counts).toEqual({ assets: 3, rejects: 2, restores: 0, picks: 0, ratings: 2 })
+	})
+
 	// spec: IMMICH-004.8
 	it('names the shared album of a reject to trash and follows Trash anyway, Archive instead or Skip', () => {
 		const pending = [candidate('a', { flag: 'rejected', rating: 2 })]
@@ -126,11 +148,16 @@ describe('planWrite', () => {
 		expect(plan.counts.rejects).toBe(0)
 	})
 
-	it('names the top of a stack that goes alone', () => {
-		const plan = planWrite([candidate('a', { flag: 'rejected' })], checks(checked('a', { stackSize: 3 })), TRASH, NO_CHOICES)
+	// spec: IMMICH-004.16
+	it('names the top of a stack that goes alone to the trash bin or the archive, not for a rating', () => {
+		const pending = [candidate('a', { flag: 'rejected' })]
+		const immich = checks(checked('a', { stackSize: 3 }))
+		const plan = planWrite(pending, immich, TRASH, NO_CHOICES)
 
 		expect(plan.conflicts).toEqual([{ kind: 'stack', assetId: 'a', stackSize: 3 }])
 		expect(plan.changes).toEqual([{ assetId: 'a', trash: true }])
+		expect(planWrite(pending, immich, { ...TRASH, rejectAs: 'archive' }, NO_CHOICES).conflicts).toEqual([{ kind: 'stack', assetId: 'a', stackSize: 3 }])
+		expect(planWrite(pending, immich, { ...TRASH, rejectAs: 'rating' }, NO_CHOICES).conflicts).toEqual([])
 	})
 
 	// spec: IMMICH-004.11
