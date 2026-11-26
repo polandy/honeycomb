@@ -1,46 +1,16 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { StatsAnswer } from '../../../src/logic/statistics.ts'
-
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import StatisticsPage from '../../../src/components/StatisticsPage.vue'
 import { METRIC } from '../../../src/logic/statistics.ts'
 import { formatDay, formatDayRange } from '../../../src/shared/l10n.ts'
 import { logger } from '../../../src/shared/logger.ts'
-import { doneRow, row } from '../logic/folder-fixtures.ts'
+import { row } from '../logic/folder-fixtures.ts'
+import { chip, MONDAY, mountPage, periodLabel, ROOTS, ROWS, step, tile } from './statistics-page-fixtures.ts'
 
 vi.mock('../../../src/shared/logger.ts', () => ({ logger: { error: vi.fn() } }))
-
-const TODAY = '2026-11-20'
-const COUNTERS = [
-	{ day: '2026-11-01', metric: METRIC.decided, value: 100 },
-	{ day: '2026-11-19', metric: METRIC.decided, value: 18 },
-	{ day: TODAY, metric: METRIC.trashPictures, value: 4 },
-	{ day: TODAY, metric: METRIC.sidecarsCreated, value: 7 },
-	{ day: TODAY, metric: METRIC.sidecarsUpdated, value: 3 },
-]
-const MONDAY = 1
-const NOTHING_READ = { pictures: 0, picked: 0, rejected: 0, rated: 0 }
-const ROOTS = { libraryRoots: ['/Photos'] }
-const ROWS = [doneRow({ path: '/Photos/Wedding' }), row({ path: '/Photos/Italy 2025' })]
-
-function mountPage(answer: Partial<StatsAnswer> = {}, settings: unknown = ROOTS, folders = vi.fn(async (_root: string) => ROWS)) {
-	const seams = {
-		loadStatistics: vi.fn(async () => ({ counters: COUNTERS, firstDay: '2026-11-01', today: TODAY, seriesDoneBefore: 0, read: NOTHING_READ, ...answer })),
-		loadLibraryFolders: folders,
-		loadSettings: vi.fn(async () => settings),
-		saveViewState: vi.fn(async (_patch: { year_review_hint_closed: number }) => undefined),
-		firstWeekDay: () => MONDAY,
-	}
-	return mount(StatisticsPage, { props: { seams } })
-}
-
-const tile = (wrapper: ReturnType<typeof mountPage>, label: string) => wrapper.findAll('.delete-stats__item').find((each) => each.text().includes(label))!.text()
-const chip = (wrapper: ReturnType<typeof mountPage>, label: string) => wrapper.findAll('button').find((each) => each.text() === label)!
-const step = (wrapper: ReturnType<typeof mountPage>, label: 'Previous period' | 'Next period') => wrapper.find(`button[aria-label="${label}"]`)
-const periodLabel = (wrapper: ReturnType<typeof mountPage>) => wrapper.find('.statistics-period__label').text()
 
 enableAutoUnmount(afterEach)
 
@@ -83,95 +53,6 @@ describe('StatisticsPage', () => {
 
 		expect(tile(wrapper, 'Moved to the trash bin')).toContain('4')
 		expect(tile(wrapper, 'Sidecars created / updated')).toContain('7 / 3')
-	})
-
-	// spec: STATS-001.52, STATS-001.55
-	it('steps back to an empty month and to today, with the arrows disabled at the ends', async () => {
-		const wrapper = mountPage({ firstDay: '2026-10-01' })
-		await flushPromises()
-
-		expect(step(wrapper, 'Next period').attributes('disabled')).toBeDefined()
-		expect(chip(wrapper, 'Today').attributes('disabled')).toBeDefined()
-
-		await step(wrapper, 'Previous period').trigger('click')
-
-		expect(periodLabel(wrapper)).toBe('October 2026')
-		expect(tile(wrapper, 'Photos decided')).toContain('0')
-		expect(tile(wrapper, 'Photos decided')).not.toContain('%')
-		expect(wrapper.find('.statistics-bars__empty').text()).toBe('Nothing counted in this period.')
-		expect(wrapper.find('.statistics-bars__chart').exists()).toBe(false)
-		expect(step(wrapper, 'Previous period').attributes('disabled')).toBeDefined()
-		expect(step(wrapper, 'Next period').attributes('disabled')).toBeUndefined()
-
-		await chip(wrapper, 'Today').trigger('click')
-
-		expect(periodLabel(wrapper)).toBe('November 2026')
-	})
-
-	// spec: STATS-001.52
-	it('keeps the month stepped to when the segment goes to the year and back', async () => {
-		const wrapper = mountPage({ firstDay: '2025-01-01' })
-		await flushPromises()
-		await step(wrapper, 'Previous period').trigger('click')
-		await chip(wrapper, 'Year').trigger('click')
-
-		expect(periodLabel(wrapper)).toBe('2026')
-
-		await chip(wrapper, 'Month').trigger('click')
-
-		expect(periodLabel(wrapper)).toBe('October 2026')
-	})
-
-	// spec: STATS-001.41
-	it('compares Photos decided up to the same day and names the days before', async () => {
-		const wrapper = mountPage()
-		await flushPromises()
-		await chip(wrapper, 'Week').trigger('click')
-
-		expect(tile(wrapper, 'Photos decided')).not.toContain('%')
-
-		const before = mountPage({ counters: [...COUNTERS, { day: '2026-11-10', metric: METRIC.decided, value: 9 }, { day: '2026-11-15', metric: METRIC.decided, value: 900 }], firstDay: '2026-10-01' })
-		await flushPromises()
-		await chip(before, 'Week').trigger('click')
-
-		expect(tile(before, 'Photos decided')).toMatch(/\+100\s?%/)
-		expect(tile(before, 'Photos decided')).toContain(`% on ${formatDayRange('2026-11-09', '2026-11-13')}`)
-	})
-
-	// spec: STATS-001.41
-	it('compares a past period with the whole period before', async () => {
-		const wrapper = mountPage({ counters: [{ day: '2026-09-03', metric: METRIC.decided, value: 10 }, { day: '2026-10-30', metric: METRIC.decided, value: 5 }], firstDay: '2026-09-03' })
-		await flushPromises()
-		await step(wrapper, 'Previous period').trigger('click')
-
-		expect(tile(wrapper, 'Photos decided')).toMatch(/-50\s?% on September/)
-
-		const week = mountPage({ counters: [{ day: '2026-11-04', metric: METRIC.decided, value: 10 }, { day: '2026-11-11', metric: METRIC.decided, value: 5 }], firstDay: '2026-11-01' })
-		await flushPromises()
-		await chip(week, 'Week').trigger('click')
-		await step(week, 'Previous period').trigger('click')
-
-		expect(tile(week, 'Photos decided')).toMatch(/-50\s?% on the week before/)
-	})
-
-	// spec: STATS-001.56
-	it('shows the longest run inside a past period', async () => {
-		const wrapper = mountPage({ counters: [...COUNTERS, { day: '2026-10-07', metric: METRIC.decided, value: 1 }, { day: '2026-10-08', metric: METRIC.decided, value: 1 }, { day: '2026-10-09', metric: METRIC.decided, value: 1 }], firstDay: '2026-10-07' })
-		await flushPromises()
-		await step(wrapper, 'Previous period').trigger('click')
-
-		expect(tile(wrapper, 'Days in a row')).toContain('3')
-		expect(tile(wrapper, 'Days in a row')).toContain('Longest in this period')
-	})
-
-	// spec: STATS-001.54
-	it('hatches the days after today and outlines today', async () => {
-		const wrapper = mountPage()
-		await flushPromises()
-
-		expect(wrapper.findAll('.statistics-bars__bar--future')).toHaveLength(10)
-		expect(wrapper.findAll('.statistics-bars__bar--today')).toHaveLength(1)
-		expect(wrapper.find('.statistics-bars__bar--today').attributes('aria-label')).toContain(formatDay(TODAY))
 	})
 
 	// spec: STATS-001.22
