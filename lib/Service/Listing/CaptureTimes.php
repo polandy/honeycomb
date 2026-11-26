@@ -41,7 +41,7 @@ final class CaptureTimes {
 		return $times;
 	}
 
-	/** The capture time in `$metadata`, Photos' first, else honeycomb's RAW header value (ADR 0061), null without either. */
+	/** The capture time in `$metadata`, Photos' first, else the RAW header's (ADR 0061). */
 	public static function from(?IFilesMetadata $metadata): ?int {
 		try {
 			return $metadata?->getInt(self::KEY);

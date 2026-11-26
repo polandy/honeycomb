@@ -25,8 +25,9 @@ final class CaptureTimesTest extends TestCase {
 			3 => $this->metadata([CaptureTimes::KEY => 1_002, RawExif::KEY => ['DateTimeOriginal' => 9_999]]),
 			4 => $this->metadata([RawExif::KEY => []]),
 			5 => $this->metadata([]),
+			6 => $this->metadata([RawExif::KEY => ['DateTimeOriginal' => '2026:11:10 10:00:01']]),
 		]);
 
-		$this->assertSame([1 => 1_000, 2 => 1_001, 3 => 1_002], (new CaptureTimes($manager))->of([1, 2, 3, 4, 5]));
+		$this->assertSame([1 => 1_000, 2 => 1_001, 3 => 1_002], (new CaptureTimes($manager))->of([1, 2, 3, 4, 5, 6]));
 	}
 }

@@ -51,12 +51,14 @@ final class RawExif {
 			return [];
 		}
 		$value = [];
-		if (is_int($stored['DateTimeOriginal'] ?? null)) {
-			$value['DateTimeOriginal'] = $stored['DateTimeOriginal'];
+		$time = $stored['DateTimeOriginal'] ?? null;
+		if (is_int($time)) {
+			$value['DateTimeOriginal'] = $time;
 		}
 		foreach (['Make', 'Model'] as $name) {
-			if (is_string($stored[$name] ?? null)) {
-				$value[$name] = $stored[$name];
+			$text = $stored[$name] ?? null;
+			if (is_string($text)) {
+				$value[$name] = $text;
 			}
 		}
 		return $value;
