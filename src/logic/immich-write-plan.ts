@@ -120,6 +120,15 @@ export interface WriteTally {
 
 const REJECTED_RATING = -1
 
+/** What a new reject became: its choice, the rating −1, or done as already in the trash bin. */
+type RejectOutcome = SharedChoice | 'rating' | 'done'
+
+/** How a checked asset was planned: its reject and whether its rating is sent as a rating. */
+interface AssetOutcome {
+	readonly reject: RejectOutcome | null
+	readonly rated: boolean
+}
+
 /** Whether the asset's flag or rating differs from what was last written; colour label and *Keep RAW* are never written. */
 export function isPending({ decision, written }: WriteCandidate): boolean {
 	if (written === null) {
@@ -135,12 +144,10 @@ export function planWrite(candidates: readonly WriteCandidate[], checks: Readonl
 	const counts = { ...plan.counts }
 	for (const candidate of candidates.filter(isPending)) {
 		const asset = checks.get(candidate.assetId)
-		countChange(counts, candidate, asset)
 		if (asset === undefined) {
 			plan.gone.push(candidate.assetId)
-		} else {
-			planAsset(plan, candidate, asset, rejectAs, options, choices)
 		}
+		countChange(counts, candidate, asset === undefined ? null : planAsset(plan, candidate, asset, rejectAs, options, choices))
 	}
 	return { ...plan, counts }
 }
@@ -166,11 +173,14 @@ function isTakenBack({ decision, written }: WriteCandidate): boolean {
 	return decision.flag !== 'rejected' && written?.flag === 'rejected'
 }
 
-/** Adds the candidate's kinds of change to the dialog's counts. */
-function countChange(counts: { -readonly [K in keyof WriteCounts]: number }, candidate: WriteCandidate, asset: CheckedAsset | undefined): void {
+/** Adds what the candidate sends to the dialog's counts; unchecked, its decision says what it would send. */
+function countChange(counts: { -readonly [K in keyof WriteCounts]: number }, candidate: WriteCandidate, outcome: AssetOutcome | null): void {
 	const { decision, written } = candidate
+	if (outcome?.reject === 'skip') {
+		return
+	}
 	counts.assets++
-	if (isNewReject(candidate) && asset?.trashed !== true) {
+	if (isNewReject(candidate) && outcome?.reject !== 'done') {
 		counts.rejects++
 	}
 	if (isTakenBack(candidate)) {
@@ -179,32 +189,33 @@ function countChange(counts: { -readonly [K in keyof WriteCounts]: number }, can
 	if (decision.flag === 'picked' && written?.flag !== 'picked') {
 		counts.picks++
 	}
-	if (decision.rating !== (written?.rating ?? 0)) {
+	if (outcome === null ? decision.rating !== (written?.rating ?? 0) : outcome.rated) {
 		counts.ratings++
 	}
 }
 
-/** Puts the checked asset's change, or why none is sent, into the plan. */
-function planAsset(plan: WritePlan, candidate: WriteCandidate, asset: CheckedAsset, rejectAs: RejectAs, options: WriteOptions, choices: WriteChoices): void {
+/** Puts the checked asset's change, or why none is sent, into the plan, and says what it became. */
+function planAsset(plan: WritePlan, candidate: WriteCandidate, asset: CheckedAsset, rejectAs: RejectAs, options: WriteOptions, choices: WriteChoices): AssetOutcome {
 	const { assetId } = candidate
 	const reject = isNewReject(candidate) ? rejectChoice(plan, asset, rejectAs, choices) : null
 	if (reject === 'skip') {
 		plan.skipped.push(assetId)
-		return
+		return { reject, rated: false }
 	}
 	if ((reject === 'trash' || reject === 'archive') && asset.stackSize !== null) {
 		plan.conflicts.push({ kind: 'stack', assetId, stackSize: asset.stackSize })
 	}
-	const change = reject === 'trash' ? { assetId, trash: true as const } : { assetId, ...fieldChanges(plan, candidate, asset, reject, options, choices) }
+	const change: AssetChange = reject === 'trash' ? { assetId, trash: true } : { assetId, ...fieldChanges(plan, candidate, asset, reject, options, choices) }
 	if (Object.keys(change).length > 1) {
 		plan.changes.push(change)
 	} else {
 		plan.done.push(assetId)
 	}
+	return { reject, rated: change.rating !== undefined && reject !== 'rating' }
 }
 
 /** What a new reject becomes, after Immich's trash bin and a shared album. */
-function rejectChoice(plan: WritePlan, asset: CheckedAsset, rejectAs: RejectAs, choices: WriteChoices): SharedChoice | 'rating' | 'done' {
+function rejectChoice(plan: WritePlan, asset: CheckedAsset, rejectAs: RejectAs, choices: WriteChoices): RejectOutcome {
 	if (asset.trashed) {
 		plan.conflicts.push({ kind: 'trashed', assetId: asset.assetId })
 		return 'done'
@@ -217,7 +228,7 @@ function rejectChoice(plan: WritePlan, asset: CheckedAsset, rejectAs: RejectAs, 
 }
 
 /** The archive, favourite and rating fields that differ from Immich. */
-function fieldChanges(plan: WritePlan, candidate: WriteCandidate, asset: CheckedAsset, reject: SharedChoice | 'rating' | 'done' | null, options: WriteOptions, choices: WriteChoices): Omit<AssetChange, 'assetId'> {
+function fieldChanges(plan: WritePlan, candidate: WriteCandidate, asset: CheckedAsset, reject: RejectOutcome | null, options: WriteOptions, choices: WriteChoices): Omit<AssetChange, 'assetId'> {
 	if (reject === 'done') {
 		return {}
 	}
