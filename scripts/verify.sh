@@ -40,15 +40,16 @@ parallel_wait
 step "eslint conventions" npx vitest run tests/js/conventions/eslint.test.ts
 step build npx vite build
 # Each Nextcloud container has its own port and name (scripts/e2e-names.sh); one run per host at a time.
-# Orphans go first: an aborted run's leftovers would otherwise hold the slot or the ports.
-e2e_reap_orphans || failed=1
+# No container joins or leaves Docker's bridge while a run tests (docs/dev/02-workflow.md §2.4).
 e2e_slot_take || failed=1
+e2e_reap_orphans || failed=1
 e2e_remove_on_exit
 e2e_ports_choose || failed=1
 parallel_step "phpunit db" scripts/php-db-tests.sh
-parallel_step e2e npx playwright test
-parallel_step "e2e oldest" env HONEYCOMB_E2E_NEXTCLOUD=oldest HONEYCOMB_E2E_PORT="$HONEYCOMB_E2E_OLDEST_PORT" npx playwright test
+parallel_step e2e env HONEYCOMB_E2E_KEEP=1 npx playwright test
+parallel_step "e2e oldest" env HONEYCOMB_E2E_KEEP=1 HONEYCOMB_E2E_NEXTCLOUD=oldest HONEYCOMB_E2E_PORT="$HONEYCOMB_E2E_OLDEST_PORT" npx playwright test
 parallel_wait
+e2e_remove_own || failed=1
 e2e_slot_release
 
 verify_total
