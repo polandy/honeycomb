@@ -3,35 +3,44 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { Bar, Period } from '../logic/statistics.ts'
+import type { BarUnit, PeriodBar, PeriodKind } from '../logic/stats-period.ts'
 
 import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
 import { formatDay, formatDayRange, formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
 
-const props = defineProps<{ bars: readonly Bar[], period: Period }>()
+const props = defineProps<{ bars: readonly PeriodBar[], kind: PeriodKind, unit: BarUnit, counted: boolean }>()
 
-/** Above this many bars only the first and the last carry a label, so the labels never crowd. */
-const MAX_LABELS = 12
 const PERCENT = 100
-/** The label under a bar: the weekday, the first day, or the month. */
-const LABEL_STYLE: Record<Period, Intl.DateTimeFormatOptions> = {
-	week: { weekday: 'short' },
-	month: { month: 'short', day: 'numeric' },
-	year: { month: 'short' },
-	all: { month: 'short', year: '2-digit' },
-}
+const WEEK_DAYS = 7
+const DAY_START = 'YYYY-MM-'.length
+const YEAR_LENGTH = 'YYYY'.length
 
 const heading = computed(() => ({
-	week: t('honeycomb', 'Per day'),
-	month: t('honeycomb', 'Per week'),
-	year: t('honeycomb', 'Per month'),
-	all: t('honeycomb', 'Per month'),
-}[props.period]))
+	day: t('honeycomb', 'Per day'),
+	month: t('honeycomb', 'Per month'),
+	year: t('honeycomb', 'Per year'),
+}[props.unit]))
 const highest = computed(() => Math.max(1, ...props.bars.flatMap((bar) => [bar.decided, bar.trashed])))
 
+/** The label under a bar: the weekday, every seventh day of a month from the 1st, the month or the year. */
+function label(bar: PeriodBar): string {
+	const day = bar.range.from
+	if (props.unit === 'year') {
+		return day.slice(0, YEAR_LENGTH)
+	}
+	if (props.unit === 'month') {
+		return formatDay(day, { month: 'short' })
+	}
+	if (props.kind === 'week') {
+		return formatDay(day, { weekday: 'short' })
+	}
+	const date = Number(day.slice(DAY_START))
+	return (date - 1) % WEEK_DAYS === 0 ? String(date) : ''
+}
+
 /** What a bar shows, for a screen reader. */
-function description(bar: Bar): string {
+function description(bar: PeriodBar): string {
 	return t('honeycomb', '{days}: {decided} photos decided, {trashed} moved to the trash bin', {
 		days: bar.range.from === bar.range.to ? formatDay(bar.range.from) : formatDayRange(bar.range.from, bar.range.to),
 		decided: formatNumber(bar.decided),
@@ -40,27 +49,30 @@ function description(bar: Bar): string {
 }
 
 const height = (value: number) => `${(value / highest.value) * PERCENT}%`
-const labelled = (index: number) => props.bars.length <= MAX_LABELS || index === 0 || index === props.bars.length - 1
 </script>
 
 <template>
 	<section class="statistics-bars">
 		<h3>{{ heading }}</h3>
-		<ul class="statistics-bars__chart">
+		<p v-if="!props.counted" class="statistics-bars__empty">
+			{{ t('honeycomb', 'Nothing counted in this period.') }}
+		</p>
+		<ul v-else class="statistics-bars__chart">
 			<li
-				v-for="(bar, index) in props.bars"
+				v-for="bar in props.bars"
 				:key="bar.range.from"
 				class="statistics-bars__bar"
+				:class="{ 'statistics-bars__bar--future': bar.future, 'statistics-bars__bar--before-first': bar.beforeFirst, 'statistics-bars__bar--today': bar.today }"
 				role="img"
 				:aria-label="description(bar)">
 				<span class="statistics-bars__columns">
 					<span class="statistics-bars__decided" :style="{ height: height(bar.decided) }" />
 					<span class="statistics-bars__trashed" :style="{ height: height(bar.trashed) }" />
 				</span>
-				<span class="statistics-bars__label" aria-hidden="true">{{ labelled(index) ? formatDay(bar.range.from, LABEL_STYLE[props.period]) : '' }}</span>
+				<span class="statistics-bars__label" aria-hidden="true">{{ label(bar) }}</span>
 			</li>
 		</ul>
-		<p class="statistics-bars__legend">
+		<p v-if="props.counted" class="statistics-bars__legend">
 			<span class="statistics-bars__key statistics-bars__key--decided" />{{ t('honeycomb', 'Photos decided') }}
 			<span class="statistics-bars__key statistics-bars__key--trashed" />{{ t('honeycomb', 'Moved to the trash bin') }}
 		</p>
@@ -90,6 +102,19 @@ const labelled = (index: number) => props.bars.length <= MAX_LABELS || index ===
 	align-items: flex-end;
 	gap: 2px;
 	border-block-end: 1px solid var(--color-border);
+}
+
+.statistics-bars__bar--future .statistics-bars__columns {
+	background: repeating-linear-gradient(135deg, var(--color-border) 0 2px, transparent 2px 6px);
+}
+
+.statistics-bars__bar--today .statistics-bars__columns {
+	outline: 2px solid var(--color-primary-element);
+	outline-offset: 1px;
+}
+
+.statistics-bars__empty {
+	color: var(--color-text-maxcontrast);
 }
 
 .statistics-bars__columns > span {

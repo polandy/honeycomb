@@ -63,22 +63,30 @@ pictures a minute. A session starts when a folder set opens with pictures. Activ
 between two inputs (a pointer press, a key, a wheel turn), at most 2 minutes each. *Statistics*
 opens the statistics page and comes with it (metrics PR 6); *Close* closes the card.
 
-**The statistics page** is a navigation entry *Statistics* beside *Similarity*. A period chip row
-offers *7 days*, *30 days*, the current year and *All time*, 30 days preselected. Tiles show
-pictures decided (with the change against the period before), moved to the trash bin (with space
-freed and deleted for good), sidecars created / updated (with those from digiKam or darktable) and
-days in a row (with the longest streak); a day counts toward days in a row when any of its
-counters is above zero. A line shows active time, pictures a minute (from one active minute on),
-series done and RAW files removed. Bars show pictures decided and moved to the trash bin per day
-(7 days), per 7 days ending today (30 days, the oldest bar shorter) or per calendar month (year,
-all time). The period ends today, the user's day the server answers; the current year starts on 1
-January, all time on the first counted day. *Library progress* shows how far the library roots
-have come (below); *Of the pictures read so far* shows the shares picked, rejected, unflagged and
-rated from the XMP cache, counting only the pictures whose XMP honeycomb has read, so a library
-not yet opened shows little. A footnote says *Counted since {date}.* and, when stored series were
-done before the counting began, *Before that: n series done (no date).* There is no start value
-for decided pictures: honeycomb is deployed nowhere with decisions of the old table, so the page
-counts from the first counter on.
+**The statistics page** is a navigation entry *Statistics* beside *Similarity*. It shows one
+calendar period: a segment offers *Week*, *Month*, *Year* and *All time*, the current month
+preselected. Beside it a stepper names the period (*Nov 22 – 28, 2026*, *November 2026*, *2026*)
+with *Previous period* and *Next period* and *Today*, which goes to the period that holds today;
+*All time* has no stepper, only *Since {day}*. A week starts on the first day of the week of the
+user's Nextcloud locale. Changing the segment keeps the day the user stepped to, so March 2025
+becomes 2025 and back March 2025. The user's day is the `today` the server answers; stepping never
+goes past the period of today nor before the period of the first counted day. Tiles show pictures
+decided (with the change against the period before), moved to the trash bin (with space freed and
+deleted for good), sidecars created / updated (with those from digiKam or darktable) and days in a
+row (with the longest streak; in a past week, month or year the longest run of active days inside
+it); a day counts toward days in a row when any of its counters is above zero. A line shows active
+time, pictures a minute (from one active minute on), series done and RAW files removed. Bars show
+pictures decided and moved to the trash bin per day (week, month), per month (year) or per year
+(all time; per month while the counting lies in one calendar year). Days and months after today
+show as hatched empty slots, those before the first counted day as plain empty slots, and the bar
+of today (week, month, year) is outlined. A period without a count says *Nothing counted in this
+period.* instead of the bars. *Library progress* shows how far the library roots have come (below);
+*Of the pictures read so far* shows the shares picked, rejected, unflagged and rated from the XMP
+cache, counting only the pictures whose XMP honeycomb has read, so a library not yet opened shows
+little. A footnote says *Counted since {date}.* and, when stored series were done before the
+counting began, *Before that: n series done (no date).* There is no start value for decided
+pictures: honeycomb is deployed nowhere with decisions of the old table, so the page counts from
+the first counter on.
 
 **The year in review** opens the page from 1 December to 31 January, for the year that ends or
 just ended, above the period tiles: a headline with the pictures decided and the space freed, tiles
@@ -295,11 +303,13 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **When** the next position save is sent
 - **Then** it carries 90 active seconds and the one after it starts again from 0
 
-### STATS-001.21 – The page shows a period
+### STATS-001.21 – The page shows a calendar period
 
 - **Given** counters on several days
-- **When** the user picks *7 days*, *30 days*, the year or *All time*
-- **Then** the tiles show the sums of that period and the bars split it per day, week or month
+- **When** the page opens, and when the user picks *Week*, *Month*, *Year* or *All time*
+- **Then** it opens on the current month; the tiles show the sums of that calendar period and the
+  bars split it per day (week, month), per month (year) or per year (all time, per month while
+  the counting lies in one calendar year)
 
 ### STATS-001.22 – Days in a row
 
@@ -378,10 +388,11 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 
 ### STATS-001.41 – The period before
 
-- **Given** pictures decided in the period and in the period of the same length before it
+- **Given** pictures decided in the period and in the period before it
 - **When** the page shows the tile *Photos decided*
-- **Then** it adds the change in percent against the period before; without numbers before, or
-  for *All time*, it adds nothing
+- **Then** it adds the change in percent against the period before, in the period of today only
+  up to the same day (1–26 November against 1–26 October); the note names the period before; without
+  numbers before, or for *All time*, it adds nothing
 
 ### STATS-001.42 – The library progress
 
@@ -457,6 +468,41 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **Then** the *Library progress* says *The library progress could not be loaded.* and the other
   numbers still show; the error is logged
 
+### STATS-001.52 – Step through the periods
+
+- **Given** the page shows a week, month or year
+- **When** the user picks *Previous period*, *Next period* or *Today*
+- **Then** it shows the period before, the period after or the period of today, at the same
+  granularity; *Next period* and *Today* are disabled in the period of today, *Previous period* in
+  the period of the first counted day; a new segment keeps the day stepped to
+
+### STATS-001.53 – The week starts with the locale
+
+- **Given** the user's Nextcloud locale starts the week on Sunday, or on Monday
+- **When** the page shows a week
+- **Then** the week runs from that day for seven days
+
+### STATS-001.54 – Days to come, the first counted day and today
+
+- **Given** a period that holds today, or the first counted day
+- **When** the page draws its bars
+- **Then** the slots after today are hatched and empty, those before the first counted day empty
+  without hatching, and the bar of today is outlined (not under *All time*)
+
+### STATS-001.55 – A period without a count
+
+- **Given** a period in which nothing was counted, e.g. a month off
+- **When** the page shows it
+- **Then** the tiles show 0 without a change, the bars give way to *Nothing counted in this
+  period.*, and the segment and the stepper stay usable
+
+### STATS-001.56 – Days in a row in a past period
+
+- **Given** a past week, month or year
+- **When** the page shows the tile *Days in a row*
+- **Then** it shows the longest run of active days inside the period with the note *Longest in
+  this period*; in the period of today and under *All time* it shows the streak and *Longest n*
+
 ## History
 
 | Date | Change |
@@ -470,3 +516,4 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | 2026-11-20 | Series done before the counting and the state of the pictures read so far; no start value for decided pictures (.24, .44, .45; metrics PR 7 of 8) |
 | 2026-11-20 | Year in review: numbers, calendar of active days, hint in the navigation (.25, .26, .46–.49; metrics PR 8 of 8) |
 | 2026-11-22 | The library progress replaces *Folder sets* (.42, .50, .51; ADR 0049, M12 PR 7) |
+| 2026-11-26 | Calendar periods replace the rolling 7 and 30 days: segment, stepper, *Today*, week start from the locale, bars with days to come (.21, .41 reworded; .52–.56; statistics slice 1) |

@@ -77,11 +77,11 @@ test('shows the counted numbers, the library panel and since when it counts on t
 
 	await page.goto('/index.php/apps/honeycomb/statistics')
 
-	await expect(page.getByRole('button', { name: '30 days' })).toHaveAttribute('aria-pressed', 'true')
+	await expect(page.getByRole('button', { name: 'Month' })).toHaveAttribute('aria-pressed', 'true')
 	await expect(page.locator('.delete-stats__item', { hasText: 'Days in a row' })).toContainText('1')
 	await expect(page.locator('.statistics-library')).toContainText('Choose your library')
 	await expect(page.getByText(/^Counted since /)).toBeVisible()
-	await page.getByRole('button', { name: '7 days' }).click()
+	await page.getByRole('button', { name: 'Week' }).click()
 	await expect(page.locator('.statistics-bars__bar')).toHaveCount(7)
 	await page.screenshot({ path: testInfo.outputPath('statistics-desktop.png'), animations: 'disabled' })
 })

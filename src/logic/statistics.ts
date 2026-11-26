@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { picturesPerMinute } from './active-time.ts'
+import type { DayRange } from './days.ts'
+
+import { addDays } from './days.ts'
 
 /** The metric keys the statistics page reads (STATS-001, ADR 0039). */
 export const METRIC = {
@@ -43,85 +45,8 @@ export interface StatsAnswer {
 	readonly read: ReadPictures
 }
 
-/** The periods the page sums over (STATS-001.21). */
-export type Period = 'week' | 'month' | 'year' | 'all'
-
-/** The days from `from` to `to`, both included, as `YYYY-MM-DD`. */
-export interface DayRange {
-	readonly from: string
-	readonly to: string
-}
-
-/** One bar: the pictures decided and moved to the trash bin in its days. */
-export interface Bar {
-	readonly range: DayRange
-	readonly decided: number
-	readonly trashed: number
-}
-
-/** The numbers of one period: the tiles, the line below them and the bars. */
-export interface PeriodNumbers {
-	/** The days of the period, both ends included. */
-	readonly days: number
-	readonly decided: number
-	readonly decidedChange: number | null
-	readonly trashed: number
-	readonly freedBytes: number
-	readonly deletedForGood: number
-	readonly sidecarsCreated: number
-	readonly sidecarsUpdated: number
-	readonly sidecarsForeign: number
-	readonly activeMs: number
-	readonly perMinute: number | null
-	readonly seriesDone: number
-	readonly rawsRemoved: number
-	readonly bars: readonly Bar[]
-}
-
-const DAY_MS = 86_400_000
-const SECOND_MS = 1000
-const WEEK_DAYS = 7
-const MONTH_DAYS = 30
 const PERCENT = 100
 const DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/
-const DAY_LENGTH = 'YYYY-MM-DD'.length
-
-/** The `YYYY-MM-DD` day of a UTC time in ms. */
-function dayOf(ms: number): string {
-	return new Date(ms).toISOString().slice(0, DAY_LENGTH)
-}
-
-/** The day `days` after `day` (before, when negative). */
-function addDays(day: string, days: number): string {
-	return dayOf(Date.parse(day) + days * DAY_MS)
-}
-
-/** The days from `from` to `to`, both included. */
-function dayCount(range: DayRange): number {
-	return Math.round((Date.parse(range.to) - Date.parse(range.from)) / DAY_MS) + 1
-}
-
-/** The last day of the calendar month of `day`. */
-function monthEnd(day: string): string {
-	const date = new Date(day)
-	return dayOf(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0))
-}
-
-/** The range of a period ending today; all time starts at the first counted day, or today without one. */
-export function periodRange(period: Period, today: string, firstDay: string | null): DayRange {
-	const from = {
-		week: () => addDays(today, 1 - WEEK_DAYS),
-		month: () => addDays(today, 1 - MONTH_DAYS),
-		year: () => `${today.slice(0, 4)}-01-01`,
-		all: () => firstDay ?? today,
-	}[period]()
-	return { from, to: today }
-}
-
-/** The range of the same length that ends the day before `range` (STATS-001.41). */
-export function rangeBefore(range: DayRange): DayRange {
-	return { from: addDays(range.from, -dayCount(range)), to: addDays(range.from, -1) }
-}
 
 /** The sum of a metric over the days of the range. */
 export function periodSums(counters: readonly Counter[], range: DayRange): (metric: string) => number {
@@ -133,32 +58,6 @@ export function periodSums(counters: readonly Counter[], range: DayRange): (metr
 /** The whole percent `now` differs from `before`, or null without numbers before. */
 export function percentChange(now: number, before: number): number | null {
 	return before === 0 ? null : Math.round(((now - before) / before) * PERCENT)
-}
-
-/** The ranges of the bars: days for 7 days, 7 days each ending today for 30, calendar months else. */
-function barRanges(period: Period, range: DayRange): DayRange[] {
-	const ranges: DayRange[] = []
-	if (period === 'month') {
-		for (let to = range.to; to >= range.from; to = addDays(to, -WEEK_DAYS)) {
-			const from = addDays(to, 1 - WEEK_DAYS)
-			ranges.unshift({ from: from < range.from ? range.from : from, to })
-		}
-		return ranges
-	}
-	const end = period === 'week' ? (day: string) => day : monthEnd
-	for (let from = range.from; from <= range.to; from = addDays(end(from), 1)) {
-		const to = end(from)
-		ranges.push({ from, to: to > range.to ? range.to : to })
-	}
-	return ranges
-}
-
-/** The bars of a period, oldest first (STATS-001.21). */
-export function periodBars(counters: readonly Counter[], period: Period, range: DayRange): Bar[] {
-	return barRanges(period, range).map((barRange) => {
-		const sums = periodSums(counters, barRange)
-		return { range: barRange, decided: sums(METRIC.decided), trashed: sums(METRIC.trashPictures) }
-	})
 }
 
 /** The current run of active days up to today or yesterday, and the longest run (STATS-001.22). */
@@ -202,28 +101,4 @@ function isCounter(value: unknown): value is Counter {
 	}
 	const { day, metric, value: count } = value as Record<string, unknown>
 	return typeof day === 'string' && DAY_PATTERN.test(day) && typeof metric === 'string' && Number.isInteger(count)
-}
-
-/** The numbers of a period ending today, with pictures decided compared to the period before (STATS-001.41). */
-export function periodNumbers(counters: readonly Counter[], period: Period, today: string, firstDay: string | null): PeriodNumbers {
-	const range = periodRange(period, today, firstDay)
-	const sums = periodSums(counters, range)
-	const decided = sums(METRIC.decided)
-	const activeMs = sums(METRIC.activeSeconds) * SECOND_MS
-	return {
-		days: dayCount(range),
-		decided,
-		decidedChange: period === 'all' ? null : percentChange(decided, periodSums(counters, rangeBefore(range))(METRIC.decided)),
-		trashed: sums(METRIC.trashPictures),
-		freedBytes: sums(METRIC.trashBytes) + sums(METRIC.deletedBytes),
-		deletedForGood: sums(METRIC.deletedPictures),
-		sidecarsCreated: sums(METRIC.sidecarsCreated),
-		sidecarsUpdated: sums(METRIC.sidecarsUpdated),
-		sidecarsForeign: sums(METRIC.sidecarsForeign),
-		activeMs,
-		perMinute: picturesPerMinute(decided, activeMs),
-		seriesDone: sums(METRIC.seriesDone),
-		rawsRemoved: sums(METRIC.rawsRemoved),
-		bars: periodBars(counters, period, range),
-	}
 }
