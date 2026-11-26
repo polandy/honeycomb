@@ -25,7 +25,15 @@ export const ROWS = [doneRow({ path: '/Photos/Wedding' }), row({ path: '/Photos/
 
 /** An address that remembers the hash written to it. */
 export function fakeLocation(hash = '') {
-	const location = { hash, writes: [] as string[], read: () => location.hash, write: (next: string) => { location.hash = next; location.writes.push(next) } }
+	const location = {
+		hash,
+		writes: [] as string[],
+		read: () => location.hash,
+		write: (next: string) => {
+			location.hash = next
+			location.writes.push(next)
+		},
+	}
 	return location
 }
 

@@ -3,10 +3,10 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { LocationApi } from '../cull/cull-location.ts'
 import type { FolderRow } from '../logic/folder-row.ts'
 import type { StatsAnswer } from '../logic/statistics.ts'
 import type { PeriodBounds, PeriodKind, PeriodNumbers } from '../logic/stats-period.ts'
+import type { LocationApi } from '../shared/browser-location.ts'
 import type { PageNavigationSeams } from './PageLayout.vue'
 
 import { n, t } from '@nextcloud/l10n'

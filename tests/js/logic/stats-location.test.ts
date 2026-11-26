@@ -22,8 +22,23 @@ describe('parsePeriodHash', () => {
 
 	// spec: STATS-001.58
 	it.each([
-		'', '#', '#foo', '#cull=1', '#month=2026-13', '#month=2026-00', '#month=2026-7', '#month=2026-07-01',
-		'#week=2026-02-30', '#week=2026-11', '#week=2026-11-18x', '#year=26', '#year=abcd', '#year=2025-01', '#all=1', '#month=', 'month=2025-07',
+		'',
+		'#',
+		'#foo',
+		'#cull=1',
+		'#month=2026-13',
+		'#month=2026-00',
+		'#month=2026-7',
+		'#month=2026-07-01',
+		'#week=2026-02-30',
+		'#week=2026-11',
+		'#week=2026-11-18x',
+		'#year=26',
+		'#year=abcd',
+		'#year=2025-01',
+		'#all=1',
+		'#month=',
+		'month=2025-07',
 	])('names no period for %j', (hash) => {
 		expect(parsePeriodHash(hash)).toBeNull()
 	})
