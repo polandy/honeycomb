@@ -10,5 +10,5 @@ COMPOSER_IMAGE=composer:2.11.1@sha256:8de2184c6de224f4689e8f80ed5f5edaf0030b6b8b
 if command -v php >/dev/null 2>&1; then
   exec "$@"
 fi
-exec docker run --rm -u "$(id -u):$(id -g)" -e COMPOSER_HOME=/tmp/composer \
+exec docker run --rm --network host -u "$(id -u):$(id -g)" -e COMPOSER_HOME=/tmp/composer \
   -v "$PWD":/app -w /app "$COMPOSER_IMAGE" "$@"

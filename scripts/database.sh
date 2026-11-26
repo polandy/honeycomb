@@ -12,14 +12,14 @@ DATABASE_START_SECONDS=120
 database_engine() { echo "${HONEYCOMB_DB:-sqlite}"; }
 database_container() { echo "honeycomb-db-$1"; }
 
-# Runs the database container <id> on its own network until it reports healthy; DATABASE_COMMAND follows the image.
+# Runs the database container <id> until it reports healthy; DATABASE_COMMAND follows the image.
+# It joins no network: Nextcloud shares its namespace, so neither changes the host's addresses (docs/dev/02-workflow.md §2.4).
 database_run() {
   local id=$1 image=$2 health=$3
   shift 3
   local name tries
   name=$(database_container "$id")
-  docker network create "$name" >/dev/null || return 1
-  docker run --detach --name "$name" --network "$name" --label "$(e2e_owner_label)" \
+  docker run --detach --name "$name" --network none --label "$(e2e_owner_label)" \
     --health-cmd "$health" --health-interval 2s "$@" "$image" "${DATABASE_COMMAND[@]}" >/dev/null || return 1
   for ((tries = 0; tries < DATABASE_START_SECONDS; tries++)); do
     [ "$(docker inspect --format '{{.State.Health.Status}}' "$name")" = healthy ] && return 0
@@ -34,13 +34,13 @@ database_start() {
   local id=$1 name
   name=$(database_container "$id")
   case "$(database_engine)" in
-    sqlite) DATABASE_DOCKER_ARGS=(-e "SQLITE_DATABASE=$DATABASE_NAME") ;;
+    sqlite) DATABASE_DOCKER_ARGS=(--network none -e "SQLITE_DATABASE=$DATABASE_NAME") ;;
     mariadb)
       DATABASE_COMMAND=(--transaction-isolation=READ-COMMITTED)
       database_run "$id" "$MARIADB_IMAGE" 'healthcheck.sh --connect --innodb_initialized' \
         -e "MARIADB_DATABASE=$DATABASE_NAME" -e "MARIADB_USER=$DATABASE_NAME" \
         -e "MARIADB_PASSWORD=$DATABASE_PASSWORD" -e MARIADB_RANDOM_ROOT_PASSWORD=1 || return 1
-      DATABASE_DOCKER_ARGS=(--network "$name" -e "MYSQL_HOST=$name" -e "MYSQL_DATABASE=$DATABASE_NAME" \
+      DATABASE_DOCKER_ARGS=(--network "container:$name" -e MYSQL_HOST=127.0.0.1 -e "MYSQL_DATABASE=$DATABASE_NAME" \
         -e "MYSQL_USER=$DATABASE_NAME" -e "MYSQL_PASSWORD=$DATABASE_PASSWORD")
       ;;
     postgres)
@@ -48,7 +48,7 @@ database_start() {
       database_run "$id" "$POSTGRES_IMAGE" "pg_isready -h 127.0.0.1 -U $DATABASE_NAME" \
         -e "POSTGRES_DB=$DATABASE_NAME" -e "POSTGRES_USER=$DATABASE_NAME" \
         -e "POSTGRES_PASSWORD=$DATABASE_PASSWORD" || return 1
-      DATABASE_DOCKER_ARGS=(--network "$name" -e "POSTGRES_HOST=$name" -e "POSTGRES_DB=$DATABASE_NAME" \
+      DATABASE_DOCKER_ARGS=(--network "container:$name" -e POSTGRES_HOST=127.0.0.1 -e "POSTGRES_DB=$DATABASE_NAME" \
         -e "POSTGRES_USER=$DATABASE_NAME" -e "POSTGRES_PASSWORD=$DATABASE_PASSWORD")
       ;;
     *)
@@ -58,9 +58,8 @@ database_start() {
   esac
 }
 
-# Removes the database container and network of run <id>; a run on SQLite has none.
+# Removes the database container of run <id>; a run on SQLite has none.
 database_stop() {
   [ "$(database_engine)" = sqlite ] && return 0
   docker rm --force "$(database_container "$1")" >/dev/null 2>&1 || true
-  docker network rm "$(database_container "$1")" >/dev/null 2>&1 || true
 }
