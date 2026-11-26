@@ -22,6 +22,7 @@ import StatisticsLibrary from './StatisticsLibrary.vue'
 import StatisticsPeriod from './StatisticsPeriod.vue'
 import StatisticsRead from './StatisticsRead.vue'
 import YearReview from './YearReview.vue'
+import { yearOf } from '../logic/days.ts'
 import { folderProgress } from '../logic/folder-progress.ts'
 import { parseSettings } from '../logic/settings.ts'
 import { periodAt, periodNumbers, periodRun } from '../logic/stats-period.ts'
@@ -115,7 +116,7 @@ function compareNote(sums: PeriodNumbers): string | undefined {
 		return t('honeycomb', '{change} on the week before', { change }, undefined, PLAIN_TEXT)
 	}
 	const named = compared.whole
-		? (kind.value === 'month' ? formatDay(from, { month: 'long' }) : from.slice(0, 4))
+		? (kind.value === 'month' ? formatDay(from, { month: 'long' }) : String(yearOf(from)))
 		: formatDayRange(from, to, kind.value === 'year' ? YEAR_STYLE : undefined)
 	return t('honeycomb', '{change} on {period}', { change, period: named }, undefined, PLAIN_TEXT)
 }
