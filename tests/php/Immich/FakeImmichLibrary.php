@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Tests\Immich;
 
-/** Immich's paged search and statistics over a list of assets: the v3 filter, newest `fileCreatedAt` first, ties by id, an offset cursor. */
+/** Immich's paged search and statistics over a list of assets: the v3 filter, `fileCreatedAt` and ties by id in the asked direction, an offset cursor. */
 final class FakeImmichLibrary {
 	/** @var list<array<string, mixed>> */
 	public array $assets = [];
@@ -42,10 +42,11 @@ final class FakeImmichLibrary {
 	 * @return array{int, string, string}
 	 */
 	public function search(array $options): array {
-		/** @var array{size?: int, cursor?: string, filter?: array<string, mixed>} $body */
+		/** @var array{size?: int, cursor?: string, filter?: array<string, mixed>, orderBy?: array{direction?: string}} $body */
 		$body = json_decode((string)$options['body'], true, 512, JSON_THROW_ON_ERROR);
 		$assets = $this->matching($body['filter'] ?? []);
-		usort($assets, static fn (array $a, array $b): int => [$b['fileCreatedAt'], $b['id']] <=> [$a['fileCreatedAt'], $a['id']]);
+		$ascending = ($body['orderBy']['direction'] ?? 'desc') === 'asc';
+		usort($assets, static fn (array $a, array $b): int => ($ascending ? -1 : 1) * ([$b['fileCreatedAt'], $b['id']] <=> [$a['fileCreatedAt'], $a['id']]));
 		$size = $body['size'] ?? 250;
 		/** @var array{offset: int} $cursor */
 		$cursor = isset($body['cursor']) ? json_decode(base64_decode(strtr($body['cursor'], '-_', '+/')), true, 512, JSON_THROW_ON_ERROR) : ['offset' => 0];

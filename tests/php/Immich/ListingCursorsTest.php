@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Immich;
 
 use OCA\Honeycomb\Immich\ImmichError;
+use OCA\Honeycomb\Immich\ListingAnchor;
 use OCA\Honeycomb\Immich\ListingCursors;
 use OCA\Honeycomb\Immich\ListingFilters;
 use OCP\Security\ICrypto;
@@ -22,8 +23,17 @@ final class ListingCursorsTest extends TestCase {
 		$filters = new ListingFilters(['kinds' => ['photo']]);
 		$cursor = $this->cursors()->issue('alice-phone', $filters, 'eyJvZmZzZXQiOjEwMH0', self::RECEIVED_BEFORE);
 
-		$this->assertSame(['immich' => 'eyJvZmZzZXQiOjEwMH0', 'receivedBefore' => self::RECEIVED_BEFORE], $this->cursors()->open($cursor, 'alice-phone', $filters));
+		$this->assertEquals(['immich' => 'eyJvZmZzZXQiOjEwMH0', 'receivedBefore' => self::RECEIVED_BEFORE, 'anchor' => null, 'newer' => false], $this->cursors()->open($cursor, 'alice-phone', $filters));
 		$this->assertMatchesRegularExpression('/^[A-Za-z0-9_-]+\.[0-9a-f]+$/', $cursor);
+	}
+
+	// spec: IMMICH-002.34
+	public function testACursorFromAnAssetKeepsItsAnchorAndWhetherItPagesTheNewerEntries(): void {
+		$filters = new ListingFilters([]);
+		$anchor = new ListingAnchor('00000000-0000-4000-8000-000000000006', self::RECEIVED_BEFORE - 600);
+		$cursor = $this->cursors()->issue('alice-phone', $filters, null, self::RECEIVED_BEFORE, $anchor, true);
+
+		$this->assertEquals(['immich' => null, 'receivedBefore' => self::RECEIVED_BEFORE, 'anchor' => $anchor, 'newer' => true], $this->cursors()->open($cursor, 'alice-phone', $filters));
 	}
 
 	// spec: IMMICH-002.5

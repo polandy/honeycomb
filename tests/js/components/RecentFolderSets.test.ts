@@ -29,12 +29,27 @@ describe('RecentFolderSets', () => {
 		expect(wrapper.emitted('open')).toEqual([[pair]])
 	})
 
+	// spec: IMMICH-003.15
+	it('lists each connection by its label with its progress before the folder sets and opens one on a tap', async () => {
+		const connections = [{ connectionId: 'andy-phone', label: 'Andy’s phone', decided: 2, total: 9 }]
+		const wrapper = mount(RecentFolderSets, { props: { items: ITEMS.slice(1), connections } })
+		await nextTick()
+		const rows = wrapper.findAllComponents(NcListItem)
+
+		expect(rows.map((row) => row.text())).toEqual(['Andy’s phoneImmich · 2 / 9 decided', '2 folders0 / 40 decided'])
+		expect(rows.map((row) => row.props('active'))).toEqual([false, false])
+		await rows[0]!.find('a').trigger('click')
+
+		expect(wrapper.emitted('openConnection')).toEqual([['andy-phone']])
+		expect(wrapper.emitted('open')).toBeUndefined()
+	})
+
 	describe('translations', () => {
 		beforeEach(installMarkedCatalogue)
 		afterEach(uninstallMarkedCatalogue)
 
 		it('renders no text that bypasses the catalogue but folder names', async () => {
-			const wrapper = mount(RecentFolderSets, { props: { items: [{ ...ITEMS[1]! }] } })
+			const wrapper = mount(RecentFolderSets, { props: { items: [{ ...ITEMS[1]! }], connections: [{ connectionId: 'andy-phone', label: 'Andy’s phone', decided: 2, total: 9 }] } })
 			await nextTick()
 			expect(untranslatedText(wrapper.element)).toEqual([])
 		})

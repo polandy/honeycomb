@@ -10,7 +10,13 @@ namespace OCA\Honeycomb\Tests\Controller;
 use OCA\Honeycomb\AppInfo\Application;
 use OCA\Honeycomb\Controller\ApiResponse;
 use OCA\Honeycomb\Controller\PositionController;
+use OCA\Honeycomb\Immich\Connections;
+use OCA\Honeycomb\Immich\ConnectionsFileShape;
+use OCA\Honeycomb\Immich\ImmichPositions;
 use OCA\Honeycomb\Service\Folder\PositionService;
+use OCA\Honeycomb\Tests\Immich\FakeImmichPositionStore;
+use OCA\Honeycomb\Tests\Immich\FakeLocalFiles;
+use OCA\Honeycomb\Tests\Immich\FakeLogger;
 use OCA\Honeycomb\Tests\Service\FakePositionStore;
 use OCA\Honeycomb\Tests\Service\StatsFixture;
 use OCP\AppFramework\Http;
@@ -18,6 +24,7 @@ use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\IAppConfig;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -38,7 +45,7 @@ final class PositionControllerTest extends TestCase {
 		$session->method('getUser')->willReturn($loggedIn ? $user : null);
 		$time = $this->createStub(ITimeFactory::class);
 		$time->method('getTime')->willReturn(self::NOW);
-		return new PositionController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), new PositionService(new FakePositionStore(), $time, $this->stats()));
+		return new PositionController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), new PositionService(new FakePositionStore(), $time, $this->stats()), new ImmichPositions(new FakeImmichPositionStore(), new Connections($this->createStub(IAppConfig::class), new FakeLocalFiles(), new ConnectionsFileShape(), new FakeLogger()), $time));
 	}
 
 	// spec: DECISIONS-002.1
