@@ -14,7 +14,7 @@ export const UNDO_LIMIT = 50
 /** What each kind of undo step changed, by its kind. */
 export interface StepChanges {
 	readonly decision: { readonly change: DecisionChange }
-	readonly pickRest: { readonly picked: string }
+	readonly pickRest: { readonly rejected: number }
 	readonly reduction: { readonly series: number, readonly rejected: number }
 	readonly tags: { readonly change: TagChange }
 	readonly series: { readonly edit: SeriesEdit, readonly series: number }
@@ -73,16 +73,16 @@ export function undoEntry(pictures: readonly Decided[], change: DecisionChange):
 	return rows === null ? null : { kind: 'decision', change, ...rows }
 }
 
-/** The undo step that picks one picture and rejects the rest, or null when it alters none. */
+/** The undo step that picks one picture and rejects the rest, counting the newly rejected, or null when it alters none (KEYS-001.13). */
 export function pickRestEntry(picked: Decided, rest: readonly Decided[]): PickRestStep | null {
 	const rows = rowsOf(pickRestChanges(picked, rest))
-	return rows === null ? null : { kind: 'pickRest', picked: picked.picture.baseName, ...rows }
+	return rows === null ? null : { kind: 'pickRest', rejected: newlyRejected(rest), ...rows }
 }
 
 /** The undo step that picks the sharpest of each series and rejects the rest, or null when it alters none (SERIES-008.5). */
 export function reductionEntry(series: readonly { picked: Decided, rest: readonly Decided[] }[]): ReductionStep | null {
 	const rows = rowsOf(series.flatMap(({ picked, rest }) => pickRestChanges(picked, rest)))
-	const rejected = series.reduce((sum, { rest }) => sum + rest.filter(({ decision }) => decision.flag !== 'rejected').length, 0)
+	const rejected = series.reduce((sum, { rest }) => sum + newlyRejected(rest), 0)
 	return rows === null ? null : { kind: 'reduction', series: series.length, rejected, ...rows }
 }
 
@@ -90,6 +90,11 @@ export function reductionEntry(series: readonly { picked: Decided, rest: readonl
 export function clearEntry(pictures: readonly Decided[]): DecisionStep | null {
 	const rows = rowsOf(pictures.map((decided) => ({ decided, change: isPair(decided) ? CLEARED : { flag: CLEARED.flag } })))
 	return rows === null ? null : { kind: 'decision', change: CLEARED, ...rows }
+}
+
+/** How many of the rest a pick-rest rejects, the already rejected left out. */
+function newlyRejected(rest: readonly Decided[]): number {
+	return rest.filter(({ decision }) => decision.flag !== 'rejected').length
 }
 
 /** The changes that pick one picture and reject the rest. */

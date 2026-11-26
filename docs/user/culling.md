@@ -88,7 +88,7 @@ toolbar, or `N`, shows one series at a time side by side; in the loupe the chip 
 opens the series of the shown photo.
 
 - Tap a photo to make it the active one, ⤢ or a double-tap shows it full screen.
-- **Pick this, reject the rest** (`Shift+K`) keeps the active photo and rejects the others in one
+- **Pick this, reject the rest** (`Shift+P`) keeps the active photo and rejects the others in one
   step. **Skip** goes to the next series.
 - honeycomb measures the sharpness of each photo of a series and marks the clearly sharpest one
   *Sharpest*; the mark is a hint only, it picks nothing.

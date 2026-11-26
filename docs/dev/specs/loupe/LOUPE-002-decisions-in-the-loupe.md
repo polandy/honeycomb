@@ -19,7 +19,7 @@ label, *Keep RAW* or *Unflag* stays. A swipe up picks and a swipe down rejects b
 off. While the photo lifts, a hint over it names the flag the release sets, fading in with the
 distance and filled once the release decides. The flag buttons can be hidden by their toggle or
 `B`. Each decision shows the undo toast (e.g. "Rejected IMG_0001 · Undo"). While the shown photo
-is in a series, the rating row ends with *Pick this, reject the rest* (`Shift+K`), which picks it,
+is in a series, the rating row ends with *Pick this, reject the rest* (`Shift+P`), which picks it,
 rejects the rest of its series as one undo step and moves on to the first photo after the series.
 
 ## Acceptance criteria
@@ -142,24 +142,25 @@ Delete from the loupe: DELETE-002.
 
 - **Given** the shown picture is in a series (SERIES-001)
 - **When** the user presses *Pick this, reject the rest* at the end of the rating row, or
-  `Shift+K`
+  `Shift+P`
 - **Then** the shown picture is picked and every other picture of its series rejected, as one undo
-  step with the toast "Picked IMG_0002, rejected the rest · Undo"; the loupe shows the first
+  step with the toast "Picked 1, rejected 2 · Undo"; the loupe shows the first
   picture after the series' last in its order, the picked one when none follows; the button is
   secondary beside the large flag buttons, on a line of its own in portrait and on the rating row's
-  line in landscape, so the row stays above the filmstrip; its tooltip names `Shift+K`, it stays
-  while the flag buttons are hidden, and outside a series there is no button and `Shift+K` does nothing
+  line in landscape, so the row stays above the filmstrip; its tooltip names `Shift+P`, it stays
+  while the flag buttons are hidden, and outside a series there is no button and `Shift+P`
+  only gives a short hint (KEYS-001.13)
 
 ### LOUPE-002.16 – Reject the other N in the undo toast
 
-- **Given** the user picked the shown picture by *Pick*, `P`, `Shift+P` or a swipe, and its
+- **Given** the user picked the shown picture by *Pick*, `P` or a swipe, and its
   series (SERIES-001) still has another unflagged picture
 - **When** the toast "Picked IMG_0002" shows
 - **Then** it offers **Reject the other 2** before *Undo*, N counting the series' other pictures
   that are not rejected; a tap picks the picture and rejects them as one undo step with the toast
-  "Picked IMG_0002, rejected the rest · Undo", as *Pick this, reject the rest* does, and the loupe
+  "Picked 1, rejected 2 · Undo", as *Pick this, reject the rest* does, and the loupe
   lands on the first picture after the series only while it still shows a picture of that series,
-  else it stays; its tooltip names `Shift+K`; a plain *Pick* never rejects the others by itself,
+  else it stays; its tooltip names `Shift+P`; a plain *Pick* never rejects the others by itself,
   and no other decision, nor a pick in the grid or on a compare card, offers it
 
 ### LOUPE-002.17 – Toast buttons stay readable
@@ -187,3 +188,4 @@ Delete from the loupe: DELETE-002.
 | 2026-11-14 | .17 toast buttons stay readable on hover and focus |
 | 2026-11-19 | ADR 0040: a read-only picture greys its controls in the loupe (.18 gap) |
 | 2026-11-19 | M8 PR 6: a read-only picture greys its controls in the loupe (.18 implemented) |
+| 2026-11-26 | *Pick this, reject the rest* is `Shift+P` instead of `Shift+K`, its toast "Picked 1, rejected N" (owner, KEYS-001.13) |

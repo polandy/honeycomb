@@ -69,8 +69,8 @@ phone *Pick this, reject the rest* wraps its label to two balanced lines instead
 | `←` `→` | Make the previous or next picture active, in reading order |
 | `↑` `↓` | Make the picture above or below active, in the same column |
 | `P` `X` `U` `` ` `` `0`–`5` `6`–`9` `[` `]` `R` | Decide the active picture, as in the grid |
-| `Shift+P` `Shift+X` `Shift+U` `Shift+0`–`5` | Decide it and make the next picture active |
-| `Shift+K` | *Pick this, reject the rest* for the active picture |
+| `Shift+X` `Shift+U` `Shift+0`–`5` | Decide it and make the next picture active |
+| `Shift+P` | *Pick this, reject the rest* for the active picture |
 | `Enter` | View the active picture full screen in the series viewer |
 | `Ctrl+Z`, `Ctrl+Shift+Z` | Undo, redo |
 | `Esc` | Close the dialog |
@@ -137,14 +137,14 @@ phone *Pick this, reject the rest* wraps its label to two balanced lines instead
 
 - **Given** the series compare dialog shows a series
 - **When** the user presses *Pick this, reject the rest* for one picture
-- **Then** that picture is picked and every other one rejected, the toast says "Picked <name>,
-  rejected the rest", and one undo puts back every picture's flag
+- **Then** that picture is picked and every other one rejected, the toast says "Picked 1, rejected
+  N", N counting the pictures not rejected before, and one undo puts back every picture's flag
 
 ### SERIES-001.10 – Keys in the dialog
 
 - **Given** the series compare dialog shows a series
 - **When** the user presses `←`, `→`, `↑`, `↓`, a decision key, a decision key with Shift, or
-  `Shift+K`
+  `Shift+P`
 - **Then** the active picture changes (`↑` `↓` to the card above or below, staying where there is
   none), is decided, is decided and the next becomes active, or is picked with the rest rejected
 
@@ -275,3 +275,4 @@ camera come from LISTING-001.
 | 2026-11-14 | A tap only makes a card active; *View full screen* (⤢), a double tap or `Enter` opens the series viewer (series concept step 6, owner point 4). |
 | 2026-11-14 | Visual hashes are kept on the server instead of in browser storage (owner decision, ADR 0024, SERIES-003). |
 | 2026-11-14 | Opened from the loupe the compare holds one series, returns to the loupe and lands after the series on *Pick this, reject the rest* (series concept step 8). |
+| 2026-11-26 | *Pick this, reject the rest* is `Shift+P` instead of `Shift+K`, its toast "Picked 1, rejected N" (owner, KEYS-001.13) |

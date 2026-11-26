@@ -45,7 +45,7 @@ test('picks the shown photo by the loupe\'s own Pick this, reject the rest and l
 
 	await loupe.getByRole('button', { name: 'Pick this, reject the rest' }).click()
 
-	await expect(page.getByText('Picked IMG_0002, rejected the rest')).toBeVisible()
+	await expect(page.getByText('Picked 1, rejected 2')).toBeVisible()
 	await expect(loupe.getByRole('heading', { name: 'IMG_0004' })).toBeVisible()
 })
 
@@ -66,7 +66,7 @@ test('offers Reject the other 2 in the toast after a plain Pick and lands after 
 	await loupe.getByRole('button', { name: 'Pick', exact: true }).click()
 	await page.getByRole('status').getByRole('button', { name: 'Reject the other 2' }).click()
 
-	await expect(page.getByText('Picked IMG_0002, rejected the rest')).toBeVisible()
+	await expect(page.getByText('Picked 1, rejected 2')).toBeVisible()
 	await expect(loupe.getByRole('heading', { name: 'IMG_0004' })).toBeVisible()
 })
 
@@ -136,7 +136,7 @@ test('frames a series in one across its rejected photo, and pick-rest and its un
 		return Object.fromEntries([...ids].map(([name, fileId]) => [name, byId.get(fileId)]))
 	}
 	await loupe.getByRole('button', { name: 'Pick this, reject the rest' }).click()
-	await expect(page.getByText('Picked IMG_0002, rejected the rest')).toBeVisible()
+	await expect(page.getByText('Picked 1, rejected 2')).toBeVisible()
 	await expect.poll(flags).toEqual({ IMG_0001: 'rejected', IMG_0002: 'picked', IMG_0003: 'rejected', IMG_0004: 'rejected', IMG_0005: 'unflagged', IMG_0006: 'unflagged' })
 
 	await page.getByRole('status').getByRole('button', { name: 'Undo' }).click()

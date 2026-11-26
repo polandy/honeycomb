@@ -2057,6 +2057,14 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   navigation toggle no longer clips the breadcrumb; the bar and the done mark use Nextcloud's
   element colours, as `--color-success` and `--color-error` became light tints (FOLDERS-007.19–.22,
   FOLDERS-009.24) (autonomous).
+- 2026-11-26: `Shift+P` is *Pick this, reject the rest* everywhere: in a series (compare, viewer,
+  loupe, grid) it picks the photo and rejects the rest of its series, a picked one too, as one undo
+  step with the toast "Picked 1, rejected N"; outside a series it only gives a short hint, and on a
+  source without series (Immich) it stays unbound. Pick and advance moves to `Caps Lock` with `P`;
+  `Shift+K` goes, as nothing depended on it (owner, overrides the 2026-11-09 Lightroom mapping).
+- 2026-11-26: A failed flag write during *Pick this, reject the rest* takes back only the photo
+  that failed and counts it in "flags not saved", as `P` and `X` do; the photos that were saved
+  keep their new flags and the undo step still restores all of them (KEYS-001.13).
 - 2026-11-26: The statistics bars carry one set of labels on every viewport — weekdays for a week,
   the 1st, 8th, 15th, 22nd and 29th for a month, short months for a year, the year for all time —
   instead of the mockup's separate phone and iPad sets, which kept them apart at 390 px too
@@ -2066,3 +2074,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   before (STATS-001.41) (autonomous).
 - 2026-11-26: Changing the segment keeps the shown day, not its period's first day, so October
   stays October through Year and back to Month (STATS-001.52) (autonomous).
+- 2026-11-26: A statistics period counts as counted when any counter lies in it, active time
+  alone too, so its bars show instead of *Nothing counted in this period.* (STATS-001.55)
+  (autonomous).

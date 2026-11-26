@@ -35,9 +35,9 @@ Controls with a tooltip:
 | Folder picker | *Expand {name}*, *Collapse {name}* |
 | Loupe and series viewer title row | *Close* (Esc), *Fit / 100 %* (`Z`), *Move this photo* (`M`), *Flag buttons* (`B`), *Info panel* (`I`), *Fullscreen*, *Filmstrip*, *Nextcloud navigation* |
 | Loupe and series viewer | *Previous* (`←`), *Next* (`→`) |
-| Action bar, loupe, series compare | *Pick* (`P`), *Reject* (`X`), *Unflag* (`U`), the stars (`0`–`5`), the colour swatches (`6`–`9` for the first four), *Pick this, reject the rest* (Shift+K) |
+| Action bar, loupe, series compare | *Pick* (`P`), *Reject* (`X`), *Unflag* (`U`), the stars (`0`–`5`), the colour swatches (`6`–`9` for the first four), *Pick this, reject the rest* (Shift+P) |
 | Series compare | the photo, *Open in the series viewer* |
-| Undo toast | *Reject the other N* (Shift+K) |
+| Undo toast | *Reject the other N* (Shift+P) |
 | Grid tile | the series badge, on mouse hover only |
 | Filter bar | the comparison, the colour swatches |
 | Settings, move settings | *Remove {name}*, *Remove favourite {path}* |
@@ -120,3 +120,4 @@ Controls with a tooltip:
 | 2026-11-10 | The shared tooltip for the icon-only controls built so far |
 | 2026-11-14 | The undo toast's *Reject the other N* names `Shift+K` (series concept step 10) |
 | 2026-11-16 | The folder tree's arrow: *Expand {name}* and *Collapse {name}* |
+| 2026-11-26 | *Pick this, reject the rest* is `Shift+P` instead of `Shift+K`, its toast "Picked 1, rejected N" (owner, KEYS-001.13) |
