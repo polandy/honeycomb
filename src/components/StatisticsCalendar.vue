@@ -166,6 +166,7 @@ async function drill(target: DrillTarget) {
 	display: flex;
 	align-items: flex-start;
 	min-width: 0;
+	min-height: 0;
 	aspect-ratio: 1;
 	padding: 0;
 	overflow: hidden;
