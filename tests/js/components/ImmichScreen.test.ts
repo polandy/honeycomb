@@ -129,6 +129,30 @@ describe('ImmichScreen', () => {
 		expect(assets[2]!.cursor).toBe('c2')
 	})
 
+	// spec: IMMICH-002.19
+	it('names the connection state a page failed with at the end of the grid', async () => {
+		vi.spyOn(logger, 'error').mockReturnValue()
+		const { wrapper, assets } = await mountScreen()
+		assets[0]!.answer(page(1, 100, 'c2'))
+		await flushPromises()
+		wrapper.findComponent(PhotoGrid).vm.$emit('shown', 99)
+		assets[1]!.fail(Object.assign(new Error('status 502'), { response: { status: 502, data: { error: 'unreachable' } } }))
+		await flushPromises()
+
+		expect(wrapper.find('.immich-screen__footer').text()).toContain('Immich unreachable. The photos above stay.')
+		expect(wrapper.find('.immich-screen__footer').text()).not.toContain('Could not load more photos.')
+	})
+
+	// spec: IMMICH-002.37
+	it('gives the grid each asset\'s pills', async () => {
+		const { wrapper, assets, cull } = await mountScreen()
+		assets[0]!.answer({ entries: [immichEntry('a1', { kind: 'live' })], nextCursor: null, previousCursor: null })
+		await flushPromises()
+
+		const badgesOf = wrapper.findComponent(PhotoGrid).props('badgesOf') as (picture: unknown) => unknown
+		expect(badgesOf(cull.pictures.value[0])).toEqual({ label: 'Motion photo', pills: [{ icon: 'live', text: 'LIVE' }] })
+	})
+
 	// spec: IMMICH-002.9
 	it('opens the loupe on a tile, counts against the server\'s total and loads past the page', async () => {
 		const { wrapper, assets, counts } = await mountScreen()

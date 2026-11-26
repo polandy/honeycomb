@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { connectionFacts, connectionLine, IMMICH_ADMIN_URL, stateHelp } from '../../src/immich/immich-text.ts'
+import { connectionFacts, connectionLine, IMMICH_ADMIN_URL, pageFailedText, stateHelp } from '../../src/immich/immich-text.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK as MARK, uninstallMarkedCatalogue } from './l10n/marked-catalogue.ts'
 
 const PHONE = { id: 'andy-phone', label: 'Andy · Phone', url: 'https://immich.example' }
@@ -45,5 +45,12 @@ describe('immich-text', () => {
 			expect(stateHelp(state).url).toMatch(new RegExp(`^${IMMICH_ADMIN_URL}#[a-z-]+$`))
 		}
 		expect(new Set(['unreachable', 'refused', 'key', 'version', 'configuration'].map((state) => stateHelp(state as 'key').url)).size).toBe(5)
+	})
+
+	// spec: IMMICH-002.19
+	it('says why a page failed by its connection state, and that the photos above stay', () => {
+		expect(pageFailedText('unreachable')).toBe(`${MARK}${MARK}Immich unreachable. The photos above stay.`)
+		expect(pageFailedText('refused')).toBe(`${MARK}${MARK}The API key is refused. The photos above stay.`)
+		expect(pageFailedText(null)).toBe(`${MARK}Could not load more photos.`)
 	})
 })

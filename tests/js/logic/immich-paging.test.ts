@@ -104,13 +104,22 @@ describe('pageArrived', () => {
 describe('pageFailed', () => {
 	// spec: IMMICH-002.19
 	it('keeps the loaded pages and the cursor to ask again, and asks nothing on its own', () => {
-		const list = pageFailed(pageAsked(loaded(page(entries(0, 100), 'c1'), page(entries(100, 100), 'c2')), 'next'), 'next')
+		const list = pageFailed(pageAsked(loaded(page(entries(0, 100), 'c1'), page(entries(100, 100), 'c2')), 'next'), 'next', null)
 
 		expect(list.entries).toHaveLength(200)
 		expect(list.nextCursor).toBe('c2')
 		expect(list.next).toBe('failed')
 		expect(wantsNext(list, 199, 40)).toBe(false)
 		expect(pageAsked(list, 'next').next).toBe('loading')
+	})
+
+	// spec: IMMICH-002.19
+	it('keeps the connection state the page failed with, null for any other failure', () => {
+		const list = loaded(page(entries(0, 1), 'c1'))
+
+		expect(EMPTY_LIST.failure).toBeNull()
+		expect(pageFailed(pageAsked(list, 'next'), 'next', 'unreachable').failure).toBe('unreachable')
+		expect(pageFailed(pageAsked(list, 'next'), 'next', null).failure).toBeNull()
 	})
 })
 

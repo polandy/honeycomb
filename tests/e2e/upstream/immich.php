@@ -19,6 +19,9 @@ const NEWEST_TAKEN = 1795023912;
 const SECONDS_PER_UPLOAD = 60;
 const ASSET_ID = '00000000-0000-4000-8000-%012d';
 const THUMBNAIL = __DIR__ . '/../../fixtures/images/landscape-600x400.jpg';
+/** The search fixture's live photo, video and stack, which the second to fourth upload copy for the tile pills. */
+const KINDS_FROM = 1;
+const KINDS_TO = 3;
 
 /**
  * The answer for a request with the stub's key, else Immich's 401.
@@ -32,7 +35,7 @@ function keyed(\Closure $answer): \Closure {
 }
 
 /**
- * The page of the library at the request's cursor in the asked order: the search fixture's plain photo with the upload's id, name and time.
+ * The page of the library at the request's cursor in the asked order: a search fixture's asset with the upload's id, name and time.
  * The cursor is the offset of the page's first upload; of the filter the stub honours only the capture time's bounds and the asked ids.
  */
 function searchPage(): StubAnswer {
@@ -41,14 +44,14 @@ function searchPage(): StubAnswer {
 	$size = (int)($body['size'] ?? 100);
 	/** @var array{assets: array{items: list<array<string, mixed>>}} $fixture */
 	$fixture = json_decode((string)file_get_contents(FIXTURES . '/search-page.json'), true, 512, JSON_THROW_ON_ERROR);
-	$photo = $fixture['assets']['items'][0];
+	$assets = $fixture['assets']['items'];
 	$ids = askedIds($body['filter']['or'] ?? []);
 	$indexes = array_values(array_filter(range(0, LIBRARY_SIZE - 1), static fn (int $index): bool => takenWithin($body['filter']['takenAt'] ?? [], NEWEST_TAKEN - $index * SECONDS_PER_UPLOAD)
 		&& ($ids === null || in_array(sprintf(ASSET_ID, $index), $ids, true))));
 	if (($body['orderBy']['direction'] ?? 'desc') === 'asc') {
 		$indexes = array_reverse($indexes);
 	}
-	$items = array_map(static fn (int $index): array => upload($photo, $index), array_slice($indexes, $offset, $size));
+	$items = array_map(static fn (int $index): array => upload($assets[$index >= KINDS_FROM && $index <= KINDS_TO ? $index : 0], $index), array_slice($indexes, $offset, $size));
 	$next = $offset + $size < count($indexes) ? (string)($offset + $size) : null;
 	return StubAnswer::json(['assets' => ['total' => count($items), 'count' => count($items), 'items' => $items, 'facets' => [], 'nextPage' => $next, 'nextCursor' => $next]]);
 }
@@ -82,8 +85,10 @@ function upload(array $photo, int $index): array {
 	$name = sprintf('PXL_E2E_%04d.jpg', $index + 1);
 	/** @var array<string, mixed> $exif */
 	$exif = $photo['exifInfo'];
+	$id = sprintf(ASSET_ID, $index);
 	return array_merge($photo, [
-		'id' => sprintf(ASSET_ID, $index),
+		'id' => $id,
+		'stack' => is_array($photo['stack']) ? array_merge($photo['stack'], ['primaryAssetId' => $id]) : null,
 		'originalFileName' => $name,
 		'deviceAssetId' => $name,
 		'fileCreatedAt' => $taken,

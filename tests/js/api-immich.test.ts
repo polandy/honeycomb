@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, immichAssets, immichCounts, immichImageUrl, immichStatus, listImmichConnections, saveImmichDecisions, saveImmichPosition } from '../../src/api/index.ts'
+import { ApiResponseError, immichAssets, immichFailureState, immichCounts, immichImageUrl, immichStatus, listImmichConnections, saveImmichDecisions, saveImmichPosition } from '../../src/api/index.ts'
 import { immichEntry } from './logic/immich-fixtures.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }))
@@ -132,5 +132,18 @@ describe('saveImmichPosition', () => {
 		await saveImmichPosition({ connectionId: 'andy-phone', assetId: 'a6', takenAt: 60, decided: 2, total: 9 })
 
 		expect(axios.put).toHaveBeenCalledWith('/index.php/apps/honeycomb/api/v1/positions', { immich: 'andy-phone', assetId: 'a6', takenAt: 60, decided: 2, total: 9 })
+	})
+})
+
+describe('immichFailureState', () => {
+	// spec: IMMICH-002.19
+	it('answers the connection state a failed request names, null for any other failure', () => {
+		expect(immichFailureState(failure(502, 'unreachable'))).toBe('unreachable')
+		expect(immichFailureState(failure(502, 'refused'))).toBe('refused')
+		expect(immichFailureState(failure(502, 'key'))).toBe('key')
+		expect(immichFailureState(failure(502, 'version'))).toBe('version')
+		expect(immichFailureState(failure(400, 'request'))).toBeNull()
+		expect(immichFailureState(failure(502, 'ok'))).toBeNull()
+		expect(immichFailureState(new Error('offline'))).toBeNull()
 	})
 })
