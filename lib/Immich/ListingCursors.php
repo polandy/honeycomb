@@ -66,8 +66,9 @@ final class ListingCursors {
 		if ($anchor === null) {
 			return null;
 		}
-		$assetId = is_array($anchor) ? ($anchor[0] ?? null) : null;
-		$takenAt = is_array($anchor) ? ($anchor[1] ?? null) : null;
+		$parts = is_array($anchor) ? array_values($anchor) : [];
+		$assetId = $parts[0] ?? null;
+		$takenAt = $parts[1] ?? null;
 		if (!is_string($assetId) || !is_int($takenAt)) {
 			throw new ImmichException(ImmichError::Request);
 		}
