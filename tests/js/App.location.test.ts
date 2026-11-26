@@ -3,9 +3,11 @@
 // @vitest-environment happy-dom
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
+import FolderPicker from '../../src/components/FolderPicker.vue'
 import PhotoGrid from '../../src/components/PhotoGrid.vue'
 import PhotoLoupe from '../../src/components/PhotoLoupe.vue'
-import { locationHash } from '../../src/logic/cull-location.ts'
+import SettingsDialog from '../../src/components/SettingsDialog.vue'
+import { locationHash, targetHash } from '../../src/logic/cull-location.ts'
 import { ENTRIES, mountApp, openCull, SET, shownNames } from './app-cull.ts'
 
 /** The app over a server that lists /Trip, with an address that is `hash` and records each address written. */
@@ -64,5 +66,22 @@ describe('App: the address', () => {
 
 		expect(wrapper.findComponent(PhotoGrid).exists()).toBe(false)
 		expect(written).toEqual([''])
+	})
+
+	// spec: APP-001.26
+	it('opens the folder picker a page of its own asked for and then forgets the address', async () => {
+		const { wrapper, written } = await openApp(targetHash('folder-picker'))
+
+		expect(wrapper.findComponent(FolderPicker).props('current')).toBeNull()
+		expect(wrapper.findComponent(SettingsDialog).props('open')).toBe(false)
+		expect(written).toEqual([''])
+	})
+
+	// spec: APP-001.26
+	it('opens the settings a page of its own asked for', async () => {
+		const { wrapper } = await openApp(targetHash('settings'))
+
+		expect(wrapper.findComponent(SettingsDialog).props('open')).toBe(true)
+		expect(wrapper.findComponent(FolderPicker).exists()).toBe(false)
 	})
 })

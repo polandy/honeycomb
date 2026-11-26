@@ -2,13 +2,6 @@
  * SPDX-FileCopyrightText: 2026 honeycomb contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-.honeycomb {
-	display: flex;
-	flex-direction: column;
-	height: 100%;
-	padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
-}
-
 .honeycomb__grid {
 	flex: 1;
 }

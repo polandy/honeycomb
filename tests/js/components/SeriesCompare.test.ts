@@ -34,7 +34,7 @@ describe('SeriesCompare', () => {
 		const wrapper = mountCompare()
 
 		expect(plain(wrapper.find('[role="dialog"]').attributes('name'))).toBe('Compare series 2 of 4 · photo 2 of 3')
-		expect(wrapper.find('[role="dialog"]').attributes('size')).toBe('full')
+		expect(wrapper.find('[role="dialog"]').attributes('data-size')).toBe('full')
 		expect(cards(wrapper)).toHaveLength(3)
 		expect(cards(wrapper).map((card) => card.classes('series-compare__card--active'))).toEqual([false, true, false])
 		const photos = wrapper.findAll('.series-compare__photo')
@@ -199,7 +199,7 @@ describe('SeriesCompare', () => {
 		const wrapper = mountCompare()
 
 		await button(wrapper, 'Skip').trigger('click')
-		wrapper.findComponent(DialogStub).vm.$emit('update:open', false)
+		wrapper.findComponent(DialogStub).vm.$emit('closing')
 
 		expect(wrapper.emitted('skip')).toHaveLength(1)
 		expect(wrapper.emitted('close')).toHaveLength(1)

@@ -10,6 +10,7 @@ import { METRIC } from '../../../src/logic/statistics.ts'
 import { formatDay } from '../../../src/shared/l10n.ts'
 import { logger } from '../../../src/shared/logger.ts'
 import { doneRow, row } from '../logic/folder-fixtures.ts'
+import { fakePageNavigation } from '../page-navigation.ts'
 
 vi.mock('../../../src/shared/logger.ts', () => ({ logger: { error: vi.fn() } }))
 
@@ -32,7 +33,7 @@ function mountPage(answer: Partial<StatsAnswer> = {}, settings: unknown = ROOTS,
 		loadSettings: vi.fn(async () => settings),
 		saveViewState: vi.fn(async (_patch: { year_review_hint_closed: number }) => undefined),
 	}
-	return mount(StatisticsPage, { props: { seams } })
+	return mount(StatisticsPage, { props: { seams, navigation: fakePageNavigation().seams } })
 }
 
 const tile = (wrapper: ReturnType<typeof mountPage>, label: string) => wrapper.findAll('.delete-stats__item').find((each) => each.text().includes(label))!.text()
@@ -196,7 +197,7 @@ describe('StatisticsPage', () => {
 
 	it('says so and logs when the numbers cannot be loaded', async () => {
 		const error = new Error('down')
-		const wrapper = mount(StatisticsPage, { props: { seams: { loadStatistics: async () => Promise.reject(error), loadLibraryFolders: async () => [], loadSettings: async () => ({}), saveViewState: async () => undefined } } })
+		const wrapper = mount(StatisticsPage, { props: { seams: { loadStatistics: async () => Promise.reject(error), loadLibraryFolders: async () => [], loadSettings: async () => ({}), saveViewState: async () => undefined }, navigation: fakePageNavigation().seams } })
 		await flushPromises()
 
 		expect(wrapper.text()).toContain('The statistics could not be loaded.')

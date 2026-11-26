@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { locationHash, parseLocation } from '../../../src/logic/cull-location.ts'
+import { locationHash, parseLocation, parseTarget, targetHash } from '../../../src/logic/cull-location.ts'
 
 const hashOf = (json: string) => `#cull=${encodeURIComponent(json)}`
 const SET = { paths: ['/Trip', '/Trip/Café'], subfolders: true, excluded: ['/Trip/Skip'] }
@@ -46,5 +46,18 @@ describe('parseLocation', () => {
 		['a picture that is no number', `#cull=${encodeURIComponent('{"v":1,"paths":["/A"],"subfolders":true,"fileId":"x"}')}`],
 	])('reads nothing from %s', (_, hash) => {
 		expect(parseLocation(hash)).toBeNull()
+	})
+})
+
+describe('targetHash', () => {
+	// spec: APP-001.26
+	it.each(['folder-picker', 'settings'] as const)('round-trips what the cull page opens: %s', (target) => {
+		expect(parseTarget(targetHash(target))).toBe(target)
+		expect(parseLocation(targetHash(target))).toBe(null)
+	})
+
+	// spec: APP-001.26
+	it.each(['', '#open=', '#open=trash', '#open=settings2', locationHash(SET, null)])('names no target for %j', (hash) => {
+		expect(parseTarget(hash)).toBe(null)
 	})
 })

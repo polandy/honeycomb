@@ -11,3 +11,13 @@ export function startsOpen(stored: string | null, width: number): boolean {
 	}
 	return width >= NAVIGATION_OPEN_MIN_WIDTH
 }
+
+/** The browser storage key of one Nextcloud user's choice; the base key without a user. */
+export function choiceKey(base: string, user: string | null): string {
+	return user === null ? base : `${base}.${user}`
+}
+
+/** The user's own stored choice, else the one an older version kept for the whole browser. */
+export function storedChoice(own: string | null, older: string | null): string | null {
+	return own === 'true' || own === 'false' ? own : older
+}

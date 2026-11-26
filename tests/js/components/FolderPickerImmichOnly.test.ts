@@ -16,7 +16,7 @@ const ONLY_IMMICH = `${MARK}I only use Immich`
 /** The picker with no folders, offering *I only use Immich* as given. */
 async function mountPicker(immichOnly?: ImmichOnlyOffer, current: FolderSet | null = null) {
 	const wrapper = mount(FolderPicker, {
-		props: { current, closable: true, ...(immichOnly === undefined ? {} : { immichOnly }), listFolders: async () => [], listEntries: () => new Promise(() => undefined) },
+		props: { current, ...(immichOnly === undefined ? {} : { immichOnly }), listFolders: async () => [], listEntries: () => new Promise(() => undefined) },
 		global: { stubs: { NcDialog: DialogStub } },
 	})
 	await flushPromises()
