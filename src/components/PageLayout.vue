@@ -18,7 +18,7 @@ import { recentFolderSets } from '../logic/recent.ts'
 import { parsePositions } from '../logic/resume-position.ts'
 import { logger } from '../shared/logger.ts'
 
-/** What a page of its own needs for its navigation (APP-001.23). */
+/** What a page of its own needs for its navigation (APP-001.25). */
 export interface PageNavigationSeams {
 	loadPositions: () => Promise<unknown>
 	storage: BrowserStorage
@@ -45,7 +45,7 @@ onMounted(async () => {
 	}
 })
 
-/** Opens the cull page with `hash` (APP-001.24). */
+/** Opens the cull page with `hash` (APP-001.26). */
 function openCull(hash: string) {
 	props.seams.goTo(cullUrl + hash)
 }

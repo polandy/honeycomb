@@ -85,7 +85,7 @@ describe('AppNavigation', () => {
 		expect(links.map((link) => link.name)).toEqual([`${MARK}Similarity`, `${MARK}Statistics`, `${MARK}Orphaned sidecars`])
 	})
 
-	// spec: APP-001.23
+	// spec: APP-001.25
 	it('marks the entry of the page shown, none on the cull page', () => {
 		const active = (page: 'statistics' | null) => mount(AppNavigation, { props: { items: ITEMS, storage: fakeStorage(), page } })
 			.findAllComponents(NcAppNavigationItem).filter((item) => item.props('active')).map((item) => item.props('name'))

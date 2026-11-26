@@ -24,7 +24,7 @@ const props = withDefaults(defineProps<{
 	listFolders: (path: string) => Promise<Folder[]>
 	/** The library roots; the folders to scan lie inside them while any is set (SETTINGS-001.36). */
 	roots?: readonly string[]
-	/** The navigation's seams (APP-001.23). */
+	/** The navigation's seams (APP-001.25). */
 	navigation: PageNavigationSeams
 }>(), {
 	roots: () => [],

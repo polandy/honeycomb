@@ -99,8 +99,9 @@ full list in place and *Show fewer* folds it. A row is 44 px high where the dial
 enough, and the tab order is the folders first, then *Recent*. The heading and list are left out
 until a folder set was culled. The navigation's *Recent* is unchanged.
 
-On the first opening it introduces the app and cannot be cancelled; opened from a running cull it
-starts from that folder set and *Cancel* returns to it.
+On the first opening it introduces the app; *Cancel*, its close button, `Esc` and the backdrop
+return to the screen it was opened from (APP-001.23). Opened from a running cull it starts from
+that folder set and *Cancel* returns to it.
 
 ## Acceptance criteria
 
@@ -174,8 +175,9 @@ starts from that folder set and *Cancel* returns to it.
 
 - **Given** no open cull, or an open one
 - **When** the picker opens
-- **Then** without a cull it introduces the app and cannot be cancelled; with one it starts from
-  that folder set, with the folders above the ticked ones expanded, and cancelling returns to it
+- **Then** without a cull it introduces the app and *Cancel* returns to the screen it was opened
+  from; with one it starts from that folder set, with the folders above the ticked ones
+  expanded, and cancelling returns to it
 
 ### LISTING-003.12 – Confirm opens the cull
 
@@ -313,3 +315,4 @@ starts from that folder set and *Cancel* returns to it.
 | 2026-11-17 | .18 a tap excludes an included folder, .21/.22 excluded folders (owner, #187) |
 | 2026-11-21 | .8 a listing that does not answer within 30 s fails (E23/U7, ADR 0029) |
 | 2026-11-21 | .19/.20/.24 the counts follow the user's extension lists (owner, #187 M1) |
+| 2026-11-26 | .11 the first opening can be cancelled like every modal panel (owner, APP-001.23) |

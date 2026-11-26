@@ -43,7 +43,7 @@ export function parseLocation(hash: string): CullLocation | null {
 	return { folderSet: { paths, subfolders, ...(excluded === undefined ? {} : { excluded }) }, fileId: fileId ?? null }
 }
 
-/** What a page of its own asks the cull page to open (APP-001.24). */
+/** What a page of its own asks the cull page to open (APP-001.26). */
 export type NavigationTarget = 'folder-picker' | 'settings'
 
 const TARGET_PARAMETER = '#open='

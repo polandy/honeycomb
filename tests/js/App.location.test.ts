@@ -68,7 +68,7 @@ describe('App: the address', () => {
 		expect(written).toEqual([''])
 	})
 
-	// spec: APP-001.24
+	// spec: APP-001.26
 	it('opens the folder picker a page of its own asked for and then forgets the address', async () => {
 		const { wrapper, written } = await openApp(targetHash('folder-picker'))
 
@@ -77,7 +77,7 @@ describe('App: the address', () => {
 		expect(written).toEqual([''])
 	})
 
-	// spec: APP-001.24
+	// spec: APP-001.26
 	it('opens the settings a page of its own asked for', async () => {
 		const { wrapper } = await openApp(targetHash('settings'))
 

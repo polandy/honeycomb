@@ -867,9 +867,10 @@ takes its sizes from the pointer type ([Control sizes](#control-sizes)), not fro
 | `PickRestButton` (`pickRestBtn`) | *Pick this, reject the rest* | series compare bottom bar, series viewer, loupe on a series photo | `series` |
 | `UndoToast` (`toast`) | the change in words, *Undo*, an optional offer before it (*Reject the other N* after a plain *Pick* on a series photo); focus or a press holds it, letting go restarts its time (WCAG 2.2.1) | every undoable change | `undo`: entries and their text |
 | `ConfirmDialog` (`confirmDialog`) | title, body, footer with an optional further action · *Back* · *Cancel* · confirm, the focus on *Cancel* on request; a bottom sheet on a phone | delete summary, reject review, move summary, folder picker, delete report, permanent delete warning, Cull finished | — |
+| `ModalPanel` | a modal panel on `NcDialog`: title, body, actions; closes by its close button, `Esc` and the backdrop unless locked; focus trap and return, `aria-modal`, page scroll lock; a bottom sheet on a phone except at `full` | `ConfirmDialog`, keyboard shortcuts, series compare, toast details, Immich connection, sidecar report | `shared/scroll-lock` |
 | `PageTitleRow` | the page's title and an optional line of totals, as tall as the toolbar row and clear of the navigation toggle (APP-001.22) | library setup, folder list | — |
-| `AppLayout` | the one layout of every page: Nextcloud's content, the honeycomb navigation with its toggle and the page's content (APP-001.23) | the cull page, `PageLayout` | — |
-| `PageLayout` | `AppLayout` for a page of its own, with the recent sets and the page's title row; its entries open the cull page (APP-001.24) | *Similarity*, *Statistics*, *Orphaned sidecars* | — |
+| `AppLayout` | the one layout of every page: Nextcloud's content, the honeycomb navigation with its toggle and the page's content (APP-001.25) | the cull page, `PageLayout` | — |
+| `PageLayout` | `AppLayout` for a page of its own, with the recent sets and the page's title row; its entries open the cull page (APP-001.26) | *Similarity*, *Statistics*, *Orphaned sidecars* | — |
 | `PhotoTile` (`tileInner`, `updateTile`) | thumbnail, pair and series badges (a complete pair quiet, a single highlighted), stars once rated, colour dot, flag mark (a bottom shade only behind these), selection check | grid | `pairing` |
 | `Tooltip` (`tip`, `tipShow`, `bindTips`) | the bubble tooltip of a control: its label in glossary words and its key from `HOTKEY`, e.g. "Pick `P`" | every icon and icon-only control on every screen | `hotkeys` |
 

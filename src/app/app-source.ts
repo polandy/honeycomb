@@ -27,7 +27,7 @@ export interface FolderSetOpeningCull {
 	readonly resume: () => void
 	/** Closes the folder picker and the folders home before the loupe resumes. */
 	readonly leave: () => void
-	/** Opens what a page of its own asked for in the address (APP-001.24). */
+	/** Opens what a page of its own asked for in the address (APP-001.26). */
 	readonly choose: (target: NavigationTarget) => void
 }
 

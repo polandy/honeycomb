@@ -50,13 +50,13 @@ describe('parseLocation', () => {
 })
 
 describe('targetHash', () => {
-	// spec: APP-001.24
+	// spec: APP-001.26
 	it.each(['folder-picker', 'settings'] as const)('round-trips what the cull page opens: %s', (target) => {
 		expect(parseTarget(targetHash(target))).toBe(target)
 		expect(parseLocation(targetHash(target))).toBe(null)
 	})
 
-	// spec: APP-001.24
+	// spec: APP-001.26
 	it.each(['', '#open=', '#open=trash', '#open=settings2', locationHash(SET, null)])('names no target for %j', (hash) => {
 		expect(parseTarget(hash)).toBe(null)
 	})

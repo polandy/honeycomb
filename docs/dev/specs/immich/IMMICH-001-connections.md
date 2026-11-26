@@ -200,7 +200,8 @@ never stores, shows or logs a key.
 
 - **Given** a user with a connection and no folder culled yet
 - **When** the user opens honeycomb
-- **Then** the folder picker can be closed, and the source switcher opens Immich
+- **Then** the folder picker can be closed, as without a connection (APP-001.23), and the source
+  switcher opens Immich
 
 ### IMMICH-001.21 – *I only use Immich* only with a working connection
 

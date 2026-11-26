@@ -72,7 +72,7 @@ async function expandAndCollapse(page: Page, viewport: { width: number }, title:
 	await expect(navigationOf(page).getByRole('link', { name: 'Statistics' })).not.toBeInViewport()
 }
 
-// spec: APP-001.23
+// spec: APP-001.25
 for (const viewport of [PHONE, IPAD, IPAD_PORTRAIT]) {
 	for (const route of ROUTES) {
 		test(`expands and collapses the navigation on ${route.path} on a ${viewport.name}`, async ({ page }) => {
@@ -86,7 +86,7 @@ for (const viewport of [PHONE, IPAD, IPAD_PORTRAIT]) {
 	}
 }
 
-// spec: APP-001.8, APP-001.23
+// spec: APP-001.8, APP-001.25
 test('keeps the navigation open on every page once the user opened it on an iPad', async ({ page }) => {
 	await page.setViewportSize(IPAD)
 	await page.goto('/index.php/apps/honeycomb/statistics')
@@ -103,7 +103,7 @@ test('keeps the navigation open on every page once the user opened it on an iPad
 	}
 })
 
-// spec: APP-001.23, APP-001.24
+// spec: APP-001.25, APP-001.26
 test('marks the page shown and opens the cull page\'s settings from a page of its own on a phone', async ({ page }) => {
 	await page.setViewportSize(PHONE)
 	await page.goto('/index.php/apps/honeycomb/orphaned-sidecars')

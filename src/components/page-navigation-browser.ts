@@ -4,7 +4,7 @@ import type { PageNavigationSeams } from './PageLayout.vue'
 
 import { loadPositions } from '../api/index.ts'
 
-/** The navigation seams of a page of its own in the browser (APP-001.23). */
+/** The navigation seams of a page of its own in the browser (APP-001.25). */
 export const browserPageNavigation: PageNavigationSeams = {
 	loadPositions,
 	storage: () => window.localStorage,

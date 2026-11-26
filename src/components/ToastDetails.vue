@@ -7,7 +7,7 @@ import type { DetailedToast } from '../shared/toast.ts'
 
 import { t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import NcDialog from '@nextcloud/vue/components/NcDialog'
+import ModalPanel from './ModalPanel.vue'
 
 const props = defineProps<{
 	detailed: DetailedToast
@@ -19,10 +19,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-	<NcDialog
-		:name="props.detailed.message"
-		container="body"
-		@update:open="emit('close')">
+	<ModalPanel :title="props.detailed.message" @close="emit('close')">
 		<ul class="toast-details__list">
 			<li v-for="(detail, at) in props.detailed.details" :key="at">
 				{{ detail }}
@@ -33,7 +30,7 @@ const emit = defineEmits<{
 				{{ t('honeycomb', 'Close') }}
 			</NcButton>
 		</template>
-	</NcDialog>
+	</ModalPanel>
 </template>
 
 <style scoped>

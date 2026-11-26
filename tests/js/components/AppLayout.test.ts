@@ -10,7 +10,7 @@ import { fakeStorage, provideSkipActions } from '../app-cull.ts'
 enableAutoUnmount(afterEach)
 
 describe('AppLayout', () => {
-	// spec: APP-001.23
+	// spec: APP-001.25
 	it('always shows the navigation beside the content, handing it what the page gives', async () => {
 		const openSettings = vi.fn()
 		provideSkipActions()

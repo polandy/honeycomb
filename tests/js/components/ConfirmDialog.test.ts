@@ -76,15 +76,16 @@ describe('ConfirmDialog', () => {
 		expect(mountDialog({ progress: null }).find('[role="progressbar"]').exists()).toBe(false)
 	})
 
-	it('can be closed only when it can be cancelled', () => {
-		expect(mountDialog({ cancel: true }).find('[role="dialog"]').attributes('data-no-close')).toBe('false')
-		expect(mountDialog().find('[role="dialog"]').attributes('data-no-close')).toBe('true')
+	// spec: APP-001.23
+	it('can be closed by its close button, Escape and the backdrop only when it can be cancelled', () => {
+		expect(mountDialog({ cancel: true }).find('[role="dialog"]').attributes()).toMatchObject({ 'data-no-close': 'false', 'data-close-outside': 'true' })
+		expect(mountDialog().find('[role="dialog"]').attributes()).toMatchObject({ 'data-no-close': 'true', 'data-close-outside': 'false' })
 	})
 
 	it('emits cancel when the dialog closes', () => {
 		const wrapper = mountDialog({ cancel: true })
 
-		wrapper.findComponent(DialogStub).vm.$emit('update:open', false)
+		wrapper.findComponent(DialogStub).vm.$emit('closing')
 
 		expect(wrapper.emitted('cancel')).toHaveLength(1)
 	})
@@ -111,16 +112,16 @@ describe('ConfirmDialog', () => {
 	})
 
 	it('opens in the body, or inside the given container', () => {
-		const dialog = (props: Record<string, unknown>) => shallowMount(ConfirmDialog, { props: { title: 'T', confirmLabel: 'C', ...props } }).findComponent({ name: 'NcDialog' })
+		const container = (props: Record<string, unknown>) => mountDialog(props).find('[role="dialog"]').attributes('data-container')
 
-		expect(dialog({}).props('container')).toBe('body')
-		expect(dialog({ container: '.photo-loupe' }).props('container')).toBe('.photo-loupe')
+		expect(container({})).toBe('body')
+		expect(container({ container: '.photo-loupe' })).toBe('.photo-loupe')
 	})
 
 	it('renders no text that bypasses the catalogue', () => {
 		const wrapper = shallowMount(ConfirmDialog, {
 			props: { title: `${MARK}Title`, confirmLabel: `${MARK}Confirm`, back: true, cancel: true },
-			global: { renderStubDefaultSlot: true, stubs: { NcDialog: DialogStub } },
+			global: { renderStubDefaultSlot: true, stubs: { NcDialog: DialogStub, ModalPanel: false } },
 		})
 
 		expect(wrapper.html()).toContain(`${MARK}Back`)

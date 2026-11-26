@@ -26,7 +26,7 @@ function mountLayout(positions: unknown = [POSITION]) {
 enableAutoUnmount(afterEach)
 
 describe('PageLayout', () => {
-	// spec: APP-001.23
+	// spec: APP-001.25
 	it('shows the page inside the one app layout, the navigation beside it with the page marked', async () => {
 		const { wrapper, navigation } = mountLayout()
 		await flushPromises()
@@ -36,7 +36,7 @@ describe('PageLayout', () => {
 		expect(wrapper.find('.app-content .page-body').text()).toBe('Body')
 	})
 
-	// spec: APP-001.24
+	// spec: APP-001.26
 	it('lists the stored recent folder sets and opens one at its position on the cull page', async () => {
 		const { navigation, visited } = mountLayout()
 		await flushPromises()
@@ -47,7 +47,7 @@ describe('PageLayout', () => {
 		expect(visited).toEqual([CULL_URL + locationHash(SET, 9)])
 	})
 
-	// spec: APP-001.24
+	// spec: APP-001.26
 	it.each([
 		['openFolders', ''],
 		['chooseFolders', targetHash('folder-picker')],

@@ -27,7 +27,7 @@ const ROUTES: [string, () => VueWrapper][] = [
 enableAutoUnmount(afterEach)
 
 describe('every page', () => {
-	// spec: APP-001.23
+	// spec: APP-001.25
 	it.each(ROUTES)('renders %s in the app layout with the navigation', async (_route, mountRoute) => {
 		const wrapper = mountRoute()
 		await flushPromises()
