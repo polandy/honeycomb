@@ -9,6 +9,7 @@ import type { ImmichFilters, TimeOption } from '../logic/immich-filters.ts'
 import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
+import RatingFilter from './RatingFilter.vue'
 import { deviceLabel, kindLabel, timeLabel } from '../immich/immich-filter-text.ts'
 import { sameTimeOption } from '../logic/immich-filters.ts'
 import { toggleChip } from '../logic/picture-filter.ts'
@@ -68,6 +69,7 @@ function timeKey(option: TimeOption): string {
 
 <template>
 	<div class="filter-bar">
+		<RatingFilter :rating="props.filters.rating" :comparison="props.filters.comparison" @update="update" />
 		<div
 			v-for="group in groups"
 			:key="group.label"

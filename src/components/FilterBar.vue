@@ -4,18 +4,19 @@
 -->
 <script setup lang="ts">
 import type { FolderSet } from '../logic/folder-set.ts'
-import type { Filters, RatingComparison } from '../logic/picture-filter.ts'
+import type { Filters } from '../logic/picture-filter.ts'
 import type { Tag } from '../logic/tag.ts'
 
-import { n, t } from '@nextcloud/l10n'
+import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
+import RatingFilter from './RatingFilter.vue'
 import TagFilter from './TagFilter.vue'
 import { COLOUR_LABEL_SWATCHES, colourLabelName } from '../cull/colour-labels.ts'
 import { folderLabel } from '../logic/cull.ts'
 import { COLOUR_LABELS } from '../logic/decision.ts'
-import { activeFilterCount, DEFAULT_FILTERS, nextComparison, toggleChip } from '../logic/picture-filter.ts'
-import { formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
+import { activeFilterCount, DEFAULT_FILTERS, toggleChip } from '../logic/picture-filter.ts'
+import { formatNumber } from '../shared/l10n.ts'
 import { tip } from '../shared/tooltip.ts'
 
 const props = defineProps<{
@@ -35,34 +36,6 @@ const emit = defineEmits<{
 
 /** The filter groups that select several chips by value. */
 type ChipGroup = 'colourLabels' | 'flags' | 'pairings' | 'keepRaw' | 'folders' | 'hints'
-
-const STARS = [0, 1, 2, 3, 4, 5]
-
-const COMPARISONS: Record<RatingComparison, { symbol: string, name: () => string, stars: (count: number) => string }> = {
-	'at-least': {
-		symbol: '≥',
-		name: () => t('honeycomb', 'At least'),
-		stars: (count) => n('honeycomb', 'At least {count} star', 'At least {count} stars', count, { count: formatNumber(count) }),
-	},
-	'at-most': {
-		symbol: '≤',
-		name: () => t('honeycomb', 'At most'),
-		stars: (count) => n('honeycomb', 'At most {count} star', 'At most {count} stars', count, { count: formatNumber(count) }),
-	},
-	exactly: {
-		symbol: '=',
-		name: () => t('honeycomb', 'Exactly'),
-		stars: (count) => n('honeycomb', 'Exactly {count} star', 'Exactly {count} stars', count, { count: formatNumber(count) }),
-	},
-}
-
-const comparison = computed(() => COMPARISONS[props.filters.comparison])
-const comparisonLabel = computed(() => (props.filters.rating === null
-	? t('honeycomb', 'Rating comparison: pick a star count first')
-	: t('honeycomb', 'Rating comparison: {now}. Tap for: {next}', {
-			now: comparison.value.name(),
-			next: COMPARISONS[nextComparison(props.filters.comparison)].name(),
-		}, undefined, PLAIN_TEXT)))
 
 const textGroups = computed(() => {
 	const groups: { group: ChipGroup, label: string, chips: { value: string, label: string }[] }[] = [
@@ -96,11 +69,6 @@ function update(changes: Partial<Filters>) {
 	emit('update:filters', { ...props.filters, ...changes })
 }
 
-/** Sets the rating filter; the pressed star chip, like *Any*, turns it off. */
-function setRating(rating: number | null) {
-	update({ rating: rating === props.filters.rating ? null : rating })
-}
-
 /** Whether the chip of the group is pressed. */
 function pressed(group: ChipGroup, value: string): boolean {
 	return (props.filters[group] as ReadonlySet<string>).has(value)
@@ -114,37 +82,7 @@ function toggle(group: ChipGroup, value: string) {
 
 <template>
 	<div class="filter-bar">
-		<div class="filter-bar__group" role="group" :aria-label="t('honeycomb', 'Rating')">
-			<span class="filter-bar__label" aria-hidden="true">{{ t('honeycomb', 'Rating') }}</span>
-			<div class="filter-bar__chips">
-				<button
-					type="button"
-					class="filter-bar__chip filter-bar__comparison"
-					:aria-label="comparisonLabel"
-					v-bind="tip(comparisonLabel)"
-					:disabled="props.filters.rating === null"
-					@click="update({ comparison: nextComparison(props.filters.comparison) })">
-					{{ comparison.symbol }}
-				</button>
-				<button
-					type="button"
-					class="filter-bar__chip"
-					:aria-pressed="props.filters.rating === null"
-					@click="update({ rating: null })">
-					{{ t('honeycomb', 'Any') }}
-				</button>
-				<button
-					v-for="count in STARS"
-					:key="count"
-					type="button"
-					class="filter-bar__chip filter-bar__star"
-					:aria-label="comparison.stars(count)"
-					:aria-pressed="props.filters.rating === count"
-					@click="setRating(count)">
-					{{ `${formatNumber(count)}★` }}
-				</button>
-			</div>
-		</div>
+		<RatingFilter :rating="props.filters.rating" :comparison="props.filters.comparison" @update="update" />
 		<div class="filter-bar__group" role="group" :aria-label="t('honeycomb', 'Colour')">
 			<span class="filter-bar__label" aria-hidden="true">{{ t('honeycomb', 'Colour') }}</span>
 			<div class="filter-bar__chips">
