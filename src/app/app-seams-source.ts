@@ -9,7 +9,7 @@ import type { ResumeApi } from '../folders/resume.ts'
 import type { ImmichCullApi } from '../immich/immich-picture-source.ts'
 import type { ImmichApi } from '../immich/immich-source.ts'
 
-import { listEntries as apiListEntries, listFolders as apiListFolders, immichAssets, immichCounts, immichImageUrl, immichStatus, listImmichConnections, checkLibraryRoot, listLibraryFolders, loadPositions, markFolderDone, markFoldersDone, reopenFolder, reopenFolders, saveImmichDecisions, savePosition, scanLibrary } from '../api/index.ts'
+import { listEntries as apiListEntries, listFolders as apiListFolders, checkLibraryRoot, immichAssets, immichCounts, immichImageUrl, immichStatus, listImmichConnections, listLibraryFolders, loadPositions, markFolderDone, markFoldersDone, reopenFolder, reopenFolders, saveImmichDecisions, savePosition, scanLibrary } from '../api/index.ts'
 import { browserLocation } from '../cull/cull-location.ts'
 
 /** The seams of the sources: the folders, the library, *Recent*, the page address and Immich. */

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, listAllLibraryFolders, checkLibraryRoot, listLibraryFolders, markFolderDone, markFoldersDone, reopenFolder, reopenFolders, scanLibrary } from '../../src/api/index.ts'
+import { ApiResponseError, checkLibraryRoot, listAllLibraryFolders, listLibraryFolders, markFolderDone, markFoldersDone, reopenFolder, reopenFolders, scanLibrary } from '../../src/api/index.ts'
 import { row } from './logic/folder-fixtures.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() } }))
