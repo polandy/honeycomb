@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { DayRange } from './days.ts'
-import type { ChangeDirection } from './stats-overview.ts'
 import type { Counter } from './statistics.ts'
+import type { ChangeDirection } from './stats-overview.ts'
 import type { Period, PeriodBounds } from './stats-period.ts'
 
 import { addDays, dayCount, weekDay } from './days.ts'
