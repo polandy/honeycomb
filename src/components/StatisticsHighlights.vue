@@ -26,15 +26,21 @@ const emit = defineEmits<{ showDay: [day: string] }>()
 const SUNDAY = '2026-11-01'
 const PERCENT = 100
 const SECOND_MS = 1000
+/** Tenths in one. */
+const TENTHS = 10
 /** A card without a figure. */
 const NO_FIGURE = '—'
+
+/** A weekday average whole, or to a tenth (at least 0.1) while it is below one. */
+const shownAverage = (average: number): number => (average < 1 && average > 0 ? Math.max(1, Math.round(average * TENTHS)) / TENTHS : Math.round(average))
 
 const weekdayName = (weekday: number, style: 'long' | 'short'): string => formatDay(addDays(SUNDAY, weekday), { weekday: style })
 const bestDay = computed(() => props.highlights?.bestDay ?? null)
 const weekday = computed(() => props.highlights?.busiestWeekday ?? null)
 const weekdayTop = computed(() => Math.max(...(weekday.value?.days.map((each) => each.average) ?? [0])))
+const shownTop = computed(() => shownAverage(weekdayTop.value))
 const weekdayLabel = computed(() => t('honeycomb', 'Average photos decided per weekday: {days}', {
-	days: (weekday.value?.days ?? []).map((each) => `${weekdayName(each.weekday, 'short')} ${formatNumber(Math.round(each.average))}`).join(', '),
+	days: (weekday.value?.days ?? []).map((each) => `${weekdayName(each.weekday, 'short')} ${formatNumber(shownAverage(each.average))}`).join(', '),
 }, undefined, PLAIN_TEXT))
 const paceNote = computed(() => {
 	const { change } = props.highlights!.pace
@@ -85,7 +91,7 @@ const streakLength = computed(() => props.highlights?.longestStreak?.length ?? 0
 				</p>
 				<template v-if="weekday">
 					<p class="statistics-highlights__note">
-						{{ t('honeycomb', '{count} photos on average', { count: formatNumber(Math.round(weekdayTop)) }, undefined, PLAIN_TEXT) }}
+						{{ n('honeycomb', '%n photo on average', '%n photos on average', shownTop, undefined, PLAIN_TEXT) }}
 					</p>
 					<div class="statistics-highlights__week" role="img" :aria-label="weekdayLabel">
 						<div v-for="each in weekday.days" :key="each.weekday" :class="{ 'statistics-highlights__day--top': each.weekday === weekday.weekday }">
