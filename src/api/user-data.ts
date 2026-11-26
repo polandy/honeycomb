@@ -75,11 +75,6 @@ export async function cleanUpOrphanedData(): Promise<number> {
 	return data.removed
 }
 
-/** Removes every statistics counter of the user (STATS-001.3). */
-export async function resetStatistics(): Promise<void> {
-	await axios.delete(generateUrl(`${API}/stats`))
-}
-
 /** Every statistics counter of the user, their first counted day, their today and what began before the counting (STATS-001.4). */
 export async function loadStatistics(): Promise<StatsAnswer> {
 	const { data } = await axios.get<unknown>(generateUrl(`${API}/stats`))

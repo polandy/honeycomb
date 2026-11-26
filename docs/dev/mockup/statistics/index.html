@@ -100,7 +100,7 @@ const scenes = {
 	card: ['Cull finished', 'The card opens when no undecided picture is left in the folder set, and after the delete report. Numbers are this session only; nothing here is read from the server.'],
 	page: ['Statistics page', 'A navigation entry beside Similarity. Period chips; tiles; bars per day (7 days), per week (30 days) or per month (year, all time); folder set progress from the resume positions; the state of the pictures read so far.'],
 	year: ['Year in review', 'From 1 December the page opens with the year in review, and the navigation shows a one-time hint that can be closed. In January it still shows the year just ended. On a phone the hint sits in the navigation that ☰ opens.'],
-	settings: ['Settings', 'Keep statistics is on by default. Off means nothing is counted; the numbers already there stay until Reset statistics.'],
+	settings: ['Settings', 'Keep statistics is on by default. Off means nothing is counted; the numbers already there stay.'],
 	empty: ['Nothing counted yet', 'The page before the first counted action, and with Keep statistics off.'],
 }
 const params = new URLSearchParams(location.search)
@@ -138,9 +138,8 @@ const render = {
 		return shell(`<div class="tb"><h1>Statistics</h1>${period('2026')}</div>${yearBlock}${tiles30}${footer}`, { active: true, hint: true, navOpen: false })
 	},
 	settings() {
-		const dlg = `<div class="dlg-set"><h2>Statistics</h2><div class="set"><span class="sw-t" role="switch" aria-checked="true"></span><span>Keep statistics</span></div><p>Counts what honeycomb does per day: pictures decided, moved to the trash bin, sidecars written. No file names, nothing leaves your Nextcloud.</p><div class="set"><button class="btn">Reset statistics</button></div></div>`
-		const confirm = `<div class="scrim"></div><div class="sheet" role="alertdialog"><h2>Reset all statistics?</h2><div class="line">Your photos and sidecars stay as they are.</div><div class="row"><button class="btn primary">Cancel</button><button class="btn danger">Reset statistics</button></div></div>`
-		return shell(`<div class="tb"><h1>Settings</h1></div>${dlg}`, { over: params.get('confirm') === '0' ? '' : confirm })
+		const dlg = `<div class="dlg-set"><h2>Statistics</h2><div class="set"><span class="sw-t" role="switch" aria-checked="true"></span><span>Keep statistics</span></div><p>Counts what honeycomb does per day: pictures decided, moved to the trash bin, sidecars written. No file names, nothing leaves your Nextcloud.</p></div>`
+		return shell(`<div class="tb"><h1>Settings</h1></div>${dlg}`)
 	},
 	empty() {
 		return shell(`<div class="tb"><h1>Statistics</h1>${period('30 days')}</div><div class="empty">Nothing counted yet. Cull a folder and the numbers show here.</div><div class="two">${progress}</div><div class="foot">With Keep statistics off the page adds: Statistics are off. Turn on Keep statistics in the settings to count again.</div>`, { active: true })

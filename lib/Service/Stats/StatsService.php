@@ -18,7 +18,7 @@ use OCP\DB\Exception as DbException;
 use OCP\IUser;
 use Psr\Log\LoggerInterface;
 
-/** Counts, reads and resets a user's statistics (STATS-001, ADR 0039). */
+/** Counts and reads a user's statistics (STATS-001, ADR 0039). */
 final readonly class StatsService {
 	/** The settings field that turns counting off when it is `false`. */
 	private const string SETTING = 'keepStatistics';
@@ -101,11 +101,6 @@ final readonly class StatsService {
 			throw InvalidRequestException::because(Reason::BadValue, 'from must not be after to');
 		}
 		return ['counters' => $this->store->between($user->getUID(), $from, $to), 'firstDay' => $this->store->firstDay($user->getUID()), 'today' => $this->day->today($user)];
-	}
-
-	/** Removes every counter of the user. */
-	public function reset(IUser $user): void {
-		$this->store->forgetUser($user->getUID());
 	}
 
 	private function keeps(IUser $user): bool {

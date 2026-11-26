@@ -77,7 +77,7 @@ const { settings, settled: settingsSettled, update: updateSettings } = useSettin
 const viewStateApi = readOnce(props.viewState)
 const viewState = useViewState(viewStateApi, props.storage)
 const yearReviewHint = useYearReviewHint(viewStateApi, props.today)
-const dialogs = useAppDialogs({ clearCache: props.clearCache, cleanUp: props.cleanUp, resetStatistics: props.resetStatistics }, toast)
+const dialogs = useAppDialogs({ clearCache: props.clearCache, cleanUp: props.cleanUp }, toast)
 const { settingsOpen, shortcutsOpen, connectionOpen, toggleShortcuts } = dialogs
 const sidecarFlow = useSidecarFlow(props.sidecars, toast.show, toast.showError)
 const sidecars = useBundledSidecars(sidecarFlow.sync, props.schedule, props.onPageHide)
@@ -250,8 +250,7 @@ useHotkeys(() => {
 			@update="updateSettings"
 			@showGestureGuide="viewState.showGestureGuide"
 			@clearCache="dialogs.settingsActions.clearCache"
-			@cleanUp="dialogs.settingsActions.cleanUp"
-			@resetStatistics="dialogs.settingsActions.resetStatistics" />
+			@cleanUp="dialogs.settingsActions.cleanUp" />
 		<ImmichConnectionDialog
 			v-if="connectionOpen && opened !== null"
 			:connection="opened"

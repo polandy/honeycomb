@@ -30,4 +30,10 @@ interface StatsStore extends UserRowStore {
 
 	/** The user's earliest counted day, null without one. */
 	public function firstDay(string $userId): ?string;
+
+	/**
+	 * How many rows each user with rows holds, only the user named when given.
+	 * @return array<string, int>
+	 */
+	public function rowsPerUser(?string $userId = null): array;
 }

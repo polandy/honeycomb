@@ -70,7 +70,6 @@ final class WriteRateLimitTest extends TestCase {
 			'SettingsController::save' => [['limit' => 600, 'period' => 60]],
 			'SettingsController::saveList' => [['limit' => 600, 'period' => 60]],
 			'SidecarController::save' => [['limit' => 600, 'period' => 60]],
-			'StatsController::reset' => [['limit' => 600, 'period' => 60]],
 			'TrashController::trash' => [['limit' => 600, 'period' => 60]],
 			'ViewStateController::save' => [['limit' => 600, 'period' => 60]],
 			'VisualHashController::save' => [['limit' => 300, 'period' => 60]],

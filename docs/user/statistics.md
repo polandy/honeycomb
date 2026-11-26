@@ -45,6 +45,8 @@ December.
 
 ## Switch it off or reset it
 
-Both sit in the *Statistics* section of the [settings](settings.md). With *Keep statistics* off,
-honeycomb counts nothing new; the page still shows what it counted before and says so. *Reset
-statistics* removes every counter, and counting starts again today.
+*Keep statistics* sits in the *Statistics* section of the [settings](settings.md). Off, honeycomb
+counts nothing new; the page still shows what it counted before and says so. The settings have
+no reset: ask your Nextcloud admin, who removes the counters with
+[`occ honeycomb:stats:reset`](admin/apps-and-commands.md#occ-commands), and counting starts
+again today.
