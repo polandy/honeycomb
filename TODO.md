@@ -13,12 +13,12 @@ Add items with `/todo`.
 - [ ] Immich (M10, ADR 0041): PR 13 Phase 2: *Write to Immich* with the `updatedAt` conflict check, rejects as Immich trash bin by default, per-asset results, undo; Immich decisions enter the statistics (2026-11-19)
 - [ ] Immich (M10, ADR 0041): PR 14 user docs (the admin page `docs/user/admin/immich.md` is done): an account without partner sharing in its timeline (ADR 0044), the guide for culling Immich uploads (2026-11-19)
 - [ ] Culling aids (M11, ADR 0046): the similarity page (SERIES-004) measures the sharpness of its series members too, once it shows series; the cull measures them since PR 2 (SERIES-006) (2026-11-20)
-- [ ] Series (owner, 2026-11-25, nc-test folder 'Series', ADR 0061): PR 2, the RAW header parser (TIFF-based, RAF, CR3) and the metadata listener that writes `honeycomb-raw_exif`, with the note in `docs/user/admin/removing.md` that the key stays (2026-11-26)
 - [ ] Series (ADR 0061): PR 3, `CaptureTimes` and `EntryFactory` read `honeycomb-raw_exif` for a file without Photos' values, so a RAW-only shot joins its burst's series and *Pick this, reject the rest* takes it, with the e2e on a RAW-only burst (2026-11-26)
 - [ ] Series (ADR 0061): PR 4, the backfill: the listing and the library scan queue `ReadRawHeaders` for RAW files without the key; the job drops the folder summaries it touched (2026-11-26)
 
 ## Later
 
+- [ ] Red e2e on #433 (CI run 45878288778, newest Nextcloud, webkit): `tests/e2e/move.spec.ts:10` saw the `POST /api/v1/move` unanswered after 5 s with no server log line; a move emits no write or metadata event, find why the request stalls (2026-11-26)
 - [ ] Architecture review of 2026-11-24 (done: migration rules ADR 0055, filecache exception ADR 0049, XMP-before-rebuild note, wiring rule ADR 0028): add the canary test that runs `FileCacheLibrary`'s raw `oc_filecache` queries on every Nextcloud version CI covers (ADR 0049) (2026-11-24)
 - [ ] Picture source step 2 follow-up (ADR 0058): the folder listing flows (recent, folder picker, fresh check) and the grid's image URLs through `folderPictureSource`'s `list`, `counts` and `imageUrl` instead of their seams (2026-11-25)
 - [ ] Architecture review of 2026-11-24: rename the glue files in `src/` that share a name with a `src/logic` file (`cull.ts`, `series.ts`, `settings.ts` and 14 more) to `-flow` or `-run` (conventions §1) (2026-11-24)

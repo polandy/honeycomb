@@ -208,4 +208,14 @@ final class SettingsServiceTest extends TestCase {
 
 		$this->assertSame([], $this->service()->get($this->user())->moveRecent);
 	}
+
+	// spec: LISTING-004.8
+	public function testThePairingListsAreTheStoredOnesOrTheDefaults(): void {
+		$this->stored['alice/honeycomb/settings'] = '{"rawExtensions":["X3F"],"renderedExtensions":["jpg"]}';
+		$this->stored['bob/honeycomb/settings'] = '{"rawExtensions":["jpg"],"renderedExtensions":["jpg"]}';
+
+		$this->assertSame(['raw', null], [$this->service()->pairing('alice')->roleOf('x3f'), $this->service()->pairing('alice')->roleOf('nef')]);
+		$this->assertSame(['raw', 'rendered'], [$this->service()->pairing('bob')->roleOf('nef'), $this->service()->pairing('bob')->roleOf('jpg')]);
+		$this->assertSame('raw', $this->service()->pairing('carol')->roleOf('NEF'));
+	}
 }

@@ -9,7 +9,7 @@ merged code does. Spec, tests and code change in the same pull request.
 | Area | Specs |
 |---|---|
 | `app/` | [APP-001](app/APP-001-app-page.md) app page and navigation, [APP-002](app/APP-002-tooltip.md) tooltip, [APP-003](app/APP-003-job-status.md) background job status, [APP-004](app/APP-004-api-conventions.md) API error body and cursor |
-| `listing/` | [LISTING-001](listing/LISTING-001-entries.md) entries of a folder set, [LISTING-002](listing/LISTING-002-pairing.md) pairing, [LISTING-003](listing/LISTING-003-folder-picker.md) folder picker |
+| `listing/` | [LISTING-001](listing/LISTING-001-entries.md) entries of a folder set, [LISTING-002](listing/LISTING-002-pairing.md) pairing, [LISTING-003](listing/LISTING-003-folder-picker.md) folder picker, [LISTING-004](listing/LISTING-004-raw-header-values.md) RAW header values |
 | `images/` | [IMAGES-001](images/IMAGES-001-preview-tiers.md) preview tiers and background previews |
 | `grid/` | [GRID-001](grid/GRID-001-grid.md) grid, [GRID-002](grid/GRID-002-filters-and-sort.md) flag filter, filters, progress and sort, [GRID-003](grid/GRID-003-selection.md) selection mode, [GRID-004](grid/GRID-004-file-names-and-tile-info.md) file names and tile info |
 | `decisions/` | [DECISIONS-001](decisions/DECISIONS-001-decision-storage.md) flag storage, [DECISIONS-002](decisions/DECISIONS-002-resume-position.md) resume position |
