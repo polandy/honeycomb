@@ -351,3 +351,4 @@ what is on screen is loaded, and every number comes from the server.
 | Date | Change |
 |---|---|
 | 2026-11-24 | The empty view offers *Clear filters*, hidden on the default filters (#380, owner) |
+| 2026-11-26 | Tile pills for live photos, videos and stacks; the failed page names the connection's state (.19, .37) |

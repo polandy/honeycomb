@@ -18,7 +18,7 @@ describe('immichBadges', () => {
 			{ label: `${MARK}Photo`, pills: [] },
 			{ label: `${MARK}Motion photo`, pills: [{ icon: 'live', text: `${MARK}LIVE` }] },
 			{ label: `${MARK}Video, 0:12`, pills: [{ icon: 'play', text: '0:12' }] },
-			{ label: `${MARK}Photo, ${MARK}Stack of 3 photos`, pills: [{ icon: 'stack', text: '3' }] },
+			{ label: `${MARK}Photo, ${MARK}${MARK}Stack of 3 photos`, pills: [{ icon: 'stack', text: '3' }] },
 			{ label: `${MARK}Video`, pills: [{ icon: 'play', text: '' }] },
 		])
 	})

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, immichAssets, immichFailureState, immichCounts, immichImageUrl, immichStatus, listImmichConnections, saveImmichDecisions, saveImmichPosition } from '../../src/api/index.ts'
+import { ApiResponseError, immichAssets, immichCounts, immichFailureState, immichImageUrl, immichStatus, listImmichConnections, saveImmichDecisions, saveImmichPosition } from '../../src/api/index.ts'
 import { immichEntry } from './logic/immich-fixtures.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }))

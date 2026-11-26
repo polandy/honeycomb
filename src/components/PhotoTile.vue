@@ -3,12 +3,13 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
+import type { TileSeriesPlace } from '../grid/tile-series.ts'
 import type { Decision } from '../logic/decision.ts'
 import type { ImageUrlFor } from '../logic/image-tiers.ts'
 import type { SourceEntry } from '../logic/listing.ts'
 import type { LoadQueue, QueuedLoad } from '../logic/load-queue.ts'
 import type { Picture } from '../logic/pairing.ts'
-import type { SeriesStatus } from '../logic/stored-series.ts'
+import type { TileBadges } from './tile-badges.ts'
 
 import { n, t } from '@nextcloud/l10n'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
@@ -16,8 +17,10 @@ import AppIcon from './AppIcon.vue'
 import FlagMark from './FlagMark.vue'
 import ShakeHint from './ShakeHint.vue'
 import StarRating from './StarRating.vue'
+import TilePills from './TilePills.vue'
 import { imageUrl as apiImageUrl } from '../api/index.ts'
 import { COLOUR_LABEL_SWATCHES, colourLabelName } from '../cull/colour-labels.ts'
+import { seriesBadge, seriesLabelParts } from '../grid/tile-series.ts'
 import { isDecided, UNDECIDED } from '../logic/decision.ts'
 import { GRID_TIERS, imageMember, loadPriority, sharpTier, smallSource, tierSource } from '../logic/image-tiers.ts'
 import { nameParts } from '../logic/name-bar.ts'
@@ -39,8 +42,10 @@ const props = withDefaults(defineProps<{
 	decision?: Decision
 	selecting?: boolean
 	selected?: boolean
-	/** The picture's place in its series, on the first tile of a run the run's length, and a stored series' status; null outside a series (SERIES-002.10, SERIES-005.17). */
-	series?: { readonly position: number, readonly size: number, readonly run: number | null, readonly stored?: SeriesStatus | null } | null
+	/** The picture's place in its series; null outside a series. */
+	series?: TileSeriesPlace | null
+	/** A source's pills and label in place of the pair badge; null for a pair or a single (IMMICH-002.37). */
+	badges?: TileBadges | null
 	/** Whether the series is settled, so the compare no longer offers it (SERIES-002.10). */
 	seriesSettled?: boolean
 	/** Whether a member of the series is still without its visual hash (SERIES-003.25). */
@@ -60,6 +65,7 @@ const props = withDefaults(defineProps<{
 }>(), {
 	decision: () => UNDECIDED,
 	series: null,
+	badges: null,
 	seriesSettled: false,
 	seriesOpen: false,
 	tags: 0,
@@ -108,6 +114,9 @@ const members = computed(() => {
 
 /** The tile's badge; a complete pair has none unless it keeps its RAW (GRID-001.4). */
 const badge = computed(() => {
+	if (props.badges !== null) {
+		return null
+	}
 	if (members.value.single) {
 		return { text: members.value.name, single: true, keepRaw: false }
 	}
@@ -129,33 +138,12 @@ const decisionLabel = computed(() => {
 /** Whether the tile shows a flag, a colour label, stars, tags or the *Not saved yet* marker. */
 const marked = computed(() => isDecided(props.decision) || props.decision.colourLabel !== null || props.decision.rating > 0 || props.tags > 0 || props.unsaved)
 
-/** The tile's place in its series as the label says it (SERIES-002.10). */
-const seriesText = computed(() => props.series === null
-	? []
-	: [
-			t('honeycomb', 'Series, photo {position} of {size}', { position: formatNumber(props.series.position), size: formatNumber(props.series.size) }, undefined, PLAIN_TEXT),
-			...(props.seriesOpen ? [t('honeycomb', 'Series may still change')] : []),
-			...(props.series.stored === 'open' ? [t('honeycomb', 'Series edited by hand')] : []),
-			...(props.series.stored === 'done' ? [t('honeycomb', 'Series done')] : []),
-		])
-
-/** The badge on the first tile of a run: the series' size, or the run's length of it when the series is split. */
-const seriesBadge = computed(() => {
-	const series = props.series
-	if (series === null || series.run === null) {
-		return null
-	}
-	const size = formatNumber(series.size)
-	return {
-		text: series.run < series.size ? t('honeycomb', '⧉ {run} of {size}', { run: formatNumber(series.run), size }, undefined, PLAIN_TEXT) : `⧉ ${size}`,
-		icon: series.stored === 'done' ? 'check' as const : series.stored === 'open' ? 'pin' as const : null,
-		label: n('honeycomb', 'Series of {count} – compare', 'Series of {count} – compare', series.size, { count: size }, PLAIN_TEXT),
-	}
-})
+const seriesText = computed(() => seriesLabelParts(props.series, props.seriesOpen))
+const seriesBadgeShown = computed(() => seriesBadge(props.series))
 
 const label = computed(() => [
 	props.picture.baseName,
-	members.value.name,
+	props.badges?.label ?? members.value.name,
 	...(props.picture.ambiguous ? [t('honeycomb', 'ambiguous name')] : []),
 	...seriesText.value,
 	...decisionLabel.value,
@@ -252,20 +240,21 @@ onBeforeUnmount(() => {
 				<AppIcon name="imageBroken" />
 				<span class="photo-tile__failed-name">{{ props.picture.baseName }}</span>
 			</span>
+			<TilePills v-if="props.badges !== null && props.badges.pills.length > 0" :pills="props.badges.pills" />
 			<span v-if="badge !== null" class="photo-tile__pair" :class="{ 'photo-tile__pair--single': badge.single, 'photo-tile__pair--keep-raw': badge.keepRaw }">{{ badge.text }}</span>
 			<span v-if="props.picture.ambiguous" class="photo-tile__ambiguous" aria-hidden="true">!</span>
 			<span v-if="props.readOnly" class="photo-tile__lock" aria-hidden="true"><AppIcon name="lock" /></span>
 			<button
-				v-if="seriesBadge !== null"
+				v-if="seriesBadgeShown !== null"
 				type="button"
 				class="photo-tile__series"
 				:class="{ 'photo-tile__series--settled': props.seriesSettled, 'photo-tile__series--open': props.seriesOpen }"
 				tabindex="-1"
-				:aria-label="seriesBadge.label"
+				:aria-label="seriesBadgeShown.label"
 				v-bind="tip(t('honeycomb', 'Compare this series'))"
 				@pointerdown.stop
 				@click.stop="emit('compareSeries')">
-				{{ seriesBadge.text }}<AppIcon v-if="seriesBadge.icon !== null" :name="seriesBadge.icon" />
+				{{ seriesBadgeShown.text }}<AppIcon v-if="seriesBadgeShown.icon !== null" :name="seriesBadgeShown.icon" />
 			</button>
 			<ShakeHint v-if="pictureShakeRisk(props.picture) !== null" :selecting="props.selecting" />
 			<span v-if="props.selecting" class="photo-tile__check" aria-hidden="true"><AppIcon v-if="props.selected" name="check" /></span>

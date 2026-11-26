@@ -48,10 +48,13 @@ const PATHS = {
 	undo: 'M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3',
 	imageBroken: 'M4 4h16v16H4zM4 16l5-5 3 3M14 14l2-2 4 4M15 8h.01M3 21 21 3',
 	lock: 'M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z',
+	live: 'M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0M12 12m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0',
+	play: 'M8 5v14l11-7z',
+	stack: 'M4 8l8-4 8 4-8 4zM4 12l8 4 8-4M4 16l8 4 8-4',
 } as const
 
 /** The icons drawn filled. */
-const FILLED: ReadonlySet<IconName> = new Set(['flagPick'])
+const FILLED: ReadonlySet<IconName> = new Set(['flagPick', 'play'])
 
 /** The name of one of the app's icons. */
 export type IconName = keyof typeof PATHS

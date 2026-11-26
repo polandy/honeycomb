@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { DecisionRow, ImmichImageSize } from '../logic/immich-asset.ts'
-import type { ConnectionState, ConnectionStatus, ImmichAvailability, ImmichConnection } from '../logic/immich-connections.ts'
+import type { ConnectionState, ConnectionStatus, FailedState, ImmichAvailability, ImmichConnection } from '../logic/immich-connections.ts'
 import type { CountsRequest, ImmichCounts } from '../logic/immich-counts.ts'
 import type { AssetsRequest, Page } from '../logic/immich-paging.ts'
 import type { ImmichPositionSave } from '../logic/immich-position.ts'
@@ -14,6 +14,12 @@ import { API, ApiResponseError, isRecord } from './core.ts'
 /** The error code of a failed Immich request, null for any other failure. */
 function immichError(error: unknown): unknown {
 	return isRecord(error) && isRecord(error.response) && isRecord(error.response.data) ? error.response.data.error : null
+}
+
+/** The connection state a failed Immich request names, null for any other failure (IMMICH-002.19). */
+export function immichFailureState(error: unknown): FailedState | null {
+	const code = immichError(error)
+	return code !== 'ok' && CONNECTION_STATES.includes(code as ConnectionState) ? code as FailedState : null
 }
 
 /** The user's connections, or why there are none to offer (IMMICH-001.1 to IMMICH-001.4). */

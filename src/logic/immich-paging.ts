@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Decision } from './decision.ts'
 import type { ImmichEntry } from './immich-asset.ts'
+import type { FailedState } from './immich-connections.ts'
 import type { RequestFilters } from './immich-filters.ts'
 import type { DecisionFilters } from './picture-filter.ts'
 
@@ -44,6 +45,8 @@ export interface PagedList {
 	readonly previousCursor: string | null
 	readonly next: PageState
 	readonly previous: PageState
+	/** The connection state the last failed page named, null when it named none (IMMICH-002.19). */
+	readonly failure: FailedState | null
 }
 
 /** A position in the loupe, `null` while newer pages are not loaded and the offset is unknown (IMMICH-002.27). */
@@ -56,7 +59,7 @@ export interface LoupeCounter {
 export const LOUPE_AHEAD = 12
 
 /** A listing before its first page. */
-export const EMPTY_LIST: PagedList = { entries: [], started: false, nextCursor: null, previousCursor: null, next: 'idle', previous: 'idle' }
+export const EMPTY_LIST: PagedList = { entries: [], started: false, nextCursor: null, previousCursor: null, next: 'idle', previous: 'idle', failure: null }
 
 /** Whether to ask the next page: the first one, or the last shown entry is within `ahead` of the last loaded one. */
 export function wantsNext(list: PagedList, lastShown: number, ahead: number): boolean {
@@ -76,9 +79,9 @@ export function pageAsked(list: PagedList, end: PageEnd): PagedList {
 	return { ...list, [end]: 'loading' }
 }
 
-/** The list once the asked page failed; the cursor stays, so *Try again* asks it again (IMMICH-002.19). */
-export function pageFailed(list: PagedList, end: PageEnd): PagedList {
-	return { ...list, [end]: 'failed' }
+/** The list once the asked page failed with the state; the cursor stays, so *Try again* asks it again (IMMICH-002.19). */
+export function pageFailed(list: PagedList, end: PageEnd, failure: FailedState | null): PagedList {
+	return { ...list, [end]: 'failed', failure }
 }
 
 /** The list with the page added at its end, each asset once. */

@@ -29,6 +29,8 @@ import PhotoLoupe from './PhotoLoupe.vue'
 import SelectionRow from './SelectionRow.vue'
 import { gridCoreHotkeys } from '../grid/grid-hotkeys.ts'
 import { useSelectionMode } from '../grid/selection-mode.ts'
+import { immichBadges } from '../immich/immich-pills.ts'
+import { pageFailedText } from '../immich/immich-text.ts'
 import { LOUPE_AHEAD, loupeCounter } from '../logic/immich-paging.ts'
 import { keptIndex } from '../logic/loupe-pictures.ts'
 import { DECISIONS_ONLY } from '../logic/opened-source.ts'
@@ -195,6 +197,7 @@ defineExpose({
 				:fileNames="props.settings.showFileNames"
 				:tileSize="props.tileSize"
 				:decisionOf="props.cull.decisionOf"
+				:badgesOf="immichBadges"
 				:imageUrl="props.cull.imageUrl"
 				:selecting="selecting"
 				:selection="selection.selection.value"
@@ -206,7 +209,7 @@ defineExpose({
 				@shown="props.cull.loadNext($event, 1)" />
 			<div v-if="list.next !== 'idle'" class="immich-screen__footer">
 				<template v-if="list.next === 'failed'">
-					<span>{{ t('honeycomb', 'Could not load more photos.') }}</span>
+					<span>{{ pageFailedText(list.failure) }}</span>
 					<NcButton @click="props.cull.retry">
 						{{ t('honeycomb', 'Try again') }}
 					</NcButton>
