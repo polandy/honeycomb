@@ -8,6 +8,7 @@ import { ADMIN } from './admin.ts'
 import { cullFolder, E2E_SETTINGS, putSettings, resetViewState } from './cull.ts'
 import { apiHeaders, createFolder, JPEG, upload } from './files.ts'
 import { occ } from './server.ts'
+import { gotoStatistics } from './statistics.ts'
 import { expectTouchTargets } from './touch-targets.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
@@ -77,7 +78,7 @@ test('shows the counted numbers, the library panel and since when it counts on t
 	await page.goto('/index.php/apps/honeycomb/')
 	await countActiveTime(page)
 
-	await page.goto('/index.php/apps/honeycomb/statistics')
+	await gotoStatistics(page)
 
 	await expect(page.getByRole('button', { name: 'Month' })).toHaveAttribute('aria-pressed', 'true')
 	await expect(page.locator('.delete-stats__item', { hasText: 'Days in a row' })).toContainText('1')
@@ -97,7 +98,7 @@ test.describe('on a phone', () => {
 		await page.goto('/index.php/apps/honeycomb/')
 		await countActiveTime(page)
 
-		await page.goto('/index.php/apps/honeycomb/statistics')
+		await gotoStatistics(page)
 
 		const periods = page.getByRole('group', { name: 'Period' })
 		await expect(periods).toBeVisible()
@@ -136,7 +137,7 @@ test('shows the year in review above the periods on the desktop', async ({ page 
 	expect(reopened.status(), await reopened.text()).toBe(200)
 	await stubYear(page)
 
-	await page.goto('/index.php/apps/honeycomb/statistics')
+	await gotoStatistics(page)
 
 	const review = page.getByRole('region', { name: 'Your 2026 in honeycomb' })
 	await expect(review).toContainText('70 photos decided')
@@ -155,7 +156,7 @@ test('fits the year in review on a phone', async ({ page }, testInfo) => {
 	await page.setViewportSize(PHONE)
 	await stubYear(page)
 
-	await page.goto('/index.php/apps/honeycomb/statistics')
+	await gotoStatistics(page)
 
 	await expect(page.getByRole('region', { name: 'Your 2026 in honeycomb' })).toBeVisible()
 	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(PHONE.width)
@@ -190,7 +191,7 @@ test('shows the library progress from the library folders, and asks to choose a 
 	}))
 	await putSettings(page, { libraryRoots: ['/Photos'] })
 
-	await page.goto('/index.php/apps/honeycomb/statistics')
+	await gotoStatistics(page)
 
 	const library = page.locator('.statistics-library')
 	await expect(library).toContainText('25 % of photos in done folders')
@@ -202,6 +203,6 @@ test('shows the library progress from the library folders, and asks to choose a 
 	await expect(page).toHaveURL(/\/apps\/honeycomb\/$/)
 
 	await putSettings(page, {})
-	await page.goto('/index.php/apps/honeycomb/statistics')
+	await gotoStatistics(page)
 	await expect(page.locator('.statistics-library')).toContainText('Choose your library')
 })

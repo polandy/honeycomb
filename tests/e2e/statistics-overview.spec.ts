@@ -4,6 +4,7 @@ import type { Locator, Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
 import { E2E_SETTINGS, putSettings } from './cull.ts'
+import { openStatistics } from './statistics.ts'
 import { WEBKIT } from './webkit.ts'
 
 const PHONE = { width: 390, height: 844 }
@@ -45,14 +46,6 @@ test.afterEach(async ({ page }) => {
 	await putSettings(page, E2E_SETTINGS)
 })
 
-/** Opens the statistics page on the stubbed counters. */
-async function openStatistics(page: Page, hash = ''): Promise<void> {
-	await page.goto('about:blank')
-	await page.route('**/apps/honeycomb/api/v1/stats', (route) => (route.request().method() === 'GET' ? route.fulfill({ json: ANSWER }) : route.continue()))
-	await page.goto(`/index.php/apps/honeycomb/statistics${hash}`)
-	await expect(page.locator('.statistics-period__label')).toBeVisible()
-}
-
 const hero = (page: Page) => page.getByRole('region', { name: 'Photos decided' })
 const tile = (page: Page, label: string) => page.locator('.delete-stats__item', { hasText: label })
 const box = async (locator: Locator) => (await locator.boundingBox())!
@@ -67,7 +60,7 @@ async function expectApart(first: Locator, second: Locator): Promise<void> {
 
 // spec: STATS-001.41, STATS-001.59, STATS-001.60, STATS-001.61, STATS-001.62
 test(`shows the hero beside the bars and the four tiles of the month ${WEBKIT}`, async ({ page }, testInfo) => {
-	await openStatistics(page)
+	await openStatistics(page, ANSWER)
 
 	await expect(hero(page).locator('.statistics-hero__value')).toHaveText('146')
 	await expect(hero(page).locator('.statistics-hero__change')).toHaveText(/^▲ 46\s?% more than Oct 1\s–\s26$/)
@@ -107,7 +100,7 @@ test(`shows the hero beside the bars and the four tiles of the month ${WEBKIT}`,
 
 // spec: STATS-001.55, STATS-001.60
 test('shows 0 without a change and no keep rate in a month without a count', async ({ page }) => {
-	await openStatistics(page, '#month=2025-07')
+	await openStatistics(page, ANSWER, '#month=2025-07')
 
 	await expect(page.locator('.statistics-period__label')).toHaveText('July 2025')
 	await expect(hero(page).locator('.statistics-hero__value')).toHaveText('0')
@@ -123,7 +116,7 @@ test('shows 0 without a change and no keep rate in a month without a count', asy
 test('says statistics are off above the numbers counted so far', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	await putSettings(page, { keepStatistics: false })
-	await openStatistics(page)
+	await openStatistics(page, ANSWER)
 
 	const note = page.getByText('Statistics are off. Turn on Keep statistics in the settings to count again.')
 	await expect(note).toBeVisible()
@@ -137,7 +130,7 @@ test.describe('on a phone', () => {
 	// spec: STATS-001.59
 	test('stacks the hero, the bars and two columns of tiles without a sideways scroll', async ({ page }, testInfo) => {
 		await page.setViewportSize(PHONE)
-		await openStatistics(page)
+		await openStatistics(page, ANSWER)
 
 		const heroBox = await box(hero(page))
 		const chartBox = await box(page.locator('.statistics-bars'))

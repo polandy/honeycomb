@@ -2162,3 +2162,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-26: RAW capture time and camera go into an own file metadata key, `honeycomb-raw_exif`,
   read by an own header parser through `OCP\Files` and backfilled by a queued job from the listing
   and the library scan; no table, so no migration (ADR 0061) (autonomous).
+- 2026-11-26: The statistics e2e helpers wait for the page's `data-settled` (set once its
+  statistics, settings and library loads answered) with `locator.waitFor`, bounded by the test's
+  timeout, instead of the period label under the five-second assertion timeout; the main app's
+  start helper follows in its own PR, see `TODO.md` (autonomous).
