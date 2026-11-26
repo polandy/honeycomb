@@ -112,3 +112,7 @@ and honeycomb's rows in `oc_migrations`, `oc_preferences`, `oc_jobs` and `oc_app
 `--drop` needs `--all`. It is not one
 transaction: if the database fails, it names the failure and exits non-zero, and running it again
 removes the rest. Instead of `app:remove`, `occ app:enable honeycomb` installs honeycomb fresh.
+
+The capture time and camera honeycomb reads from RAW files stay in Nextcloud's file metadata
+(`oc_files_metadata`, key `honeycomb-raw_exif`): neither command removes them. They take little
+space and go with their files.

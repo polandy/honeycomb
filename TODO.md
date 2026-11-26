@@ -13,7 +13,6 @@ Add items with `/todo`.
 - [ ] Immich (M10, ADR 0041): PR 13 Phase 2: *Write to Immich* with the `updatedAt` conflict check, rejects as Immich trash bin by default, per-asset results, undo; Immich decisions enter the statistics (2026-11-19)
 - [ ] Immich (M10, ADR 0041): PR 14 user docs (the admin page `docs/user/admin/immich.md` is done): an account without partner sharing in its timeline (ADR 0044), the guide for culling Immich uploads (2026-11-19)
 - [ ] Culling aids (M11, ADR 0046): the similarity page (SERIES-004) measures the sharpness of its series members too, once it shows series; the cull measures them since PR 2 (SERIES-006) (2026-11-20)
-- [ ] Series (owner, 2026-11-25, nc-test folder 'Series', ADR 0061): PR 2, the RAW header parser (TIFF-based, RAF, CR3) and the metadata listener that writes `honeycomb-raw_exif`, with the note in `docs/user/admin/removing.md` that the key stays (2026-11-26)
 - [ ] Series (ADR 0061): PR 3, `CaptureTimes` and `EntryFactory` read `honeycomb-raw_exif` for a file without Photos' values, so a RAW-only shot joins its burst's series and *Pick this, reject the rest* takes it, with the e2e on a RAW-only burst (2026-11-26)
 - [ ] Series (ADR 0061): PR 4, the backfill: the listing and the library scan queue `ReadRawHeaders` for RAW files without the key; the job drops the folder summaries it touched (2026-11-26)
 

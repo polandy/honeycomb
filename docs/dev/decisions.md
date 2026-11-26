@@ -2166,3 +2166,16 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   statistics, settings and library loads answered) with `locator.waitFor`, bounded by the test's
   timeout, instead of the period label under the five-second assertion timeout; the main app's
   start helper follows in its own PR, see `TODO.md` (autonomous).
+- 2026-11-26: The RAW header parser tells the format by its bytes, not by the extension, so a
+  renamed or unusual RAW extension still reads; a format it does not know stores `{}` (LISTING-004,
+  ADR 0061) (autonomous).
+- 2026-11-26: The listener takes the owner's RAW extensions from the stored settings and falls back
+  to the defaults for missing or invalid ones; the owner is the node's `getOwner()` (autonomous).
+- 2026-11-26: An `OffsetTimeOriginal` that is no valid offset counts as absent, so the time falls
+  back to the server's zone; a DateTimeOriginal that does not survive a format round trip, such as
+  `0000:00:00 00:00:00`, is left out (autonomous).
+- 2026-11-26: A RAW file that cannot be opened or read is logged and gets no key, so a later
+  metadata run tries it again (autonomous).
+- 2026-11-26: The real camera fixtures in `tests/fixtures/raw-headers/` are sanitized copies
+  (`scripts/raw-header-fixture.sh`) that keep only the header structure and the four fields; CR3,
+  NEF, ORF, RW2, PEF and SRW are built in the tests, as no samples of them exist (autonomous).
