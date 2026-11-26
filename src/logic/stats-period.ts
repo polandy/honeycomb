@@ -28,11 +28,11 @@ export type Step = -1 | 1
 /** What one bar covers. */
 export type BarUnit = 'day' | 'month' | 'year'
 
-/** One bar: the pictures decided and moved to the trash bin in its days, and whether it lies after today, before the first counted day or holds today. */
+/** One bar: the sum of each metric counted in its days, whether any counter lies in them, and whether it lies after today, before the first counted day or holds today. */
 export interface PeriodBar {
 	readonly range: DayRange
-	readonly decided: number
-	readonly trashed: number
+	readonly sums: Readonly<Record<string, number>>
+	readonly counted: boolean
 	readonly future: boolean
 	readonly beforeFirst: boolean
 	readonly today: boolean
@@ -132,11 +132,15 @@ function barRanges(period: Period): { unit: BarUnit, ranges: DayRange[] } {
 export function periodBars(counters: readonly Counter[], period: Period, bounds: PeriodBounds): { unit: BarUnit, bars: PeriodBar[] } {
 	const { unit, ranges } = barRanges(period)
 	const bars = ranges.map((range) => {
-		const sums = periodSums(counters, range)
+		const sums: Record<string, number> = {}
+		const inRange = counters.filter((each) => holds(range, each.day))
+		inRange.forEach((each) => {
+			sums[each.metric] = (sums[each.metric] ?? 0) + each.value
+		})
 		return {
 			range,
-			decided: sums(METRIC.decided),
-			trashed: sums(METRIC.trashPictures),
+			sums,
+			counted: inRange.length > 0,
 			future: range.from > bounds.today,
 			beforeFirst: range.to < firstOf(bounds),
 			today: period.kind !== 'all' && holds(range, bounds.today),
