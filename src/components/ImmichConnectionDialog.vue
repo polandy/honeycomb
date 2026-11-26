@@ -8,7 +8,7 @@ import type { ConnectionStatus, ImmichConnection } from '../logic/immich-connect
 import { t } from '@nextcloud/l10n'
 import { computed, ref } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import NcDialog from '@nextcloud/vue/components/NcDialog'
+import ModalPanel from './ModalPanel.vue'
 import { connectionLine, IMMICH_SCOPES_URL } from '../immich/immich-text.ts'
 import { formatNumber } from '../shared/l10n.ts'
 
@@ -61,7 +61,7 @@ function test() {
 </script>
 
 <template>
-	<NcDialog :name="t('honeycomb', 'Immich connection')" @update:open="emit('close')">
+	<ModalPanel :title="t('honeycomb', 'Immich connection')" @close="emit('close')">
 		<dl class="immich-connection__facts">
 			<template v-for="row in rows" :key="row.term">
 				<dt>{{ row.term }}</dt>
@@ -100,7 +100,7 @@ function test() {
 				{{ t('honeycomb', 'Close') }}
 			</NcButton>
 		</template>
-	</NcDialog>
+	</ModalPanel>
 </template>
 
 <style scoped>

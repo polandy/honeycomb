@@ -16,8 +16,8 @@ import type { ObserveSize } from '../shared/observe-size.ts'
 import { n, t } from '@nextcloud/l10n'
 import { computed, onMounted, shallowRef, useTemplateRef, watch } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
+import ModalPanel from './ModalPanel.vue'
 import PickRestButton from './PickRestButton.vue'
 import SeriesCompareCard from './SeriesCompareCard.vue'
 import SeriesCompareMenu from './SeriesCompareMenu.vue'
@@ -144,23 +144,16 @@ function pickActive() {
 		emit('pickRest', picture)
 	}
 }
-
-/** Closing the dialog by its close button or Escape closes the compare. */
-function onOpen(open: boolean) {
-	if (!open) {
-		emit('close')
-	}
-}
 </script>
 
 <template>
-	<NcDialog
+	<ModalPanel
 		class="series-compare-dialog"
-		:name="title"
+		:title="title"
 		size="full"
 		:container="props.container"
-		:noClose="openMenus > 0"
-		@update:open="onOpen">
+		:locked="openMenus > 0"
+		@close="emit('close')">
 		<NcEmptyContent
 			v-if="props.series === null"
 			:name="t('honeycomb', 'All series compared')"
@@ -217,7 +210,7 @@ function onOpen(open: boolean) {
 				</NcButton>
 			</div>
 		</template>
-	</NcDialog>
+	</ModalPanel>
 </template>
 
 <style scoped>
