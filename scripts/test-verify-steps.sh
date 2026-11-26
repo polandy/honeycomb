@@ -3,7 +3,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Test for scripts/verify-steps.sh: result lines carry the duration, a failing step shows its output,
 # parallel steps run at once and still print in start order, the e2e slot is taken host-wide, steps
-# never inherit it, busy ports are passed over and only orphaned own containers are removed.
+# never inherit it, containers change only while it is held, busy ports are passed over and only
+# orphaned own containers are removed.
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
@@ -221,6 +222,15 @@ expect_ports "8182 9182" "8180 8181 8182 9182" 8180 8181
 expect_ports "8190 9190" "$(seq -s' ' 8180 8190) 9190" $(seq 8180 8189)
 if choose $(seq 8180 8279) >/dev/null; then
   echo "FAIL no free port in the search range must fail the choice"
+  failed=1
+fi
+
+# verify.sh reaps and removes containers only while it holds the slot, so no other run's bridge changes.
+line_of() { grep -n -m1 -- "^$1" scripts/verify.sh | cut -d: -f1; }
+take=$(line_of e2e_slot_take) reap=$(line_of e2e_reap_orphans) remove=$(line_of e2e_remove_own) release=$(line_of e2e_slot_release)
+if ! [ -n "$take" ] || ! [ -n "$reap" ] || ! [ -n "$remove" ] || ! [ -n "$release" ] ||
+  [ "$take" -gt "$reap" ] || [ "$remove" -gt "$release" ] || [ "$(line_of 'parallel_step e2e ')" -gt "$remove" ]; then
+  echo "FAIL verify.sh must take the slot, reap, run the e2e, remove its own containers, then release: $take $reap $remove $release"
   failed=1
 fi
 
