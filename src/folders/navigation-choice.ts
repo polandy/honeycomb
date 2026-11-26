@@ -5,7 +5,7 @@ import type { BrowserStorage } from '../shared/browser-storage.ts'
 import { emit, subscribe, unsubscribe } from '@nextcloud/event-bus'
 import { useIsMobile } from '@nextcloud/vue/composables/useIsMobile'
 import { onBeforeUnmount, onMounted } from 'vue'
-import { startsOpen } from '../logic/navigation.ts'
+import { choiceKey, startsOpen, storedChoice } from '../logic/navigation.ts'
 import { readStored, writeStored } from '../shared/browser-storage.ts'
 
 export const NAVIGATION_OPEN_KEY = 'honeycomb.navigationOpen'
@@ -17,15 +17,16 @@ declare module '@nextcloud/event-bus' {
 	}
 }
 
-/** Starts Nextcloud's navigation as the user left it, else closed on a narrower screen, and remembers each toggle while it sits beside the page. */
-export function useNavigationChoice(storage: BrowserStorage, viewportWidth: () => number) {
+/** Starts Nextcloud's navigation as the user left it, else closed on a narrower screen, and remembers each toggle while it sits beside the page, per Nextcloud user. */
+export function useNavigationChoice(storage: BrowserStorage, viewportWidth: () => number, user: string | null) {
+	const key = choiceKey(NAVIGATION_OPEN_KEY, user)
 	const isMobile = useIsMobile()
 	let docked = !isMobile.value
 	let known = false
 
 	/** Tells the navigation how to start. */
 	function applyStart() {
-		known = startsOpen(readStored(storage, NAVIGATION_OPEN_KEY), viewportWidth())
+		known = startsOpen(storedChoice(readStored(storage, key), readStored(storage, NAVIGATION_OPEN_KEY)), viewportWidth())
 		emit('toggle-navigation', { open: known })
 	}
 
@@ -38,7 +39,7 @@ export function useNavigationChoice(storage: BrowserStorage, viewportWidth: () =
 			}
 		} else if (docked && open !== known) {
 			known = open
-			writeStored(storage, NAVIGATION_OPEN_KEY, String(open))
+			writeStored(storage, key, String(open))
 		}
 	}
 

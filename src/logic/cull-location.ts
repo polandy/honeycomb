@@ -42,3 +42,20 @@ export function parseLocation(hash: string): CullLocation | null {
 	}
 	return { folderSet: { paths, subfolders, ...(excluded === undefined ? {} : { excluded }) }, fileId: fileId ?? null }
 }
+
+/** What a page of its own asks the cull page to open (APP-001.24). */
+export type NavigationTarget = 'folder-picker' | 'settings'
+
+const TARGET_PARAMETER = '#open='
+const TARGETS: readonly NavigationTarget[] = ['folder-picker', 'settings']
+
+/** The address hash that asks the cull page to open the target. */
+export function targetHash(target: NavigationTarget): string {
+	return TARGET_PARAMETER + target
+}
+
+/** The target an address hash asks for; null for any other hash. */
+export function parseTarget(hash: string): NavigationTarget | null {
+	const named = hash.startsWith(TARGET_PARAMETER) ? hash.slice(TARGET_PARAMETER.length) : null
+	return TARGETS.find((target) => target === named) ?? null
+}

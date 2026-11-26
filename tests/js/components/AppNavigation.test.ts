@@ -87,11 +87,11 @@ describe('AppNavigation', () => {
 
 	// spec: APP-001.23
 	it('marks the entry of the page shown, none on the cull page', () => {
-		const active = (page?: 'statistics') => mount(AppNavigation, { props: { items: ITEMS, storage: fakeStorage(), page } })
+		const active = (page: 'statistics' | null) => mount(AppNavigation, { props: { items: ITEMS, storage: fakeStorage(), page } })
 			.findAllComponents(NcAppNavigationItem).filter((item) => item.props('active')).map((item) => item.props('name'))
 
 		expect(active('statistics')).toEqual([`${MARK}Statistics`])
-		expect(active()).toEqual([])
+		expect(active(null)).toEqual([])
 	})
 
 	// spec: STATS-001.26
@@ -185,9 +185,10 @@ describe('AppNavigation', () => {
 		isMobile.value = false
 		const stored: Record<string, string> = { [NAVIGATION_OPEN_KEY]: 'false' }
 		const toggles = recordToggles()
-		mountNavigation(ITEMS, stored, 1440, null, 'alice')
+		const alice = mountNavigation(ITEMS, stored, 1440, null, 'alice')
 
 		emit('navigation-toggled', { open: true })
+		alice.unmount()
 		mountNavigation(ITEMS, stored, 1440, null, 'bob')
 		toggles.stop()
 

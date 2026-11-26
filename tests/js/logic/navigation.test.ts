@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
-import { choiceKey, NAVIGATION_OPEN_MIN_WIDTH, storedChoice, startsOpen } from '../../../src/logic/navigation.ts'
+import { choiceKey, NAVIGATION_OPEN_MIN_WIDTH, startsOpen, storedChoice } from '../../../src/logic/navigation.ts'
 
 describe('startsOpen', () => {
 	// spec: APP-001.7

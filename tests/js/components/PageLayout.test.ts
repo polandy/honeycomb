@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
+import { generateUrl } from '@nextcloud/router'
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import AppLayout from '../../../src/components/AppLayout.vue'
@@ -14,7 +15,7 @@ vi.mock('../../../src/shared/logger.ts', () => ({ logger: { error: vi.fn() } }))
 
 const SET = { paths: ['/Trip'], subfolders: false }
 const POSITION = { folderSet: SET, fileId: 9, decided: 3, total: 40 }
-const CULL_URL = '/index.php/apps/honeycomb/'
+const CULL_URL = generateUrl('/apps/honeycomb/')
 
 function mountLayout(positions: unknown = [POSITION]) {
 	const fake = fakePageNavigation(positions)

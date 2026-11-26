@@ -18,7 +18,7 @@ const noAnswer = () => new Promise<never>(() => {})
 
 /** Each route's root, mounted over seams that never answer. */
 const ROUTES: [string, () => VueWrapper][] = [
-	['/apps/honeycomb/', () => mountApp().wrapper],
+	['/apps/honeycomb/', () => mountApp({}, [], { AppNavigation: false }).wrapper],
 	['/apps/honeycomb/similarity', () => mount(SimilarityPage, { props: { seams: { listMissing: noAnswer, hash: noAnswer, save: noAnswer, wait: noAnswer, workers: 1 }, listFolders: noAnswer, roots: [], navigation: navigation() } })],
 	['/apps/honeycomb/statistics', () => mount(StatisticsPage, { props: { seams: { loadStatistics: noAnswer, loadLibraryFolders: noAnswer, loadSettings: noAnswer, saveViewState: noAnswer }, navigation: navigation() } })],
 	['/apps/honeycomb/orphaned-sidecars', () => mount(OrphanedSidecarsPage, { props: { seams: { scan: noAnswer, trash: noAnswer }, listFolders: noAnswer, roots: [], navigation: navigation() } })],

@@ -11,9 +11,7 @@ import type { ResumePosition } from '../logic/resume-position.ts'
 import type { AppSeams } from './app-seams.ts'
 
 import { computed, ref, useTemplateRef, watch } from 'vue'
-import NcAppContent from '@nextcloud/vue/components/NcAppContent'
-import NcContent from '@nextcloud/vue/components/NcContent'
-import AppNavigation from '../components/AppNavigation.vue'
+import AppLayout from '../components/AppLayout.vue'
 import AppTooltip from '../components/AppTooltip.vue'
 import CullDialogs from '../components/CullDialogs.vue'
 import CullFinished from '../components/CullFinished.vue'
@@ -145,7 +143,7 @@ const shownFile = () => (shownInLoupe() === null ? null : positionFileId(shownIn
 const source = useFolderSetOpening(props.location, { folderSet: () => folderSet.value, shownFileId: shownFile, open: cull.open, list: recent.list, openPosition: recent.open, offer: resume.offer, resumeAt: resume.resumeAt, resume: resume.resume, leave: () => {
 	pickerOpen.value = false
 	home.hide()
-} })
+}, choose: (target) => ((target === 'folder-picker' ? pickerOpen : settingsOpen).value = true) })
 const { openFolderSet } = source
 /** Lists the open folder set again (DECISIONS-002.18). */
 function reloadFolder() {
@@ -179,114 +177,111 @@ useHotkeys(() => {
 </script>
 
 <template>
-	<NcContent appName="honeycomb">
-		<AppNavigation
-			:items="recent.items.value"
+	<AppLayout
+		:items="recent.items.value"
+		:storage="props.storage"
+		:hintYear="yearReviewHint.year.value"
+		:source="immich.source.value"
+		:offersImmich="immich.offered.value"
+		:connections="connectionLines(immich.connections.value, immich.statusOf)"
+		:connectionId="opened?.id ?? null"
+		@chooseSource="immich.choose"
+		@openConnection="openConnection"
+		@connectionDetails="connectionOpen = true"
+		@closeHint="yearReviewHint.close()"
+		@openFolders="home.back"
+		@chooseFolders="pickerOpen = true"
+		@openRecent="openRecent"
+		@openSettings="settingsOpen = true">
+		<FoldersHome v-show="immichOnly.started.value && home.shown.value && !immichShown" :home="home" :listFolders="listFolders" />
+		<ImmichScreen
+			v-if="immichShown && openedStatus?.state === 'ok'"
+			ref="immichScreen"
+			:cull="immichCull"
+			:settings="settings"
 			:storage="props.storage"
-			:hintYear="yearReviewHint.year.value"
-			:source="immich.source.value"
-			:offersImmich="immich.offered.value"
-			:connections="connectionLines(immich.connections.value, immich.statusOf)"
-			:connectionId="opened?.id ?? null"
-			@chooseSource="immich.choose"
-			@openConnection="openConnection"
-			@connectionDetails="connectionOpen = true"
-			@closeHint="yearReviewHint.close()"
-			@openFolders="home.back"
-			@chooseFolders="pickerOpen = true"
+			:viewState="viewState"
+			:tileSize="tileSize"
+			@update:tileSize="cull.setTileSize"
+			@updateSettings="updateSettings"
+			@toast="toast.show($event.message, $event.action)" />
+		<ImmichState
+			v-else-if="immichShown"
+			:connection="opened"
+			:status="openedStatus"
+			@retry="checkOpened"
+			@details="connectionOpen = true" />
+		<template v-else-if="home.shown.value" />
+		<GridSkeleton v-else-if="recent.listing.value" class="honeycomb__grid" :tileSize="tileSize" />
+		<GridScreen v-else-if="folderSet !== null" ref="gridScreen" />
+		<NoFolderState v-else @chooseFolder="pickerOpen = true" />
+		<FolderPicker
+			v-if="pickerOpen && immichOnly.started.value"
+			:current="folderSet"
+			:closable="immich.offered.value"
+			:immichOnly="onlyOffer ?? 'asked'"
+			:listFolders="listFolders"
+			:listEntries="props.listEntries"
+			:roots="settings.libraryRoots"
+			:pairing="cull.pairing.value"
+			:recent="recent.items.value"
+			@confirm="openFolderSet"
 			@openRecent="openRecent"
-			@openSettings="settingsOpen = true" />
-		<NcAppContent class="honeycomb">
-			<FoldersHome v-show="immichOnly.started.value && home.shown.value && !immichShown" :home="home" :listFolders="listFolders" />
-			<ImmichScreen
-				v-if="immichShown && openedStatus?.state === 'ok'"
-				ref="immichScreen"
-				:cull="immichCull"
-				:settings="settings"
-				:storage="props.storage"
-				:viewState="viewState"
-				:tileSize="tileSize"
-				@update:tileSize="cull.setTileSize"
-				@updateSettings="updateSettings"
-				@toast="toast.show($event.message, $event.action)" />
-			<ImmichState
-				v-else-if="immichShown"
-				:connection="opened"
-				:status="openedStatus"
-				@retry="checkOpened"
-				@details="connectionOpen = true" />
-			<template v-else-if="home.shown.value" />
-			<GridSkeleton v-else-if="recent.listing.value" class="honeycomb__grid" :tileSize="tileSize" />
-			<GridScreen v-else-if="folderSet !== null" ref="gridScreen" />
-			<NoFolderState v-else @chooseFolder="pickerOpen = true" />
-			<FolderPicker
-				v-if="pickerOpen && immichOnly.started.value"
-				:current="folderSet"
-				:closable="immich.offered.value"
-				:immichOnly="onlyOffer ?? 'asked'"
-				:listFolders="listFolders"
-				:listEntries="props.listEntries"
-				:roots="settings.libraryRoots"
-				:pairing="cull.pairing.value"
-				:recent="recent.items.value"
-				@confirm="openFolderSet"
-				@openRecent="openRecent"
-				@immichOnly="immichOnly.choose"
-				@cancel="pickerOpen = false" />
-			<CullDialogs
-				v-if="folderSet !== null"
-				:deleting="deleting"
-				:moving="moving"
-				:sidecars="sidecarFlow"
-				:folderSet="folderSet"
-				:folders="folders"
-				:listFolders="listFolders"
-				:container="loupe !== null ? '.photo-loupe' : undefined" />
-			<CullFinished v-if="cullFinished.numbers.value !== null" :numbers="cullFinished.numbers.value" v-bind="finishedCard" />
-			<SeriesCompareScreen ref="seriesScreen" />
-			<SettingsDialog
-				v-model:open="settingsOpen"
-				:settings="settings"
-				:gestureGuideSeen="viewState.gestureGuideSeen.value"
-				:admin="isAdmin"
-				:listFolders="listFolders"
-				:check="home.check"
-				@update="updateSettings"
-				@showGestureGuide="viewState.showGestureGuide"
-				@clearCache="dialogs.settingsActions.clearCache"
-				@cleanUp="dialogs.settingsActions.cleanUp"
-				@resetStatistics="dialogs.settingsActions.resetStatistics" />
-			<ImmichConnectionDialog
-				v-if="connectionOpen && opened !== null"
-				:connection="opened"
-				:status="openedStatus"
-				@test="checkOpened"
-				@close="connectionOpen = false" />
-			<ToastDetails v-if="toast.detailed.value !== null" :detailed="toast.detailed.value" @close="toast.closeDetails" />
-			<Teleport to="body">
-				<LoupeScreen ref="loupeScreen" />
-				<TagEntry
-					v-if="tagEntry.targets.value !== null"
-					:targets="tagEntry.targets.value.map(cull.tags.tagsOf)"
-					:known="cull.tags.known.value"
-					@change="tag($event, tagEntry.targets.value!)"
-					@close="tagEntry.close" />
-				<ShortcutSheet
-					v-if="shortcutsOpen"
-					:container="overlayScreen"
-					:hidden="immichShown ? IMMICH_HIDDEN_KEYS : undefined"
-					@close="shortcutsOpen = false" />
-				<UndoToast
-					v-if="toast.current.value !== null"
-					:toast="toast.current.value"
-					:top="overlayScreen !== undefined"
-					v-bind="toast.listeners" />
-			</Teleport>
-		</NcAppContent>
-		<AppTooltip :container="overlayScreen" :schedule="props.schedule" />
-	</NcContent>
+			@immichOnly="immichOnly.choose"
+			@cancel="pickerOpen = false" />
+		<CullDialogs
+			v-if="folderSet !== null"
+			:deleting="deleting"
+			:moving="moving"
+			:sidecars="sidecarFlow"
+			:folderSet="folderSet"
+			:folders="folders"
+			:listFolders="listFolders"
+			:container="loupe !== null ? '.photo-loupe' : undefined" />
+		<CullFinished v-if="cullFinished.numbers.value !== null" :numbers="cullFinished.numbers.value" v-bind="finishedCard" />
+		<SeriesCompareScreen ref="seriesScreen" />
+		<SettingsDialog
+			v-model:open="settingsOpen"
+			:settings="settings"
+			:gestureGuideSeen="viewState.gestureGuideSeen.value"
+			:admin="isAdmin"
+			:listFolders="listFolders"
+			:check="home.check"
+			@update="updateSettings"
+			@showGestureGuide="viewState.showGestureGuide"
+			@clearCache="dialogs.settingsActions.clearCache"
+			@cleanUp="dialogs.settingsActions.cleanUp"
+			@resetStatistics="dialogs.settingsActions.resetStatistics" />
+		<ImmichConnectionDialog
+			v-if="connectionOpen && opened !== null"
+			:connection="opened"
+			:status="openedStatus"
+			@test="checkOpened"
+			@close="connectionOpen = false" />
+		<ToastDetails v-if="toast.detailed.value !== null" :detailed="toast.detailed.value" @close="toast.closeDetails" />
+		<Teleport to="body">
+			<LoupeScreen ref="loupeScreen" />
+			<TagEntry
+				v-if="tagEntry.targets.value !== null"
+				:targets="tagEntry.targets.value.map(cull.tags.tagsOf)"
+				:known="cull.tags.known.value"
+				@change="tag($event, tagEntry.targets.value!)"
+				@close="tagEntry.close" />
+			<ShortcutSheet
+				v-if="shortcutsOpen"
+				:container="overlayScreen"
+				:hidden="immichShown ? IMMICH_HIDDEN_KEYS : undefined"
+				@close="shortcutsOpen = false" />
+			<UndoToast
+				v-if="toast.current.value !== null"
+				:toast="toast.current.value"
+				:top="overlayScreen !== undefined"
+				v-bind="toast.listeners" />
+		</Teleport>
+		<template #outside>
+			<AppTooltip :container="overlayScreen" :schedule="props.schedule" />
+		</template>
+	</AppLayout>
 </template>
-
-<style src="./app-global.css" />
 
 <style scoped src="./app.css" />

@@ -2057,3 +2057,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   navigation toggle no longer clips the breadcrumb; the bar and the done mark use Nextcloud's
   element colours, as `--color-success` and `--color-error` became light tints (FOLDERS-007.19–.22,
   FOLDERS-009.24) (autonomous).
+- 2026-11-26: The navigation is on every page through one app layout (APP-001.23); its open or
+  closed choice stays in the browser per Nextcloud user (`honeycomb.navigationOpen.<user>`), not
+  in the server's view state (ADR 0019), because end-to-end tests share the admin and would leak
+  the choice between them and the start would wait on a request. On a page of its own, *Folders*,
+  *Folder*, a recent set and *Settings* open the cull page (`#open=folder-picker`,
+  `#open=settings`, the set's `#cull=` address); the source switcher and the year hint stay on
+  the cull page (APP-001.24) (autonomous).

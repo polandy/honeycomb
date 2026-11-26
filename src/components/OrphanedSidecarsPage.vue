@@ -5,16 +5,16 @@
 <script setup lang="ts">
 import type { Folder } from '../api/index.ts'
 import type { OrphanedSidecarSeams } from '../trash/orphaned-sidecars-run.ts'
+import type { PageNavigationSeams } from './PageLayout.vue'
 
 import { t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import { computed, ref } from 'vue'
-import NcAppContent from '@nextcloud/vue/components/NcAppContent'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import NcContent from '@nextcloud/vue/components/NcContent'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import AppIcon from './AppIcon.vue'
 import FolderTree from './FolderTree.vue'
+import PageLayout from './PageLayout.vue'
 import { outsideRootsNote } from '../folders/folders-text.ts'
 import { isInsideRoots } from '../logic/library-roots.ts'
 import { formatFileSize } from '../shared/l10n.ts'
@@ -26,6 +26,8 @@ const props = withDefaults(defineProps<{
 	listFolders: (path: string) => Promise<Folder[]>
 	/** The library roots; the folders to scan lie inside them while any is set (SETTINGS-001.36). */
 	roots?: readonly string[]
+	/** The navigation's seams (APP-001.23). */
+	navigation: PageNavigationSeams
 }>(), {
 	roots: () => [],
 })
@@ -46,82 +48,79 @@ function choose(path: string) {
 </script>
 
 <template>
-	<NcContent appName="honeycomb">
-		<NcAppContent>
-			<div class="orphaned-sidecars">
-				<NcButton variant="tertiary" :href="cullUrl">
-					<template #icon>
-						<AppIcon name="back" />
-					</template>
-					{{ t('honeycomb', 'Back to the cull') }}
-				</NcButton>
-				<h2>{{ t('honeycomb', 'Orphaned sidecars') }}</h2>
-				<p>{{ t('honeycomb', 'Finds sidecars whose photo or video is no longer in their folder. Nothing moves until you confirm; the trash bin can restore them.') }}</p>
-				<FolderTree
-					:ticked="chosen === null ? [] : [chosen]"
-					:listFolders="props.listFolders"
-					:disabledNote="(path) => outsideRootsNote(props.roots, path)"
-					single
-					@toggle="choose" />
-				<div class="orphaned-sidecars__actions">
-					<NcButton :pressed="chosen === WHOLE_LIBRARY" :disabled="busy || !isInsideRoots(props.roots, WHOLE_LIBRARY)" @click="choose(WHOLE_LIBRARY)">
-						{{ t('honeycomb', 'Whole library') }}
-					</NcButton>
-					<NcButton variant="primary" :disabled="chosen === null || busy" @click="run.scan(chosen!)">
-						{{ t('honeycomb', 'Find orphaned sidecars') }}
-					</NcButton>
-				</div>
-				<p v-if="run.status.value === 'scanning'">
-					{{ t('honeycomb', 'Looking for orphaned sidecars …') }}
-				</p>
-				<NcNoteCard v-if="run.problem.value === 'scan'" type="error">
-					{{ t('honeycomb', 'Could not look for orphaned sidecars. Try again.') }}
-				</NcNoteCard>
-				<template v-if="run.status.value === 'found' || run.status.value === 'moving'">
-					<NcNoteCard v-if="run.list.value.count === 0" type="success">
-						{{ t('honeycomb', 'No orphaned sidecars found.') }}
-					</NcNoteCard>
-					<template v-else>
-						<p class="orphaned-sidecars__total">
-							{{ totalText(run.list.value.count, run.list.value.size) }}
-						</p>
-						<details v-for="folder in run.list.value.folders" :key="folder.path" class="orphaned-sidecars__folder">
-							<summary>{{ folderText(folder.path, folder.count, folder.size) }}</summary>
-							<ul>
-								<li v-for="sidecar in folder.sidecars" :key="sidecar.fileId">
-									{{ sidecar.name }} – {{ formatFileSize(sidecar.size) }}
-								</li>
-							</ul>
-						</details>
-						<div class="orphaned-sidecars__actions">
-							<NcButton variant="error" :disabled="busy" @click="run.move()">
-								<template #icon>
-									<AppIcon name="trash" />
-								</template>
-								{{ moveText(run.list.value.count) }}
-							</NcButton>
-						</div>
-					</template>
+	<PageLayout page="orphaned-sidecars" :seams="props.navigation">
+		<div class="orphaned-sidecars">
+			<NcButton variant="tertiary" :href="cullUrl">
+				<template #icon>
+					<AppIcon name="back" />
 				</template>
-				<template v-if="run.report.value !== null">
-					<NcNoteCard :type="run.report.value.skipped.length === 0 ? 'success' : 'warning'">
-						{{ reportText(run.report.value.trashed, run.report.value.skipped.length) }}
-					</NcNoteCard>
-					<NcNoteCard v-if="run.problem.value === 'trash'" type="error">
-						{{ t('honeycomb', 'Could not reach the server; the sidecars not sent stay where they are.') }}
-					</NcNoteCard>
-					<details v-if="run.report.value.skipped.length > 0" class="orphaned-sidecars__skipped" open>
-						<summary>{{ t('honeycomb', 'Sidecars that stayed') }}</summary>
+				{{ t('honeycomb', 'Back to the cull') }}
+			</NcButton>
+			<p>{{ t('honeycomb', 'Finds sidecars whose photo or video is no longer in their folder. Nothing moves until you confirm; the trash bin can restore them.') }}</p>
+			<FolderTree
+				:ticked="chosen === null ? [] : [chosen]"
+				:listFolders="props.listFolders"
+				:disabledNote="(path) => outsideRootsNote(props.roots, path)"
+				single
+				@toggle="choose" />
+			<div class="orphaned-sidecars__actions">
+				<NcButton :pressed="chosen === WHOLE_LIBRARY" :disabled="busy || !isInsideRoots(props.roots, WHOLE_LIBRARY)" @click="choose(WHOLE_LIBRARY)">
+					{{ t('honeycomb', 'Whole library') }}
+				</NcButton>
+				<NcButton variant="primary" :disabled="chosen === null || busy" @click="run.scan(chosen!)">
+					{{ t('honeycomb', 'Find orphaned sidecars') }}
+				</NcButton>
+			</div>
+			<p v-if="run.status.value === 'scanning'">
+				{{ t('honeycomb', 'Looking for orphaned sidecars …') }}
+			</p>
+			<NcNoteCard v-if="run.problem.value === 'scan'" type="error">
+				{{ t('honeycomb', 'Could not look for orphaned sidecars. Try again.') }}
+			</NcNoteCard>
+			<template v-if="run.status.value === 'found' || run.status.value === 'moving'">
+				<NcNoteCard v-if="run.list.value.count === 0" type="success">
+					{{ t('honeycomb', 'No orphaned sidecars found.') }}
+				</NcNoteCard>
+				<template v-else>
+					<p class="orphaned-sidecars__total">
+						{{ totalText(run.list.value.count, run.list.value.size) }}
+					</p>
+					<details v-for="folder in run.list.value.folders" :key="folder.path" class="orphaned-sidecars__folder">
+						<summary>{{ folderText(folder.path, folder.count, folder.size) }}</summary>
 						<ul>
-							<li v-for="skip in run.report.value.skipped" :key="skip.path">
-								{{ skip.path }} – {{ skipReason(skip.reason) }}
+							<li v-for="sidecar in folder.sidecars" :key="sidecar.fileId">
+								{{ sidecar.name }} – {{ formatFileSize(sidecar.size) }}
 							</li>
 						</ul>
 					</details>
+					<div class="orphaned-sidecars__actions">
+						<NcButton variant="error" :disabled="busy" @click="run.move()">
+							<template #icon>
+								<AppIcon name="trash" />
+							</template>
+							{{ moveText(run.list.value.count) }}
+						</NcButton>
+					</div>
 				</template>
-			</div>
-		</NcAppContent>
-	</NcContent>
+			</template>
+			<template v-if="run.report.value !== null">
+				<NcNoteCard :type="run.report.value.skipped.length === 0 ? 'success' : 'warning'">
+					{{ reportText(run.report.value.trashed, run.report.value.skipped.length) }}
+				</NcNoteCard>
+				<NcNoteCard v-if="run.problem.value === 'trash'" type="error">
+					{{ t('honeycomb', 'Could not reach the server; the sidecars not sent stay where they are.') }}
+				</NcNoteCard>
+				<details v-if="run.report.value.skipped.length > 0" class="orphaned-sidecars__skipped" open>
+					<summary>{{ t('honeycomb', 'Sidecars that stayed') }}</summary>
+					<ul>
+						<li v-for="skip in run.report.value.skipped" :key="skip.path">
+							{{ skip.path }} – {{ skipReason(skip.reason) }}
+						</li>
+					</ul>
+				</details>
+			</template>
+		</div>
+	</PageLayout>
 </template>
 
 <style scoped>
