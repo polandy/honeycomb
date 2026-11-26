@@ -78,13 +78,12 @@ describe('ShortcutSheet', () => {
 	it('closes by its Close button and by the dialog\'s own close', async () => {
 		const wrapper = mountSheet()
 		await wrapper.find('button').trigger('click')
-		wrapper.findComponent(DialogStub).vm.$emit('update:open', false)
-		wrapper.findComponent(DialogStub).vm.$emit('update:open', true)
+		wrapper.findComponent(DialogStub).vm.$emit('closing')
 		expect(wrapper.emitted('close')).toHaveLength(2)
 	})
 
 	it('opens inside the given container', () => {
-		expect(mountSheet({ container: '.photo-loupe' }).find('[role="dialog"]').attributes('container')).toBe('.photo-loupe')
+		expect(mountSheet({ container: '.photo-loupe' }).find('[role="dialog"]').attributes('data-container')).toBe('.photo-loupe')
 	})
 
 	describe('with the marked catalogue', () => {

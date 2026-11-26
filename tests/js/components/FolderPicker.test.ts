@@ -84,8 +84,8 @@ describe('FolderPicker', () => {
 	beforeEach(installMarkedCatalogue)
 	afterEach(uninstallMarkedCatalogue)
 
-	// spec: LISTING-003.11
-	it('asks to tick a folder, introduces the app and cannot be cancelled while no cull is open', async () => {
+	// spec: LISTING-003.11, APP-001.23
+	it('asks to tick a folder, introduces the app and can be cancelled while no cull is open', async () => {
 		const picker = await mountPicker()
 
 		expect(picker.wrapper.find('[role="dialog"]').attributes('name')).toBe(`${MARK}Choose folders`)
@@ -93,18 +93,9 @@ describe('FolderPicker', () => {
 		expect(countLine(picker)).toBe(`${MARK}Tick one or more folders.`)
 		expect(confirmButton(picker).text()).toBe(`${MARK}Choose`)
 		expect(confirmButton(picker).attributes('disabled')).toBeDefined()
-		expect(picker.wrapper.text()).not.toContain(`${MARK}Cancel`)
-		expect(picker.wrapper.find('[role="dialog"]').attributes('data-no-close')).toBe('true')
-	})
-
-	// spec: IMMICH-001.20
-	it('can be cancelled before a first cull when it is closable', async () => {
-		const picker = await mountPicker()
-		await picker.wrapper.setProps({ closable: true })
-
+		expect(picker.wrapper.find('[role="dialog"]').attributes('data-no-close')).toBe('false')
 		const cancel = picker.wrapper.findAll('button').find((button) => button.text() === `${MARK}Cancel`)!
 		await cancel.trigger('click')
-
 		expect(picker.wrapper.emitted('cancel')).toEqual([[]])
 	})
 

@@ -45,16 +45,18 @@ describe('App: the Immich source', () => {
 	})
 
 	// spec: IMMICH-001.20
-	it('lets the folder picker close before a first cull only while Immich is offered', async () => {
+	it('closes the folder picker before a first cull, with Immich offered or not', async () => {
 		const offered = mountApp({ immich: immichOn({ kind: 'connections', connections: [PHONE] }).immich }).wrapper
 		const none = mountApp({ immich: immichOn({ kind: 'none' }).immich }).wrapper
 		await flushPromises()
-		offered.findComponent(AppNavigation).vm.$emit('chooseFolders')
-		none.findComponent(AppNavigation).vm.$emit('chooseFolders')
-		await flushPromises()
+		for (const wrapper of [offered, none]) {
+			wrapper.findComponent(AppNavigation).vm.$emit('chooseFolders')
+			await flushPromises()
+			wrapper.findComponent(FolderPicker).vm.$emit('cancel')
+			await flushPromises()
 
-		expect(offered.findComponent(FolderPicker).props('closable')).toBe(true)
-		expect(none.findComponent(FolderPicker).props('closable')).toBe(false)
+			expect(wrapper.findComponent(FolderPicker).exists()).toBe(false)
+		}
 	})
 
 	// spec: IMMICH-001.15
