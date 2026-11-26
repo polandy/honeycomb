@@ -2151,3 +2151,11 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-26: A narrower filter keeps the grid's focused photo and scroll like a decision does, since
   the grid sees only that photos left; a wider filter or another cull starts at the top
   (GRID-001.24) (autonomous).
+- 2026-11-26: The tile pills' and failed page's e2e live in `tests/e2e/immich-grid-tiles.spec.ts`,
+  since `immich-grid.spec.ts` would pass 300 lines (IMMICH-002.37) (autonomous).
+- 2026-11-26: An Immich tile shows its pills in place of the pair badge and names its kind in its
+  label, since *JPG only* means nothing for an asset; a stack of one shows no stack pill, a video
+  without a duration shows ▶ alone, and durations round down to whole seconds (IMMICH-002.37)
+  (autonomous).
+- 2026-11-26: A failed page without a connection state keeps *Could not load more photos.*; with
+  one it names the state and says the photos above stay (IMMICH-002.19) (autonomous).

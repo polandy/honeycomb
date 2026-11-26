@@ -1,3 +1,4 @@
+import type { TileBadges } from '../components/tile-badges.ts'
 import type { Decision } from '../logic/decision.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
 import type { ImageUrlFor } from '../logic/image-tiers.ts'
@@ -32,6 +33,8 @@ export interface PhotoGridProps {
 	decisionOf?: (picture: Picture<SourceEntry>) => Decision
 	/** The picture's tags, counted on its tile. */
 	tagsOf?: (picture: Picture<SourceEntry>) => readonly Tag[]
+	/** A source's pills and label in place of the pair badge, null for a folder picture (IMMICH-002.37). */
+	badgesOf?: (picture: Picture<SourceEntry>) => TileBadges | null
 	/** Whether the user may not change the picture, so its tile carries the lock (GRID-001.20). */
 	readOnly?: (picture: Picture<SourceEntry>) => boolean
 	/** Times the long-press and the tile info's delay. */

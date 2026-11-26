@@ -39,6 +39,7 @@ const props = withDefaults(defineProps<PhotoGridProps>(), {
 	decisionOf: () => UNDECIDED,
 	tagsOf: () => [],
 	readOnly: () => false,
+	badgesOf: () => null,
 	unsaved: null,
 	busy: false,
 	fileNames: false,
@@ -266,6 +267,7 @@ defineExpose({
 							:tags="props.tagsOf(picture).length"
 							:unsaved="picture === props.unsaved"
 							:readOnly="props.readOnly(picture)"
+							:badges="props.badgesOf(picture)"
 							:selecting="props.selecting"
 							:selected="props.selection.ids.has(imageMember(picture).fileId)"
 							:loads="loads"

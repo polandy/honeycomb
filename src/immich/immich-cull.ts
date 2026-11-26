@@ -14,6 +14,7 @@ import type { useToast } from '../shared/toast.ts'
 import type { ImmichCullApi, ImmichShape } from './immich-picture-source.ts'
 
 import { computed, readonly, ref, shallowRef } from 'vue'
+import { immichFailureState } from '../api/index.ts'
 import { useCullCore } from '../cull/cull-core.ts'
 import { assetDecision, assetPicture, decisionRow } from '../logic/immich-asset.ts'
 import { countsAfterDecision } from '../logic/immich-counts.ts'
@@ -164,7 +165,7 @@ export function useImmichCull(context: ImmichCullContext) {
 			}
 		} catch (error) {
 			if (asked === generation) {
-				loaded.value = pageFailed(loaded.value, 'next')
+				loaded.value = pageFailed(loaded.value, 'next', immichFailureState(error))
 				logger.error('Could not load an Immich page', { error })
 			}
 		}
@@ -194,7 +195,7 @@ export function useImmichCull(context: ImmichCullContext) {
 			}
 		} catch (error) {
 			if (asked === generation) {
-				loaded.value = pageFailed(loaded.value, 'previous')
+				loaded.value = pageFailed(loaded.value, 'previous', immichFailureState(error))
 				logger.error('Could not load an Immich page', { error })
 			}
 		}

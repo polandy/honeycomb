@@ -25,6 +25,9 @@ what is on screen is loaded, and every number comes from the server.
   decision filter that admits decided assets only is a bad request.
 - **An entry** is one picture: a live photo is one entry of kind `live`, a stack shows its
   primary asset with the stack's size. The grid groups entries under day headers.
+- **Tile pills:** a tile shows at its top left *LIVE* for a live photo, ▶ and the duration for a
+  video (`m:ss`, `h:mm:ss` from an hour, whole seconds; ▶ alone without a duration) and the
+  stack's size for a stack, in place of the folder grid's pair badge, which an asset never has.
 - **Infinite scroll:** the grid loads the first page on open and the next one when its last loaded
   row comes within one screen of the viewport. Only tiles in or near the viewport load previews
   (`size=thumbnail`); the loupe shows `size=preview`. A page under a decision filter may be short
@@ -75,7 +78,8 @@ what is on screen is loaded, and every number comes from the server.
   which shows the default filters again from the listing's start; on the default filters it does
   not show, since it would change nothing.
 - **A failed page** keeps the pages already shown and offers *Try again* at the end of the grid;
-  the error names the state (IMMICH-001), never Immich's text.
+  the error names the state (IMMICH-001), never Immich's text, and says the photos above stay;
+  a failure without a connection state says *Could not load more photos.*
 
 ## Acceptance criteria
 
@@ -207,8 +211,8 @@ what is on screen is loaded, and every number comes from the server.
 
 - **Given** two loaded pages and an Immich that stops answering
 - **When** the grid asks the third
-- **Then** the two pages stay, the end of the grid names the state and offers *Try again*, which
-  asks the same cursor again
+- **Then** the two pages stay, the end of the grid names the state (*Immich unreachable. The
+  photos above stay.*) and offers *Try again*, which asks the same cursor again
 
 ### IMMICH-002.20 – Preview of an unknown asset
 
@@ -334,8 +338,17 @@ what is on screen is loaded, and every number comes from the server.
   and only the pictures that pass show; *Clear filters* shows, and *Any* or the pressed star chip
   turns the filter off
 
+### IMMICH-002.37 – Tile pills
+
+- **Given** a photo, a live photo, a video of 12.5 seconds and the primary asset of a stack of three
+- **When** the grid shows them
+- **Then** the live photo's tile shows *LIVE*, the video's ▶ *0:12*, the stack's *3*, the photo's
+  none, each at the top left without a pair badge, and the tile's label names the kind and the
+  stack
+
 ## History
 
 | Date | Change |
 |---|---|
 | 2026-11-24 | The empty view offers *Clear filters*, hidden on the default filters (#380, owner) |
+| 2026-11-26 | Tile pills for live photos, videos and stacks; the failed page names the connection's state (.19, .37) |
