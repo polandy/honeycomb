@@ -132,7 +132,8 @@ describe('periodBars', () => {
 		const month = bars('month', TODAY)
 		expect(month.unit).toBe('day')
 		expect(month.bars).toHaveLength(30)
-		expect(month.bars[1]).toEqual({ range: { from: '2026-11-02', to: '2026-11-02' }, decided: 3, trashed: 1, future: false, beforeFirst: false, today: false })
+		expect(month.bars[1]).toEqual({ range: { from: '2026-11-02', to: '2026-11-02' }, sums: { [METRIC.decided]: 3, [METRIC.trashPictures]: 1 }, counted: true, future: false, beforeFirst: false, today: false })
+		expect(month.bars[2]).toMatchObject({ sums: {}, counted: false })
 		expect(bars('month', '2028-02-01').bars).toHaveLength(29)
 	})
 
@@ -142,7 +143,7 @@ describe('periodBars', () => {
 
 		expect(year.unit).toBe('month')
 		expect(year.bars.map((bar) => bar.range.from.slice(5, 7))).toEqual(['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'])
-		expect(year.bars[10]).toMatchObject({ range: { from: '2026-11-01', to: '2026-11-30' }, decided: 8, trashed: 1, today: true })
+		expect(year.bars[10]).toMatchObject({ range: { from: '2026-11-01', to: '2026-11-30' }, sums: { [METRIC.decided]: 8, [METRIC.trashPictures]: 1 }, today: true })
 	})
 
 	// spec: STATS-001.21
@@ -151,7 +152,7 @@ describe('periodBars', () => {
 
 		expect(all.unit).toBe('year')
 		expect(all.bars.map((bar) => bar.range)).toEqual([{ from: '2025-01-01', to: '2025-12-31' }, { from: '2026-01-01', to: '2026-12-31' }])
-		expect(all.bars.map((bar) => bar.decided)).toEqual([4, 8])
+		expect(all.bars.map((bar) => bar.sums[METRIC.decided])).toEqual([4, 8])
 	})
 
 	// spec: STATS-001.21
@@ -177,7 +178,7 @@ describe('periodBars', () => {
 		const march = bars('month', '2025-03-14').bars
 
 		expect(march.filter((bar) => bar.beforeFirst)).toHaveLength(13)
-		expect(march[13]).toMatchObject({ beforeFirst: false, decided: 4 })
+		expect(march[13]).toMatchObject({ beforeFirst: false, sums: { [METRIC.decided]: 4 } })
 		expect(bars('all', TODAY).bars.some((bar) => bar.today)).toBe(false)
 	})
 })

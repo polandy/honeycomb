@@ -25,7 +25,7 @@ describe('StatisticsPage', () => {
 		expect(periodLabel(wrapper)).toBe('November 2026')
 		expect(hero(wrapper)).toContain('118')
 		expect(wrapper.findAll('.statistics-bars__bar')).toHaveLength(30)
-		expect(wrapper.find('.statistics-bars h3').text()).toBe('Per day')
+		expect(wrapper.find('.statistics-bars h3').text()).toBe('Photos decided per day')
 
 		await chip(wrapper, 'Week').trigger('click')
 
@@ -38,7 +38,7 @@ describe('StatisticsPage', () => {
 
 		expect(periodLabel(wrapper)).toBe('2026')
 		expect(wrapper.findAll('.statistics-bars__bar')).toHaveLength(12)
-		expect(wrapper.find('.statistics-bars h3').text()).toBe('Per month')
+		expect(wrapper.find('.statistics-bars h3').text()).toBe('Photos decided per month')
 
 		await chip(wrapper, 'All time').trigger('click')
 

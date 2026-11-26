@@ -19,6 +19,7 @@ const ANSWER = {
 		{ day: '2026-11-02', metric: 'trash_pictures', value: 10 },
 		{ day: '2026-11-25', metric: 'pictures_decided', value: 60 },
 		{ day: '2026-11-26', metric: 'pictures_decided', value: 20 },
+		{ day: '2026-11-26', metric: 'pictures_picked', value: 20 },
 	],
 	firstDay: '2025-03-14',
 	today: '2026-11-26',
@@ -45,14 +46,14 @@ async function expectApart(first: Locator, second: Locator): Promise<void> {
 	expect(apart, `${JSON.stringify(a)} overlaps ${JSON.stringify(b)}`).toBe(true)
 }
 
-/** Expects the page's controls of the period to sit apart and the chart to draw today's decided column. */
+/** Expects the page's controls of the period to sit apart and the chart to draw today's picked column. */
 async function expectDrawn(page: Page): Promise<void> {
 	await expectApart(page.getByRole('group', { name: 'Period' }), page.locator('.statistics-period__label'))
 	await expectApart(page.getByRole('button', { name: 'Previous period' }), page.locator('.statistics-period__label'))
 	await expectApart(page.locator('.statistics-period__label'), page.getByRole('button', { name: 'Next period' }))
 	const today = page.locator('.statistics-bars__bar--today')
 	await expect(today).toHaveCount(1)
-	expect((await today.locator('.statistics-bars__decided').boundingBox())!.height).toBeGreaterThan(0)
+	expect((await today.locator('.statistics-bars__part--picked').boundingBox())!.height).toBeGreaterThan(0)
 	expect(await today.locator('.statistics-bars__columns').evaluate((element) => getComputedStyle(element).outlineStyle)).not.toBe('none')
 }
 
