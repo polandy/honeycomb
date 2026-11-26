@@ -41,12 +41,12 @@ final class CaptureTimes {
 		return $times;
 	}
 
-	/** The capture time in `$metadata`, null without one. */
+	/** The capture time in `$metadata`, Photos' first, else honeycomb's RAW header value (ADR 0061), null without either. */
 	public static function from(?IFilesMetadata $metadata): ?int {
 		try {
 			return $metadata?->getInt(self::KEY);
 		} catch (FilesMetadataException) {
-			return null;
+			return RawExif::in($metadata)['DateTimeOriginal'] ?? null;
 		}
 	}
 }

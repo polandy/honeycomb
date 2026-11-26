@@ -9,6 +9,8 @@ namespace OCA\Honeycomb\Service\Listing;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use OCP\FilesMetadata\Exceptions\FilesMetadataException;
+use OCP\FilesMetadata\Model\IFilesMetadata;
 
 /** The value honeycomb stores in a RAW file's metadata: its capture time and camera, as Photos computes them for a JPEG (ADR 0061). */
 final class RawExif {
@@ -33,6 +35,28 @@ final class RawExif {
 		foreach (['Make', 'Model'] as $name) {
 			if (isset($fields[$name])) {
 				$value[$name] = $fields[$name];
+			}
+		}
+		return $value;
+	}
+
+	/**
+	 * The value stored in `$metadata`, each field only when it has its type; empty without the key.
+	 * @return array{DateTimeOriginal?: int, Make?: string, Model?: string}
+	 */
+	public static function in(?IFilesMetadata $metadata): array {
+		try {
+			$stored = $metadata?->getArray(self::KEY) ?? [];
+		} catch (FilesMetadataException) {
+			return [];
+		}
+		$value = [];
+		if (is_int($stored['DateTimeOriginal'] ?? null)) {
+			$value['DateTimeOriginal'] = $stored['DateTimeOriginal'];
+		}
+		foreach (['Make', 'Model'] as $name) {
+			if (is_string($stored[$name] ?? null)) {
+				$value[$name] = $stored[$name];
 			}
 		}
 		return $value;
