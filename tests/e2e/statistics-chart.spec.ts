@@ -133,7 +133,7 @@ test('switches the chart to space freed and active time', async ({ page }) => {
 })
 
 // spec: STATS-001.66
-test('shows the chart as a table and back', async ({ page }) => {
+test('shows the chart as a table and back', async ({ page }, testInfo) => {
 	await openStatistics(page)
 
 	await page.getByRole('button', { name: 'Show as table' }).click()
@@ -142,6 +142,7 @@ test('shows the chart as a table and back', async ({ page }) => {
 	await expect(page.locator('.statistics-bars__chart')).toHaveCount(0)
 	await expect(table.getByRole('row')).toHaveCount(27)
 	await expect(table.getByRole('row', { name: /Nov 24, 2026/ }).getByRole('cell')).toHaveText(['Tue, Nov 24, 2026', '31', '55'])
+	await page.locator('.statistics-bars').screenshot({ path: testInfo.outputPath('statistics-chart-table.png'), animations: 'disabled' })
 
 	await page.getByRole('button', { name: 'Show as chart' }).click()
 	await expect(page.getByRole('table')).toHaveCount(0)
