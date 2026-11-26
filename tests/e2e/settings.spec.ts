@@ -155,7 +155,7 @@ test('offers no reset of the statistics in the settings and no route that remove
 	await page.getByRole('button', { name: 'More' }).click()
 	await page.getByRole('button', { name: 'Settings', exact: true }).click()
 	const section = page.getByRole('dialog', { name: 'Settings' }).locator('section', { has: page.getByRole('heading', { name: 'Statistics', exact: true }) })
-	await expect(section.getByRole('checkbox', { name: 'Keep statistics' })).toBeVisible()
+	await expect(section.getByText('Keep statistics', { exact: true })).toBeVisible()
 	await expect(section.getByRole('button')).toHaveCount(0)
 	await expect(section.getByText(/reset/i)).toHaveCount(0)
 	for (const scheme of ['light', 'dark'] as const) {
