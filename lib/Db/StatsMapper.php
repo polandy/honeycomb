@@ -97,6 +97,26 @@ final class StatsMapper implements StatsStore {
 	}
 
 	#[\Override]
+	public function rowsPerUser(?string $userId = null): array {
+		$query = $this->db->getQueryBuilder();
+		$query->select('user_id')
+			->selectAlias($query->func()->count('*'), 'rows')
+			->from(self::TABLE)
+			->groupBy('user_id')
+			->orderBy('user_id');
+		if ($userId !== null) {
+			$query->where($query->expr()->eq('user_id', $query->createNamedParameter($userId)));
+		}
+		$result = $query->executeQuery();
+		$counts = [];
+		while (($row = $result->fetch()) !== false) {
+			$counts[(string)$row['user_id']] = (int)$row['rows'];
+		}
+		$result->closeCursor();
+		return $counts;
+	}
+
+	#[\Override]
 	public function forgetUser(string $userId): void {
 		$this->deleteUserRows(self::TABLE, $userId);
 	}

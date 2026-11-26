@@ -103,8 +103,8 @@ state remembers the year closed (LOUPE-003), so it follows the user to every dev
 for the next year. The day for the hint is the browser's, for the page the server's `today`.
 
 **Settings:** a section *Statistics* with the switch *Keep statistics* (on by default, the
-settings field `keepStatistics`; only `false` turns it off) and *Reset statistics*, which asks
-*Reset all statistics?* first; a toast says *Statistics reset* or that they could not be reset.
+settings field `keepStatistics`; only `false` turns it off). There is no control to reset the
+numbers: only an admin resets them, with `occ honeycomb:stats:reset` (STATS-001.3).
 
 **Storage and API:** the table `honeycomb_stats` holds one row per user, day and metric. A count
 adds to the row of the day, never below zero; two counts at once both arrive (the second insert
@@ -114,8 +114,7 @@ days as `{day, metric, value}` ordered by day and metric, `firstDay`, the user's
 day or `null`, `today`, the user's day, `seriesDoneBefore`, the user's done series that no
 counter holds (done series now less the counted ones, never below zero), and `read`, the
 `{pictures, picked, rejected, rated}` of the user's XMP cache rows that were read; a malformed
-day or `from` after `to` answers 400.
-`DELETE` on the same URL resets.
+day or `from` after `to` answers 400. The URL has no `DELETE`: no route removes counters.
 Strings are English, translated per ADR 0007; the mockup lists them.
 
 ## Acceptance criteria
@@ -133,12 +132,18 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **When** they act
 - **Then** their actions are counted
 
-### STATS-001.3 – Reset after a confirmation
+### STATS-001.3 – Reset only by an admin with occ
 
-- **Given** a user with counted numbers
-- **When** they press *Reset statistics* and confirm
-- **Then** every counter of that user is gone, the page shows *Nothing counted yet*, and their
-  photos, sidecars, decisions and resume positions are unchanged; *Cancel* changes nothing
+- **Given** users with counted numbers
+- **When** an admin runs `occ honeycomb:stats:reset <user>` or `occ honeycomb:stats:reset --all`
+- **Then** it asks *Delete N statistics rows of …?* and deletes only after a yes, or without the
+  question with `--force`; it prints the rows each user lost and the total; the photos, sidecars,
+  decisions and resume positions are unchanged, and a user not named keeps their rows
+- **And** `--dry-run` prints the same counts and deletes nothing, without asking
+- **And** it fails, deleting nothing, for an unknown user, for neither or both of a user and
+  `--all`, and without a terminal to answer on and without `--force`; a user without rows, or
+  `--all` with none, prints *Nothing to delete* and succeeds
+- **And** the settings show no *Reset statistics* control and no API route removes counters
 
 ### STATS-001.4 – Only one's own numbers
 

@@ -10,10 +10,8 @@ namespace OCA\Honeycomb\Controller;
 use OCA\Honeycomb\Service\Stats\StatsBaseline;
 use OCA\Honeycomb\Service\Stats\StatsService;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
-use OCP\AppFramework\Http\Attribute\UserRateLimit;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\IRequest;
@@ -36,16 +34,5 @@ final class StatsController extends Controller {
 	#[FrontpageRoute(verb: 'GET', url: '/api/v1/stats')]
 	public function index(?string $from = null, ?string $to = null): Response {
 		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse([...$this->stats->read($user, $from, $to), ...$this->baseline->of($user)]));
-	}
-
-	/** Resets the user's statistics; photos, sidecars and flags stay (STATS-001.3). */
-	#[NoAdminRequired]
-	#[FrontpageRoute(verb: 'DELETE', url: '/api/v1/stats')]
-	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
-	public function reset(): Response {
-		return $this->api->forUser(function (IUser $user): Response {
-			$this->stats->reset($user);
-			return new Response(Http::STATUS_NO_CONTENT);
-		});
 	}
 }

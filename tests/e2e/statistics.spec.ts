@@ -4,8 +4,10 @@ import type { Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
+import { ADMIN } from './admin.ts'
 import { cullFolder, E2E_SETTINGS, putSettings, resetViewState } from './cull.ts'
 import { apiHeaders, createFolder, JPEG, upload } from './files.ts'
+import { occ } from './server.ts'
 import { expectTouchTargets } from './touch-targets.ts'
 
 const API = '/index.php/apps/honeycomb/api/v1'
@@ -37,9 +39,9 @@ function libraryFolder(path: string, doneAt: number | null) {
 	}
 }
 
-/** Resets the statistics, then counts active time through the position save of a new folder set of one photo. */
+/** Resets the admin's statistics with occ, then counts active time through the position save of a new folder set of one photo. */
 async function countActiveTime(page: Page): Promise<string> {
-	expect((await page.request.delete(`${API}/stats`, { headers: await apiHeaders(page) })).status()).toBe(204)
+	occ(['honeycomb:stats:reset', ADMIN.username, '--force'])
 	const folder = `Statistics ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
 	const fileId = await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
@@ -59,7 +61,7 @@ test('opens the statistics page from the navigation and says nothing is counted 
 	await createFolder(page, folder)
 	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
 	await cullFolder(page, folder)
-	expect((await page.request.delete(`${API}/stats`, { headers: await apiHeaders(page) })).status()).toBe(204)
+	occ(['honeycomb:stats:reset', ADMIN.username, '--force'])
 
 	await page.getByRole('navigation', { name: 'honeycomb navigation' }).getByRole('link', { name: 'Statistics' }).click()
 

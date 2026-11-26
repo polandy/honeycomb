@@ -2,13 +2,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { ref } from 'vue'
 import { cleanUpWithToast, clearCacheWithToast } from '../settings/cache-clear.ts'
-import { resetStatisticsWithToast } from '../statistics/statistics-reset.ts'
 
 /** The server actions the settings dialog offers. */
 export interface SettingsActions {
 	readonly clearCache: () => Promise<void>
 	readonly cleanUp: () => Promise<number>
-	readonly resetStatistics: () => Promise<void>
 }
 
 /** How the dialogs tell the user how an action went. */
@@ -35,7 +33,6 @@ export function useAppDialogs(actions: SettingsActions, toast: DialogToast) {
 		settingsActions: {
 			clearCache: () => clearCacheWithToast(actions.clearCache, toast.show, toast.showError),
 			cleanUp: () => cleanUpWithToast(actions.cleanUp, toast.show, toast.showError),
-			resetStatistics: () => resetStatisticsWithToast(actions.resetStatistics, toast.show, toast.showError),
 		},
 	}
 }

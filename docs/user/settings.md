@@ -81,7 +81,8 @@ Changing a list pairs the open folders again at once; your decisions stay.
 
 - **Keep statistics:** on by default. honeycomb counts per day what you do, without file names;
   the [statistics page](statistics.md) shows it. Off, nothing new is counted.
-- **Reset statistics:** removes every counter after a question; counting starts again today.
+- The numbers cannot be reset here; an admin does it with
+  [`occ honeycomb:stats:reset`](admin/apps-and-commands.md#occ-commands).
 
 ## Cache
 
