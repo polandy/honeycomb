@@ -94,6 +94,20 @@ final class StatsMapperTest extends DbTestCase {
 		$this->assertEquals([new StatsCounter('2026-11-19', 'series_done', 2)], $this->stats->between('bob', null, null));
 	}
 
+	// spec: STATS-001.3
+	public function testCountsTheRowsOfOneUserOrOfEveryUserWithRows(): void {
+		$this->assertSame([], $this->stats->rowsPerUser());
+
+		$this->stats->add('alice', '2026-11-19', StatsMetric::SeriesDone, 1);
+		$this->stats->add('alice', '2026-11-20', StatsMetric::SeriesDone, 1);
+		$this->stats->add('alice', '2026-11-20', StatsMetric::TrashFiles, 3);
+		$this->stats->add('bob', '2026-11-19', StatsMetric::SeriesDone, 2);
+
+		$this->assertSame(['alice' => 3, 'bob' => 1], $this->stats->rowsPerUser());
+		$this->assertSame(['alice' => 3], $this->stats->rowsPerUser('alice'));
+		$this->assertSame([], $this->stats->rowsPerUser('carol'));
+	}
+
 	// spec: STATS-001.6
 	public function testARowHoldsUserDayMetricAndValueOnly(): void {
 		$this->stats->add('alice', '2026-11-19', StatsMetric::TrashPictures, 3);

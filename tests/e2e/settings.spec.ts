@@ -146,7 +146,7 @@ test('clears the cache from the settings and says so', async ({ page }, testInfo
 })
 
 // spec: STATS-001.3
-test('resets the statistics from the settings after a confirmation and says so', async ({ page }, testInfo) => {
+test('offers no reset of the statistics in the settings and no route that removes them', async ({ page }, testInfo) => {
 	await page.goto('/index.php/apps/honeycomb/')
 	const folder = `Stats ${randomUUID().slice(0, 8)}`
 	await createFolder(page, folder)
@@ -155,24 +155,19 @@ test('resets the statistics from the settings after a confirmation and says so',
 	await page.getByRole('button', { name: 'More' }).click()
 	await page.getByRole('button', { name: 'Settings', exact: true }).click()
 	const section = page.getByRole('dialog', { name: 'Settings' }).locator('section', { has: page.getByRole('heading', { name: 'Statistics', exact: true }) })
-	const reset = section.getByRole('button', { name: 'Reset statistics' })
-	await reset.scrollIntoViewIfNeeded()
+	await expect(section.getByRole('checkbox', { name: 'Keep statistics' })).toBeVisible()
+	await expect(section.getByRole('button')).toHaveCount(0)
+	await expect(section.getByText(/reset/i)).toHaveCount(0)
 	for (const scheme of ['light', 'dark'] as const) {
 		await page.emulateMedia({ colorScheme: scheme })
 		await section.screenshot({ path: testInfo.outputPath(`statistics-section-${scheme}.png`), animations: 'disabled' })
 	}
 
-	await reset.click()
-	const question = page.getByRole('dialog', { name: 'Reset all statistics?' })
-	await expect(question.getByRole('button', { name: 'Cancel' })).toBeFocused()
-	for (const [device, viewport] of Object.entries(SCREENSHOT_VIEWPORTS)) {
-		await page.setViewportSize(viewport)
-		await page.screenshot({ path: testInfo.outputPath(`statistics-reset-${device}.png`), animations: 'disabled' })
-	}
-	const done = page.waitForResponse((response) => response.url().endsWith('/api/v1/stats') && response.request().method() === 'DELETE')
-	await question.getByRole('button', { name: 'Reset statistics' }).click()
-	expect((await done).status()).toBe(204)
-	await expect(page.getByText('Statistics reset')).toBeVisible()
-	const read = await page.request.get('/index.php/apps/honeycomb/api/v1/stats', { headers: await apiHeaders(page) })
-	expect(await read.json()).toMatchObject({ counters: [], firstDay: null })
+	const headers = await apiHeaders(page)
+	const read = async () => (await (await page.request.get('/index.php/apps/honeycomb/api/v1/stats', { headers })).json()) as { counters: unknown[] }
+	const counted = (await read()).counters.length
+	expect(counted).toBeGreaterThan(0)
+	const removal = await page.request.delete('/index.php/apps/honeycomb/api/v1/stats', { headers })
+	expect(removal.ok()).toBe(false)
+	expect((await read()).counters).toHaveLength(counted)
 })

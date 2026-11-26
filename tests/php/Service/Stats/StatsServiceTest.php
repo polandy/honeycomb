@@ -184,17 +184,6 @@ final class StatsServiceTest extends TestCase {
 		$this->service()->read($this->user(), $from, $to);
 	}
 
-	// spec: STATS-001.3
-	public function testResetRemovesEveryCounterOfTheUserOnly(): void {
-		$this->store->rows['alice'] = ['2026-02-01' => ['series_done' => 1], '2026-02-10' => ['trash_files' => 4]];
-		$this->store->rows['bob'] = ['2026-02-10' => ['series_done' => 9]];
-
-		$this->service()->reset($this->user());
-
-		$this->assertSame(['counters' => [], 'firstDay' => null, 'today' => '2026-03-01'], $this->service()->read($this->user(), null, null));
-		$this->assertSame(['2026-02-10' => ['series_done' => 9]], $this->store->rows['bob']);
-	}
-
 	public function testAnUnexpectedFailureIsNotCaught(): void {
 		$config = $this->createStub(IUserConfig::class);
 		$config->method('getValueString')->willThrowException(new \LogicException('bug'));

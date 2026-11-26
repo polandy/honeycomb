@@ -56,4 +56,16 @@ final class FakeStatsStore implements StatsStore {
 	public function forgetUser(string $userId): void {
 		unset($this->rows[$userId]);
 	}
+
+	#[\Override]
+	public function rowsPerUser(?string $userId = null): array {
+		$counts = [];
+		foreach ($this->rows as $user => $days) {
+			$rows = array_sum(array_map('count', $days));
+			if (($userId === null || $user === $userId) && $rows > 0) {
+				$counts[$user] = $rows;
+			}
+		}
+		return $counts;
+	}
 }

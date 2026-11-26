@@ -145,16 +145,16 @@ describe('SettingsDialog', () => {
 	})
 
 	// spec: STATS-001.1, STATS-001.3
-	it('passes the statistics section\'s change and reset on', () => {
+	it('passes the statistics section\'s change on and has no reset to pass', () => {
 		const wrapper = mountDialog({ keepStatistics: false })
 		const section = wrapper.findComponent(StatisticsSettings)
 		expect(section.props('settings')).toMatchObject({ keepStatistics: false })
 
 		section.vm.$emit('update', { keepStatistics: true })
-		section.vm.$emit('reset')
 
 		expect(wrapper.emitted('update')).toEqual([[{ keepStatistics: true }]])
-		expect(wrapper.emitted('resetStatistics')).toHaveLength(1)
+		expect(Object.keys(section.emitted())).not.toContain('reset')
+		expect(section.findAll('button')).toEqual([])
 	})
 
 	// spec: SETTINGS-001.34
