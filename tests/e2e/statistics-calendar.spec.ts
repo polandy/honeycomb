@@ -87,7 +87,10 @@ test('shows the year with twelve months and all time with a row per year, and op
 	const january = await box(calendar(page).locator('.statistics-calendar__group').first())
 	const february = await box(calendar(page).locator('.statistics-calendar__group').nth(1))
 	expect(january.x + january.width <= february.x + 1 || january.y + january.height <= february.y + 1, 'the months do not overlap').toBe(true)
-	expect((await box(square(page, '2026-11-24'))).height).toBeGreaterThan(0)
+	const day = await box(square(page, '2026-11-24'))
+	const next = await box(square(page, '2026-11-25'))
+	expect(Math.abs(day.width - day.height), 'a day is a square').toBeLessThan(1)
+	expect(next.x - day.x, 'neighbouring days do not overlap').toBeGreaterThanOrEqual(day.width)
 
 	await openStatistics(page, ANSWER, '#all')
 	await expect(calendar(page).locator('.statistics-calendar__group h4')).toHaveText(['2025', '2026'])
