@@ -71,10 +71,10 @@ describe('useImmichCull', () => {
 		assets[0]!.answer(page(['a1'], 'c2'))
 		await flushPromises()
 		cull.loadNext(0, 1)
-		assets[1]!.fail(new Error('Immich is down'))
+		assets[1]!.fail(Object.assign(new Error('status 502'), { response: { data: { error: 'refused' } } }))
 		await flushPromises()
 
-		expect(cull.list.value.next).toBe('failed')
+		expect(cull.list.value).toMatchObject({ next: 'failed', failure: 'refused' })
 		expect(assetIds(cull)).toEqual(['a1'])
 		expect(logger.error).toHaveBeenCalled()
 		cull.loadNext(0, 1)

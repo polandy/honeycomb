@@ -11,6 +11,9 @@ export interface ImmichConnection {
 /** A connection's state; every state but `ok` names why it does not work (IMMICH-001). */
 export type ConnectionState = 'ok' | 'key' | 'unreachable' | 'refused' | 'version'
 
+/** A state in which the connection does not work. */
+export type FailedState = Exclude<ConnectionState, 'ok'>
+
 /** The states the status route answers. */
 export const CONNECTION_STATES: readonly ConnectionState[] = ['ok', 'key', 'unreachable', 'refused', 'version']
 

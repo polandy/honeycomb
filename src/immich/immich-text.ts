@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ConnectionState, ConnectionStatus, ImmichConnection } from '../logic/immich-connections.ts'
+import type { ConnectionStatus, FailedState, ImmichConnection } from '../logic/immich-connections.ts'
 import type { ImmichOnlyOffer } from '../logic/immich-only.ts'
 
 import { n, t } from '@nextcloud/l10n'
@@ -13,7 +13,7 @@ export const IMMICH_ADMIN_URL = 'https://github.com/polandy/honeycomb/blob/main/
 export const IMMICH_SCOPES_URL = `${IMMICH_ADMIN_URL}#api-key-scopes`
 
 /** What a state that does not work says (IMMICH-001). */
-function stateText(state: Exclude<ConnectionState, 'ok'>): string {
+function stateText(state: FailedState): string {
 	switch (state) {
 		case 'unreachable':
 			return t('honeycomb', 'Immich unreachable')
@@ -26,8 +26,15 @@ function stateText(state: Exclude<ConnectionState, 'ok'>): string {
 	}
 }
 
+/** Why a page of the listing failed, at the end of the grid (IMMICH-002.19). */
+export function pageFailedText(state: FailedState | null): string {
+	return state === null
+		? t('honeycomb', 'Could not load more photos.')
+		: t('honeycomb', '{state}. The photos above stay.', { state: stateText(state) }, undefined, PLAIN_TEXT)
+}
+
 /** A state that needs the user or their admin to act: a failed connection or a broken connections file. */
-export type HelpState = Exclude<ConnectionState, 'ok'> | 'configuration'
+export type HelpState = FailedState | 'configuration'
 
 /** What to do about a state that does not work, and the admin page's section on it (IMMICH-001.26). */
 export function stateHelp(state: HelpState): { todo: string, url: string } {

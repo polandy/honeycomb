@@ -24,6 +24,11 @@ videos of either device. When nothing passes the filters, the grid says so.
 
 **Clear filters** shows while any filter differs from its default and puts them all back.
 
+A tile's pills, top left, say what the upload is: *LIVE* for a motion photo, ▶ with the length for a
+video, and the number of photos in a stack. The grid loads more uploads as you scroll; when a page
+fails to load, the grid names why (*Immich unreachable*, for example), keeps the uploads above and
+offers **Try again**.
+
 ## Deciding and selecting
 
 The grid takes the folder grid's [keys](keyboard-shortcuts.md): the arrow keys move the focus,
