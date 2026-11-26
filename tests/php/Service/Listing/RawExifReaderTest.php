@@ -71,7 +71,7 @@ final class RawExifReaderTest extends TestCase {
 			'not permitted' => [new NotPermittedException('no')],
 			'locked' => [new LockedException('/alice/files/a.nef')],
 			'vanished' => [new NotFoundException('gone')],
-			'storage not available' => [new StorageNotAvailableException('offline')],
+			'storage not available' => [(new \ReflectionClass(StorageNotAvailableException::class))->newInstanceWithoutConstructor()],
 			'no stream' => [false],
 		];
 	}
