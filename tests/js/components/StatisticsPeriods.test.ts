@@ -100,6 +100,6 @@ describe('StatisticsPage periods', () => {
 
 		expect(wrapper.findAll('.statistics-bars__bar--future')).toHaveLength(10)
 		expect(wrapper.findAll('.statistics-bars__bar--today')).toHaveLength(1)
-		expect(wrapper.find('.statistics-bars__bar--today').attributes('aria-label')).toContain(formatDay(TODAY))
+		expect(wrapper.find('.statistics-bars__bar--today button').attributes('aria-label')).toContain(formatDay(TODAY))
 	})
 })

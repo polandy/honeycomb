@@ -80,12 +80,24 @@ deleted for good and the RAW files removed), *Keep rate* (the share picked of th
 or rejected, with *n kept of m*), *Active time* (with pictures a minute from one active minute on)
 and *Days in a row* (with the longest streak; in a past week, month or year the longest run of
 active days inside it). A line shows the sidecars created and updated (with those from digiKam or
-darktable) and the series done, each once there is one, until *Work done* takes them. Bars show
-pictures decided and moved to the trash bin per day (week, month), per month (year) or per year
-(all time; per month while the counting lies in one calendar year). Days and months after today
-show as hatched empty slots, those before the first counted day as plain empty slots, and the bar
-of today (week, month, year) is outlined. A period without a count says *Nothing counted in this
-period.* instead of the bars. *Library progress* shows how far the library roots have come (below);
+darktable) and the series done, each once there is one, until *Work done* takes them. The chart
+shows one bar per day (week, month), per month (year) or per year (all time; per month while the
+counting lies in one calendar year). A switch *Chart shows* picks *Decided* (the default: picked
+filled with ✓ stacked under rejected hatched with ✕), *Space freed* (moved to the trash bin
+filled, deleted for good hatched, RAWs removed dotted) or *Active time*; the axis names the
+highest bar and its half, and a key names every part. Days and months after today show as hatched
+empty slots (*Still to come* in the key), those before the first counted day as plain empty
+slots, and the bar of today (week, month, year) is outlined. Every bar is a button whose label
+names its day and value. A fixed panel below the chart, never a bubble over it, shows one bar's
+numbers: its name, the pictures decided with picked and rejected, the space freed and the active
+time; *Still to come.*, *Before counting began.* or *Nothing counted.* for a bar without them.
+A tap, a click, Enter or Space holds a bar (pressed) and again releases it; a mouse over a bar
+only previews it, and the panel returns to the held bar when the mouse leaves. A held month or
+year with a count offers *Show {month}* or *Show {year}*, which opens that month or year. *Show
+as table* swaps the bars for a table of the same values, one row per day, month or year up to
+today from the first counted day on, and *Show as chart* swaps back; the switch and the table
+stay when the period changes, a held bar does not. A period without a count says *Nothing
+counted in this period.* instead of the chart. *Library progress* shows how far the library roots have come (below);
 *Of the pictures read so far* shows the shares picked, rejected, unflagged and rated from the XMP
 cache, counting only the pictures whose XMP honeycomb has read, so a library not yet opened shows
 little. A footnote says *Counted since {date}.* and, when stored series were done before the
@@ -561,6 +573,43 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **Then** it shows the time with the pictures decided a minute to one decimal; below one active
   minute the pace is *—*
 
+### STATS-001.63 – The chart shows decided, space freed or active time
+
+- **Given** a period with pictures picked and rejected, bytes freed and active time
+- **When** the page shows the chart, and when the user picks *Decided*, *Space freed* or *Active
+  time* under *Chart shows*
+- **Then** *Decided* is preselected and stacks picked (filled, ✓) under rejected (hatched, ✕);
+  *Space freed* stacks the bytes moved to the trash bin (filled), deleted for good (hatched) and
+  of the RAW files removed (dotted); *Active time* shows the active time; each bar's height is its
+  share of the highest bar, the axis names the highest and its half, and the key names the parts
+
+### STATS-001.64 – A bar's numbers in the detail panel
+
+- **Given** the chart of a period
+- **When** the user taps or clicks a bar, or focuses it and presses Enter or Space, and when a
+  mouse passes over a bar
+- **Then** the panel below the chart shows the bar's day, month or year with its pictures decided
+  (picked and rejected), space freed and active time, and the bar is pressed; the same input
+  again releases it and the panel asks to select a bar; a mouse over another bar shows that bar
+  until it leaves, then the held bar again; a bar to come says *Still to come.*, one before the
+  first counted day *Before counting began.* and one without a counter *Nothing counted.*; the
+  panel is announced politely and never covers the chart; a new period releases the bar
+
+### STATS-001.65 – Drill down from a month or a year
+
+- **Given** a held bar of a month or a year with a count (a year, all time)
+- **When** the user presses *Show {month}* or *Show {year}* in the panel
+- **Then** the page shows that month or year, the segment and the address follow; a day's bar
+  offers no drill-down
+
+### STATS-001.66 – The chart as a table
+
+- **Given** the chart of a period
+- **When** the user presses *Show as table*
+- **Then** a table replaces the bars with one row per day, month or year up to today from the
+  first counted day on and one column per part of the chosen chart, *Show as chart* brings the
+  bars back, and the switch and the table stay when the user steps to another period
+
 ## History
 
 | Date | Change |
@@ -577,3 +626,4 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | 2026-11-26 | Calendar periods replace the rolling 7 and 30 days: segment, stepper, *Today*, week start from the locale, bars with days to come (.21, .41 reworded; .52–.56; statistics slice 1) |
 | 2026-11-26 | The period in the address hash (.57, .58; statistics slice 2) |
 | 2026-11-26 | Redesign R1: the hero *Photos decided* with picked against rejected, the tiles *Space freed* with the RAW files removed, *Keep rate*, *Active time* with pace (.41, .55 reworded; .59–.62) |
+| 2026-11-26 | Redesign R2: the main chart with *Decided*, *Space freed* and *Active time*, the detail panel, the drill-down and the table (.63–.66) |
