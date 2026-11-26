@@ -3,6 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
+import type { LocationApi } from '../cull/cull-location.ts'
 import type { FolderRow } from '../logic/folder-row.ts'
 import type { StatsAnswer } from '../logic/statistics.ts'
 import type { PeriodBounds, PeriodKind, PeriodNumbers } from '../logic/stats-period.ts'
@@ -10,7 +11,7 @@ import type { PageNavigationSeams } from './PageLayout.vue'
 
 import { n, t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
@@ -25,6 +26,7 @@ import YearReview from './YearReview.vue'
 import { yearOf } from '../logic/days.ts'
 import { folderProgress } from '../logic/folder-progress.ts'
 import { parseSettings } from '../logic/settings.ts'
+import { parsePeriodHash, periodHash, resolveLocation } from '../logic/stats-location.ts'
 import { periodAt, periodNumbers, periodRun } from '../logic/stats-period.ts'
 import { reviewYear, yearReview } from '../logic/year-review.ts'
 import { formatDay, formatDayRange, formatDuration, formatFileSize, formatNumber, formatPercent, PLAIN_TEXT } from '../shared/l10n.ts'
@@ -39,6 +41,8 @@ export interface StatisticsSeams {
 	readonly saveViewState: (patch: { year_review_hint_closed: number }) => Promise<void>
 	/** The locale's first day of the week, 0 for Sunday (STATS-001.53). */
 	readonly firstWeekDay: () => number
+	/** The page address, whose hash names the period (STATS-001.57). */
+	readonly location: LocationApi
 }
 
 const props = defineProps<{ seams: StatisticsSeams, navigation: PageNavigationSeams }>()
@@ -121,6 +125,14 @@ function compareNote(sums: PeriodNumbers): string | undefined {
 	return t('honeycomb', '{change} on {period}', { change, period: named }, undefined, PLAIN_TEXT)
 }
 
+/** Shows the period the address names, then keeps the address on the period shown (STATS-001.57, STATS-001.58). */
+function showLocated() {
+	const located = resolveLocation(parsePeriodHash(props.seams.location.read()), bounds.value)
+	kind.value = located.kind
+	anchor.value = located.anchor
+	watch(period, (shown) => props.seams.location.write(periodHash(shown, bounds.value.today)), { immediate: true })
+}
+
 /** Opening the year in review closes the hint for its year; a failed write is only logged. */
 function closeHint() {
 	if (review.value !== null) {
@@ -145,6 +157,7 @@ onMounted(async () => {
 		keepStatistics.value = parsed.keepStatistics
 		roots.value = parsed.libraryRoots
 		answer.value = statistics
+		showLocated()
 		closeHint()
 		await loadLibrary()
 	} catch (error) {

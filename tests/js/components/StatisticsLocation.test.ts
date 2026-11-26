@@ -3,11 +3,14 @@
 // @vitest-environment happy-dom
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { formatDay, formatDayRange } from '../../../src/shared/l10n.ts'
 import { chip, fakeLocation, mountPage, periodLabel, ROOTS, ROWS, step } from './statistics-page-fixtures.ts'
 
 vi.mock('../../../src/shared/logger.ts', () => ({ logger: { error: vi.fn() } }))
 
 enableAutoUnmount(afterEach)
+
+const WEEK_STYLE: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', year: 'numeric' }
 
 /** Mounts the page on an address with `hash` and waits for the counters. */
 async function open(hash: string, answer: Parameters<typeof mountPage>[0] = { firstDay: '2025-03-14' }) {
@@ -22,8 +25,8 @@ describe('StatisticsPage address', () => {
 	it.each([
 		['#month=2025-07', 'July 2025'],
 		['#year=2025', '2025'],
-		['#week=2026-11-18', 'Nov 16 – 22, 2026'],
-		['#all', 'Since Mar 14, 2025'],
+		['#week=2026-11-18', formatDayRange('2026-11-16', '2026-11-22', WEEK_STYLE)],
+		['#all', `Since ${formatDay('2025-03-14')}`],
 	])('opens the period %s', async (hash, label) => {
 		const { wrapper } = await open(hash)
 
@@ -59,7 +62,7 @@ describe('StatisticsPage address', () => {
 		expect(location.hash).toBe('#week')
 
 		await step(wrapper, 'Previous period').trigger('click')
-		expect(location.hash).toBe('#week=2026-11-16')
+		expect(location.hash).toBe('#week=2026-11-09')
 
 		await chip(wrapper, 'Month').trigger('click')
 		expect(location.hash).toBe('')
