@@ -11,6 +11,7 @@ use OCA\Honeycomb\Domain\DoneSkip;
 use OCA\Honeycomb\Domain\FolderDone;
 use OCA\Honeycomb\Service\Folder\FolderDoneService;
 use OCA\Honeycomb\Service\Folder\LibraryFolderService;
+use OCA\Honeycomb\Service\Settings\LibraryRootsGuard;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
@@ -28,6 +29,7 @@ final class LibraryController extends Controller {
 		IRequest $request,
 		private ApiResponse $api,
 		private LibraryFolderService $library,
+		private LibraryRootsGuard $roots,
 		private FolderDoneService $done,
 	) {
 		parent::__construct($appName, $request);
@@ -37,7 +39,20 @@ final class LibraryController extends Controller {
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'GET', url: '/api/v1/library/folders')]
 	public function folders(string $root, string $cursor = '', string $limit = ''): Response {
-		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->library->list($user, $root, $cursor, $limit)));
+		return $this->api->forUser(function (IUser $user) use ($root, $cursor, $limit): Response {
+			$this->roots->ensureInside($user, $root);
+			return new JSONResponse($this->library->list($user, $root, $cursor, $limit));
+		});
+	}
+
+	/** Whether `$root` can be a library root: a folder of the user's own storage (FOLDERS-005.21). */
+	#[NoAdminRequired]
+	#[FrontpageRoute(verb: 'GET', url: '/api/v1/library/root')]
+	public function checkRoot(string $root): Response {
+		return $this->api->forUser(function (IUser $user) use ($root): Response {
+			$this->library->checkRoot($user, $root);
+			return new Response(Http::STATUS_NO_CONTENT);
+		});
 	}
 
 	/** Summarises the next batch of folders below `$root` that changed since their last scan (FOLDERS-005.5). */
@@ -45,7 +60,10 @@ final class LibraryController extends Controller {
 	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
 	#[FrontpageRoute(verb: 'POST', url: '/api/v1/library/scan')]
 	public function scan(string $root): Response {
-		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse($this->library->scan($user, $root)));
+		return $this->api->forUser(function (IUser $user) use ($root): Response {
+			$this->roots->ensureInside($user, $root);
+			return new JSONResponse($this->library->scan($user, $root));
+		});
 	}
 
 	/** Marks the folder done by the user, as of `$photos` photos (FOLDERS-006.1). */

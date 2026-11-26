@@ -65,7 +65,7 @@ final class LibraryFolderService {
 	/**
 	 * One page, by file id, of the folders below `$root` that have a summary with photos.
 	 * @return array{folders: list<array<string, mixed>>, nextCursor: ?int, scanning: ?array{done: int, total: int}}
-	 * @throws InvalidRequestException for a root outside the user's own storage or a malformed page
+	 * @throws InvalidRequestException for a root outside the user's own storage, or a malformed page
 	 * @throws FolderNotReadableException when the user may not read the root
 	 */
 	public function list(IUser $user, string $root, string $after, string $limit): array {
@@ -89,6 +89,15 @@ final class LibraryFolderService {
 			'nextCursor' => count($listed) > $pageSize ? $listed[$pageSize - 1]->fileId : null,
 			'scanning' => $fresh === count($folders) ? null : ['done' => $fresh, 'total' => count($folders)],
 		];
+	}
+
+	/**
+	 * Refuses a candidate root that is no folder of the user's own storage, whatever the library roots.
+	 * @throws InvalidRequestException
+	 * @throws FolderNotReadableException
+	 */
+	public function checkRoot(IUser $user, string $root): void {
+		$this->root($user, $root);
 	}
 
 	/**

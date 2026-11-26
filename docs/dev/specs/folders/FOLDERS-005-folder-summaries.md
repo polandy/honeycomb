@@ -195,6 +195,22 @@ done status writes, the ranking and the screen follow in their own specs.
 - **Then** the first summary is gone, so the next scan writes it with its previews; the other two
   stay
 
+### FOLDERS-005.20 – Only the library roots are listed and scanned
+
+- **Given** the library roots `/Photos`, and the folders `/Photos-old` and `/Photos/2024`
+- **When** the user lists or scans `/`, `/Photos-old`, `/Photos/../Other`, a root that was removed
+  from the roots, or `/Photos/2024`
+- **Then** the first four answer `400` with `bad-path` and return and store nothing; `/Photos/2024`,
+  which lies inside a root, is answered; while no root is set every folder of the own storage is
+  answered (the library setup, SETTINGS-001.36)
+
+### FOLDERS-005.21 – Checking a candidate root
+
+- **Given** the roots `/Photos` and a candidate `/Archive`
+- **When** the setup calls `GET /apps/honeycomb/api/v1/library/root?root=<path>`
+- **Then** it answers `204` for a folder of the user's own storage, whatever the roots, and `400` or
+  `403` as FOLDERS-005.13 for any other; it returns no folder
+
 ## Out of scope
 
 - Marking a folder done and reopening it (FOLDERS-006).
@@ -209,3 +225,4 @@ done status writes, the ranking and the screen follow in their own specs.
 | 2026-11-22 | Created with the backend of *Folders* (M12 PR 2, ADR 0049). |
 | 2026-11-25 | `previews` in the summary and the row (FOLDERS-005.18). |
 | 2026-11-25 | Summaries from before the previews are scanned again (FOLDERS-005.19). |
+| 2026-11-26 | Only the library roots are listed and scanned; the candidate root check (FOLDERS-005.20, .21). |

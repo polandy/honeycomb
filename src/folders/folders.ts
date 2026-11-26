@@ -13,6 +13,7 @@ import { logger } from '../shared/logger.ts'
 /** The server seams of the list (FOLDERS-005). */
 export interface LibraryApi {
 	listLibraryFolders(root: string, after?: number, limit?: number): Promise<LibraryPage>
+	checkLibraryRoot(root: string): Promise<void>
 	scanLibrary(root: string): Promise<LibraryScanning>
 }
 
@@ -156,7 +157,7 @@ export function useFolders(api: LibraryApi, options: FoldersOptions) {
 	/** Whether the server takes `root` as a library root: a folder of the user's own storage. */
 	async function check(root: string): Promise<boolean> {
 		try {
-			await api.listLibraryFolders(root, 0, 1)
+			await api.checkLibraryRoot(root)
 			return true
 		} catch (error: unknown) {
 			if (isRecord(error) && isRecord(error.response) && REFUSED_STATUSES.has(error.response.status as number)) {

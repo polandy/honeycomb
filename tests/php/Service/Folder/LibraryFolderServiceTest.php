@@ -11,6 +11,7 @@ use OCA\Honeycomb\Domain\FolderDone;
 use OCA\Honeycomb\Domain\FolderSummary;
 use OCA\Honeycomb\Domain\InvalidRequestException;
 use OCA\Honeycomb\Domain\LibraryFolder;
+use OCA\Honeycomb\Domain\Reason;
 use OCA\Honeycomb\Service\Files\FolderNotReadableException;
 use OCA\Honeycomb\Service\Files\UserFolderResolver;
 use OCA\Honeycomb\Service\Folder\LibraryFolderService;
@@ -19,6 +20,7 @@ use OCA\Honeycomb\Tests\Service\FakeFiles;
 use OCA\Honeycomb\Tests\Service\FakeFolderDoneStore;
 use OCA\Honeycomb\Tests\Service\FakeFolderSummaryStore;
 use OCA\Honeycomb\Tests\Service\FakeLibraryFiles;
+use OCA\Honeycomb\Tests\Service\ReasonOf;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Constants;
 use OCP\FilesMetadata\IFilesMetadataManager;
@@ -204,6 +206,15 @@ final class LibraryFolderServiceTest extends TestCase {
 		$this->expectException(FolderNotReadableException::class);
 
 		$this->service(['/Locked' => $this->folder('/Locked', readable: false)])->list($this->user(), '/Locked', '', '');
+	}
+
+	// spec: FOLDERS-005.21
+	public function testACandidateRootIsCheckedWhateverTheRoots(): void {
+		$service = $this->service(['/Archive' => $this->folder('/Archive', fileId: 12), '/Shared' => $this->folder('/Shared', mountType: 'shared', fileId: 20)]);
+
+		$service->checkRoot($this->user(), '/Archive');
+		$this->assertSame(Reason::BadPath, ReasonOf::call(fn () => $service->checkRoot($this->user(), '/Shared')));
+		$this->assertSame(Reason::BadPath, ReasonOf::call(fn () => $service->checkRoot($this->user(), '/Missing')));
 	}
 
 	/** @return array<string, array{string, string}> */

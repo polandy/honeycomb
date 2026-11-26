@@ -1840,8 +1840,11 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   folder is `404`, not `204` (FOLDERS-006.4, FOLDERS-006.5).
 - 2026-11-22: The *Folders* screen takes the spec ID FOLDERS-007, as the done status took
   FOLDERS-006 on `main` first (ADR 0049).
+- 2026-11-26: The library setup checks a candidate root with `GET /library/root`, as the list and
+  the scan now answer only inside the library roots (FOLDERS-005.20, .21).
 - 2026-11-22: The library setup accepts a root only when `GET /library/folders` with `limit=1`
-  accepts it, so a mount other than the home storage is refused before it is saved (FOLDERS-007.4).
+  accepts it (replaced on 2026-11-26), so a mount other than the home storage is refused before it
+  is saved (FOLDERS-007.4).
 - 2026-11-22: The folder picker no longer opens at start; it opens from the navigation's *Folder*
   (APP-001.3, FOLDERS-007.1).
 - 2026-11-22: *Back to folders* shows only for the folder set culled from the list: opening any

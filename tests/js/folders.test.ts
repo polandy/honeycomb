@@ -32,6 +32,7 @@ function fakeLibrary(pages: Record<string, Record<number, LibraryPage>>, scans: 
 			}
 			return answer
 		},
+		checkLibraryRoot: async () => undefined,
 		scanLibrary: async (root) => {
 			calls.push(`scan ${root}`)
 			const answer = scans[root]?.shift()
@@ -175,6 +176,7 @@ describe('useFolders', () => {
 		let answer: (value: LibraryPage) => void = () => undefined
 		const api: LibraryApi = {
 			listLibraryFolders: (root) => (root === '/Photos' ? new Promise((resolve) => (answer = resolve)) : Promise.resolve(page([C]))),
+			checkLibraryRoot: async () => undefined,
 			scanLibrary: async () => ({ done: 0, total: 0 }),
 		}
 		const { folders, roots } = mountFolders(api)
@@ -236,12 +238,12 @@ describe('useFolders', () => {
 	})
 
 	// spec: FOLDERS-007.4
-	it('checks a root by a page of one: the server refuses one that is not of the user\'s own storage', async () => {
-		const refused = { response: { status: 400 } }
+	it('checks a candidate root apart from the list: the server refuses one that is not of the user\'s own storage', async () => {
 		const api: LibraryApi = {
-			listLibraryFolders: vi.fn(async (root: string) => {
+			listLibraryFolders: vi.fn(async () => page([])),
+			checkLibraryRoot: vi.fn(async (root: string) => {
 				if (root === '/Shared') {
-					throw refused
+					throw { response: { status: 400 } }
 				}
 				if (root === '/Locked') {
 					throw { response: { status: 403 } }
@@ -249,7 +251,6 @@ describe('useFolders', () => {
 				if (root === '/Down') {
 					throw new Error('down')
 				}
-				return page([])
 			}),
 			scanLibrary: async () => ({ done: 0, total: 0 }),
 		}
@@ -259,6 +260,7 @@ describe('useFolders', () => {
 		await expect(folders.check('/Shared')).resolves.toBe(false)
 		await expect(folders.check('/Locked')).resolves.toBe(false)
 		await expect(folders.check('/Down')).rejects.toThrow('down')
-		expect(api.listLibraryFolders).toHaveBeenCalledWith('/Photos', 0, 1)
+		expect(api.checkLibraryRoot).toHaveBeenCalledWith('/Photos')
+		expect(api.listLibraryFolders).not.toHaveBeenCalled()
 	})
 })

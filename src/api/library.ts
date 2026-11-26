@@ -53,6 +53,11 @@ export async function listAllLibraryFolders(root: string): Promise<FolderRow[]> 
 	return rows
 }
 
+/** Resolves when `root` can be a library root: a folder of the user's own storage (FOLDERS-005.21). */
+export async function checkLibraryRoot(root: string): Promise<void> {
+	await axios.get(generateUrl(`${API}/library/root`), { params: { root } })
+}
+
 /** Summarises the next batch of the stale folders below `root` and answers how far the root is. */
 export async function scanLibrary(root: string): Promise<LibraryScanning> {
 	const { data } = await axios.post<unknown>(generateUrl(`${API}/library/scan`), { root })
