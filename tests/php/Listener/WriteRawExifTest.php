@@ -15,6 +15,7 @@ use OCA\Honeycomb\Service\Listing\RawHeaderParser;
 use OCA\Honeycomb\Service\Listing\TiffFields;
 use OCA\Honeycomb\Service\Settings\SettingsService;
 use OCA\Honeycomb\Tests\Service\Listing\RawBytes;
+use OCA\Honeycomb\Tests\Service\MemoryStream;
 use OCP\Config\IUserConfig;
 use OCP\EventDispatcher\Event;
 use OCP\Files\File;
@@ -77,11 +78,7 @@ final class WriteRawExifTest extends TestCase {
 			$file->method('fopen')->willThrowException(new NotPermittedException('no'));
 			return $file;
 		}
-		$stream = fopen('php://memory', 'w+b');
-		$this->assertNotFalse($stream);
-		fwrite($stream, $bytes);
-		rewind($stream);
-		$file->method('fopen')->willReturn($stream);
+		$file->method('fopen')->willReturn(MemoryStream::of($bytes));
 		return $file;
 	}
 
@@ -89,16 +86,19 @@ final class WriteRawExifTest extends TestCase {
 		return RawBytes::tiff(['Make' => 'NIKON CORPORATION', 'Model' => 'NIKON Z 6_2'], ['DateTimeOriginal' => '2026:11:25 14:03:09', 'OffsetTimeOriginal' => '+00:00']);
 	}
 
-	/** @return array<string, array{class-string<MetadataLiveEvent|MetadataBackgroundEvent>}> */
+	/** @return array<string, array{\Closure(File, IFilesMetadata): (MetadataLiveEvent|MetadataBackgroundEvent)}> */
 	public static function events(): array {
-		return ['live' => [MetadataLiveEvent::class], 'background' => [MetadataBackgroundEvent::class]];
+		return [
+			'live' => [static fn (File $file, IFilesMetadata $metadata): MetadataLiveEvent => new MetadataLiveEvent($file, $metadata)],
+			'background' => [static fn (File $file, IFilesMetadata $metadata): MetadataBackgroundEvent => new MetadataBackgroundEvent($file, $metadata)],
+		];
 	}
 
-	/** @param class-string<MetadataLiveEvent|MetadataBackgroundEvent> $event */
+	/** @param \Closure(File, IFilesMetadata): (MetadataLiveEvent|MetadataBackgroundEvent) $event */
 	// spec: LISTING-004.8
 	#[DataProvider('events')]
-	public function testWritesTheValueOfARawFileOfAUserWhoOpenedHoneycomb(string $event): void {
-		$this->listener()->handle(new $event($this->file('DSC_0001.NEF', self::nef()), $this->metadata()));
+	public function testWritesTheValueOfARawFileOfAUserWhoOpenedHoneycomb(\Closure $event): void {
+		$this->listener()->handle($event($this->file('DSC_0001.NEF', self::nef()), $this->metadata()));
 
 		$this->assertSame([RawExif::KEY => ['DateTimeOriginal' => 1_795_615_389, 'Make' => 'NIKON CORPORATION', 'Model' => 'NIKON Z 6_2']], $this->written);
 	}

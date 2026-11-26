@@ -44,15 +44,14 @@ final class RawHeaderParser {
 
 	/** @return array<string, string> the fields of the Exif segment of the RAF's embedded JPEG preview */
 	private function raf(string $bytes): array {
-		$offset = strlen($bytes) >= self::RAF_PREVIEW_OFFSET + 4 ? unpack('N', $bytes, self::RAF_PREVIEW_OFFSET)[1] : null;
+		$offset = strlen($bytes) >= self::RAF_PREVIEW_OFFSET + 4 ? self::uint('N', $bytes, self::RAF_PREVIEW_OFFSET) : null;
 		$jpeg = is_int($offset) ? substr($bytes, $offset) : '';
 		if (!str_starts_with($jpeg, self::JPEG_START)) {
 			return [];
 		}
 		$position = strlen(self::JPEG_START);
 		while ($position + 4 <= strlen($jpeg) && $jpeg[$position] === "\xFF" && ord($jpeg[$position + 1]) !== self::JPEG_START_OF_SCAN) {
-			/** @var int $length */
-			$length = unpack('n', $jpeg, $position + 2)[1];
+			$length = self::uint('n', $jpeg, $position + 2);
 			if (ord($jpeg[$position + 1]) === self::JPEG_APP1 && substr($jpeg, $position + 4, strlen(self::EXIF_HEADER)) === self::EXIF_HEADER) {
 				return $this->tiff->ofIfd0(substr($jpeg, $position + 4 + strlen(self::EXIF_HEADER), max(0, $length - 2 - strlen(self::EXIF_HEADER))));
 			}
@@ -91,12 +90,10 @@ final class RawHeaderParser {
 		$boxes = [];
 		$position = 0;
 		while ($position + self::BOX_HEADER <= strlen($bytes)) {
-			/** @var int $size */
-			$size = unpack('N', $bytes, $position)[1];
+			$size = self::uint('N', $bytes, $position);
 			$header = self::BOX_HEADER;
 			if ($size === 1 && $position + self::LARGE_BOX_HEADER <= strlen($bytes)) {
-				/** @var int $size */
-				$size = unpack('J', $bytes, $position + self::BOX_HEADER)[1];
+				$size = self::uint('J', $bytes, $position + self::BOX_HEADER);
 				$header = self::LARGE_BOX_HEADER;
 			} elseif ($size === 0) {
 				$size = strlen($bytes) - $position;
@@ -108,5 +105,12 @@ final class RawHeaderParser {
 			$position += $size;
 		}
 		return $boxes;
+	}
+
+	/** The unsigned integer of the `unpack` `$format` at `$at`, which the caller checked lies within `$bytes`. */
+	private static function uint(string $format, string $bytes, int $at): int {
+		/** @var array{1: int} $value */
+		$value = unpack($format, $bytes, $at);
+		return $value[1];
 	}
 }

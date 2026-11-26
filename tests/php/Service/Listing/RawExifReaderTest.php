@@ -11,6 +11,7 @@ use DateTimeZone;
 use OCA\Honeycomb\Service\Listing\RawExifReader;
 use OCA\Honeycomb\Service\Listing\RawHeaderParser;
 use OCA\Honeycomb\Service\Listing\TiffFields;
+use OCA\Honeycomb\Tests\Service\MemoryStream;
 use OCP\Files\File;
 use OCP\Files\NotPermittedException;
 use OCP\Lock\LockedException;
@@ -38,11 +39,7 @@ final class RawExifReaderTest extends TestCase {
 			$file->method('fopen')->willThrowException($open);
 			return $file;
 		}
-		$stream = fopen('php://memory', 'w+b');
-		$this->assertNotFalse($stream);
-		fwrite($stream, $bytes);
-		rewind($stream);
-		$file->method('fopen')->willReturn($open ?? $stream);
+		$file->method('fopen')->willReturn($open ?? MemoryStream::of($bytes));
 		return $file;
 	}
 

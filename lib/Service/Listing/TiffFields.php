@@ -55,7 +55,7 @@ final class TiffFields {
 	private function entries(string $tiff, ?int $offset): array {
 		$count = $offset === null ? null : $this->u16($tiff, $offset);
 		$entries = [];
-		for ($index = 0; $count !== null && $index < $count; $index++) {
+		for ($index = 0; $offset !== null && $count !== null && $index < $count; $index++) {
 			$at = $offset + 2 + $index * self::ENTRY;
 			if ($at + self::ENTRY > strlen($tiff)) {
 				break;

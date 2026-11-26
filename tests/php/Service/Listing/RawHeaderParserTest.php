@@ -22,6 +22,7 @@ final class RawHeaderParserTest extends TestCase {
 		return (new RawHeaderParser(new TiffFields()))->fields($bytes);
 	}
 
+	/** @psalm-suppress ForbiddenCode Reads a test fixture, not a user file. */
 	private static function fixture(string $name): string {
 		return (string)file_get_contents(self::FIXTURES . $name);
 	}

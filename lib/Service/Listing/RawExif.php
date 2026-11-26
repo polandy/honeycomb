@@ -49,7 +49,7 @@ final class RawExif {
 
 	/** The zone of an Exif offset such as `+02:00`, null for none or a malformed one. */
 	private static function zone(?string $offset): ?DateTimeZone {
-		if ($offset === null || preg_match(self::OFFSET, $offset) !== 1) {
+		if ($offset === null || $offset === '' || preg_match(self::OFFSET, $offset) !== 1) {
 			return null;
 		}
 		return new DateTimeZone($offset);
