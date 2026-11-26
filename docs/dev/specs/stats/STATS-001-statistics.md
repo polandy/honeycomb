@@ -505,8 +505,7 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **Given** a period in which nothing was counted, e.g. a month off
 - **When** the page shows it
 - **Then** the hero shows 0 without a change, *No active day in this period* and an empty bar, the
-  bars give way to *Nothing counted in this
-  period.*, and the segment and the stepper stay usable
+  bars give way to *Nothing counted in this period.*, and the segment and the stepper stay usable
 
 ### STATS-001.56 – Days in a row in a past period
 

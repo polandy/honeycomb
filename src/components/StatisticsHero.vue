@@ -120,6 +120,8 @@ const perDay = computed(() => {
 }
 
 .statistics-hero__split i {
+	/* A share that rounds to 0 % stays visible beside its count. */
+	min-width: 4px;
 	transition: width 0.3s ease;
 }
 
