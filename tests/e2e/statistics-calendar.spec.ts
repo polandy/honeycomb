@@ -66,6 +66,20 @@ test(`fills the squares by level, hatches the days to come and shows a tapped da
 	await page.screenshot({ path: testInfo.outputPath('statistics-calendar.png'), fullPage: true, animations: 'disabled' })
 })
 
+// spec: STATS-001.72
+test('holds a day with Enter and releases it with Space from the keyboard', async ({ page }) => {
+	await openStatistics(page, ANSWER)
+	const day = square(page, '2026-11-24')
+
+	await day.focus()
+	await page.keyboard.press('Enter')
+	await expect(day).toHaveAttribute('aria-pressed', 'true')
+	await expect(calendar(page).locator('.statistics-bars__detail')).toContainText('90 decided')
+	await page.keyboard.press('Space')
+	await expect(day).toHaveAttribute('aria-pressed', 'false')
+	await expect(calendar(page).locator('.statistics-bars__detail')).toHaveText('Select a day to see its numbers.')
+})
+
 // spec: STATS-001.70, STATS-001.72
 test('shows the year with twelve months and all time with a row per year, and opens a month from all time', async ({ page }) => {
 	await openStatistics(page, ANSWER, '#year=2026')
