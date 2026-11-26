@@ -2127,8 +2127,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   the toolbar: one rating filter looks and works the same on both sources (GRID-002.3,
   IMMICH-002.36) (autonomous).
 - 2026-11-26: The Immich grid takes the folder grid's keys from one shared `gridCoreHotkeys`; `Tab`,
-  `\`, `Ctrl+L` and `/` do nothing there and the shortcut sheet leaves them out, since the screen has
-  no toolbar or filter bar to hide or focus (IMMICH-003.25) (autonomous).
+  `\`, `Ctrl+L` and `/` do nothing there and the shortcut sheet leaves them out, since its toolbar and
+  filter bar cannot be hidden or focused by key yet (IMMICH-003.25) (autonomous).
 - 2026-11-26: *Select all (loaded)* in the Immich grid takes the loaded pages, not the whole
   connection: a step stays one save under the entry limit with no paging through the server, and
   the label says what it takes (IMMICH-003.27) (autonomous).
@@ -2148,3 +2148,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-26: The hero stands beside the bars from 960 px of content width (a container query on
   the page, whose width grows to 1280 px), below them otherwise; the redesign mockup stays outside
   the repository as the UX reference (STATS-001.59) (autonomous).
+- 2026-11-26: A narrower filter keeps the grid's focused photo and scroll like a decision does, since
+  the grid sees only that photos left; a wider filter or another cull starts at the top
+  (GRID-001.24) (autonomous).

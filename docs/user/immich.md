@@ -29,8 +29,8 @@ videos of either device. When nothing passes the filters, the grid says so.
 The grid takes the folder grid's [keys](keyboard-shortcuts.md): the arrow keys move the focus,
 `P`, `X`, `U`, `0`–`5` and `6`–`9` decide the focused upload with an *Undo* in the notice, `E` opens
 the loupe, and `Ctrl+Z` undoes. A rejected upload leaves the grid at once while the flag filter
-hides rejects. `Tab`, `\` and `Ctrl+L` do nothing here: the Immich grid has no toolbar
-or filter bar to hide.
+hides rejects. `Tab`, `\` and `Ctrl+L` do nothing here: the Immich toolbar and filter
+bar always stay shown.
 
 **Select**, a long-press or `Ctrl+A` starts selection mode; the action bar at the bottom then
 decides every selected upload in one step that one `Ctrl+Z` undoes. It has no *Keep RAW* and no

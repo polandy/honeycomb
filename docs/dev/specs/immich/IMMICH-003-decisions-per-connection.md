@@ -34,8 +34,8 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
   from the same key handlers: the decision keys decide the focused asset or the selection, the
   arrows, `Home`, `End` and `E` move and open the loupe, `F` and `Shift+J` toggle fullscreen and
   the file names. *Select*, a long-press or `Ctrl+A` start selection mode with the shared action
-  bar, without *Keep RAW* and tags; `Tab`, `\` and `Ctrl+L` have no toolbar or filter bar to
-  hide here, so they do nothing and the shortcut sheet leaves them out.
+  bar, without *Keep RAW* and tags; `Tab`, `\` and `Ctrl+L` do nothing, since the Immich
+  toolbar and filter bar cannot be hidden or focused by key and the shortcut sheet leaves them out.
 - **Undo and redo** are the cull's history (KEYS-001.10, .11): every decision is one step,
   `Ctrl+Z` and `Ctrl+Shift+Z` take steps back and put them again in the grid and the loupe, and
   the toast's *Undo* takes the latest step back. Each undo or redo is a new save. A decision that
