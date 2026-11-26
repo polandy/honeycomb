@@ -48,7 +48,7 @@ describe('ImmichScreen grid keys and selection', () => {
 		await flushPromises()
 
 		expect(saves.map(({ rows }) => rows.map(({ assetId, flag }) => `${assetId}:${flag}`))).toEqual([['a1:rejected']])
-		expect(toast.show).toHaveBeenCalledWith('Rejected a1.jpg', expect.objectContaining({ label: 'Undo' }))
+		expect(toast.show).toHaveBeenCalledWith('Rejected a1', expect.objectContaining({ label: 'Undo' }))
 		expect(keys().loupe!()).toBe(true)
 		await flushPromises()
 		expect(wrapper.findComponent(PhotoLoupe).props('index')).toBe(0)

@@ -15,6 +15,7 @@ import AppIcon from './AppIcon.vue'
 import CullProgress from './CullProgress.vue'
 import FlagFilter from './FlagFilter.vue'
 import GridMoreMenu from './GridMoreMenu.vue'
+import SelectionRow from './SelectionRow.vue'
 import { keyCap } from '../shared/hotkeys.ts'
 import { formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
 import { tip } from '../shared/tooltip.ts'
@@ -200,18 +201,13 @@ const setName = computed(() => {
 				@reduceSeries="fromMenu(() => emit('reduceSeries'))"
 				@openSettings="fromMenu(() => emit('openSettings'))" />
 		</NcPopover>
-		<div v-if="props.selection.selecting" class="grid-toolbar__selection">
-			<span class="grid-toolbar__count">{{ n('honeycomb', '{count} selected', '{count} selected', props.selection.selected, { count: formatNumber(props.selection.selected) }) }}</span>
-			<NcButton variant="tertiary" @click="emit('selectAll')">
-				{{ t('honeycomb', 'Select all (filtered)') }}
-			</NcButton>
-			<NcButton variant="tertiary" @click="emit('selectNone')">
-				{{ t('honeycomb', 'None') }}
-			</NcButton>
-			<NcButton variant="primary" @click="emit('update:selecting', false)">
-				{{ t('honeycomb', 'Done') }}
-			</NcButton>
-		</div>
+		<SelectionRow
+			v-if="props.selection.selecting"
+			:selected="props.selection.selected"
+			:allLabel="t('honeycomb', 'Select all (filtered)')"
+			@selectAll="emit('selectAll')"
+			@selectNone="emit('selectNone')"
+			@done="emit('update:selecting', false)" />
 	</div>
 </template>
 

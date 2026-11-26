@@ -12,6 +12,7 @@ import type { Picture } from '../logic/pairing.ts'
 import type { Settings } from '../logic/settings.ts'
 import type { ViewStateStore } from '../settings/view-state.ts'
 import type { BrowserStorage } from '../shared/browser-storage.ts'
+import type { HotkeyHandlers } from '../shared/hotkeys.ts'
 import type { ObserveSize } from '../shared/observe-size.ts'
 import type { Toast } from '../shared/toast.ts'
 
@@ -19,15 +20,20 @@ import { n, t } from '@nextcloud/l10n'
 import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
+import ActionBar from './ActionBar.vue'
 import AppIcon from './AppIcon.vue'
 import FlagFilter from './FlagFilter.vue'
 import ImmichFilterBar from './ImmichFilterBar.vue'
 import PhotoGrid from './PhotoGrid.vue'
 import PhotoLoupe from './PhotoLoupe.vue'
+import SelectionRow from './SelectionRow.vue'
+import { gridCoreHotkeys } from '../grid/grid-hotkeys.ts'
+import { useSelectionMode } from '../grid/selection-mode.ts'
 import { LOUPE_AHEAD, loupeCounter } from '../logic/immich-paging.ts'
 import { keptIndex } from '../logic/loupe-pictures.ts'
 import { DECISIONS_ONLY } from '../logic/opened-source.ts'
 import { DEFAULT_TILE_SIZE } from '../logic/tile-size.ts'
+import { toggleBrowserFullscreen } from '../shared/fullscreen.ts'
 import { formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
 
 const props = withDefaults(defineProps<{
@@ -40,7 +46,8 @@ const props = withDefaults(defineProps<{
 	viewState: ViewStateStore
 	tileSize?: number
 	observeSize?: ObserveSize | undefined
-}>(), { resume: undefined, tileSize: DEFAULT_TILE_SIZE, observeSize: undefined })
+	toggleFullscreen?: (element: HTMLElement) => void
+}>(), { resume: undefined, tileSize: DEFAULT_TILE_SIZE, observeSize: undefined, toggleFullscreen: toggleBrowserFullscreen })
 
 const emit = defineEmits<{
 	'update:tileSize': [size: number]
@@ -48,10 +55,13 @@ const emit = defineEmits<{
 	toast: [toast: Toast]
 }>()
 
-const { list, counts, pictures, filters, choices, filtersChanged } = props.cull
+const { list, counts, pictures, filters, choices, filtersChanged, connectionId } = props.cull
 const loupeIndex = ref<number | null>(null)
 const photoLoupe = useTemplateRef<InstanceType<typeof PhotoLoupe>>('photoLoupe')
 const photoGrid = useTemplateRef<InstanceType<typeof PhotoGrid>>('photoGrid')
+// A new listing ends selection mode, so a step never reaches assets no longer shown (IMMICH-003.28).
+const selection = useSelectionMode(() => pictures.value, () => [filters.value, connectionId.value])
+const { selecting, selected } = selection
 
 const countText = computed(() => {
 	if (counts.value === null) {
@@ -122,7 +132,17 @@ function decideShown(intent: DecisionIntent, picture: Picture<SourceEntry>) {
 	props.cull.decide(intent, [picture])
 }
 
-defineExpose({ loupe: photoLoupe })
+// The folder grid's keys, without the toolbar and filter bar this screen does not have (IMMICH-003.25).
+const gridKeys: HotkeyHandlers = {
+	...gridCoreHotkeys({ grid: () => photoGrid.value, view: () => pictures.value, selection, common: props.cull.common, decide: props.cull.decide, openLoupe, toggleFullscreen: () => props.toggleFullscreen(document.documentElement) }),
+	'file-names': () => emit('updateSettings', { showFileNames: !props.settings.showFileNames }),
+}
+
+defineExpose({
+	loupe: photoLoupe,
+	/** The keys of the loupe while it shows, else the grid's. */
+	hotkeys: (): HotkeyHandlers => loupeIndex.value === null ? gridKeys : photoLoupe.value?.hotkeys ?? {},
+})
 </script>
 
 <template>
@@ -130,6 +150,16 @@ defineExpose({ loupe: photoLoupe })
 		<div class="immich-screen__toolbar">
 			<FlagFilter :flags="filters.flags" :counts="counts?.flags ?? null" @update:flags="setFlags" />
 			<span class="immich-screen__count">{{ countText }}</span>
+			<NcButton variant="tertiary" :aria-pressed="selecting" @click="selection.setSelecting(!selecting)">
+				{{ t('honeycomb', 'Select') }}
+			</NcButton>
+			<SelectionRow
+				v-if="selecting"
+				:selected="selected.length"
+				:allLabel="t('honeycomb', 'Select all (loaded)')"
+				@selectAll="selection.selectAll"
+				@selectNone="selection.selectNone"
+				@done="selection.setSelecting(false)" />
 		</div>
 		<ImmichFilterBar
 			:filters="filters"
@@ -166,8 +196,12 @@ defineExpose({ loupe: photoLoupe })
 				:tileSize="props.tileSize"
 				:decisionOf="props.cull.decisionOf"
 				:imageUrl="props.cull.imageUrl"
+				:selecting="selecting"
+				:selection="selection.selection.value"
 				v-bind="props.observeSize === undefined ? {} : { observeSize: props.observeSize }"
 				@update:tileSize="emit('update:tileSize', $event)"
+				@update:selecting="selection.setSelecting"
+				@update:selection="selection.select"
 				@open="openLoupe"
 				@shown="props.cull.loadNext($event, 1)" />
 			<div v-if="list.next !== 'idle'" class="immich-screen__footer">
@@ -180,6 +214,13 @@ defineExpose({ loupe: photoLoupe })
 				<span v-else>{{ t('honeycomb', 'Loading photos…') }}</span>
 			</div>
 		</template>
+		<ActionBar
+			v-if="selecting"
+			:common="props.cull.common(selected)"
+			:disabled="selected.length === 0"
+			:keepRaw="false"
+			:tags="false"
+			@decide="props.cull.decide($event, selected)" />
 		<Teleport to="body">
 			<PhotoLoupe
 				v-if="loupeIndex !== null && pictures.length > loupeIndex"

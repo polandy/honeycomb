@@ -863,7 +863,8 @@ takes its sizes from the pointer type ([Control sizes](#control-sizes)), not fro
 | `StarRating` (`starRating`, `stars`) | 0–5 buttons, or read-only stars | action bar, `PhotoTile`, series compare card | `decisions` |
 | `ColourLabels` (`colourLabel`, `showPalette`) | the label button and the nine-colour palette | action bar, filter bar | `decisions`, `hotkeys` |
 | `RatingFilter` (`.seg.rating`) | the rating group of a filter bar: the comparison (≥, ≤, =), *Any* and 0–5 stars (GRID-002.3) | filter bar, Immich filter bar | `picture-filter` |
-| `ActionBar` (`actionBar`) | rating, colour label, *Keep RAW* and flags; flags in a large row of their own (portrait) or at the side edges (landscape, [Loupe layout](#loupe-layout)), plus a slot | grid selection, loupe, series viewer | `decisions`, `hotkeys` |
+| `ActionBar` (`actionBar`) | rating, colour label, *Keep RAW* and flags; flags in a large row of their own (portrait) or at the side edges (landscape, [Loupe layout](#loupe-layout)), plus a slot | grid selection, Immich grid selection, loupe, series viewer | `decisions`, `hotkeys` |
+| `SelectionRow` | the selection mode row: *{count} selected*, select all with the label naming what it takes, *None* and *Done* (GRID-003.4, IMMICH-003.27) | grid toolbar, Immich toolbar | `selection` |
 | `FlagButtonsToggle` (`flagBtnsToggle`) | the title-row icon button that shows or hides the large flag buttons ([Flag buttons and vi keys](#flag-buttons-and-vi-keys)) | loupe, series viewer | — |
 | `PickRestButton` (`pickRestBtn`) | *Pick this, reject the rest* | series compare bottom bar, series viewer, loupe on a series photo | `series` |
 | `UndoToast` (`toast`) | the change in words, *Undo*, an optional offer before it (*Reject the other N* after a plain *Pick* on a series photo); focus or a press holds it, letting go restarts its time (WCAG 2.2.1) | every undoable change | `undo`: entries and their text |

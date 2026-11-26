@@ -2126,3 +2126,16 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   `RatingFilter` component, first in the bar with *Any* and 0–5 stars, not the mockup's 1–5 row in
   the toolbar: one rating filter looks and works the same on both sources (GRID-002.3,
   IMMICH-002.36) (autonomous).
+- 2026-11-26: The Immich grid takes the folder grid's keys from one shared `gridCoreHotkeys`; `Tab`,
+  `\`, `Ctrl+L` and `/` do nothing there and the shortcut sheet leaves them out, since the screen has
+  no toolbar or filter bar to hide or focus (IMMICH-003.25) (autonomous).
+- 2026-11-26: *Select all (loaded)* in the Immich grid takes the loaded pages, not the whole
+  connection: a step stays one save under the entry limit with no paging through the server, and
+  the label says what it takes (IMMICH-003.27) (autonomous).
+- 2026-11-26: The Immich selection bar is the shared action bar without *Keep RAW* and tags, and its
+  selection row (count, all, none, done) is one `SelectionRow` component shared with the folder
+  toolbar (IMMICH-003.26) (autonomous).
+- 2026-11-26: An Immich selection ends on a filter or connection change, as a folder selection does
+  on a new listing, so a step never reaches assets no longer shown (IMMICH-003.28) (autonomous).
+- 2026-11-26: The Immich grid's key e2e lives in `tests/e2e/immich-grid-keys.spec.ts`, since
+  `immich-grid.spec.ts` is near the 300-line limit (autonomous).

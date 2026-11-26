@@ -4,7 +4,7 @@ import type { Ref } from 'vue'
 import type { CommonDecision, DecisionIntent } from '../logic/decision-change.ts'
 import type { FocusMove } from '../logic/grid-layout.ts'
 import type { HotkeyIntent } from '../logic/hotkeys.ts'
-import type { ListingEntry } from '../logic/listing.ts'
+import type { ListingEntry, SourceEntry } from '../logic/listing.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { Series } from '../logic/series.ts'
 import type { HotkeyHandlers } from '../shared/hotkeys.ts'
@@ -24,38 +24,47 @@ export interface GridFocus {
 	jumpSeries: (direction: 'previous' | 'next') => unknown
 }
 
-/** What the grid's keys act on. */
-export interface GridHotkeyTargets {
+/** What the keys of every source's grid act on. */
+export interface GridCoreTargets<P extends Picture<SourceEntry>> {
 	grid: () => GridFocus | null
-	view: () => Pictures
-	selection: ReturnType<typeof useSelectionMode>
-	common: (chosen: Pictures) => CommonDecision
-	decide: (intent: DecisionIntent, chosen: Pictures) => void
+	view: () => readonly P[]
+	selection: ReturnType<typeof useSelectionMode<P>>
+	common: (chosen: readonly P[]) => CommonDecision
+	decide: (intent: DecisionIntent, chosen: readonly P[]) => void
+	openLoupe: (index: number) => void
+	toggleFullscreen: () => void
+}
+
+/** What the folder grid's keys act on. */
+export interface GridHotkeyTargets extends GridCoreTargets<Picture<ListingEntry>> {
 	seriesOf: () => ReadonlyMap<Picture<ListingEntry>, Series<Picture<ListingEntry>>>
 	pickRest: (picked: Picture<ListingEntry>, rest: Pictures) => void
 	/** Tells that the focused photo is in no series (KEYS-001.13). */
 	notInSeries: () => void
 	toggleFiltersOff: () => void
-	openLoupe: (index: number) => void
 	openTags: (chosen: Pictures) => boolean
 	headerShown: Ref<boolean>
 	filtersOpen: Ref<boolean>
 	filterBar: () => HTMLElement | undefined
-	toggleFullscreen: () => void
 }
 
-/** The grid's keys (`docs/dev/plan.md` Keyboard shortcuts). */
-export function gridHotkeys(targets: GridHotkeyTargets): HotkeyHandlers {
-	const { grid, view, selection, headerShown, filtersOpen } = targets
-	const focusedIndex = () => grid()?.focusedIndex() ?? 0
+/** The selection in selection mode, else the focused photo. */
+function chosenAt<P extends Picture<SourceEntry>>({ selection, view }: GridCoreTargets<P>, index: number): readonly P[] {
+	return selection.selecting.value ? selection.selected.value : view().slice(index, index + 1)
+}
 
-	/** The selection in selection mode, else the focused photo. */
-	const chosenAt = (index: number) => (selection.selecting.value ? selection.selected.value : view().slice(index, index + 1))
+/** The focused tile's index, the first while the grid is not there. */
+const focusedOf = ({ grid }: Pick<GridCoreTargets<never>, 'grid'>) => grid()?.focusedIndex() ?? 0
+
+/** The keys every source's grid shares: decide, move, the loupe, selection and fullscreen (KEYS-001.5, KEYS-001.6). */
+export function gridCoreHotkeys<P extends Picture<SourceEntry>>(targets: GridCoreTargets<P>): HotkeyHandlers {
+	const { grid, view, selection } = targets
+	const focusedIndex = () => focusedOf(targets)
 
 	/** Decides the selection in selection mode, else the focused photo; `advance` then moves the focus on unless the photo left the view. */
 	function decideByKey(intent: HotkeyIntent, advance: boolean): boolean {
 		const index = focusedIndex()
-		const chosen = chosenAt(index)
+		const chosen = chosenAt(targets, index)
 		if (chosen.length === 0) {
 			return false
 		}
@@ -66,25 +75,6 @@ export function gridHotkeys(targets: GridHotkeyTargets): HotkeyHandlers {
 			grid()?.reveal(Math.min(index, view().length - 1))
 		}
 		return true
-	}
-
-	/** Picks the focused photo and rejects the rest of its series, else tells it is in none (KEYS-001.13). */
-	function pickRest() {
-		const picked = view()[focusedIndex()]
-		const series = picked === undefined ? undefined : targets.seriesOf().get(picked)
-		if (series === undefined) {
-			targets.notInSeries()
-			return
-		}
-		targets.pickRest(picked!, series.members.filter((member) => member !== picked))
-	}
-
-	/** Opens the filter bar, with the toolbar, and focuses its first control. */
-	async function focusFilters() {
-		headerShown.value = true
-		filtersOpen.value = true
-		await nextTick()
-		targets.filterBar()?.querySelector<HTMLElement>('button, input, select')?.focus()
 	}
 
 	/** A key that moves the focus. */
@@ -113,18 +103,51 @@ export function gridHotkeys(targets: GridHotkeyTargets): HotkeyHandlers {
 		down: step('down'),
 		first: step('first'),
 		last: step('last'),
-		'previous-series': () => {
-			grid()?.jumpSeries('previous')
-		},
-		'next-series': () => {
-			grid()?.jumpSeries('next')
-		},
 		loupe: () => {
 			if (view().length === 0) {
 				return false
 			}
 			targets.openLoupe(focusedIndex())
 			return true
+		},
+		'select-all': selection.selectAll,
+		'select-none': whileSelecting(selection.selectNone),
+		close: whileSelecting(() => selection.setSelecting(false)),
+		fullscreen: targets.toggleFullscreen,
+	}
+}
+
+/** The folder grid's keys (`docs/dev/plan.md` Keyboard shortcuts). */
+export function gridHotkeys(targets: GridHotkeyTargets): HotkeyHandlers {
+	const { grid, view, headerShown, filtersOpen } = targets
+	const focusedIndex = () => focusedOf(targets)
+
+	/** Picks the focused photo and rejects the rest of its series, else tells it is in none (KEYS-001.13). */
+	function pickRest() {
+		const picked = view()[focusedIndex()]
+		const series = picked === undefined ? undefined : targets.seriesOf().get(picked)
+		if (series === undefined) {
+			targets.notInSeries()
+			return
+		}
+		targets.pickRest(picked!, series.members.filter((member) => member !== picked))
+	}
+
+	/** Opens the filter bar, with the toolbar, and focuses its first control. */
+	async function focusFilters() {
+		headerShown.value = true
+		filtersOpen.value = true
+		await nextTick()
+		targets.filterBar()?.querySelector<HTMLElement>('button, input, select')?.focus()
+	}
+
+	return {
+		...gridCoreHotkeys(targets),
+		'previous-series': () => {
+			grid()?.jumpSeries('previous')
+		},
+		'next-series': () => {
+			grid()?.jumpSeries('next')
 		},
 		header: () => {
 			headerShown.value = !headerShown.value
@@ -136,11 +159,7 @@ export function gridHotkeys(targets: GridHotkeyTargets): HotkeyHandlers {
 			fireAndLog(focusFilters(), 'Could not focus the filters')
 		},
 		'filters-off': targets.toggleFiltersOff,
-		'select-all': selection.selectAll,
-		'select-none': whileSelecting(selection.selectNone),
-		close: whileSelecting(() => selection.setSelecting(false)),
-		fullscreen: targets.toggleFullscreen,
-		tag: () => targets.openTags(chosenAt(focusedIndex())),
+		tag: () => targets.openTags(chosenAt(targets, focusedIndex())),
 		'pick-rest': pickRest,
 	}
 }

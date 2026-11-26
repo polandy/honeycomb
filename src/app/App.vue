@@ -45,10 +45,9 @@ import { useSelectionMode } from '../grid/selection-mode.ts'
 import { useImmichApp } from '../immich/immich-app.ts'
 import { useImmichOnly } from '../immich/immich-only.ts'
 import { connectionLines } from '../immich/immich-text.ts'
-import { DECISIONS_ONLY } from '../logic/opened-source.ts'
 import { positionFileId } from '../logic/resume-position.ts'
 import { waitSeconds } from '../logic/retry-after.ts'
-import { unofferedKeys } from '../logic/source-keys.ts'
+import { immichHiddenKeys } from '../logic/source-keys.ts'
 import { useLoupeOpening } from '../loupe/loupe-opening.ts'
 import { useMoveFlow } from '../move/move-flow.ts'
 import { notInSeriesHint } from '../series/not-in-series.ts'
@@ -133,7 +132,7 @@ watch(pickerOpen, (open) => open && recent.refresh())
 
 const { immich, shown: immichShown, opened, openedStatus, onlyOffer, cull: immichCull, resume: immichResume, openConnection, checkOpened } = useImmichApp({ source: props.immich, cull: props.immichCull, positions: props.immichPositions, storage: props.storage, viewState: viewStateApi, now: props.now, toast })
 const immichOnly = useImmichOnly({ stored: () => (settingsSettled.value ? settings.value.immichOnly : null), offer: () => onlyOffer.value, store: (chosen) => updateSettings({ immichOnly: chosen }), chooseSource: immich.choose, folderSet: () => folderSet.value, idle: () => folderSet.value === null && !recent.listing.value, pickerOpen })
-const IMMICH_HIDDEN_KEYS = unofferedKeys(DECISIONS_ONLY)
+const IMMICH_HIDDEN_KEYS = immichHiddenKeys()
 
 const gridKeys = gridHotkeys({ grid: () => grid.value, view: () => view.value, selection, common: cull.common, decide, seriesOf: () => cull.seriesOf.value, pickRest, notInSeries: () => toast.show(notInSeriesHint()), toggleFiltersOff: cull.toggleFiltersOff, openLoupe, openTags: tagEntry.open, headerShown, filtersOpen, filterBar: () => gridScreen.value?.filterBar?.$el, toggleFullscreen: () => props.toggleFullscreen(document.documentElement) })
 
@@ -165,7 +164,7 @@ useHotkeys(() => {
 		return null
 	}
 	if (immichShown.value && !shortcutsOpen.value) {
-		return { undo: immichCull.undo, redo: immichCull.redo, shortcuts: toggleShortcuts, ...immichScreen.value?.loupe?.hotkeys }
+		return { undo: immichCull.undo, redo: immichCull.redo, shortcuts: toggleShortcuts, ...immichScreen.value?.hotkeys() }
 	}
 	if (shortcutsOpen.value || folderSet.value === null || immichShown.value || home.shown.value) {
 		return { shortcuts: toggleShortcuts }
@@ -206,6 +205,7 @@ useHotkeys(() => {
 			:storage="props.storage"
 			:viewState="viewState"
 			:tileSize="tileSize"
+			:toggleFullscreen="props.toggleFullscreen"
 			@update:tileSize="cull.setTileSize"
 			@updateSettings="updateSettings"
 			@toast="toast.show($event.message, $event.action)" />
