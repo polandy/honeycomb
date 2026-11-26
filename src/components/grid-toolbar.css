@@ -71,19 +71,6 @@
 	color: var(--color-primary-element-text);
 }
 
-.grid-toolbar__selection {
-	display: flex;
-	flex-basis: 100%;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: var(--default-grid-baseline);
-}
-
-.grid-toolbar__count {
-	flex: 1;
-	font-weight: bold;
-}
-
 /* Below 900 px these move into the More menu (GridMoreMenu). */
 @media (max-width: 899px) {
 	.grid-toolbar__wide {

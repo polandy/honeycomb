@@ -30,6 +30,12 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
 - **Keys and the UI** are the cull's (KEYS-001, LOUPE-002): *P*, *X*, *U*, *1*–*5*, *0*, swipe up
   and down, auto-advance after a pick or reject, the reject toast with *Undo*. A rejected tile is
   dimmed; nothing is deleted, and no tile says "Not written to Immich" in Phase 1.
+- **The grid** takes the folder grid's keys and selection (KEYS-001.5, KEYS-001.6, GRID-003)
+  from the same key handlers: the decision keys decide the focused asset or the selection, the
+  arrows, `Home`, `End` and `E` move and open the loupe, `F` and `Shift+J` toggle fullscreen and
+  the file names. *Select*, a long-press or `Ctrl+A` start selection mode with the shared action
+  bar, without *Keep RAW* and tags; `Tab`, `\` and `Ctrl+L` do nothing, since the Immich
+  toolbar and filter bar cannot be hidden or focused by key and the shortcut sheet leaves them out.
 - **Undo and redo** are the cull's history (KEYS-001.10, .11): every decision is one step,
   `Ctrl+Z` and `Ctrl+Shift+Z` take steps back and put them again in the grid and the loupe, and
   the toast's *Undo* takes the latest step back. Each undo or redo is a new save. A decision that
@@ -38,8 +44,8 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
   undo never reaches the server before the decision it takes back. Decisions made while a save is
   in flight go in the next save together, the newest per asset. A failed save puts back only the
   decisions no later save stored.
-- **Bulk steps** save every affected asset in requests of at most the limit; assets past the
-  loaded page are paged through the decision filter first.
+- **Bulk steps** act on the loaded assets: *Select all (loaded)* and `Ctrl+A` take the loaded
+  pages, not the whole connection, and a step on them is one save of at most the entry limit.
 - **Lifecycle:** a deleted user's rows go at once; rows of a connection that left the file go in
   the daily sweep, which sweeps nothing while the file is not configured, missing or invalid; a
   row whose asset Immich no longer lists in the upload library (deleted, trashed or archived there)
@@ -222,3 +228,29 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
 - **When** its asset id is no UUID, its capture time is negative, `decided` is negative or above
   `total`, or it names another user's connection
 - **Then** the first are a bad request, the last an unknown connection, and nothing is stored
+
+### IMMICH-003.25 – Keys in the grid
+
+- **Given** the grid of a connection with the focus on its second tile
+- **When** the user presses *X*, then `E`
+- **Then** the second asset is rejected in one save, the toast offers *Undo*, the focus moves to
+  the third tile, and `E` opens the loupe on it
+
+### IMMICH-003.26 – A decision on a selection
+
+- **Given** selection mode with three loaded assets selected
+- **When** the user presses *2*, or taps the second star of the action bar
+- **Then** the three are rated two stars in one save and one undo step; the action bar offers no
+  *Keep RAW* and no tags
+
+### IMMICH-003.27 – Select all takes the loaded assets
+
+- **Given** a connection of 3,660 uploads of which 100 are loaded
+- **When** the user presses `Ctrl+A`, or *Select all (loaded)*, and then `Ctrl+D`
+- **Then** selection mode holds the 100 loaded assets, then none
+
+### IMMICH-003.28 – The selection ends with the listing
+
+- **Given** selection mode with assets selected
+- **When** the user changes a filter, or presses `Esc` or *Done*
+- **Then** selection mode ends with nothing selected

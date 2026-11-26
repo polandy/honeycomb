@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest'
 import { folderSource, immichSource } from '../../../src/logic/opened-source.ts'
-import { unofferedKeys } from '../../../src/logic/source-keys.ts'
+import { immichHiddenKeys, unofferedKeys } from '../../../src/logic/source-keys.ts'
 
 describe('unofferedKeys', () => {
 	it('leaves out no key of a folder source', () => {
@@ -12,5 +12,12 @@ describe('unofferedKeys', () => {
 	// spec: IMMICH-002.17
 	it('leaves out the keys of series, tags, delete, move and Keep RAW where the source does not offer them', () => {
 		expect(unofferedKeys(immichSource('andy-phone').capabilities)).toEqual(new Set(['series-jump', 'compare', 'pick-rest', 'tag', 'delete', 'review-rejects', 'move', 'keep-raw']))
+	})
+})
+
+describe('immichHiddenKeys', () => {
+	// spec: IMMICH-003.25
+	it('leaves out what Immich does not offer and the keys of a toolbar and filter bar the Immich screen does not have', () => {
+		expect(immichHiddenKeys()).toEqual(new Set([...unofferedKeys(immichSource('andy-phone').capabilities), 'header', 'filter-bar', 'filters-off', 'vi-filter']))
 	})
 })

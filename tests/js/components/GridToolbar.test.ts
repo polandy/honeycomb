@@ -147,7 +147,7 @@ describe('GridToolbar', () => {
 		const wrapper = mountToolbar({ paths: ['/Photos/Trip'], subfolders: false })
 		const select = wrapper.find(`[aria-label="${MARK}Select"]`)
 		expect(select.attributes('aria-pressed')).toBe('false')
-		expect(wrapper.find('.grid-toolbar__selection').exists()).toBe(false)
+		expect(wrapper.find('.selection-row').exists()).toBe(false)
 
 		await select.trigger('click')
 		await wrapper.setProps({ selection: { selecting: true, selected: 0 } })
@@ -159,7 +159,7 @@ describe('GridToolbar', () => {
 	// spec: GRID-003.4
 	it('counts the selection and selects all, none or is done', async () => {
 		const wrapper = mountToolbar({ paths: ['/Photos/Trip'], subfolders: false }, 1, { selecting: true, selected: 1234 })
-		const row = wrapper.find('.grid-toolbar__selection')
+		const row = wrapper.find('.selection-row')
 		const named = (label: string) => row.findAll('button').find((found) => found.text() === `${MARK}${label}`)!
 
 		expect(row.text()).toContain('1,234 selected')

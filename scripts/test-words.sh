@@ -27,7 +27,7 @@ expect picture-in-code pass src/a.ts "t('honeycomb', '{name}', { name: row.pictu
 expect retry-word fail src/a.vue "t('honeycomb', 'Retry failed files')"
 expect try-again pass src/a.vue "t('honeycomb', 'Try again')"
 expect done-display-only fail src/components/CullFinished.vue "t('honeycomb', 'Done')"
-expect done-leaves-mode pass src/components/GridToolbar.vue "t('honeycomb', 'Done')"
+expect done-leaves-mode pass src/components/SelectionRow.vue "t('honeycomb', 'Done')"
 expect close pass src/components/CullFinished.vue "t('honeycomb', 'Close')"
 expect honey-frame-doc fail docs/user/culling.md 'a honey frame marks a series'
 expect honey-bracket-doc fail docs/dev/specs/a.md 'the honey-bracket'

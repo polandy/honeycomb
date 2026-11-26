@@ -246,5 +246,5 @@ export function useImmichCull(context: ImmichCullContext) {
 		settle()
 	}
 
-	return { connectionId: readonly(connectionId), filters, filtersChanged, choices, list, counts, pictures, open, resumeFrom, setFilters, clearFilters, loadNext, loadPrevious, retry, hold, decisionOf: core.decisionOf, imageUrl, decide: core.decide, undo: core.undo, redo: core.redo }
+	return { connectionId: readonly(connectionId), filters, filtersChanged, choices, list, counts, pictures, open, resumeFrom, setFilters, clearFilters, loadNext, loadPrevious, retry, hold, decisionOf: core.decisionOf, common: core.common, imageUrl, decide: core.decide, undo: core.undo, redo: core.redo }
 }

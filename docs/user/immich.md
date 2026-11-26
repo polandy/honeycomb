@@ -24,6 +24,19 @@ videos of either device. When nothing passes the filters, the grid says so.
 
 **Clear filters** shows while any filter differs from its default and puts them all back.
 
+## Deciding and selecting
+
+The grid takes the folder grid's [keys](keyboard-shortcuts.md): the arrow keys move the focus,
+`P`, `X`, `U`, `0`–`5` and `6`–`9` decide the focused upload with an *Undo* in the notice, `E` opens
+the loupe, and `Ctrl+Z` undoes. A rejected upload leaves the grid at once while the flag filter
+hides rejects. `Tab`, `\` and `Ctrl+L` do nothing here: the Immich toolbar and filter
+bar always stay shown.
+
+**Select**, a long-press or `Ctrl+A` starts selection mode; the action bar at the bottom then
+decides every selected upload in one step that one `Ctrl+Z` undoes. It has no *Keep RAW* and no
+tags, since Immich keeps neither. *Select all (loaded)* and `Ctrl+A` take the uploads the grid has
+loaded so far, not the whole library. A filter change, `Esc` or **Done** ends selection mode.
+
 ## Kept per connection
 
 honeycomb keeps each connection's filters for you on the server, so they are back the next time you
