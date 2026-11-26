@@ -131,7 +131,7 @@ const finishedCard = computed(() => ({ markable: home.finishing.value !== null, 
 recent.refresh()
 watch(pickerOpen, (open) => open && recent.refresh())
 
-const { immich, shown: immichShown, opened, openedStatus, onlyOffer, cull: immichCull, openConnection, checkOpened } = useImmichApp({ source: props.immich, cull: props.immichCull, storage: props.storage, viewState: viewStateApi, now: props.now, toast })
+const { immich, shown: immichShown, opened, openedStatus, onlyOffer, cull: immichCull, resume: immichResume, openConnection, checkOpened } = useImmichApp({ source: props.immich, cull: props.immichCull, positions: props.immichPositions, storage: props.storage, viewState: viewStateApi, now: props.now, toast })
 const immichOnly = useImmichOnly({ stored: () => (settingsSettled.value ? settings.value.immichOnly : null), offer: () => onlyOffer.value, store: (chosen) => updateSettings({ immichOnly: chosen }), chooseSource: immich.choose, folderSet: () => folderSet.value, idle: () => folderSet.value === null && !recent.listing.value, pickerOpen })
 const IMMICH_HIDDEN_KEYS = unofferedKeys(DECISIONS_ONLY)
 
@@ -180,6 +180,7 @@ useHotkeys(() => {
 <template>
 	<AppLayout
 		:items="recent.items.value"
+		:recentConnections="immichResume.recent.value"
 		:storage="props.storage"
 		:hintYear="yearReviewHint.year.value"
 		:source="immich.source.value"
@@ -193,12 +194,14 @@ useHotkeys(() => {
 		@openFolders="home.back"
 		@chooseFolders="pickerOpen = true"
 		@openRecent="openRecent"
+		@openRecentConnection="immich.choose('immich'); openConnection($event)"
 		@openSettings="settingsOpen = true">
 		<FoldersHome v-show="immichOnly.started.value && home.shown.value && !immichShown" :home="home" :listFolders="listFolders" />
 		<ImmichScreen
 			v-if="immichShown && openedStatus?.state === 'ok'"
 			ref="immichScreen"
 			:cull="immichCull"
+			:resume="immichResume"
 			:settings="settings"
 			:storage="props.storage"
 			:viewState="viewState"

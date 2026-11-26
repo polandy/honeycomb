@@ -9,7 +9,7 @@ namespace OCA\Honeycomb\Immich;
 
 use OCP\Security\ICrypto;
 
-/** Signed listing cursors: Immich's cursor bound to the connection, the filters and the first page's time (IMMICH-002.5, .21). */
+/** Signed listing cursors: Immich's cursor bound to the connection, the filters, the first page's time and the anchor a listing from an asset pages around (IMMICH-002.5, .21, .34). */
 final class ListingCursors {
 	private const string SEPARATOR = '.';
 
@@ -19,16 +19,20 @@ final class ListingCursors {
 	) {
 	}
 
-	/** The cursor of the page after Immich's cursor. */
-	public function issue(string $connectionId, ListingFilters $filters, string $immichCursor, int $receivedBefore): string {
-		$payload = json_encode(['c' => $connectionId, 'f' => $filters->fingerprint(), 'i' => $immichCursor, 't' => $receivedBefore], JSON_THROW_ON_ERROR);
+	/** The cursor of the page after Immich's cursor, null for Immich's first; `newer` pages from the anchor towards the newest. */
+	public function issue(string $connectionId, ListingFilters $filters, ?string $immichCursor, int $receivedBefore, ?ListingAnchor $anchor = null, bool $newer = false): string {
+		$fields = ['c' => $connectionId, 'f' => $filters->fingerprint(), 'i' => $immichCursor, 't' => $receivedBefore];
+		if ($anchor !== null) {
+			$fields += ['a' => [$anchor->assetId, $anchor->takenAt], 'd' => $newer];
+		}
+		$payload = json_encode($fields, JSON_THROW_ON_ERROR);
 		$encoded = rtrim(strtr(base64_encode($payload), '+/', '-_'), '=');
 		return $encoded . self::SEPARATOR . $this->signature($encoded);
 	}
 
 	/**
-	 * Immich's cursor and the first page's time; a forged cursor or one of another connection or filters is a bad request.
-	 * @return array{immich: string, receivedBefore: int}
+	 * Immich's cursor, the first page's time and the anchor; a forged cursor or one of another connection or filters is a bad request.
+	 * @return array{immich: ?string, receivedBefore: int, anchor: ?ListingAnchor, newer: bool}
 	 */
 	public function open(string $cursor, string $connectionId, ListingFilters $filters): array {
 		$parts = explode(self::SEPARATOR, $cursor);
@@ -49,10 +53,23 @@ final class ListingCursors {
 		$immich = $payload['i'] ?? null;
 		/** @var mixed $receivedBefore */
 		$receivedBefore = $payload['t'] ?? null;
-		if (!is_string($immich) || !is_int($receivedBefore)) {
+		/** @var mixed $newer */
+		$newer = $payload['d'] ?? false;
+		if (($immich !== null && !is_string($immich)) || !is_int($receivedBefore) || !is_bool($newer)) {
 			throw new ImmichException(ImmichError::Request);
 		}
-		return ['immich' => $immich, 'receivedBefore' => $receivedBefore];
+		return ['immich' => $immich, 'receivedBefore' => $receivedBefore, 'anchor' => self::anchor($payload['a'] ?? null), 'newer' => $newer];
+	}
+
+	/** The signed anchor; a cursor the server signed holds a well-formed one or none. */
+	private static function anchor(mixed $anchor): ?ListingAnchor {
+		if ($anchor === null) {
+			return null;
+		}
+		if (!is_array($anchor) || !is_string($anchor[0] ?? null) || !is_int($anchor[1] ?? null)) {
+			throw new ImmichException(ImmichError::Request);
+		}
+		return new ListingAnchor($anchor[0], $anchor[1]);
 	}
 
 	/** The HMAC in hex: `calculateHMAC` answers raw bytes, which no JSON answer can carry. */

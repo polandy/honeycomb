@@ -59,12 +59,12 @@ final class ImmichController extends Controller {
 		));
 	}
 
-	/** One page of the connection's uploads that pass the filters (IMMICH-002.1). */
+	/** One page of the connection's uploads that pass the filters (IMMICH-002.1), from an asset on `from` (IMMICH-002.34). */
 	#[NoAdminRequired]
 	#[FrontpageRoute(verb: 'POST', url: '/api/v1/immich/{connectionId}/assets')]
-	public function assets(string $connectionId, array $filters = [], ?string $cursor = null, int $size = self::PAGE_SIZE): Response {
+	public function assets(string $connectionId, array $filters = [], ?string $cursor = null, int $size = self::PAGE_SIZE, ?array $from = null): Response {
 		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(
-			$this->source->listing($this->connections->find($user->getUID(), $connectionId), ['filters' => $filters, 'cursor' => $cursor, 'size' => $size]),
+			$this->source->listing($this->connections->find($user->getUID(), $connectionId), ['filters' => $filters, 'cursor' => $cursor, 'size' => $size, 'from' => $from]),
 		));
 	}
 

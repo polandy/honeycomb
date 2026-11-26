@@ -44,7 +44,7 @@ describe('useImmichCull from an asset', () => {
 	})
 
 	// spec: IMMICH-003.14
-	it('puts the filters back with the whole time and keeps them when they would hide the asset', async () => {
+	it('puts the filters back with the whole time when they would hide the asset', async () => {
 		const { cull, assets, saveFilters } = cullOn()
 		cull.open('andy-phone', { flags: ['picked'] })
 		await flushPromises()
@@ -52,9 +52,9 @@ describe('useImmichCull from an asset', () => {
 		cull.resumeFrom({ assetId: 'a6', takenAt: LAST_MONTH })
 
 		expect(cull.filters.value.time).toEqual({ kind: 'all' })
-		expect([...cull.filters.value.flags]).toEqual([])
-		expect(saveFilters).toHaveBeenCalledWith('andy-phone', expect.objectContaining({ time: 'all', flags: [] }))
-		expect(assets.at(-1)!.request).toMatchObject({ cursor: null, from: { assetId: 'a6', takenAt: LAST_MONTH }, filters: { takenAfter: null, takenBefore: null, flags: [] } })
+		expect([...cull.filters.value.flags]).toEqual(['picked', 'unflagged'])
+		expect(saveFilters).toHaveBeenCalledWith('andy-phone', expect.objectContaining({ time: 'all', flags: ['picked', 'unflagged'] }))
+		expect(assets.at(-1)!.request).toMatchObject({ cursor: null, from: { assetId: 'a6', takenAt: LAST_MONTH }, filters: { takenAfter: null, takenBefore: null } })
 	})
 
 	// spec: IMMICH-002.34

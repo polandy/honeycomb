@@ -24,13 +24,14 @@ final class PositionMapper extends QBMapper implements PositionStore {
 		parent::__construct($db, 'honeycomb_positions', Position::class);
 	}
 
-	/** Re-keys rows stored under an older folder set key first (ADR 0034). */
+	/** The folder sets' rows only, a connection's has an asset; re-keys rows stored under an older folder set key first (ADR 0034). */
 	#[\Override]
 	public function all(string $userId): array {
 		$query = $this->db->getQueryBuilder();
 		$query->select('*')
 			->from($this->getTableName())
 			->where($query->expr()->eq('user_id', $query->createNamedParameter($userId)))
+			->andWhere($query->expr()->isNull('asset_id'))
 			->orderBy('updated_at', 'DESC')
 			->addOrderBy('id', 'DESC');
 		$repair = LegacyPositionKeys::repair(array_map(static fn (Position $row): array => [$row->getFolderSetKey(), $row->toPosition()], $this->findEntities($query)));

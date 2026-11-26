@@ -4,6 +4,7 @@
 -->
 <script setup lang="ts">
 import type { useImmichCull } from '../immich/immich-cull.ts'
+import type { useImmichResume } from '../immich/immich-resume.ts'
 import type { DecisionIntent } from '../logic/decision-change.ts'
 import type { Flag } from '../logic/decision.ts'
 import type { SourceEntry } from '../logic/listing.ts'
@@ -15,7 +16,7 @@ import type { ObserveSize } from '../shared/observe-size.ts'
 import type { Toast } from '../shared/toast.ts'
 
 import { n, t } from '@nextcloud/l10n'
-import { computed, nextTick, ref, useTemplateRef } from 'vue'
+import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import AppIcon from './AppIcon.vue'
@@ -32,12 +33,14 @@ import { formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
 const props = withDefaults(defineProps<{
 	/** The opened connection's cull. */
 	cull: ReturnType<typeof useImmichCull>
+	/** Saves where the loupe goes and opens it where a resume asks (IMMICH-003.14). */
+	resume?: ReturnType<typeof useImmichResume> | undefined
 	settings: Settings
 	storage: BrowserStorage
 	viewState: ViewStateStore
 	tileSize?: number
 	observeSize?: ObserveSize | undefined
-}>(), { tileSize: DEFAULT_TILE_SIZE, observeSize: undefined })
+}>(), { resume: undefined, tileSize: DEFAULT_TILE_SIZE, observeSize: undefined })
 
 const emit = defineEmits<{
 	'update:tileSize': [size: number]
@@ -62,15 +65,40 @@ const countText = computed(() => {
 const empty = computed(() => counts.value?.matching === 0 || (list.value.started && list.value.entries.length === 0 && list.value.nextCursor === null && list.value.next === 'idle'))
 const counter = computed(() => loupeIndex.value === null ? null : loupeCounter(list.value, loupeIndex.value, counts.value?.matching ?? list.value.entries.length))
 
+// A newer page goes before the shown pictures, so the loupe follows its picture (IMMICH-002.34).
+watch(pictures, (now, before) => {
+	const shown = loupeIndex.value === null ? -1 : now.indexOf(before[loupeIndex.value]!)
+	if (shown >= 0) {
+		loupeIndex.value = shown
+	}
+})
+watch(() => props.resume?.loupeAt.value, () => {
+	const index = props.resume?.takeLoupeAt() ?? null
+	if (index !== null) {
+		openLoupe(index)
+	}
+})
+
+/** Asks the newer photos, or the failed newer page again (IMMICH-002.34). */
+function showNewer() {
+	if (list.value.previous === 'failed') {
+		props.cull.retry()
+	} else {
+		props.cull.loadPrevious(0)
+	}
+}
+
 /** Shows the pictures with the chosen flags, from the listing's start (IMMICH-002.11). */
 function setFlags(flags: ReadonlySet<Flag>) {
 	props.cull.setFilters({ ...filters.value, flags })
 }
 
-/** Moves the loupe and loads the next page as it nears the loaded end (IMMICH-002.9). */
+/** Moves the loupe, loads a page as it nears either loaded end and keeps its asset as the position (IMMICH-002.9, IMMICH-003.14). */
 function page(index: number) {
 	loupeIndex.value = index
 	props.cull.loadNext(index, LOUPE_AHEAD)
+	props.cull.loadPrevious(index)
+	props.resume?.track(index)
 }
 
 /** Opens the loupe and holds the grid's pictures while it shows, so a decision moves no picture (IMMICH-002.28). */
@@ -123,6 +151,11 @@ defineExpose({ loupe: photoLoupe })
 			</template>
 		</NcEmptyContent>
 		<template v-else>
+			<div v-if="list.previousCursor !== null" class="immich-screen__footer">
+				<NcButton :disabled="list.previous === 'loading'" @click="showNewer">
+					{{ t('honeycomb', 'Show newer photos') }}
+				</NcButton>
+			</div>
 			<PhotoGrid
 				v-if="pictures.length > 0"
 				ref="photoGrid"

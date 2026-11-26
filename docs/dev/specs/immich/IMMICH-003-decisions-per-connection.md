@@ -43,13 +43,17 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
 - **Lifecycle:** a deleted user's rows go at once; rows of a connection that left the file go in
   the daily sweep, which sweeps nothing while the file is not configured, missing or invalid; a
   row whose asset Immich no longer lists in the upload library (deleted, trashed or archived there)
-  is deleted when a decision filter asks for it. A connection's position goes with its rows once
-  positions of a connection exist (IMMICH-003.18).
+  is deleted when a decision filter asks for it. A connection's position goes with its rows in
+  the sweep (IMMICH-003.18).
 - **Position and *Recent*:** the cull saves the loupe's asset as the connection's position through
   the positions endpoint (`{"immich": "<connectionId>"}`, `assetId`, `takenAt`, `decided`,
-  `total`). Opening the connection offers *Continue where you left off*, and *Resume* opens the
-  loupe at that asset through the listing's `from`. *Recent* lists a connection by its label with
-  *x / y decided*, beside the folder sets.
+  `total`), once per change and once the counts are known; a connection has one position, which
+  neither counts against the folder sets' limit nor adds active time. Opening the connection
+  offers *Continue where you left off* until the loupe shows an asset, and *Resume* opens the
+  loupe at that asset through the listing's `from` (IMMICH-002.34), under the open filters unless
+  they leave the asset's capture time out or admit no undecided picture; then every filter goes
+  back to its default over the whole time. *Recent* lists each connection by its label with
+  *Immich · x / y decided* before the folder sets, newest first, and opens it on a tap.
 - **Statistics:** Phase 1 decisions count nothing (ADR 0043); `honeycomb_stats` is unchanged.
 
 ## Acceptance criteria
@@ -154,7 +158,8 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
 
 - **Given** a position of a connection and one of a folder set
 - **When** *Recent* renders
-- **Then** it lists both, newest first, the connection by its label with *x / y decided*
+- **Then** it lists both, the connection first by its label with *Immich · x / y decided*;
+  tapping it opens the connection with the offer
 
 ### IMMICH-003.16 – No statistics in Phase 1
 
@@ -203,3 +208,17 @@ whole decision of each asset is kept per (connection, asset id) in the decision 
 - **Then** each decision is one row of the source `immich` with the connection, asset id, user,
   flag, *Keep RAW*, rating, colour label and `updated_at`, its facets one row of
   `honeycomb_immich_assets`, and the file rows are unchanged
+
+### IMMICH-003.23 – One position per connection
+
+- **Given** as many folder-set positions as *Recent* keeps
+- **When** the cull saves a connection's position twice
+- **Then** the connection has one position with the second save's numbers, the folder sets keep
+  theirs, and no active time is counted
+
+### IMMICH-003.24 – A malformed position
+
+- **Given** a position save
+- **When** its asset id is no UUID, its capture time is negative, `decided` is negative or above
+  `total`, or it names another user's connection
+- **Then** the first are a bad request, the last an unknown connection, and nothing is stored
