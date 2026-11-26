@@ -8,7 +8,7 @@ import type { SendProgress } from '../logic/request-chunks.ts'
 import { n, t } from '@nextcloud/l10n'
 import { computed, nextTick, onMounted, useTemplateRef } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import NcDialog from '@nextcloud/vue/components/NcDialog'
+import ModalPanel from './ModalPanel.vue'
 import ProgressBar from './ProgressBar.vue'
 import { formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
 
@@ -20,7 +20,7 @@ const props = defineProps<{
 	confirmDisabled?: boolean
 	/** Whether the footer has *Back*. */
 	back?: boolean
-	/** Whether the footer has *Cancel*; without it the dialog cannot be closed either. */
+	/** Whether the footer has *Cancel*; without it the dialog cannot be closed either, e.g. during a send. */
 	cancel?: boolean
 	/** The *Back* button's label, *Back* by default. */
 	backLabel?: string
@@ -61,34 +61,16 @@ onMounted(async () => {
 		button?.focus()
 	}
 })
-
-/** The input types whose Escape has no use of its own, which NcModal still leaves to them. */
-const TOGGLES = new Set(['checkbox', 'radio'])
-
-/** Escape from a switch, checkbox or radio button cancels the dialog as from anywhere else in it (APP-001.16). */
-function onEscape(event: KeyboardEvent) {
-	if (props.cancel && event.target instanceof HTMLInputElement && TOGGLES.has(event.target.type)) {
-		emit('cancel')
-	}
-}
-
-/** Closing the dialog by its close button or Escape cancels it. */
-function onOpen(open: boolean) {
-	if (!open) {
-		emit('cancel')
-	}
-}
 </script>
 
 <template>
-	<NcDialog
+	<ModalPanel
 		class="confirm-dialog"
-		:name="props.title"
-		:noClose="!props.cancel"
-		:container="props.container ?? 'body'"
+		:title="props.title"
+		:locked="!props.cancel"
+		:container="props.container"
 		:size="props.wide ? 'large' : 'normal'"
-		@update:open="onOpen"
-		@keydown.esc="onEscape">
+		@close="emit('cancel')">
 		<slot />
 		<template #actions>
 			<span v-if="props.progress" class="confirm-dialog__progress">
@@ -111,7 +93,7 @@ function onOpen(open: boolean) {
 				{{ props.confirmLabel }}
 			</NcButton>
 		</template>
-	</NcDialog>
+	</ModalPanel>
 </template>
 
 <style scoped>
@@ -125,27 +107,8 @@ function onOpen(open: boolean) {
 </style>
 
 <style>
-/* Unscoped: NcModal teleports the dialog out of this component; the mockup's phone breakpoint. */
+/* Unscoped: the panel is teleported out of this component; the mockup's phone breakpoint. */
 @media only screen and (max-width: 520px) {
-	.confirm-dialog.modal-mask .modal-wrapper {
-		align-items: flex-end;
-	}
-
-	.confirm-dialog.modal-mask .modal-wrapper .modal-container {
-		position: absolute;
-		top: auto;
-		bottom: 0;
-		width: 100%;
-		height: auto;
-		max-height: calc(100% - 24px - env(safe-area-inset-top, 0px));
-		border-radius: 16px 16px 0 0;
-	}
-
-	.confirm-dialog.modal-mask .dialog__actions {
-		flex-wrap: wrap;
-		padding-bottom: env(safe-area-inset-bottom, 0px);
-	}
-
 	.confirm-dialog.modal-mask .confirm-dialog__progress {
 		flex-basis: 100%;
 	}

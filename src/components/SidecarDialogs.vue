@@ -9,7 +9,7 @@ import type { SidecarFlow } from '../sidecars/sidecar-flow.ts'
 import { t } from '@nextcloud/l10n'
 import { computed } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import NcDialog from '@nextcloud/vue/components/NcDialog'
+import ModalPanel from './ModalPanel.vue'
 import { folderLabel } from '../logic/cull.ts'
 import { splitFolder } from '../logic/file-name.ts'
 import { sidecarFailureReason } from '../sidecars/sidecar-text.ts'
@@ -29,11 +29,10 @@ function shownPath(path: string): string {
 </script>
 
 <template>
-	<NcDialog
+	<ModalPanel
 		v-if="report !== null"
-		:name="t('honeycomb', 'Some sidecars could not be written')"
-		container="body"
-		@update:open="props.flow.close">
+		:title="t('honeycomb', 'Some sidecars could not be written')"
+		@close="props.flow.close">
 		<ul class="sidecar-dialogs__list">
 			<li v-for="failure in report" :key="failure.path">
 				<span class="sidecar-dialogs__path">{{ shownPath(failure.path) }}</span>
@@ -45,7 +44,7 @@ function shownPath(path: string): string {
 				{{ t('honeycomb', 'Close') }}
 			</NcButton>
 		</template>
-	</NcDialog>
+	</ModalPanel>
 </template>
 
 <style scoped>

@@ -7,7 +7,7 @@ import type { KeymapGroup } from '../logic/hotkeys.ts'
 
 import { t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import NcDialog from '@nextcloud/vue/components/NcDialog'
+import ModalPanel from './ModalPanel.vue'
 import { formatCaps, KEYMAP } from '../logic/hotkeys.ts'
 import { isMac } from '../shared/hotkeys.ts'
 
@@ -91,21 +91,14 @@ const sections = (Object.keys(GROUPS) as KeymapGroup[]).map((group) => ({
 		label: LABELS[entry.id],
 	})),
 }))
-
-/** Closing the dialog by its close button or Escape closes the sheet. */
-function onOpen(open: boolean) {
-	if (!open) {
-		emit('close')
-	}
-}
 </script>
 
 <template>
-	<NcDialog
-		:name="t('honeycomb', 'Keyboard shortcuts')"
-		:container="props.container ?? 'body'"
+	<ModalPanel
+		:title="t('honeycomb', 'Keyboard shortcuts')"
+		:container="props.container"
 		size="normal"
-		@update:open="onOpen">
+		@close="emit('close')">
 		<p class="shortcut-sheet__intro">
 			{{ t('honeycomb', 'The Lightroom Classic keys, the same on every screen. They act on the selection or focused tile in the grid, and on the shown photo in the loupe.') }}
 		</p>
@@ -134,7 +127,7 @@ function onOpen(open: boolean) {
 				{{ t('honeycomb', 'Close') }}
 			</NcButton>
 		</template>
-	</NcDialog>
+	</ModalPanel>
 </template>
 
 <style scoped>
