@@ -11,7 +11,7 @@ const [a, b, c] = [photo('a'), photo('b'), photo('c')] as [Shown, Shown, Shown]
 const series = { members: [a, b] } as unknown as Parameters<Parameters<typeof useLoupeSeries>[0]['compare']>[0]
 
 function setup(shown: Shown, sharpness: Record<string, number> = {}) {
-	const targets = { dismissHint: vi.fn(), compare: vi.fn(), pickRest: vi.fn() }
+	const targets = { dismissHint: vi.fn(), compare: vi.fn(), pickRest: vi.fn(), notInSeries: vi.fn() }
 	const loupe = useLoupeSeries({
 		pictures: () => [a, b, c],
 		picture: () => shown,
@@ -58,12 +58,16 @@ describe('useLoupeSeries', () => {
 		expect(dismissHint).not.toHaveBeenCalled()
 	})
 
-	it('picks the rest only inside a series', () => {
+	// spec: KEYS-001.13
+	it('picks the rest only inside a series, and outside one only gives the hint', () => {
 		const inside = setup(a)
 		inside.loupe.pickRest()
 		expect(inside.pickRest).toHaveBeenCalledWith(series, a)
+		expect(inside.notInSeries).not.toHaveBeenCalled()
 		const outside = setup(c)
 		outside.loupe.pickRest()
 		expect(outside.pickRest).not.toHaveBeenCalled()
+		expect(outside.dismissHint).not.toHaveBeenCalled()
+		expect(outside.notInSeries).toHaveBeenCalledOnce()
 	})
 })

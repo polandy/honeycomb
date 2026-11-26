@@ -33,8 +33,10 @@ async function openApp(index: number | null) {
 	return mounted
 }
 
-async function press(key: string, fields: KeyboardEventInit = {}) {
-	document.body.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...fields }))
+async function press(key: string, fields: KeyboardEventInit = {}, capsLock = false) {
+	const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...fields })
+	event.getModifierState = (modifier: string) => capsLock && modifier === 'CapsLock'
+	document.body.dispatchEvent(event)
 	await flushPromises()
 }
 
@@ -67,7 +69,7 @@ describe('App: Reject the other N in the undo toast', () => {
 		expect(toast(wrapper).text()).toBe('Picked IMG_2·Reject the other 2Undo')
 		await takeOffer(wrapper)
 		expect(decidedFlags(wrapper, SHOTS)).toEqual(['1 rejected', '2 picked', '3 rejected'])
-		expect(toast(wrapper).text()).toContain('Picked IMG_2, rejected the rest')
+		expect(toast(wrapper).text()).toContain('Picked 1, rejected 2')
 		expect(inLoupe(wrapper)).toBe('IMG_4')
 		await press('z', { ctrlKey: true })
 		expect(decidedFlags(wrapper, SHOTS)).toEqual(['2 picked'])
@@ -75,16 +77,16 @@ describe('App: Reject the other N in the undo toast', () => {
 	})
 
 	// spec: LOUPE-002.16
-	it('lands after the series while the loupe shows a member after Shift+P, and stays once it moved past the series', async () => {
+	it('lands after the series while the loupe shows a member after a Pick with Caps Lock, and stays once it moved past the series', async () => {
 		const first = await openApp(1)
-		await press('P', { shiftKey: true })
+		await press('P', {}, true)
 		expect(inLoupe(first.wrapper)).toBe('IMG_3')
 		await takeOffer(first.wrapper)
 		expect(inLoupe(first.wrapper)).toBe('IMG_4')
 		first.wrapper.unmount()
 
 		const second = await openApp(2)
-		await press('P', { shiftKey: true })
+		await press('P', {}, true)
 		expect(inLoupe(second.wrapper)).toBe('IMG_4')
 		await takeOffer(second.wrapper)
 		expect(decidedFlags(second.wrapper, SHOTS)).toEqual(['1 rejected', '2 rejected', '3 picked'])

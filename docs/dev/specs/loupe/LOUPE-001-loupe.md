@@ -204,6 +204,7 @@ IMAGES-001.
 | 2026-11-20 | .12 the stage's `data-decoded` counts the decoded sources, for the e2e budget to wait on |
 | 2026-11-25 | .19 the frame's tab is a column before its first photo; the strip grows no band above the photos (owner, iPad) |
 | 2026-11-25 | .19 a rejected photo between two photos of a series stays inside its frame, so a series is not shown as two (owner, iPad) |
+| 2026-11-26 | .26 the first-series hint names `Shift+P` for *Pick this, reject the rest* (owner, KEYS-001.13) |
 
 ### LOUPE-001.18 – One photo in view
 
@@ -295,11 +296,11 @@ IMAGES-001.
 - **Given** the user has never dismissed the first-series hint and the gesture guide does not show
 - **When** the loupe shows a picture of a series (LOUPE-001.25)
 - **Then** a hint card under the series chip reads "This photo is part of a series of 5. ⧉ or N
-  compares them; Shift+K picks this one and rejects the rest." with *Got it*, and the chip gets a
+  compares them; Shift+P picks this one and rejects the rest." with *Got it*, and the chip gets a
   honey pulse that runs twice, none under `prefers-reduced-motion`; the card keeps
   the focus on the loupe and hides at a picture outside any series until the next one; *Got it*,
   `Esc`, the chip, `N`, the filmstrip frame's tab or *Pick this, reject the rest*
-  (`Shift+K`) dismiss it for good
+  (`Shift+P`) dismiss it for good
   (LOUPE-003), *Got it* giving the keys back to the loupe, and `Esc` then not closing the loupe
 
 ### LOUPE-001.27 – A waiting picture shows the *Not saved yet* ring

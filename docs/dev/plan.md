@@ -507,7 +507,7 @@ Decided by the owner on 2026-11-09 (phone screenshot of the mockup); shown in
    - **Same controls as the loupe** (owner, 2026-11-09: "keep/reject is not consistent with the
      normal pick/reject"). The bottom bar is the loupe's action bar — *Pick*, *Unflag*, *Reject*,
      rating and colour label for the shown photo, keys `P`, `U`, `X` — plus *Pick this, reject
-     the rest* (`Shift+K`). On a phone it wraps to two rows; in landscape the flags sit at the side
+     the rest* (`Shift+P`). On a phone it wraps to two rows; in landscape the flags sit at the side
      edges ([Loupe layout](#loupe-layout)). The series compare dialog shows the
      same flag buttons under each photo and *Pick this, reject the rest* for the active photo in
      its bottom bar (series concept step 5).
@@ -669,7 +669,7 @@ against it. `Ctrl` on Windows and Linux is `⌘` on a Mac.
 | Keys | Action | Lightroom Classic |
 |---|---|---|
 | `P` `X` `U` | *Pick*, *Reject*, *Unflag*; pressing the flag a picture has unflags it | same keys |
-| `Shift+P` `Shift+X` `Shift+U` | the same, then go to the next photo | same keys |
+| `Shift+X` `Shift+U` | the same, then go to the next photo | same keys |
 | `Caps Lock` | auto-advance: every decision goes to the next photo | listed as Auto Advance; not confirmed in the Adobe text read |
 | `` ` `` | toggle *Picked* | differs: Lightroom cycles pick, reject, unflagged |
 | `0`–`5` | set the rating | same keys |
@@ -697,16 +697,16 @@ against it. `Ctrl` on Windows and Linux is `⌘` on a Mac.
 | `Ctrl+/` | shortcut help (`?` also works, for a touch keyboard) | same keys |
 | `Delete` | delete summary for the selection or focused picture | |
 | `M` | *Move to…* (honeycomb only) | |
-| `Shift+K` | *Pick this, reject the rest* in the series compare, the series viewer and the loupe on a series photo, which the undo toast's *Reject the other N* also names (honeycomb only; was `K`, which the vi keys need) | |
+| `Shift+P` | *Pick this, reject the rest* in the series compare, the series viewer, the loupe and the grid on a series photo, which the undo toast's *Reject the other N* also names; outside a series a short hint (was `K`, which the vi keys need, then `Shift+K`) | differs: pick and go to the next photo in Lightroom; `Caps Lock` with `P` does that here |
 | `Shift+J` | show or hide the file names in the grid (honeycomb only; `J` is the vi keys' down) | differs: `J` cycles the grid's tile info in Lightroom |
 | `B` | show or hide the flag buttons in the loupe and the series viewer (honeycomb only) | differs: `B` adds to the Quick Collection in Lightroom, which honeycomb does not have |
 | `1`–`9` | move dialog: choose a favourite or recent folder (honeycomb only) | |
 
 - **Series compare and series viewer** act like Lightroom's Survey: `P`, `X`, `U` and `0`–`5`
   decide the *active* photo, and the arrow keys switch it. The keys `1`–`4` no longer choose the
-  best photo; `Shift+K` does, as one undo step. The series compare dialog outlines the active photo.
-- **Where a key has no function** on a screen (`Z` in the grid, `Shift+K` outside a series) it does
-  nothing, and `Tab` keeps moving focus while a control has it.
+  best photo; `Shift+P` does, as one undo step. The series compare dialog outlines the active photo.
+- **Where a key has no function** on a screen (`Z` in the grid) it does nothing; `Shift+P` outside
+  a series only gives a short hint, and `Tab` keeps moving focus while a control has it.
 - **Verification.** Each key was checked against Adobe's [Keyboard shortcuts for Lightroom
   Classic](https://helpx.adobe.com/lightroom-classic/desktop/introduction-to-lightroom-classic/keyboard-shortcuts.html)
   and [How to flag, label, and rate
@@ -745,7 +745,7 @@ room of *Pick* and *Reject*, and the standard vi keys should move around.
 ### Vi keys
 
 **An option, off by default** (*Settings › Keyboard › Vi keys*, per user). `h`, `j`, `k`, `l`
-clash with nothing once *Pick this, reject the rest* moves to `Shift+K`, but `g g` makes `g` a
+clash with nothing once *Pick this, reject the rest* moves to `Shift+P`, but `g g` makes `g` a
 prefix, and `g` is Lightroom's key for the grid, which the owner put first. Off by default, a
 Lightroom user keeps `G` as before and no prefix waits for a second key; on, a vi user gets the
 whole set and leaves the loupe with `Esc`.
@@ -766,7 +766,7 @@ next key without a timeout; any other key drops it and acts as usual, so `g` `p`
 
 | vi key | vi meaning | honeycomb | Resolution |
 |---|---|---|---|
-| `k` | up | `K` *Pick this, reject the rest* | moved to `Shift+K` for everyone, so one key map serves both modes and a multi-photo decision needs a deliberate chord |
+| `k` | up | `K` *Pick this, reject the rest* | moved to `Shift+P` for everyone, so one key map serves both modes and a multi-photo decision needs a deliberate chord |
 | `g`, `G` | prefix (`g g` first), last | `G` grid | `G` grid with the option off; with it on, `g g` first, `Shift+G` last, `Esc` the grid |
 | `x` | delete a character | `X` *Reject* | unchanged; the meanings agree |
 | `u`, `Ctrl+R` | undo, redo | `U` *Unflag*; `Ctrl+R` reloads the page | not mapped; undo stays `Ctrl+Z`, redo `Ctrl+Shift+Z` |
@@ -930,7 +930,7 @@ follows; its design direction lists the tokens.
   the settings, [tap zones](#tap-zones), pinch, double-tap, the main keys) until it is
   dismissed once; *Settings › Loupe gestures › Show the gesture guide* shows it on the next
   loupe opening. The first series photo in the loupe pulses the series chip once and shows a
-  hint under it (the chip, `N`, `Shift+K`) until it is dismissed once (LOUPE-001.26).
+  hint under it (the chip, `N`, `Shift+P`) until it is dismissed once (LOUPE-001.26).
 - **Calm loupe chrome.** The title row shows the name and the pair; the gesture mapping sits
   in the info panel.
 

@@ -13,6 +13,8 @@ import { mountLoupe, PICTURES } from './mount-loupe.ts'
 
 enableAutoUnmount(afterEach)
 
+const NOT_IN_SERIES = 'Not in a series · Shift+P picks a photo and rejects the rest of its series'
+
 const SERIES = PICTURES.slice(3, 6)
 const SERIES_OF = new Map(SERIES.map((picture) => [picture, { key: 4, members: SERIES }] as const))
 
@@ -24,21 +26,21 @@ function requests(wrapper: Awaited<ReturnType<typeof mountLoupe>>['wrapper']) {
 
 describe('PhotoLoupe: Pick this, reject the rest', () => {
 	// spec: LOUPE-002.15
-	it('ends the rating row with a secondary button named with Shift+K that asks to pick the shown photo of its series', async () => {
+	it('ends the rating row with a secondary button named with Shift+P that asks to pick the shown photo of its series', async () => {
 		const { wrapper } = await mountLoupe(4, {}, false, { seriesOf: SERIES_OF })
 		const button = wrapper.findComponent(PickRestButton)
 
 		expect(wrapper.find('.action-bar__row > :last-child').classes()).toContain('pick-rest-button')
 		expect(button.props('secondary')).toBe(true)
-		expect(button.attributes('data-tip-key')).toBe('Shift+K')
+		expect(button.attributes('data-tip-key')).toBe('Shift+P')
 		await button.trigger('click')
 		expect(requests(wrapper)).toEqual(['IMG_4 IMG_5 IMG_6: IMG_5'])
 	})
 
 	// spec: LOUPE-002.15
-	it('asks the same by Shift+K', async () => {
+	it('asks the same by Shift+P', async () => {
 		const { wrapper, root } = await mountLoupe(4, {}, false, { seriesOf: SERIES_OF })
-		await root.trigger('keydown', { key: 'K', shiftKey: true })
+		await root.trigger('keydown', { key: 'P', shiftKey: true })
 
 		expect(requests(wrapper)).toEqual(['IMG_4 IMG_5 IMG_6: IMG_5'])
 	})
@@ -51,12 +53,14 @@ describe('PhotoLoupe: Pick this, reject the rest', () => {
 		expect(wrapper.find('.action-bar__row .pick-rest-button').exists()).toBe(true)
 	})
 
-	// spec: LOUPE-002.15
-	it('shows no button and asks nothing by Shift+K outside a series', async () => {
+	// spec: LOUPE-002.15, KEYS-001.13
+	it('shows no button, asks nothing and gives a short hint by Shift+P outside a series', async () => {
 		const { wrapper, root } = await mountLoupe(0, {}, false, { seriesOf: SERIES_OF })
-		await root.trigger('keydown', { key: 'K', shiftKey: true })
+		await root.trigger('keydown', { key: 'P', shiftKey: true })
 
 		expect(wrapper.findComponent(PickRestButton).exists()).toBe(false)
 		expect(requests(wrapper)).toBeUndefined()
+		expect(wrapper.emitted('decide')).toBeUndefined()
+		expect(wrapper.emitted('toast')).toEqual([[{ message: NOT_IN_SERIES, action: null }]])
 	})
 })
