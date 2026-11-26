@@ -109,7 +109,7 @@ test('switches the chart to space freed and active time', async ({ page }) => {
 
 	await page.getByRole('button', { name: 'Space freed' }).click()
 	await expect(page.getByRole('button', { name: 'Space freed' })).toHaveAttribute('aria-pressed', 'true')
-	await expect(page.getByRole('button', { name: 'Decided' })).toHaveAttribute('aria-pressed', 'false')
+	await expect(page.getByRole('button', { name: 'Decided', exact: true })).toHaveAttribute('aria-pressed', 'false')
 	await expect(page.locator('.statistics-bars h3')).toHaveText('Space freed per day')
 	await expect(tuesday().locator('button')).toHaveAttribute('aria-label', 'Tue, Nov 24, 2026: 100 MB freed')
 	const raws = await box(tuesday().locator('.statistics-bars__part--raws'))
