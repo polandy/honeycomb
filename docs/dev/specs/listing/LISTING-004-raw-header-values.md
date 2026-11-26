@@ -9,8 +9,8 @@
 
 The Photos app reads no capture time or camera from RAW files. honeycomb reads both from a RAW
 file's header and keeps them in Nextcloud's file metadata, so a RAW-only picture can join its
-burst's series. This spec covers the read and the write; the listing reading the key and the
-backfill of existing files follow (TODO.md, ADR 0061).
+burst's series. This spec covers the read, the write and the listing reading the key; the
+backfill of existing files follows (TODO.md, ADR 0061).
 
 ## Behaviour
 
@@ -41,6 +41,12 @@ first NUL and trimmed. An empty string, a value that is not UTF-8 and a date tha
 (such as `0000:00:00 00:00:00`) count as absent. Another format, or a truncated or malformed
 header, stores `{}`, so the file is not read again; file content never fails the write. When the
 file cannot be opened or read, the failure is logged and no key is written.
+
+**Reading the key.** An entry (LISTING-001) and the folder summary's capture times and bursts
+(FOLDERS-005) take Photos' capture time and camera first, and the key's for a file without them.
+The camera is the key's `Make` and `Model` joined as LISTING-001.2 joins Photos' values. A key
+whose fields have the wrong type counts as one without them. So a RAW-only picture joins its
+burst's series, and *Pick this, reject the rest* takes it.
 
 ## Acceptance criteria
 
@@ -110,8 +116,31 @@ file cannot be opened or read, the failure is logged and no key is written.
 - **When** its metadata is generated
 - **Then** the failure is logged and no key is written
 
+### LISTING-004.11 – The listing reads the key
+
+- **Given** a file without Photos' capture time or camera, with the key
+- **When** it is listed
+- **Then** its entry's capture time is the key's `DateTimeOriginal` and its camera the key's
+  `Make` and `Model`; Photos' values, when there, win, and a field of the wrong type counts as
+  absent
+
+### LISTING-004.12 – The folder summary reads the key
+
+- **Given** a RAW-only picture with the key, a second after another photo of its folder
+- **When** the folder summary is computed
+- **Then** its capture time is the key's, so both are one burst
+
+### LISTING-004.13 – A RAW-only picture in its burst's series
+
+- **Given** a burst of photos whose middle shot is a RAW-only picture with a capture time in its
+  header
+- **When** the folder is culled
+- **Then** the RAW-only picture is a card of the burst's series, and *Pick this, reject the rest*
+  on another card rejects it
+
 ## History
 
 | Date | Change |
 |---|---|
 | 2026-11-26 | Created with the parser and the listener (ADR 0061, PR 2) |
+| 2026-11-26 | The listing and the folder summary read the key (ADR 0061, PR 3) |
