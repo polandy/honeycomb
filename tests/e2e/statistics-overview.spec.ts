@@ -7,6 +7,8 @@ import { E2E_SETTINGS, putSettings } from './cull.ts'
 import { WEBKIT } from './webkit.ts'
 
 const PHONE = { width: 390, height: 844 }
+/** The iPad landscape project, whose content is narrower than 960 px. */
+const IPAD_LANDSCAPE = 'webkit-ipad'
 
 /** Counted since 14 March 2025, today Thursday 26 November 2026, nothing in July 2025. */
 const ANSWER = {
@@ -90,7 +92,11 @@ test(`shows the hero beside the bars and the four tiles of the month ${WEBKIT}`,
 	const heroBox = await box(hero(page))
 	const chartBox = await box(page.locator('.statistics-bars'))
 	await expectApart(hero(page), page.locator('.statistics-bars'))
-	expect(Math.abs(heroBox.y - chartBox.y), 'hero and bars side by side').toBeLessThan(1)
+	if (testInfo.project.name === IPAD_LANDSCAPE) {
+		expect(chartBox.y, 'the bars below the hero under 960 px of content').toBeGreaterThanOrEqual(heroBox.y + heroBox.height)
+	} else {
+		expect(Math.abs(heroBox.y - chartBox.y), 'hero and bars side by side').toBeLessThan(1)
+	}
 	const tiles = page.locator('.delete-stats__item')
 	await expect(tiles).toHaveCount(4)
 	const rows = new Set(await Promise.all((await tiles.all()).map(async (each) => Math.round((await box(each)).y))))

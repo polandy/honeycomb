@@ -15,12 +15,16 @@ Open **Statistics** in the navigation, or press **Statistics** on the *Cull fini
   of the week of your Nextcloud locale. *Previous period*, *Next period* and *Today* step through
   the periods, never past today nor before the first counted day. Today is the day in the time
   zone of your Nextcloud account.
-- **Tiles:** *Photos decided*, with the change against the period before (in the current
-  period, up to the same day); *Moved to the trash bin*, with the size and how many were deleted
-  for good; *Sidecars created / updated*; and *Days in a row*, the days you culled without a gap
-  up to today or yesterday, with your longest run (in a past period, the longest run inside it).
-- **A line below:** your active time, the photos a minute, the series done and the RAW files
-  removed, each once there is one.
+- **Photos decided:** the big number of the period, with the change against the period before
+  in words, e.g. *▲ 12 % more than October* (in the current period, up to the same day), a bar of
+  the picked (✓, filled) against the rejected (✕, hatched), and the photos per active day.
+- **Tiles:** *Space freed*, the size moved to the trash bin, deleted for good and of the RAW files
+  removed; *Keep rate*, the picked among the picked and rejected (*—* when nothing was decided);
+  *Active time*, with the photos a minute from one active minute on; and *Days in a row*, the days
+  you culled without a gap up to today or yesterday, with your longest run (in a past period, the
+  longest run inside it).
+- **A line below:** the sidecars created and updated, those from digiKam or darktable and the
+  series done, each once there is one.
 - **Bars:** the photos decided and moved to the trash bin per day (week, month), per month
   (year) or per year (all time). Days to come are hatched, and a period without a count says so.
 - **Library progress:** the share of your photos in done folders, for the library and each root,

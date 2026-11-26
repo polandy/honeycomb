@@ -318,8 +318,8 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **Given** counters on several days
 - **When** the page opens, and when the user picks *Week*, *Month*, *Year* or *All time*
 - **Then** it opens on the current month; the hero and the tiles show the sums of that calendar
-  period and the bars split it per day (week, month), per month (year) or per year (all time, per month while
-  the counting lies in one calendar year)
+  period and the bars split it per day (week, month), per month (year) or per year (all time, per
+  month while the counting lies in one calendar year)
 
 ### STATS-001.22 – Days in a row
 
