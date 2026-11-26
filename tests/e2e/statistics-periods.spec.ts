@@ -3,6 +3,7 @@
 import type { Locator, Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
+import { openStatistics, statisticsSettled } from './statistics.ts'
 import { expectTouchTargets } from './touch-targets.ts'
 import { WEBKIT } from './webkit.ts'
 
@@ -25,14 +26,6 @@ const ANSWER = {
 	today: '2026-11-26',
 	seriesDoneBefore: 0,
 	read: { pictures: 0, picked: 0, rejected: 0, rated: 0 },
-}
-
-/** Opens the statistics page on the stubbed counters. */
-async function openStatistics(page: Page, hash = ''): Promise<void> {
-	await page.goto('about:blank')
-	await page.route('**/apps/honeycomb/api/v1/stats', (route) => (route.request().method() === 'GET' ? route.fulfill({ json: ANSWER }) : route.continue()))
-	await page.goto(`/index.php/apps/honeycomb/statistics${hash}`)
-	await expect(page.locator('.statistics-period__label')).toBeVisible()
 }
 
 /** The texts under the bars, one per bar. */
@@ -59,7 +52,7 @@ async function expectDrawn(page: Page): Promise<void> {
 
 // spec: STATS-001.21, STATS-001.52, STATS-001.53, STATS-001.54, STATS-001.55
 test(`steps through the calendar periods on the desktop and the iPad ${WEBKIT}`, async ({ page }, testInfo) => {
-	await openStatistics(page)
+	await openStatistics(page, ANSWER)
 
 	await expect(page.getByRole('button', { name: 'Month' })).toHaveAttribute('aria-pressed', 'true')
 	await expect(page.locator('.statistics-period__label')).toHaveText('November 2026')
@@ -111,7 +104,7 @@ const addressHash = (page: Page) => page.evaluate(() => window.location.hash)
 // spec: STATS-001.58
 test.describe('opens the period the address names', () => {
 	test('a past month, with its own bars', async ({ page }) => {
-		await openStatistics(page, '#month=2025-08')
+		await openStatistics(page, ANSWER, '#month=2025-08')
 
 		await expect(page.locator('.statistics-period__label')).toHaveText('August 2025')
 		await expect(page.locator('.statistics-bars__bar')).toHaveCount(31)
@@ -120,29 +113,29 @@ test.describe('opens the period the address names', () => {
 	})
 
 	test('a week by any of its days, a year and all time', async ({ page }) => {
-		await openStatistics(page, '#week=2026-11-04')
+		await openStatistics(page, ANSWER, '#week=2026-11-04')
 		await expect(page.locator('.statistics-bars__bar')).toHaveCount(7)
 		await expect(page.getByRole('button', { name: 'Week' })).toHaveAttribute('aria-pressed', 'true')
 		await expect(page.locator('.statistics-period__label')).toContainText('2026')
 
-		await openStatistics(page, '#year=2025')
+		await openStatistics(page, ANSWER, '#year=2025')
 		await expect(page.locator('.statistics-period__label')).toHaveText('2025')
 		await expect(page.locator('.statistics-bars__bar')).toHaveCount(12)
 
-		await openStatistics(page, '#all')
+		await openStatistics(page, ANSWER, '#all')
 		await expect(page.locator('.statistics-period__label')).toHaveText('Since Mar 14, 2025')
 	})
 
 	test('clamps a period after today and before the first counted day, and falls back on a broken hash', async ({ page }) => {
-		await openStatistics(page, '#month=2030-01')
+		await openStatistics(page, ANSWER, '#month=2030-01')
 		await expect(page.locator('.statistics-period__label')).toHaveText('November 2026')
 		expect(await addressHash(page)).toBe('')
 
-		await openStatistics(page, '#month=2019-01')
+		await openStatistics(page, ANSWER, '#month=2019-01')
 		await expect(page.locator('.statistics-period__label')).toHaveText('March 2025')
 		expect(await addressHash(page)).toBe('#month=2025-03')
 
-		await openStatistics(page, '#month=2026-13')
+		await openStatistics(page, ANSWER, '#month=2026-13')
 		await expect(page.locator('.statistics-period__label')).toHaveText('November 2026')
 		expect(await addressHash(page)).toBe('')
 	})
@@ -150,7 +143,7 @@ test.describe('opens the period the address names', () => {
 
 // spec: STATS-001.57
 test('writes the period into the address while stepping and keeps it across a reload', async ({ page }) => {
-	await openStatistics(page)
+	await openStatistics(page, ANSWER)
 	expect(await addressHash(page)).toBe('')
 	const history = await page.evaluate(() => window.history.length)
 
@@ -166,6 +159,7 @@ test('writes the period into the address while stepping and keeps it across a re
 	expect(await page.evaluate(() => window.history.length)).toBe(history)
 
 	await page.reload()
+	await statisticsSettled(page)
 	await expect(page.locator('.statistics-period__label')).toContainText('Sep')
 	expect(await addressHash(page)).toBe(week)
 
@@ -181,7 +175,7 @@ test.describe('on a phone', () => {
 	// spec: STATS-001.21, STATS-001.52, STATS-001.54
 	test('fits the segment, the stepper and the bars of a month into the width of a phone', async ({ page }, testInfo) => {
 		await page.setViewportSize(PHONE)
-		await openStatistics(page)
+		await openStatistics(page, ANSWER)
 
 		await expectTouchTargets(page.getByRole('group', { name: 'Period' }), 'statistics period segment on a phone')
 		await expectTouchTargets(page.locator('.statistics-period__stepper'), 'statistics period stepper on a phone')

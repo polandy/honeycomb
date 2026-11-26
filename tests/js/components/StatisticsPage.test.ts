@@ -169,6 +169,20 @@ describe('StatisticsPage', () => {
 		expect(mountPage().text()).not.toContain('Statistics are off.')
 	})
 
+	it('marks itself settled only once the numbers and the library progress are in', async () => {
+		let answerFolders: (rows: typeof ROWS) => void = () => undefined
+		const wrapper = mountPage({}, ROOTS, vi.fn(async (_root: string) => new Promise<typeof ROWS>((resolve) => {
+			answerFolders = resolve
+		})))
+		await flushPromises()
+		expect(wrapper.find('.statistics-page').attributes('data-settled')).toBeUndefined()
+
+		answerFolders(ROWS)
+		await flushPromises()
+
+		expect(wrapper.find('.statistics-page').attributes('data-settled')).toBe('true')
+	})
+
 	it('says so and logs when the numbers cannot be loaded', async () => {
 		const error = new Error('down')
 		const wrapper = mount(StatisticsPage, { props: { seams: { loadStatistics: async () => Promise.reject(error), loadLibraryFolders: async () => [], loadSettings: async () => ({}), saveViewState: async () => undefined, firstWeekDay: () => MONDAY, location: fakeLocation() }, navigation: fakePageNavigation().seams } })
@@ -176,6 +190,7 @@ describe('StatisticsPage', () => {
 
 		expect(wrapper.text()).toContain('The statistics could not be loaded.')
 		expect(logger.error).toHaveBeenCalledWith('Could not load the statistics', { error })
+		expect(wrapper.find('.statistics-page').attributes('data-settled')).toBe('true')
 	})
 
 	describe('year in review', () => {

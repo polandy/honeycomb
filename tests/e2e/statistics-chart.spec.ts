@@ -3,6 +3,7 @@
 import type { Locator, Page } from '@playwright/test'
 
 import { expect, test } from '@playwright/test'
+import { openStatistics } from './statistics.ts'
 import { expectTouchTargets } from './touch-targets.ts'
 import { WEBKIT } from './webkit.ts'
 
@@ -38,14 +39,6 @@ const ANSWER = {
 	read: { pictures: 0, picked: 0, rejected: 0, rated: 0 },
 }
 
-/** Opens the statistics page on the stubbed counters. */
-async function openStatistics(page: Page, hash = ''): Promise<void> {
-	await page.goto('about:blank')
-	await page.route('**/apps/honeycomb/api/v1/stats', (route) => (route.request().method() === 'GET' ? route.fulfill({ json: ANSWER }) : route.continue()))
-	await page.goto(`/index.php/apps/honeycomb/statistics${hash}`)
-	await expect(page.locator('.statistics-period__label')).toBeVisible()
-}
-
 /** The bar button whose label starts with `name`. */
 const bar = (page: Page, name: string) => page.locator(`.statistics-bars__columns[aria-label^="${name}:"]`)
 const detail = (page: Page) => page.locator('.statistics-bars__detail')
@@ -59,7 +52,7 @@ async function expectPanelBelow(page: Page): Promise<void> {
 
 // spec: STATS-001.63, STATS-001.64
 test(`shows a tapped bar's numbers in the panel below the stacked chart ${WEBKIT}`, async ({ page }, testInfo) => {
-	await openStatistics(page)
+	await openStatistics(page, ANSWER)
 	await expect(detail(page)).toHaveText('Select a bar to see its numbers.')
 	await expect(detail(page)).toHaveAttribute('aria-live', 'polite')
 
@@ -95,7 +88,7 @@ test(`shows a tapped bar's numbers in the panel below the stacked chart ${WEBKIT
 
 // spec: STATS-001.64
 test('holds a bar with Enter and releases it with Space from the keyboard', async ({ page }) => {
-	await openStatistics(page)
+	await openStatistics(page, ANSWER)
 	const thursday = bar(page, 'Thu, Nov 26, 2026')
 
 	await thursday.focus()
@@ -111,7 +104,7 @@ test('holds a bar with Enter and releases it with Space from the keyboard', asyn
 
 // spec: STATS-001.63
 test('switches the chart to space freed and active time', async ({ page }) => {
-	await openStatistics(page)
+	await openStatistics(page, ANSWER)
 	const tuesday = () => page.locator('.statistics-bars__bar[data-from="2026-11-24"]')
 
 	await page.getByRole('button', { name: 'Space freed' }).click()
@@ -134,7 +127,7 @@ test('switches the chart to space freed and active time', async ({ page }) => {
 
 // spec: STATS-001.66
 test('shows the chart as a table and back', async ({ page }, testInfo) => {
-	await openStatistics(page)
+	await openStatistics(page, ANSWER)
 
 	await page.getByRole('button', { name: 'Show as table' }).click()
 	const table = page.getByRole('table')
@@ -151,7 +144,7 @@ test('shows the chart as a table and back', async ({ page }, testInfo) => {
 
 // spec: STATS-001.65
 test('drills down from a month of the year to that month', async ({ page }) => {
-	await openStatistics(page, '#year=2026')
+	await openStatistics(page, ANSWER, '#year=2026')
 
 	await bar(page, 'October 2026').click()
 	await expect(detail(page)).toContainText('100 decided (✓ 40 · ✕ 60)')
@@ -169,7 +162,7 @@ test.describe('on a phone', () => {
 	// spec: STATS-001.63, STATS-001.64
 	test('fits the switch, the chart and the panel into the width of a phone', async ({ page }, testInfo) => {
 		await page.setViewportSize(PHONE)
-		await openStatistics(page)
+		await openStatistics(page, ANSWER)
 
 		await expectTouchTargets(page.getByRole('group', { name: 'Chart shows' }), 'chart switch on a phone')
 		await expectTouchTargets(page.locator('.statistics-bars__table-switch'), 'table switch on a phone')

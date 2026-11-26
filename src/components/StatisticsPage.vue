@@ -56,6 +56,8 @@ const libraryRows = ref<FolderRow[]>([])
 const libraryFailed = ref(false)
 const keepStatistics = ref(true)
 const failed = ref(false)
+/** Whether every load of the page has answered, a signal the e2e tests wait on. */
+const settled = ref(false)
 const kind = ref<PeriodKind>('month')
 /** The day whose period shows, kept when the segment changes; null for today (STATS-001.52). */
 const anchor = ref<string | null>(null)
@@ -169,13 +171,15 @@ onMounted(async () => {
 	} catch (error) {
 		failed.value = true
 		logger.error('Could not load the statistics', { error })
+	} finally {
+		settled.value = true
 	}
 })
 </script>
 
 <template>
 	<PageLayout page="statistics" :seams="props.navigation">
-		<div class="statistics-page">
+		<div class="statistics-page" :data-settled="settled || undefined">
 			<NcButton variant="tertiary" :href="cullUrl">
 				<template #icon>
 					<AppIcon name="back" />
