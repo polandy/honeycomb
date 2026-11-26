@@ -73,20 +73,20 @@ describe('App: series compare', () => {
 	})
 
 	// spec: SERIES-001.9, SERIES-001.8
-	it('picks the active photo by Shift+K, rejects the rest in one step, and brings the series back on undo', async () => {
+	it('picks the active photo by Shift+P, rejects the rest in one step, and brings the series back on undo', async () => {
 		const { wrapper } = await openApp()
 		await press('n')
 		await press('ArrowRight')
 		expect(compare(wrapper).props('active')).toBe(1)
 
-		await press('K', { shiftKey: true })
+		await press('P', { shiftKey: true })
 
-		expect(toastText(wrapper)).toContain('Picked IMG_2, rejected the rest')
+		expect(toastText(wrapper)).toContain('Picked 1, rejected 2')
 		expect(decidedFlags(wrapper, SHOTS)).toEqual(['1 rejected', '2 picked', '3 rejected'])
 		expect(shown(wrapper)).toEqual(['IMG_4', 'IMG_5'])
 		await press('z', { ctrlKey: true })
 		expect(shown(wrapper)).toEqual(['IMG_1', 'IMG_2', 'IMG_3'])
-		expect(toastText(wrapper)).toContain('Undid: Picked IMG_2, rejected the rest')
+		expect(toastText(wrapper)).toContain('Undid: Picked 1, rejected 2')
 	})
 
 	// spec: SERIES-001.8, SERIES-001.10
@@ -163,8 +163,8 @@ describe('App: series compare', () => {
 		await press('n')
 		compare(wrapper).vm.$emit('view', 0)
 		await flushPromises()
-		await press('K', { shiftKey: true })
-		expect(toastText(wrapper)).toContain('Picked IMG_1, rejected the rest')
+		await press('P', { shiftKey: true })
+		expect(toastText(wrapper)).toContain('Picked 1, rejected 2')
 		expect(viewer(wrapper).exists()).toBe(false)
 		expect(shown(wrapper)).toEqual(['IMG_4', 'IMG_5'])
 

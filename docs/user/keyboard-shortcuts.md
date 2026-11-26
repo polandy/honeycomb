@@ -15,7 +15,7 @@ in the series compare). Press `Ctrl+/` at any time to see this list in the app.
 | `P` | **Pick** the photo. Press it again to unflag. |
 | `X` | **Reject** the photo. Press it again to unflag. |
 | `U` | **Unflag** the photo. |
-| `Shift+P`, `Shift+X`, `Shift+U` | The same, then go to the next photo. |
+| `Shift+X`, `Shift+U` | The same, then go to the next photo. |
 | `Caps Lock` | Auto-advance: with it on, every flag or rating goes to the next photo. |
 | `` ` `` (backtick) | Toggle **Picked**. |
 | `0`–`5` | Set the rating. `0` clears it. |
@@ -85,19 +85,19 @@ way; the grid then lands on the active photo. `Alt+←` and `Alt+→` jump to th
 series.
 
 The first time the loupe shows a photo of a series, the chip pulses twice and a hint under it
-explains the chip, `N` and `Shift+K`. *Got it* or `Esc` dismisses it for good, on every device;
+explains the chip, `N` and `Shift+P`. *Got it* or `Esc` dismisses it for good, on every device;
 using the chip, `N`, the frame's tab or *Pick this, reject the rest* does too. Paging to a photo
 outside any series only hides it until the next series photo.
 
 While the loupe shows a photo of a series, its rating row ends with *Pick this, reject the rest*,
-and `Shift+K` does the same: the shown photo is picked, the others of its series rejected, and the
+and `Shift+P` does the same: the shown photo is picked, the others of its series rejected, and the
 loupe moves on to the first photo after the series. One *Undo* puts all of them back.
 
 A plain *Pick* (`P`, the button or a swipe) never rejects the other photos of a series. When
 another photo of the picked one's series is still unflagged, the toast "Picked IMG_0002" offers
 *Reject the other 4* next to *Undo*: one tap does what *Pick this, reject the rest* does, and the
 loupe moves on to the first photo after the series if it still shows a photo of that series. The
-same works after a *Pick* in the series viewer. `Shift+K` does the same while the picked photo
+same works after a *Pick* in the series viewer. `Shift+P` does the same while the picked photo
 still shows.
 
 In the series compare a tap or click on a photo makes it the active one. To look at a photo
@@ -108,7 +108,7 @@ where you zoom with `Z`, page through the series with `←` `→` and decide. *B
 
 | Keys | What it does |
 |---|---|
-| `Shift+K` | **Pick this, reject the rest** of the series, as one undo step: in the series compare and viewer the active photo, in the loupe the shown one. |
+| `Shift+P` | **Pick this, reject the rest** of the series, as one undo step: in the series compare and viewer the active photo, in the loupe the shown one, in the grid the focused one. A photo outside a series stays as it is and a short hint shows. |
 | `Enter` | Series compare: view the active photo full screen. |
 | `Esc` | Series viewer: back to the series. Series compare: close it. |
 
@@ -150,6 +150,8 @@ digits set the rating. Undo is `Ctrl+Z`.
 - `Tab` shows or hides the header, not Lightroom's side panels.
 - `N` opens the series compare, from the loupe on the shown photo's series; in Lightroom it opens
   Survey.
-- `M`, `Shift+K`, `B` and `R` exist only in honeycomb; in Lightroom `R` is Crop, which honeycomb
+- `Shift+P` picks the photo and rejects the rest of its series; in Lightroom it picks and goes to
+  the next photo, which `Caps Lock` with `P` does here.
+- `M`, `B` and `R` exist only in honeycomb; in Lightroom `R` is Crop, which honeycomb
   does not have.
 - `T` opens the tag entry; Lightroom's `T` shows or hides the toolbar.

@@ -49,8 +49,8 @@ the flag only. *Back to the series* or `Esc` returns to the compare's grid with 
 |---|---|
 | `←` `→` | The previous or next photo |
 | `P` `X` `U` `` ` `` `0`–`5` `6`–`9` `[` `]` `R` | Decide the shown photo |
-| `Shift+P` `Shift+X` `Shift+U` `Shift+0`–`5` | Decide it and show the next photo |
-| `Shift+K` | *Pick this, reject the rest* for the shown photo |
+| `Shift+X` `Shift+U` `Shift+0`–`5` | Decide it and show the next photo |
+| `Shift+P` | *Pick this, reject the rest* for the shown photo |
 | `Z`, `Space` | Fit or 100 % |
 | `B` | Show or hide the flag buttons |
 | `Ctrl+Z`, `Ctrl+Shift+Z` | Undo, redo |
@@ -121,7 +121,7 @@ first photo of the previous or next run.
 ### SERIES-002.7 – Pick this, reject the rest closes the viewer
 
 - **Given** the series viewer shows a photo
-- **When** the user presses *Pick this, reject the rest* or `Shift+K`
+- **When** the user presses *Pick this, reject the rest* or `Shift+P`
 - **Then** that photo is picked and every other one rejected as one undo step, the viewer
   closes and the compare shows the next series, as after its own *Pick this, reject the rest*
 
@@ -201,3 +201,4 @@ loupe, fit or 100 %.
 | 2026-11-14 | .11 *Reject the other N* in the undo toast after a *Pick* in the viewer (series concept step 10). |
 | 2026-11-17 | .10 badge on the first tile of a run, for every series; .12 to .15 bracket, badge tap and `Alt+←` `Alt+→` (owner decision *Series in the grid*, variant B). |
 | 2026-11-25 | .12 a rejected picture between two pictures of a series stays inside its bracket; .10 the run's badge counts its pictures of the series (owner, iPad). |
+| 2026-11-26 | *Pick this, reject the rest* is `Shift+P` instead of `Shift+K`, its toast "Picked 1, rejected N" (owner, KEYS-001.13) |

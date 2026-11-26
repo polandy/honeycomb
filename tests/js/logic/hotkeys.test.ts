@@ -22,13 +22,17 @@ describe('hotkey', () => {
 
 	// spec: KEYS-001.4
 	it('flags and advances with Shift or Caps Lock', () => {
-		expect(action(press('P', { shiftKey: true }))).toEqual({ kind: 'decide', intent: { kind: 'flag', flag: 'picked' }, advance: true })
+		expect(action(press('X', { shiftKey: true }))).toEqual({ kind: 'decide', intent: { kind: 'flag', flag: 'rejected' }, advance: true })
+		expect(action(press('U', { shiftKey: true }))).toEqual({ kind: 'decide', intent: { kind: 'flag', flag: 'unflagged' }, advance: true })
+		expect(action(press('P', { capsLock: true }))).toEqual({ kind: 'decide', intent: { kind: 'flag', flag: 'picked' }, advance: true })
 		expect(action(press('X', { capsLock: true }))).toEqual({ kind: 'decide', intent: { kind: 'flag', flag: 'rejected' }, advance: true })
 	})
 
-	// spec: SERIES-001.10
-	it('picks this and rejects the rest with Shift+K', () => {
-		expect(action(press('K', { shiftKey: true }))).toEqual({ kind: 'pick-rest' })
+	// spec: KEYS-001.13, SERIES-001.10
+	it('picks this and rejects the rest with Shift+P, also with Caps Lock on, and Shift+K no longer', () => {
+		expect(action(press('P', { shiftKey: true }))).toEqual({ kind: 'pick-rest' })
+		expect(action(press('p', { shiftKey: true, capsLock: true }))).toEqual({ kind: 'pick-rest' })
+		expect(action(press('K', { shiftKey: true }))).toBeNull()
 		expect(action(press('k'))).toBeNull()
 	})
 
@@ -163,9 +167,10 @@ describe('hotkey', () => {
 			expect(action(press('H', { shiftKey: true }), VI)).toBeNull()
 		})
 
-		// spec: SERIES-001.10
-		it('keeps Shift+K for the series, though k moves up', () => {
-			expect(action(press('K', { shiftKey: true }), VI)).toEqual({ kind: 'pick-rest' })
+		// spec: KEYS-001.13
+		it('keeps Shift+P for the series, and k moves up', () => {
+			expect(action(press('P', { shiftKey: true }), VI)).toEqual({ kind: 'pick-rest' })
+			expect(action(press('k'), VI)).toEqual({ kind: 'up' })
 			expect(action(press('n'), VI)).toEqual({ kind: 'compare' })
 		})
 	})
@@ -196,6 +201,14 @@ describe('KEYMAP', () => {
 	// spec: TAGS-003.1
 	it('lists T for the tag entry', () => {
 		expect(KEYMAP.find((entry) => entry.id === 'tag')?.caps).toEqual(['T'])
+	})
+
+	// spec: KEYS-001.13
+	it('lists Shift+P for pick-rest and only Shift+X and Shift+U for flag and advance, with no key twice', () => {
+		expect(KEYMAP.find((entry) => entry.id === 'pick-rest')?.caps).toEqual(['Shift+P'])
+		expect(KEYMAP.find((entry) => entry.id === 'flag-next')?.caps).toEqual(['Shift+X', 'Shift+U'])
+		const caps = KEYMAP.filter((entry) => entry.group !== 'vi').flatMap((entry) => entry.caps)
+		expect(caps.filter((cap, at) => caps.indexOf(cap) !== at)).toEqual([])
 	})
 
 	// spec: GRID-004.3

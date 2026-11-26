@@ -21,6 +21,8 @@ export interface LoupeSeriesTargets {
 	dismissHint: () => void
 	compare: (series: Series<Shown>, picture: Shown) => void
 	pickRest: (series: Series<Shown>, picture: Shown) => void
+	/** Tells that the shown picture is in no series, as Shift+P there does (KEYS-001.13). */
+	notInSeries: () => void
 }
 
 /** The series of the shown picture and the loupe's actions on a series (LOUPE-001.19, LOUPE-001.25, LOUPE-002.15). */
@@ -45,12 +47,14 @@ export function useLoupeSeries(targets: LoupeSeriesTargets) {
 				targets.compare(found, found.members.includes(targets.picture()) ? targets.picture() : at)
 			}
 		},
-		/** Asks to pick the shown picture and reject the rest of its series, if it is in one. */
+		/** Asks to pick the shown picture and reject the rest of its series, else tells it is in none. */
 		pickRest() {
-			if (series.value !== null) {
-				targets.dismissHint()
-				targets.pickRest(series.value, targets.picture())
+			if (series.value === null) {
+				targets.notInSeries()
+				return
 			}
+			targets.dismissHint()
+			targets.pickRest(series.value, targets.picture())
 		},
 	}
 }

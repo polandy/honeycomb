@@ -67,7 +67,7 @@ const SERIES_TEXT: { readonly [E in SeriesEdit]: (count: number, photos: string,
 /** The words of each kind of step, given the step and its photos. */
 const STEP_TEXT: { readonly [K in StepKind]: (step: DescribedStep<K>, photos: string) => string } = {
 	decision: ({ change }, photos) => decisionText(change, photos),
-	pickRest: ({ picked }) => t('honeycomb', 'Picked {name}, rejected the rest', { name: picked }, undefined, PLAIN_TEXT),
+	pickRest: ({ rejected }) => n('honeycomb', 'Picked 1, rejected {count}', 'Picked 1, rejected {count}', rejected, { count: formatNumber(rejected) }, PLAIN_TEXT),
 	reduction: ({ series, rejected }) => n('honeycomb', 'Picked the sharpest of {series} series, rejected {count}', 'Picked the sharpest of {series} series, rejected {count}', rejected, { series: formatNumber(series), count: formatNumber(rejected) }, PLAIN_TEXT),
 	tags: ({ change }, photos) => tagText(change, photos),
 	series: ({ edit, names, series }, photos) => SERIES_TEXT[edit](names.length, photos, series),
