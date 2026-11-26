@@ -59,8 +59,9 @@ final class ImmichListing {
 			'withExif' => true,
 			'withStacked' => true,
 		];
-		if (($opened['immich'] ?? null) !== null) {
-			$body['cursor'] = $opened['immich'];
+		$immichCursor = $opened['immich'] ?? null;
+		if ($immichCursor !== null) {
+			$body['cursor'] = $immichCursor;
 		}
 		$page = $this->client->search($connection, $body);
 		$entries = $this->decide($connection, $checked, $page['items']);

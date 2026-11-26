@@ -101,7 +101,7 @@ final class ImmichListingFromTest extends TestCase {
 		while ($cursor !== null && count($pages) < 10) {
 			$page = $this->listing()->page($this->connection(), [], $cursor, 2);
 			$pages[] = array_map(static fn (string $id): int => (int)substr($id, -12), array_column($page['entries'], 'assetId'));
-			$cursor = $page[$end];
+			$cursor = $end === 'nextCursor' ? $page['nextCursor'] : $page['previousCursor'];
 		}
 		return $pages;
 	}

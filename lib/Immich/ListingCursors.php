@@ -66,10 +66,12 @@ final class ListingCursors {
 		if ($anchor === null) {
 			return null;
 		}
-		if (!is_array($anchor) || !is_string($anchor[0] ?? null) || !is_int($anchor[1] ?? null)) {
+		$assetId = is_array($anchor) ? ($anchor[0] ?? null) : null;
+		$takenAt = is_array($anchor) ? ($anchor[1] ?? null) : null;
+		if (!is_string($assetId) || !is_int($takenAt)) {
 			throw new ImmichException(ImmichError::Request);
 		}
-		return new ListingAnchor($anchor[0], $anchor[1]);
+		return new ListingAnchor($assetId, $takenAt);
 	}
 
 	/** The HMAC in hex: `calculateHMAC` answers raw bytes, which no JSON answer can carry. */

@@ -1,8 +1,8 @@
+import type { Page } from '../../../src/logic/immich-paging.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import type { ImmichPositionSave } from '../../../src/logic/immich-position.ts'
-import type { Page } from '../../../src/logic/immich-paging.ts'
 import type { ToastAction } from '../../../src/shared/toast.ts'
 
 import { flushPromises, mount } from '@vue/test-utils'
