@@ -7,6 +7,7 @@ import { vi } from 'vitest'
 import StatisticsPage from '../../../src/components/StatisticsPage.vue'
 import { METRIC } from '../../../src/logic/statistics.ts'
 import { doneRow, row } from '../logic/folder-fixtures.ts'
+import { fakePageNavigation } from '../page-navigation.ts'
 
 /** The user's today of the stubbed answer. */
 export const TODAY = '2026-11-20'
@@ -31,7 +32,7 @@ export function mountPage(answer: Partial<StatsAnswer> = {}, settings: unknown =
 		saveViewState: vi.fn(async (_patch: { year_review_hint_closed: number }) => undefined),
 		firstWeekDay: () => MONDAY,
 	}
-	return mount(StatisticsPage, { props: { seams } })
+	return mount(StatisticsPage, { props: { seams, navigation: fakePageNavigation().seams } })
 }
 
 /** The text of the tile with `label`. */

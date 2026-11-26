@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { LocationApi } from '../cull/cull-location.ts'
 import type { RecentOpener } from '../folders/recent.ts'
+import type { NavigationTarget } from '../logic/cull-location.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
 import type { ListingEntry } from '../logic/listing.ts'
 import type { PictureId } from '../logic/picture-id.ts'
@@ -9,6 +10,7 @@ import type { ResumePosition } from '../logic/resume-position.ts'
 import type { ListedAccess } from '../logic/writability.ts'
 
 import { useCullLocation } from '../cull/cull-location.ts'
+import { parseTarget } from '../logic/cull-location.ts'
 import { fireAndLog } from '../shared/fire-and-log.ts'
 
 /** What opening a folder set uses of the cull, the *Recent* list and the resume flow. */
@@ -25,6 +27,8 @@ export interface FolderSetOpeningCull {
 	readonly resume: () => void
 	/** Closes the folder picker and the folders home before the loupe resumes. */
 	readonly leave: () => void
+	/** Opens what a page of its own asked for in the address (APP-001.26). */
+	readonly choose: (target: NavigationTarget) => void
 }
 
 /** Opens folder sets: confirmed, listed again, from *Recent* and from the page address. */
@@ -56,6 +60,10 @@ export function useFolderSetOpening(location: LocationApi, cull: FolderSetOpenin
 		} }), 'Could not open the recent folder set')
 	}
 
+	const target = parseTarget(location.read())
+	if (target !== null) {
+		cull.choose(target)
+	}
 	useCullLocation(location, { folderSet: cull.folderSet, shownFileId: cull.shownFileId }, ({ folderSet, fileId }) => openAt(folderSet, fileId))
 
 	return { openFolderSet, openAt, reload, openRecent }

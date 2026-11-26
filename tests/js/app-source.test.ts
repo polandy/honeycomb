@@ -36,6 +36,7 @@ function opening(open: FolderSet | null = null, shown: number | null = null, has
 		resumeAt: (fileId) => steps.push(`resume at ${fileId}`),
 		resume: () => steps.push('resume'),
 		leave: () => steps.push('leave'),
+		choose: (target) => steps.push(`choose ${target}`),
 	}
 	return { steps, written, source: useFolderSetOpening(location, cull) }
 }

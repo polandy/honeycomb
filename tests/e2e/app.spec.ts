@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
+import { ADMIN } from './admin.ts'
 import { cullFolder, openFolderPicker } from './cull.ts'
 import { createFolder, JPEG, upload } from './files.ts'
 import { occ } from './server.ts'
@@ -72,7 +73,7 @@ test('starts the navigation closed on a laptop and keeps it open once the user o
 
 	await toggle.click()
 	await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-	await expect.poll(() => page.evaluate(() => window.localStorage.getItem('honeycomb.navigationOpen'))).toBe('true')
+	await expect.poll(() => page.evaluate((user) => window.localStorage.getItem(`honeycomb.navigationOpen.${user}`), ADMIN.username)).toBe('true')
 	await page.reload()
 
 	await expect(page.locator('.app-navigation-toggle')).toHaveAttribute('aria-expanded', 'true')

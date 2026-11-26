@@ -2072,6 +2072,13 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-26: The `Esc` that closes a modal panel is marked handled, so the screen's keys behind it
   skip it; with the close no longer 300 ms late, `Esc` on *Move* had also left selection mode
   (APP-001.23, autonomous).
+- 2026-11-26: The navigation is on every page through one app layout (APP-001.25); its open or
+  closed choice stays in the browser per Nextcloud user (`honeycomb.navigationOpen.<user>`), not
+  in the server's view state (ADR 0019), because end-to-end tests share the admin and would leak
+  the choice between them and the start would wait on a request. On a page of its own, *Folders*,
+  *Folder*, a recent set and *Settings* open the cull page (`#open=folder-picker`,
+  `#open=settings`, the set's `#cull=` address); the source switcher and the year hint stay on
+  the cull page (APP-001.26) (autonomous).
 - 2026-11-26: `Shift+P` is *Pick this, reject the rest* everywhere: in a series (compare, viewer,
   loupe, grid) it picks the photo and rejects the rest of its series, a picked one too, as one undo
   step with the toast "Picked 1, rejected N"; outside a series it only gives a short hint, and on a

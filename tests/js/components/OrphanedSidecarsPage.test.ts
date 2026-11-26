@@ -7,6 +7,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import FolderTree from '../../../src/components/FolderTree.vue'
 import OrphanedSidecarsPage from '../../../src/components/OrphanedSidecarsPage.vue'
+import { fakePageNavigation } from '../page-navigation.ts'
 
 vi.mock('../../../src/shared/logger.ts', () => ({ logger: { error: vi.fn() } }))
 
@@ -23,7 +24,7 @@ function seams() {
 }
 
 function mountPage(fake = seams(), roots: string[] = []) {
-	return mount(OrphanedSidecarsPage, { props: { seams: fake, listFolders: async () => [], roots } })
+	return mount(OrphanedSidecarsPage, { props: { seams: fake, listFolders: async () => [], roots, navigation: fakePageNavigation().seams } })
 }
 
 const button = (wrapper: ReturnType<typeof mountPage>, label: string) => wrapper.findAll('button').find((each) => each.text() === label)
