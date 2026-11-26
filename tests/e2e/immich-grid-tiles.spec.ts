@@ -31,7 +31,7 @@ test.describe('the tiles and the failed page of an Immich grid', () => {
 	})
 
 	// spec: IMMICH-002.37
-	test('shows LIVE, a video\'s duration and a stack\'s size at the top left of the tile, and no pair badge', async ({ page }) => {
+	test('shows LIVE, a video\'s duration and a stack\'s size at the top left of the tile, and no pair badge', async ({ page }, testInfo) => {
 		const main = await openFamily(page)
 
 		await expect(tile(page, 1).locator('.photo-tile__pill')).toHaveCount(0)
@@ -44,10 +44,12 @@ test.describe('the tiles and the failed page of an Immich grid', () => {
 		}
 		await expect(main.locator('.photo-tile__pair')).toHaveCount(0)
 		expect(await tile(page, 2).locator('img').evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0)
+		await tile(page, 4).locator('img').evaluate((image: HTMLImageElement) => image.decode())
+		await main.getByRole('grid').screenshot({ path: testInfo.outputPath('immich-tile-pills.png') })
 	})
 
 	// spec: IMMICH-002.19
-	test('keeps two loaded pages when the third fails, names the state and asks the same cursor on Try again', async ({ page }) => {
+	test('keeps two loaded pages when the third fails, names the state and asks the same cursor on Try again', async ({ page }, testInfo) => {
 		const cursors: (string | null)[] = []
 		await page.route(LISTING, async (route) => {
 			cursors.push((route.request().postDataJSON() as { cursor: string | null }).cursor)
@@ -65,6 +67,7 @@ test.describe('the tiles and the failed page of an Immich grid', () => {
 		await expect(tile(page, 2 * PAGE_SIZE)).toBeVisible()
 		await expect(main).not.toContainText('Could not load more photos.')
 		expect(cursors).toHaveLength(3)
+		await page.screenshot({ path: testInfo.outputPath('immich-page-failed.png') })
 
 		await main.getByRole('button', { name: 'Try again' }).click()
 		await expect(footer).toBeHidden()
