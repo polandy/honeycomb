@@ -503,6 +503,24 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **Then** it shows the longest run of active days inside the period with the note *Longest in
   this period*; in the period of today and under *All time* it shows the streak and *Longest n*
 
+### STATS-001.57 – The period is in the address
+
+- **Given** the page shows a period
+- **When** the user picks a segment, steps or presses *Today*
+- **Then** the address hash names it, replaced in place so the back button is not filled:
+  `#week=YYYY-MM-DD` (the first day of the week), `#month=YYYY-MM`, `#year=YYYY` or `#all`; the
+  period of today is `#week`, `#year` or, for the month, no hash at all
+
+### STATS-001.58 – Open a period by its address
+
+- **Given** an address hash such as `#month=2025-07`, `#week=2026-11-18` (any day of the week) or
+  `#year=2025`
+- **When** the page opens or is reloaded
+- **Then** it shows that period; a period after today shows the period of today and one before
+  the first counted day the period of that day, and a hash that names no valid period (another
+  word, `#month=2026-13`, `#week=2026-02-30`) shows the month of today; the address is then
+  rewritten to the period shown
+
 ## History
 
 | Date | Change |
@@ -517,3 +535,4 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | 2026-11-20 | Year in review: numbers, calendar of active days, hint in the navigation (.25, .26, .46–.49; metrics PR 8 of 8) |
 | 2026-11-22 | The library progress replaces *Folder sets* (.42, .50, .51; ADR 0049, M12 PR 7) |
 | 2026-11-26 | Calendar periods replace the rolling 7 and 30 days: segment, stepper, *Today*, week start from the locale, bars with days to come (.21, .41 reworded; .52–.56; statistics slice 1) |
+| 2026-11-26 | The period in the address hash (.57, .58; statistics slice 2) |

@@ -1,6 +1,5 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { LocationApi } from '../cull/cull-location.ts'
 import type { RecentOpener } from '../folders/recent.ts'
 import type { NavigationTarget } from '../logic/cull-location.ts'
 import type { FolderSet } from '../logic/folder-set.ts'
@@ -8,6 +7,7 @@ import type { ListingEntry } from '../logic/listing.ts'
 import type { PictureId } from '../logic/picture-id.ts'
 import type { ResumePosition } from '../logic/resume-position.ts'
 import type { ListedAccess } from '../logic/writability.ts'
+import type { LocationApi } from '../shared/browser-location.ts'
 
 import { useCullLocation } from '../cull/cull-location.ts'
 import { parseTarget } from '../logic/cull-location.ts'

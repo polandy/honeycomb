@@ -1,7 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Folder, PairingExtensions } from '../api/index.ts'
-import type { LocationApi } from '../cull/cull-location.ts'
 import type { ListEntries } from '../folders/folder-count.ts'
 import type { FolderDoneApi } from '../folders/folder-done.ts'
 import type { LibraryApi } from '../folders/folders.ts'
@@ -9,9 +8,10 @@ import type { ResumeApi } from '../folders/resume.ts'
 import type { ImmichCullApi } from '../immich/immich-picture-source.ts'
 import type { ImmichPositionApi } from '../immich/immich-resume.ts'
 import type { ImmichApi } from '../immich/immich-source.ts'
+import type { LocationApi } from '../shared/browser-location.ts'
 
 import { listEntries as apiListEntries, listFolders as apiListFolders, checkLibraryRoot, immichAssets, immichCounts, immichImageUrl, immichStatus, listImmichConnections, listLibraryFolders, loadPositions, markFolderDone, markFoldersDone, reopenFolder, reopenFolders, saveImmichDecisions, saveImmichPosition, savePosition, scanLibrary } from '../api/index.ts'
-import { browserLocation } from '../cull/cull-location.ts'
+import { browserLocation } from '../shared/browser-location.ts'
 
 /** The seams of the sources: the folders, the library, *Recent*, the page address and Immich. */
 export interface SourceSeams {
