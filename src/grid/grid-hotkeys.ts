@@ -72,9 +72,15 @@ export function gridCoreHotkeys<P extends Picture<SourceEntry>>(targets: GridCor
 		if (advance && view()[index] === chosen[0]) {
 			grid()?.step('next')
 		} else if (advance && view().length > 0) {
-			grid()?.reveal(Math.min(index, view().length - 1))
+			fireAndLog(revealAfterUpdate(index), 'Could not focus the next tile')
 		}
 		return true
+	}
+
+	/** Focuses the tile that took the decided one's place once the grid has dropped it, since a change of its pictures resets the focus. */
+	async function revealAfterUpdate(index: number) {
+		await nextTick()
+		await grid()?.reveal(Math.min(index, view().length - 1))
 	}
 
 	/** A key that moves the focus. */
