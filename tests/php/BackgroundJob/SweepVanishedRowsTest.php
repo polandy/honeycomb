@@ -27,6 +27,7 @@ use OCA\Honeycomb\Service\Lifecycle\JobRuns;
 use OCA\Honeycomb\Service\Lifecycle\VanishedFileSweep;
 use OCA\Honeycomb\Tests\Domain\XmpCacheRowTest;
 use OCA\Honeycomb\Tests\Immich\FakeImmichDecisionStore;
+use OCA\Honeycomb\Tests\Immich\FakeImmichPositionStore;
 use OCA\Honeycomb\Tests\Immich\FakeLocalFiles;
 use OCA\Honeycomb\Tests\Immich\FakeLogger;
 use OCA\Honeycomb\Tests\Service\AppConfigStub;
@@ -72,7 +73,7 @@ final class SweepVanishedRowsTest extends TestCase {
 		$files->files['/connections.json'] = json_encode(['version' => 1, 'connections' => [['id' => 'alice-phone', 'user' => 'alice', 'label' => 'Phone', 'url' => 'http://immich-server:2283', 'keyFile' => '/keys/alice-phone.key']]], JSON_THROW_ON_ERROR);
 		$config = $this->createStub(IAppConfig::class);
 		$config->method('getValueString')->willReturn($configured ? '/connections.json' : '');
-		return new ImmichConnectionSweep(new Connections($config, $files, new ConnectionsFileShape(), new FakeLogger()), $store ?? new FakeImmichDecisionStore());
+		return new ImmichConnectionSweep(new Connections($config, $files, new ConnectionsFileShape(), new FakeLogger()), $store ?? new FakeImmichDecisionStore(), new FakeImmichPositionStore());
 	}
 
 	private function runs(): JobRuns {

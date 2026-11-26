@@ -44,16 +44,24 @@ final class ImmichSearchFilter {
 
 	/**
 	 * The uploads received up to the time that pass the filters: devices and kinds as the branches of one search.
+	 * With an anchor, only those up to its second, or from it on when `newer` (IMMICH-002.34).
 	 * @return array<string, mixed>
 	 */
-	public function of(ListingFilters $filters, int $receivedBefore): array {
+	public function of(ListingFilters $filters, int $receivedBefore, ?ListingAnchor $anchor = null, bool $newer = false): array {
 		$filter = [...$this->uploads(), 'createdAt' => ['lte' => $this->date($receivedBefore)]];
-		$taken = [];
-		if ($filters->takenAfter !== null) {
-			$taken['gte'] = $this->date($filters->takenAfter);
+		$after = $filters->takenAfter;
+		$before = $filters->takenBefore;
+		if ($anchor !== null && $newer) {
+			$after = max($after ?? $anchor->takenAt, $anchor->takenAt);
+		} elseif ($anchor !== null) {
+			$before = min($before ?? $anchor->takenAt + 1, $anchor->takenAt + 1);
 		}
-		if ($filters->takenBefore !== null) {
-			$taken['lt'] = $this->date($filters->takenBefore);
+		$taken = [];
+		if ($after !== null) {
+			$taken['gte'] = $this->date($after);
+		}
+		if ($before !== null) {
+			$taken['lt'] = $this->date($before);
 		}
 		if ($taken !== []) {
 			$filter['takenAt'] = $taken;

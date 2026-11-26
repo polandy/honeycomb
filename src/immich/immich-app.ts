@@ -5,6 +5,7 @@ import type { ViewStateApi } from '../settings/view-state.ts'
 import type { BrowserStorage } from '../shared/browser-storage.ts'
 import type { ImmichCullContext } from './immich-cull.ts'
 import type { ImmichCullApi } from './immich-picture-source.ts'
+import type { ImmichPositionApi } from './immich-resume.ts'
 import type { ImmichApi } from './immich-source.ts'
 
 import { computed, watch } from 'vue'
@@ -15,12 +16,14 @@ import { fireAndLog } from '../shared/fire-and-log.ts'
 import { formatCaptureDay } from '../shared/l10n.ts'
 import { logger } from '../shared/logger.ts'
 import { useImmichCull } from './immich-cull.ts'
+import { useImmichResume } from './immich-resume.ts'
 import { useImmichSource } from './immich-source.ts'
 
 /** The seams the app's Immich side is built from. */
 export interface ImmichAppContext {
 	readonly source: ImmichApi
 	readonly cull: ImmichCullApi
+	readonly positions: ImmichPositionApi
 	readonly storage: BrowserStorage
 	/** Where each connection's filters are kept (ADR 0019). */
 	readonly viewState: ViewStateApi
@@ -39,6 +42,7 @@ export function useImmichApp(context: ImmichAppContext) {
 	const written = new Map<string, StoredImmichFilters>()
 	let opening = 0
 	const cull = useImmichCull({ api: context.cull, now: context.now, calendar: browserCalendar, dayLabel: formatCaptureDay, toast: context.toast, saveFilters })
+	const resume = useImmichResume({ api: context.positions, cull, toast: (message, action) => context.toast.show(message, action), connections: () => immich.connections.value, now: context.now })
 	// The pictures show once the shown connection answers ok, and start over whenever it opens again.
 	watch(() => (shown.value && openedStatus.value?.state === 'ok' ? opened.value!.id : null), (id) => {
 		opening += 1
@@ -52,6 +56,7 @@ export function useImmichApp(context: ImmichAppContext) {
 		const stored = await storedFilters(id)
 		if (asked === opening) {
 			cull.open(id, written.get(id) ?? stored)
+			resume.offer(id)
 		}
 	}
 
@@ -84,7 +89,10 @@ export function useImmichApp(context: ImmichAppContext) {
 		}
 	}
 	// The folder picker offers *I only use Immich* by the status of the connection to open (IMMICH-001.21).
-	fireAndLog(immich.load().then(checkOpened), 'Could not load the Immich connections')
+	fireAndLog(immich.load().then(() => {
+		checkOpened()
+		resume.refresh()
+	}), 'Could not load the Immich connections')
 
-	return { immich, shown, opened, openedStatus, onlyOffer, cull, openConnection, checkOpened }
+	return { immich, shown, opened, openedStatus, onlyOffer, cull, resume, openConnection, checkOpened }
 }

@@ -6,6 +6,7 @@
 import type { Page } from '../folders/navigation-items.ts'
 import type { SourceKind } from '../immich/immich-source.ts'
 import type { ConnectionLine } from '../immich/immich-text.ts'
+import type { RecentConnection } from '../logic/immich-position.ts'
 import type { RecentFolderSet } from '../logic/recent.ts'
 import type { ResumePosition } from '../logic/resume-position.ts'
 import type { BrowserStorage } from '../shared/browser-storage.ts'
@@ -26,6 +27,8 @@ import { useNavigationItems } from '../folders/navigation-items.ts'
 
 const props = withDefaults(defineProps<{
 	items: readonly RecentFolderSet[]
+	/** The Immich connections under *Recent* (IMMICH-003.15). */
+	recentConnections?: readonly RecentConnection[]
 	/** Where the user's choice to open or close the navigation stays. */
 	storage: BrowserStorage
 	/** The viewport's width in CSS pixels when the page opens. */
@@ -45,6 +48,7 @@ const props = withDefaults(defineProps<{
 	/** The Nextcloud user whose navigation choice is kept, none when unknown; the logged-in user by default. */
 	user?: string | null | undefined
 }>(), {
+	recentConnections: () => [],
 	viewportWidth: () => window.innerWidth,
 	hintYear: null,
 	source: 'nextcloud',
@@ -60,6 +64,7 @@ const emit = defineEmits<{
 	openFolders: []
 	chooseFolders: []
 	openRecent: [position: ResumePosition]
+	openRecentConnection: [connectionId: string]
 	openSettings: []
 	closeHint: []
 	chooseSource: [source: SourceKind]
@@ -128,8 +133,12 @@ function closeOnNarrowScreen() {
 			</li>
 			<template v-if="props.source === 'nextcloud'">
 				<NcAppNavigationCaption :name="t('honeycomb', 'Recent')" />
-				<li v-if="props.items.length > 0" class="app-navigation__recent">
-					<RecentFolderSets :items="props.items" @open="closeOnNarrowScreen(); emit('openRecent', $event)" />
+				<li v-if="props.items.length > 0 || props.recentConnections.length > 0" class="app-navigation__recent">
+					<RecentFolderSets
+						:items="props.items"
+						:connections="props.recentConnections"
+						@open="closeOnNarrowScreen(); emit('openRecent', $event)"
+						@openConnection="closeOnNarrowScreen(); emit('openRecentConnection', $event)" />
 				</li>
 				<li v-else class="app-navigation__empty">
 					{{ t('honeycomb', 'Folder sets you cull show here.') }}

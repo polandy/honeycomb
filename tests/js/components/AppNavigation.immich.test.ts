@@ -93,4 +93,15 @@ describe('AppNavigation: the sources', () => {
 
 		expect(wrapper.emitted('connectionDetails')).toHaveLength(1)
 	})
+
+	// spec: IMMICH-003.15
+	it('lists a connection under Recent without a folder set, and opens it on a tap', async () => {
+		const wrapper = mountNavigation({ recentConnections: [{ connectionId: 'kids', label: 'Kids', decided: 2, total: 9 }] })
+		await nextTick()
+
+		expect(wrapper.text()).not.toContain('Folder sets you cull show here.')
+		await button(wrapper, 'Kids').trigger('click')
+
+		expect(wrapper.emitted('openRecentConnection')).toEqual([['kids']])
+	})
 })

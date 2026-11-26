@@ -3,7 +3,7 @@
 import type { DecisionRow, ImmichEntry, ImmichImageSize } from '../logic/immich-asset.ts'
 import type { CountsRequest, ImmichCounts } from '../logic/immich-counts.ts'
 import type { RequestFilters } from '../logic/immich-filters.ts'
-import type { AssetsRequest, Page } from '../logic/immich-paging.ts'
+import type { AssetsRequest, ListingAnchor, Page } from '../logic/immich-paging.ts'
 import type { PictureSource } from '../logic/picture-source.ts'
 
 import { GRID_TIERS } from '../logic/image-tiers.ts'
@@ -20,11 +20,17 @@ export interface ImmichCullApi {
 	imageUrl: (connectionId: string, assetId: string, size: ImmichImageSize, version: string) => string
 }
 
+/** What a listing is asked with: the filters, and the asset a first page starts at, if any (IMMICH-002.34). */
+export interface ImmichListQuery {
+	readonly filters: RequestFilters
+	readonly from: ListingAnchor | null
+}
+
 /** The types the Immich source works in. */
 export interface ImmichShape {
 	readonly entry: ImmichEntry
 	readonly page: Page
-	readonly listQuery: RequestFilters
+	readonly listQuery: ImmichListQuery
 	readonly countsQuery: CountsRequest
 	readonly counts: ImmichCounts
 	readonly row: DecisionRow
@@ -35,7 +41,7 @@ export interface ImmichShape {
 export function immichPictureSource(api: ImmichCullApi, connectionId: string): PictureSource<ImmichShape> {
 	return {
 		capabilities: DECISIONS_ONLY,
-		list: (filters, cursor) => api.assets(connectionId, { filters, cursor, size: PAGE_SIZE }),
+		list: ({ filters, from }, cursor) => api.assets(connectionId, cursor === null && from !== null ? { filters, cursor, size: PAGE_SIZE, from } : { filters, cursor, size: PAGE_SIZE }),
 		counts: (request) => api.counts(connectionId, request),
 		imageUrl: (entry, size) => {
 			const thumbnail = size > 0 && size <= GRID_TIERS.at(-1)!

@@ -13,7 +13,7 @@ use OCP\AppFramework\Db\Entity;
 use OCP\DB\Types;
 
 /**
- * A row of `honeycomb_positions` (ADR 0012); only file positions are written yet, so `fileId` is set and `assetId` and `takenAt` are null.
+ * A row of `honeycomb_positions` (ADR 0012): a folder set's has `fileId`, a connection's `assetId` and `takenAt` (ADR 0044).
  * @method string getUserId()
  * @method void setUserId(string $userId)
  * @method string getFolderSetKey()
@@ -23,7 +23,9 @@ use OCP\DB\Types;
  * @method int getFileId()
  * @method void setFileId(int $fileId)
  * @method ?string getAssetId()
+ * @method void setAssetId(string $assetId)
  * @method ?int getTakenAt()
+ * @method void setTakenAt(int $takenAt)
  * @method int getDecided()
  * @method void setDecided(int $decided)
  * @method int getTotal()
