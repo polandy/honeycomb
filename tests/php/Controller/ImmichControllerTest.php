@@ -167,6 +167,11 @@ final class ImmichControllerTest extends TestCase {
 		$this->assertAnswer(Http::STATUS_BAD_REQUEST, ['error' => 'request'], $this->controller()->assets('alice-phone', [], null, 251));
 	}
 
+	// spec: IMMICH-002.35
+	public function testAMalformedFromIsABadRequest(): void {
+		$this->assertAnswer(Http::STATUS_BAD_REQUEST, ['error' => 'request'], $this->controller()->assets('alice-phone', [], null, 10, ['assetId' => 'not-an-id', 'takenAt' => 1]));
+	}
+
 	// spec: IMMICH-002.16
 	public function testAPreviewIsImmichsImageCachedForAYear(): void {
 		$this->immichRoute('GET /assets/' . self::ASSET . '/thumbnail', static fn (array $options): array => [200, 'webp-' . json_encode($options['query'] ?? null, JSON_THROW_ON_ERROR), 'image/webp']);

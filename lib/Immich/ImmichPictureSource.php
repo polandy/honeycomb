@@ -14,10 +14,10 @@ use OCA\Honeycomb\Domain\CountedPictureSource;
  *
  * @psalm-import-type Entry from AssetEntries
  * @psalm-import-type Counts from ImmichCounts
- * @psalm-type Query = array{filters: array<array-key, mixed>, cursor: ?string, size: int}
+ * @psalm-type Query = array{filters: array<array-key, mixed>, cursor: ?string, size: int, from?: ?array<array-key, mixed>}
  * @psalm-type CountsQuery = array{filters: array<array-key, mixed>, periods: array<array-key, mixed>}
  * @psalm-type Picture = array{assetId: string, size: string}
- * @psalm-type Page = array{entries: list<Entry>, nextCursor: ?string, previousCursor: null}
+ * @psalm-type Page = array{entries: list<Entry>, nextCursor: ?string, previousCursor: ?string}
  * @template-implements CountedPictureSource<Connection, Query, Page, Picture, array{body: string, type: string}, mixed, array{saved: list<string>}, CountsQuery, Counts>
  */
 final class ImmichPictureSource implements CountedPictureSource {
@@ -33,7 +33,7 @@ final class ImmichPictureSource implements CountedPictureSource {
 	/** One page of the connection's uploads that pass the filters (IMMICH-002.1). */
 	#[\Override]
 	public function listing(mixed $source, mixed $query): array {
-		return $this->listing->page($source, $query['filters'], $query['cursor'], $query['size']);
+		return $this->listing->page($source, $query['filters'], $query['cursor'], $query['size'], $query['from'] ?? null);
 	}
 
 	/** The server's numbers for the toolbar, the flag chips and each filter option (IMMICH-002.13). */

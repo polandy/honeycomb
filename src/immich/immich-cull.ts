@@ -6,6 +6,7 @@ import type { DecisionRow, ImmichEntry, ImmichSourceEntry } from '../logic/immic
 import type { ImmichCounts } from '../logic/immich-counts.ts'
 import type { StoredImmichFilters } from '../logic/immich-filter-storage.ts'
 import type { Calendar, ImmichFilters, RequestFilters, TimeOption } from '../logic/immich-filters.ts'
+import type { ListingAnchor } from '../logic/immich-paging.ts'
 import type { Picture } from '../logic/pairing.ts'
 import type { PictureId } from '../logic/picture-id.ts'
 import type { PictureSource } from '../logic/picture-source.ts'
@@ -19,7 +20,8 @@ import { countsAfterDecision } from '../logic/immich-counts.ts'
 import { filterChoices, isDefaultImmichFilters } from '../logic/immich-filter-choices.ts'
 import { readImmichFilters, storedImmichFilters } from '../logic/immich-filter-storage.ts'
 import { countsRequest, defaultImmichFilters, requestFilters, timeOptions } from '../logic/immich-filters.ts'
-import { EMPTY_LIST, pageArrived, pageAsked, pageFailed, shownList, wantsNext } from '../logic/immich-paging.ts'
+import { EMPTY_LIST, pageArrived, pageAsked, pageFailed, shownList, wantsNext, wantsPrevious } from '../logic/immich-paging.ts'
+import { resumeFilters } from '../logic/immich-position.ts'
 import { fireAndLog } from '../shared/fire-and-log.ts'
 import { logger } from '../shared/logger.ts'
 import { immichPictureSource } from './immich-picture-source.ts'
@@ -54,6 +56,8 @@ export function useImmichCull(context: ImmichCullContext) {
 	const entries = new Map<PictureId, ImmichEntry>()
 	const shown = new Map<PictureId, Picture<ImmichSourceEntry>>()
 	let request: RequestFilters = requestFilters(filters.value, now(), calendar)
+	// The asset the first page starts at, for a resume (IMMICH-002.34).
+	let from: ListingAnchor | null = null
 	let generation = 0
 	let source: PictureSource<ImmichShape> | null = null
 	const core = useCullCore<DecisionRow>({
@@ -105,9 +109,20 @@ export function useImmichCull(context: ImmichCullContext) {
 		setFilters(defaultImmichFilters(now(), calendar))
 	}
 
-	/** Drops what was loaded and asks the counts and the first page again; older answers are ignored. */
-	function restart() {
+	/** Opens the listing at the asset, under the filters unless they would hide it (IMMICH-003.14). */
+	function resumeFrom(anchor: ListingAnchor) {
+		const next = resumeFilters(filters.value, anchor.takenAt, now(), calendar)
+		if (next !== filters.value) {
+			filters.value = next
+			context.saveFilters(connectionId.value!, storedImmichFilters(next, now(), calendar))
+		}
+		restart(anchor)
+	}
+
+	/** Drops what was loaded and asks the counts and the first page again, from the anchor if given; older answers are ignored. */
+	function restart(anchor: ListingAnchor | null = null) {
 		generation += 1
+		from = anchor
 		request = requestFilters(filters.value, now(), calendar)
 		periodOptions.value = timeOptions(now(), calendar)
 		loaded.value = EMPTY_LIST
@@ -139,7 +154,7 @@ export function useImmichCull(context: ImmichCullContext) {
 		const cursor = loaded.value.started ? loaded.value.nextCursor : null
 		loaded.value = pageAsked(loaded.value, 'next')
 		try {
-			const page = await source!.list(request, cursor)
+			const page = await source!.list({ filters: request, from }, cursor)
 			if (asked !== generation) {
 				return
 			}
@@ -162,10 +177,43 @@ export function useImmichCull(context: ImmichCullContext) {
 		}
 	}
 
-	/** Asks the failed page again at its cursor (IMMICH-002.19). */
+	/** Asks the page before the loaded ones, and again at once while one adds nothing (IMMICH-002.34). */
+	async function askPrevious() {
+		const asked = generation
+		const before = list.value.entries.length
+		const cursor = loaded.value.previousCursor
+		loaded.value = pageAsked(loaded.value, 'previous')
+		try {
+			const page = await source!.list({ filters: request, from: null }, cursor)
+			if (asked !== generation) {
+				return
+			}
+			loaded.value = pageArrived(loaded.value, 'previous', page)
+			if (list.value.entries.length === before && list.value.previousCursor !== null) {
+				fireAndLog(askPrevious(), 'Could not ask the previous Immich page')
+			}
+		} catch (error) {
+			if (asked === generation) {
+				loaded.value = pageFailed(loaded.value, 'previous')
+				logger.error('Could not load an Immich page', { error })
+			}
+		}
+	}
+
+	/** Asks the newer page when the first shown entry comes near the first loaded one (IMMICH-002.34). */
+	function loadPrevious(firstShown: number) {
+		if (wantsPrevious(list.value, firstShown)) {
+			fireAndLog(askPrevious(), 'Could not ask the previous Immich page')
+		}
+	}
+
+	/** Asks each failed page again at its cursor (IMMICH-002.19). */
 	function retry() {
 		if (list.value.next === 'failed') {
 			fireAndLog(askNext(), 'Could not ask the next Immich page')
+		}
+		if (list.value.previous === 'failed') {
+			fireAndLog(askPrevious(), 'Could not ask the previous Immich page')
 		}
 	}
 
@@ -198,5 +246,5 @@ export function useImmichCull(context: ImmichCullContext) {
 		settle()
 	}
 
-	return { connectionId: readonly(connectionId), filters, filtersChanged, choices, list, counts, pictures, open, setFilters, clearFilters, loadNext, retry, hold, decisionOf: core.decisionOf, imageUrl, decide: core.decide, undo: core.undo, redo: core.redo }
+	return { connectionId: readonly(connectionId), filters, filtersChanged, choices, list, counts, pictures, open, resumeFrom, setFilters, clearFilters, loadNext, loadPrevious, retry, hold, decisionOf: core.decisionOf, imageUrl, decide: core.decide, undo: core.undo, redo: core.redo }
 }

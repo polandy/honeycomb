@@ -32,8 +32,8 @@ function keyed(\Closure $answer): \Closure {
 }
 
 /**
- * The page of the library at the request's cursor, newest first: the search fixture's plain photo with the upload's id, name and time.
- * The cursor is the offset of the page's first upload; the stub ignores the filter.
+ * The page of the library at the request's cursor in the asked order: the search fixture's plain photo with the upload's id, name and time.
+ * The cursor is the offset of the page's first upload; of the filter the stub honours only the capture time's bounds.
  */
 function searchPage(): StubAnswer {
 	$body = stubBody();
@@ -42,9 +42,22 @@ function searchPage(): StubAnswer {
 	/** @var array{assets: array{items: list<array<string, mixed>>}} $fixture */
 	$fixture = json_decode((string)file_get_contents(FIXTURES . '/search-page.json'), true, 512, JSON_THROW_ON_ERROR);
 	$photo = $fixture['assets']['items'][0];
-	$items = array_map(static fn (int $index): array => upload($photo, $index), range($offset, min($offset + $size, LIBRARY_SIZE) - 1));
-	$next = $offset + $size < LIBRARY_SIZE ? (string)($offset + $size) : null;
+	$indexes = array_values(array_filter(range(0, LIBRARY_SIZE - 1), static fn (int $index): bool => takenWithin($body['filter']['takenAt'] ?? [], NEWEST_TAKEN - $index * SECONDS_PER_UPLOAD)));
+	if (($body['orderBy']['direction'] ?? 'desc') === 'asc') {
+		$indexes = array_reverse($indexes);
+	}
+	$items = array_map(static fn (int $index): array => upload($photo, $index), array_slice($indexes, $offset, $size));
+	$next = $offset + $size < count($indexes) ? (string)($offset + $size) : null;
 	return StubAnswer::json(['assets' => ['total' => count($items), 'count' => count($items), 'items' => $items, 'facets' => [], 'nextPage' => $next, 'nextCursor' => $next]]);
+}
+
+/**
+ * Whether the capture time passes the filter's `gte`, `lt` and `lte` bounds.
+ * @param mixed $bounds
+ */
+function takenWithin(mixed $bounds, int $taken): bool {
+	$bound = static fn (string $key): ?int => is_array($bounds) && is_string($bounds[$key] ?? null) ? (int)strtotime($bounds[$key]) : null;
+	return !(($bound('gte') ?? $taken) > $taken || ($bound('lt') ?? $taken + 1) <= $taken || ($bound('lte') ?? $taken) < $taken);
 }
 
 /**

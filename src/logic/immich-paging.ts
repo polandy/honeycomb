@@ -8,11 +8,18 @@ import type { DecisionFilters } from './picture-filter.ts'
 import { assetDecision } from './immich-asset.ts'
 import { matchesDecision } from './picture-filter.ts'
 
-/** What one page is asked with (ADR 0044); a `null` cursor asks the first page. */
+/** The asset a first page starts at, for the resume position (IMMICH-002.34). */
+export interface ListingAnchor {
+	readonly assetId: string
+	readonly takenAt: number
+}
+
+/** What one page is asked with (ADR 0044); a `null` cursor asks the first page, from `from` when given. */
 export interface AssetsRequest {
 	readonly filters: RequestFilters
 	readonly cursor: string | null
 	readonly size: number
+	readonly from?: ListingAnchor
 }
 
 /** One page of the listing (ADR 0044); a cursor is `null` at the end it names. */

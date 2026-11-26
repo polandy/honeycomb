@@ -18,6 +18,7 @@ use OCA\Honeycomb\Db\FlagMapper;
 use OCA\Honeycomb\Db\FolderDoneMapper;
 use OCA\Honeycomb\Db\FolderSummaryMapper;
 use OCA\Honeycomb\Db\ImmichDecisionMapper;
+use OCA\Honeycomb\Db\ImmichPositionMapper;
 use OCA\Honeycomb\Db\PositionMapper;
 use OCA\Honeycomb\Db\QualityMapper;
 use OCA\Honeycomb\Db\SeriesMapper;
@@ -42,6 +43,7 @@ use OCA\Honeycomb\Domain\Store\TagStore;
 use OCA\Honeycomb\Domain\Store\VisualHashStore;
 use OCA\Honeycomb\Domain\Store\XmpCacheStore;
 use OCA\Honeycomb\Immich\ImmichDecisionStore;
+use OCA\Honeycomb\Immich\ImmichPositionStore;
 use OCA\Honeycomb\Immich\LocalFiles;
 use OCA\Honeycomb\Immich\PhpLocalFiles;
 use OCA\Honeycomb\Listener\ForgetDeletedUser;
@@ -70,7 +72,7 @@ final class ApplicationTest extends TestCase {
 
 		(new \ReflectionClass(Application::class))->newInstanceWithoutConstructor()->register($context);
 
-		$this->assertSame([JpegDecoder::class => OcpJpegDecoder::class, FileRowCarryOver::class => AtomicFileRowCarryOver::class, FlagStore::class => FlagMapper::class, PositionStore::class => PositionMapper::class, SeriesStore::class => SeriesMapper::class, StatsStore::class => StatsMapper::class, TagStore::class => TagMapper::class, QualityStore::class => QualityMapper::class, FolderSummaryStore::class => FolderSummaryMapper::class, FolderDoneStore::class => FolderDoneMapper::class, LibraryFiles::class => FileCacheLibrary::class, AppData::class => AppDataMapper::class, AppRemoval::class => AppRemovalMapper::class, VisualHashStore::class => VisualHashMapper::class, XmpCacheStore::class => XmpCacheMapper::class, ExistingFiles::class => FileCacheLookup::class, PicturesBelow::class => FileCachePictures::class, Pause::class => SystemPause::class, PreviewLock::class => CorePreviewLock::class, LocalFiles::class => PhpLocalFiles::class, ImmichDecisionStore::class => ImmichDecisionMapper::class], $aliases);
+		$this->assertSame([JpegDecoder::class => OcpJpegDecoder::class, FileRowCarryOver::class => AtomicFileRowCarryOver::class, FlagStore::class => FlagMapper::class, PositionStore::class => PositionMapper::class, SeriesStore::class => SeriesMapper::class, StatsStore::class => StatsMapper::class, TagStore::class => TagMapper::class, QualityStore::class => QualityMapper::class, FolderSummaryStore::class => FolderSummaryMapper::class, FolderDoneStore::class => FolderDoneMapper::class, LibraryFiles::class => FileCacheLibrary::class, AppData::class => AppDataMapper::class, AppRemoval::class => AppRemovalMapper::class, VisualHashStore::class => VisualHashMapper::class, XmpCacheStore::class => XmpCacheMapper::class, ExistingFiles::class => FileCacheLookup::class, PicturesBelow::class => FileCachePictures::class, Pause::class => SystemPause::class, PreviewLock::class => CorePreviewLock::class, LocalFiles::class => PhpLocalFiles::class, ImmichDecisionStore::class => ImmichDecisionMapper::class, ImmichPositionStore::class => ImmichPositionMapper::class], $aliases);
 	}
 
 	// spec: DECISIONS-002.13

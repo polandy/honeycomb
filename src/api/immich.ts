@@ -4,6 +4,7 @@ import type { DecisionRow, ImmichImageSize } from '../logic/immich-asset.ts'
 import type { ConnectionState, ConnectionStatus, ImmichAvailability, ImmichConnection } from '../logic/immich-connections.ts'
 import type { CountsRequest, ImmichCounts } from '../logic/immich-counts.ts'
 import type { AssetsRequest, Page } from '../logic/immich-paging.ts'
+import type { ImmichPositionSave } from '../logic/immich-position.ts'
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -66,6 +67,11 @@ export async function saveImmichDecisions(connectionId: string, rows: readonly D
 		throw new ApiResponseError('The Immich save came without the saved ids; check the server\'s version.')
 	}
 	return data.saved as string[]
+}
+
+/** Stores where the user stopped in a connection (IMMICH-003.14, ADR 0044). */
+export async function saveImmichPosition({ connectionId, ...position }: ImmichPositionSave): Promise<void> {
+	await axios.put(generateUrl(`${API}/positions`), { immich: connectionId, ...position })
 }
 
 /** The URL of an asset's image through honeycomb, versioned by Immich's `updatedAt` (IMMICH-002.16). */

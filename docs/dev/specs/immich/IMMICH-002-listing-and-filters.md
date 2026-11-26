@@ -18,6 +18,11 @@ what is on screen is loaded, and every number comes from the server.
   `nextCursor` and a `previousCursor`. Only the upload library is listed; external libraries,
   trashed, archived, hidden and locked assets, audio and other files are left out. An upload
   during the paging shifts no page; it shows once the listing starts over.
+- **From an asset:** a first request with `from` (`{"assetId", "takenAt"}`, no cursor) starts the
+  page at that asset, uploads of its second split at it by asset id, or at the next older upload
+  when the listing no longer holds it. Its `previousCursor` pages the newer entries, oldest of
+  them last, until it answers `null`. `from` with a cursor, a malformed `from`, or `from` under a
+  decision filter that admits decided assets only is a bad request.
 - **An entry** is one picture: a live photo is one entry of kind `live`, a stack shows its
   primary asset with the stack's size. The grid groups entries under day headers.
 - **Infinite scroll:** the grid loads the first page on open and the next one when its last loaded
@@ -27,7 +32,9 @@ what is on screen is loaded, and every number comes from the server.
 - **Loupe and filmstrip past the page:** stepping or swiping to within twelve entries of the last
   loaded one loads the next page; the filmstrip shows its neighbours as they arrive, and the
   counter *k / N* uses the server's total. A loupe opened at the resume position shows *N pictures*
-  until the newer pages are loaded, since a page started at an asset carries no offset.
+  until the newer pages are loaded, since a page started at an asset carries no offset. The newer
+  page loads when the loupe comes within twelve entries of the first loaded one, or on *Show newer
+  photos* above the grid; the loupe stays on its asset as the page goes before it.
 - **Filters:** time (*Last 7 days*, the months with uploads among the current month and the eleven
   before it, in the browser's time zone, *All phone uploads*; the current month by default),
   device (camera models and *No camera data*, any number), kind (*Photos*, *Motion photos*,
@@ -301,6 +308,22 @@ what is on screen is loaded, and every number comes from the server.
 - **When** the counts arrive
 - **Then** no device chip shows but the chosen model, counted 0 and still able to be unticked;
   every kind counts 0; the chosen month stays with 0; while the counts are asked no number shows
+
+### IMMICH-002.34 – Paging from an asset
+
+- **Given** a listing opened `from` an asset that shares its second with two other uploads
+- **When** the first page and then the pages of its `previousCursor` are asked
+- **Then** the first page starts at the asset, the same-second uploads before it by asset id come
+  on the newer pages, every entry shows once, and the last newer page answers `previousCursor`
+  `null`; a newer page that adds nothing is followed by the next one at once, and a failed one
+  offers *Try again* at its cursor
+
+### IMMICH-002.35 – A malformed `from`
+
+- **Given** a listing request
+- **When** it carries `from` with a cursor, a `from` without an asset id or capture time, or
+  `from` under *Picked* alone
+- **Then** the answer is a bad request and Immich is not asked
 
 ## History
 

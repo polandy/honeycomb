@@ -6,10 +6,11 @@ import type { FolderDoneApi } from '../folders/folder-done.ts'
 import type { LibraryApi } from '../folders/folders.ts'
 import type { ResumeApi } from '../folders/resume.ts'
 import type { ImmichCullApi } from '../immich/immich-picture-source.ts'
+import type { ImmichPositionApi } from '../immich/immich-resume.ts'
 import type { ImmichApi } from '../immich/immich-source.ts'
 import type { LocationApi } from '../shared/browser-location.ts'
 
-import { listEntries as apiListEntries, listFolders as apiListFolders, checkLibraryRoot, immichAssets, immichCounts, immichImageUrl, immichStatus, listImmichConnections, listLibraryFolders, loadPositions, markFolderDone, markFoldersDone, reopenFolder, reopenFolders, saveImmichDecisions, savePosition, scanLibrary } from '../api/index.ts'
+import { listEntries as apiListEntries, listFolders as apiListFolders, checkLibraryRoot, immichAssets, immichCounts, immichImageUrl, immichStatus, listImmichConnections, listLibraryFolders, loadPositions, markFolderDone, markFoldersDone, reopenFolder, reopenFolders, saveImmichDecisions, saveImmichPosition, savePosition, scanLibrary } from '../api/index.ts'
 import { browserLocation } from '../shared/browser-location.ts'
 
 /** The seams of the sources: the folders, the library, *Recent*, the page address and Immich. */
@@ -25,6 +26,8 @@ export interface SourceSeams {
 	immich?: ImmichApi
 	/** An Immich connection's pages, counts, decisions and images (IMMICH-002, IMMICH-003). */
 	immichCull?: ImmichCullApi
+	/** Where the connections' positions are read and saved (IMMICH-003.14). */
+	immichPositions?: ImmichPositionApi
 }
 
 /** The source seams the app uses in production. */
@@ -36,4 +39,5 @@ export const SOURCE_SEAMS = {
 	location: () => browserLocation,
 	immich: () => ({ listConnections: listImmichConnections, status: immichStatus }),
 	immichCull: () => ({ assets: immichAssets, counts: immichCounts, saveDecisions: saveImmichDecisions, imageUrl: immichImageUrl }),
+	immichPositions: () => ({ loadPositions, savePosition: saveImmichPosition }),
 }

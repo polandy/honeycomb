@@ -34,10 +34,25 @@ describe('immichPictureSource', () => {
 	it('lists a page of the connection after the cursor, a page size at a time', async () => {
 		const api = serverApi()
 
-		const answer = await immichPictureSource(api, 'andy-phone').list(FILTERS, 'c1')
+		const answer = await immichPictureSource(api, 'andy-phone').list({ filters: FILTERS, from: null }, 'c1')
 
 		expect(api.assets).toHaveBeenCalledWith('andy-phone', { filters: FILTERS, cursor: 'c1', size: PAGE_SIZE })
 		expect(answer.nextCursor).toBe('c2')
+	})
+
+	// spec: IMMICH-002.34
+	it('lists the first page from an asset, and pages after it by the cursor alone', async () => {
+		const api = serverApi()
+		const from = { assetId: 'a6', takenAt: NOW - 60 }
+		const source = immichPictureSource(api, 'andy-phone')
+
+		await source.list({ filters: FILTERS, from }, null)
+		await source.list({ filters: FILTERS, from }, 'c2')
+
+		expect(api.assets.mock.calls).toEqual([
+			['andy-phone', { filters: FILTERS, cursor: null, size: PAGE_SIZE, from }],
+			['andy-phone', { filters: FILTERS, cursor: 'c2', size: PAGE_SIZE }],
+		])
 	})
 
 	// spec: IMMICH-002.13

@@ -7,16 +7,17 @@ declare(strict_types=1);
 
 namespace OCA\Honeycomb\Immich;
 
-/** Removes the decision rows of connections the connections file no longer names for their user (IMMICH-003.10). */
+/** Removes the decision rows and positions of connections the connections file no longer names for their user (IMMICH-003.10, .18). */
 final class ImmichConnectionSweep {
 	/** @psalm-suppress PossiblyUnusedMethod Nextcloud constructs it through DI. */
 	public function __construct(
 		private Connections $connections,
 		private ImmichDecisionStore $store,
+		private ImmichPositionStore $positions,
 	) {
 	}
 
-	/** The number of rows removed; a file not configured, missing or invalid sweeps nothing (IMMICH-003.11). */
+	/** The number of decision rows removed; a file not configured, missing or invalid sweeps nothing (IMMICH-003.11). */
 	public function sweep(): int {
 		try {
 			$connections = $this->connections->all();
@@ -24,6 +25,8 @@ final class ImmichConnectionSweep {
 			// Connections has logged a broken file; without a valid file no row is known to be gone.
 			return 0;
 		}
-		return $this->store->keepOnly(array_map(static fn (Connection $connection): array => [$connection->id, $connection->user], $connections));
+		$kept = array_map(static fn (Connection $connection): array => [$connection->id, $connection->user], $connections);
+		$this->positions->keepOnly($kept);
+		return $this->store->keepOnly($kept);
 	}
 }
