@@ -41,7 +41,7 @@ const ANSWER = {
 
 /** The bar button whose label starts with `name`. */
 const bar = (page: Page, name: string) => page.locator(`.statistics-bars__columns[aria-label^="${name}:"]`)
-const detail = (page: Page) => page.locator('.statistics-bars__detail')
+const detail = (page: Page) => page.locator('.statistics-bars .statistics-bars__detail')
 const box = async (locator: Locator) => (await locator.boundingBox())!
 
 /** Expects the detail panel below the bars, never over them. */
