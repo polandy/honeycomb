@@ -1,5 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { Counter } from '../../../src/logic/statistics.ts'
+
 import { describe, expect, it } from 'vitest'
 import { METRIC } from '../../../src/logic/statistics.ts'
 import { periodHighlights } from '../../../src/logic/stats-highlights.ts'
@@ -8,10 +10,12 @@ import { periodAt } from '../../../src/logic/stats-period.ts'
 const SUNDAY = 0
 const MONDAY = 1
 const bounds = (firstWeekDay = MONDAY, firstDay: string | null = '2026-10-01') => ({ today: '2026-11-26', firstDay, firstWeekDay })
-const decided = (day: string, value: number, seconds = 0) => [
-	{ day, metric: METRIC.decided, value },
-	{ day, metric: METRIC.activeSeconds, value: seconds },
-]
+function decided(day: string, value: number, seconds = 0): Counter[] {
+	return [
+		{ day, metric: METRIC.decided, value },
+		{ day, metric: METRIC.activeSeconds, value: seconds },
+	]
+}
 const november = (counters: ReturnType<typeof decided>, firstWeekDay = MONDAY) => periodHighlights(counters, periodAt('month', '2026-11-10', bounds(firstWeekDay)), bounds(firstWeekDay))
 
 describe('periodHighlights', () => {
