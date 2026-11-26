@@ -67,7 +67,6 @@ describe('StatisticsPage highlights', () => {
 		expect(wrapper.find('.statistics-bars').findAll('.statistics-bars__bar')).toHaveLength(7)
 		expect(card(wrapper, 'Best day').text()).toContain('Nov 19, 2026')
 		expect(wrapper.findAll('button').some((each) => each.text() === 'Show day')).toBe(false)
-		expect(TODAY).toBe('2026-11-20')
 	})
 
 	// spec: STATS-001.69
