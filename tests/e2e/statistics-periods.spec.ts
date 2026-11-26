@@ -83,7 +83,7 @@ test(`steps through the calendar periods on the desktop and the iPad ${WEBKIT}`,
 	const firstWeekDay = await page.evaluate(() => (globalThis as { firstDay?: number }).firstDay ?? 0)
 	await expect(page.locator('.statistics-bars__bar')).toHaveCount(7)
 	expect(await barLabels(page)).toEqual([...WEEKDAYS.slice(firstWeekDay), ...WEEKDAYS.slice(0, firstWeekDay)])
-	await expect(page.locator('.delete-stats__item', { hasText: 'Photos decided' })).toContainText('80')
+	await expect(page.getByRole('region', { name: 'Photos decided' }).locator('.statistics-hero__value')).toHaveText('80')
 
 	await page.getByRole('button', { name: 'Year' }).click()
 	await expect(page.locator('.statistics-period__label')).toHaveText('2026')
@@ -114,7 +114,7 @@ test.describe('opens the period the address names', () => {
 
 		await expect(page.locator('.statistics-period__label')).toHaveText('August 2025')
 		await expect(page.locator('.statistics-bars__bar')).toHaveCount(31)
-		await expect(page.locator('.delete-stats__item', { hasText: 'Photos decided' })).toContainText('80')
+		await expect(page.getByRole('region', { name: 'Photos decided' }).locator('.statistics-hero__value')).toHaveText('80')
 		await expect(page.getByRole('button', { name: 'Month' })).toHaveAttribute('aria-pressed', 'true')
 	})
 

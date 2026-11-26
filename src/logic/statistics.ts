@@ -7,6 +7,8 @@ import { addDays } from './days.ts'
 /** The metric keys the statistics page reads (STATS-001, ADR 0039). */
 export const METRIC = {
 	decided: 'pictures_decided',
+	picked: 'pictures_picked',
+	rejected: 'pictures_rejected',
 	trashPictures: 'trash_pictures',
 	trashBytes: 'trash_bytes',
 	deletedPictures: 'deleted_pictures',

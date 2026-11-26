@@ -71,6 +71,7 @@ const props = defineProps<{
 .delete-stats__value {
 	font-size: 1.6em;
 	font-weight: bold;
+	font-variant-numeric: tabular-nums;
 }
 
 .delete-stats__label {

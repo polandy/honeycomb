@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import type { FolderRow } from '../logic/folder-row.ts'
 import type { StatsAnswer } from '../logic/statistics.ts'
-import type { PeriodBounds, PeriodKind, PeriodNumbers } from '../logic/stats-period.ts'
+import type { Compared, PeriodBounds, PeriodKind } from '../logic/stats-period.ts'
 import type { LocationApi } from '../shared/browser-location.ts'
 import type { PageNavigationSeams } from './PageLayout.vue'
 
@@ -19,6 +19,7 @@ import AppIcon from './AppIcon.vue'
 import DeleteStats from './DeleteStats.vue'
 import PageLayout from './PageLayout.vue'
 import StatisticsBars from './StatisticsBars.vue'
+import StatisticsHero from './StatisticsHero.vue'
 import StatisticsLibrary from './StatisticsLibrary.vue'
 import StatisticsPeriod from './StatisticsPeriod.vue'
 import StatisticsRead from './StatisticsRead.vue'
@@ -27,6 +28,7 @@ import { yearOf } from '../logic/days.ts'
 import { folderProgress } from '../logic/folder-progress.ts'
 import { parseSettings } from '../logic/settings.ts'
 import { parsePeriodHash, periodHash, resolveLocation } from '../logic/stats-location.ts'
+import { periodOverview } from '../logic/stats-overview.ts'
 import { periodAt, periodNumbers, periodRun } from '../logic/stats-period.ts'
 import { reviewYear, yearReview } from '../logic/year-review.ts'
 import { formatDay, formatDayRange, formatDuration, formatFileSize, formatNumber, formatPercent, PLAIN_TEXT } from '../shared/l10n.ts'
@@ -47,9 +49,6 @@ export interface StatisticsSeams {
 
 const props = defineProps<{ seams: StatisticsSeams, navigation: PageNavigationSeams }>()
 
-/** Rounds pictures a minute to one decimal. */
-const RATE_STEPS = 10
-
 const answer = ref<StatsAnswer | null>(null)
 const libraryRows = ref<FolderRow[]>([])
 const libraryFailed = ref(false)
@@ -59,6 +58,8 @@ const kind = ref<PeriodKind>('month')
 /** The day whose period shows, kept when the segment changes; null for today (STATS-001.52). */
 const anchor = ref<string | null>(null)
 const YEAR_STYLE: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', year: 'numeric' }
+/** A tile without a figure, e.g. no keep rate without a decision. */
+const NO_FIGURE = '—'
 
 const bounds = computed<PeriodBounds>(() => ({ today: answer.value!.today, firstDay: answer.value!.firstDay, firstWeekDay: props.seams.firstWeekDay() }))
 const period = computed(() => periodAt(kind.value, anchor.value ?? bounds.value.today, bounds.value))
@@ -68,28 +69,32 @@ const review = computed(() => {
 	return year === null ? null : yearReview(answer.value!.counters, year, answer.value!.firstDay)
 })
 const numbers = computed(() => answer.value && periodNumbers(answer.value.counters, period.value, bounds.value))
+const overview = computed(() => periodOverview(answer.value!.counters, period.value.range))
 const roots = ref<readonly string[]>([])
 /** The library's progress as of the user's today, whose month counts as this month (STATS-001.42). */
 const library = computed(() => answer.value === null ? null : folderProgress(libraryRows.value, roots.value, new Date(`${answer.value.today}T00:00:00Z`)))
 const cullUrl = generateUrl('/apps/honeycomb/')
 const stats = computed(() => {
-	const sums = numbers.value!
+	const sums = overview.value
 	const run = periodRun(answer.value!.counters, period.value, bounds.value.today)
+	const photos = n('honeycomb', '%n photo', '%n photos', sums.picturesFreed, undefined, PLAIN_TEXT)
 	return [
 		{
-			value: formatNumber(sums.decided),
-			label: t('honeycomb', 'Photos decided'),
-			note: compareNote(sums),
+			value: formatFileSize(sums.spaceFreedBytes),
+			label: t('honeycomb', 'Space freed'),
+			note: sums.rawsRemoved === 0 ? photos : n('honeycomb', '{photos} · %n RAW file', '{photos} · %n RAW files', sums.rawsRemoved, { photos }, PLAIN_TEXT),
 		},
 		{
-			value: formatNumber(sums.trashed),
-			label: t('honeycomb', 'Moved to the trash bin'),
-			note: sums.freedBytes + sums.deletedForGood === 0 ? undefined : n('honeycomb', '{size} · %n deleted for good', '{size} · %n deleted for good', sums.deletedForGood, { size: formatFileSize(sums.freedBytes) }, PLAIN_TEXT),
+			value: sums.keepRate === null ? NO_FIGURE : formatPercent(sums.keepRate),
+			label: t('honeycomb', 'Keep rate'),
+			note: sums.keepRate === null
+				? t('honeycomb', 'Nothing decided')
+				: t('honeycomb', '{kept} kept of {decided}', { kept: formatNumber(sums.picked), decided: formatNumber(sums.picked + sums.rejected) }, undefined, PLAIN_TEXT),
 		},
 		{
-			value: `${formatNumber(sums.sidecarsCreated)} / ${formatNumber(sums.sidecarsUpdated)}`,
-			label: t('honeycomb', 'Sidecars created / updated'),
-			note: sums.sidecarsForeign === 0 ? undefined : n('honeycomb', '%n from digiKam or darktable', '%n from digiKam or darktable', sums.sidecarsForeign, undefined, PLAIN_TEXT),
+			value: formatDuration(sums.activeMs),
+			label: t('honeycomb', 'Active time'),
+			note: sums.pace === null ? NO_FIGURE : t('honeycomb', '{rate} photos a minute', { rate: formatNumber(sums.pace) }, undefined, PLAIN_TEXT),
 		},
 		{
 			value: formatNumber(run.days),
@@ -98,31 +103,29 @@ const stats = computed(() => {
 		},
 	]
 })
+/** The sidecars and the series until *Work done* takes them. */
 const line = computed(() => {
-	const sums = numbers.value!
+	const sums = overview.value
 	return [
-		sums.activeMs > 0 ? t('honeycomb', 'Active time {duration}', { duration: formatDuration(sums.activeMs) }, undefined, PLAIN_TEXT) : null,
-		sums.perMinute === null ? null : t('honeycomb', '{rate} photos a minute', { rate: formatNumber(Math.round(sums.perMinute * RATE_STEPS) / RATE_STEPS) }, undefined, PLAIN_TEXT),
+		sums.sidecarsCreated > 0 ? n('honeycomb', '%n sidecar created', '%n sidecars created', sums.sidecarsCreated, undefined, PLAIN_TEXT) : null,
+		sums.sidecarsUpdated > 0 ? n('honeycomb', '%n sidecar updated', '%n sidecars updated', sums.sidecarsUpdated, undefined, PLAIN_TEXT) : null,
+		sums.sidecarsForeign > 0 ? n('honeycomb', '%n from digiKam or darktable', '%n from digiKam or darktable', sums.sidecarsForeign, undefined, PLAIN_TEXT) : null,
 		sums.seriesDone > 0 ? n('honeycomb', '%n series done', '%n series done', sums.seriesDone, undefined, PLAIN_TEXT) : null,
-		sums.rawsRemoved > 0 ? n('honeycomb', '%n RAW file removed', '%n RAW files removed', sums.rawsRemoved, undefined, PLAIN_TEXT) : null,
 	].filter((part) => part !== null).join(' · ')
 })
 
-/** Pictures decided against the period before, named by its days, or by the month, year or week when whole (STATS-001.41). */
-function compareNote(sums: PeriodNumbers): string | undefined {
-	const { decidedChange, compared } = sums
-	if (decidedChange === null || compared === null) {
-		return undefined
+/** The days pictures decided are compared with: by their days, or the month, year or week before when whole (STATS-001.41). */
+function comparedName(compared: Compared | null): string {
+	if (compared === null) {
+		return ''
 	}
-	const change = formatPercent(decidedChange, true)
 	const { from, to } = compared.range
 	if (compared.whole && kind.value === 'week') {
-		return t('honeycomb', '{change} on the week before', { change }, undefined, PLAIN_TEXT)
+		return t('honeycomb', 'the week before')
 	}
-	const named = compared.whole
+	return compared.whole
 		? (kind.value === 'month' ? formatDay(from, { month: 'long' }) : String(yearOf(from)))
 		: formatDayRange(from, to, kind.value === 'year' ? YEAR_STYLE : undefined)
-	return t('honeycomb', '{change} on {period}', { change, period: named }, undefined, PLAIN_TEXT)
 }
 
 /** Shows the period the address names, then keeps the address on the period shown (STATS-001.57, STATS-001.58). */
@@ -191,15 +194,18 @@ onMounted(async () => {
 						:bounds="bounds"
 						@kind="kind = $event"
 						@anchor="anchor = $event" />
+					<div class="statistics-page__overview">
+						<StatisticsHero :overview="overview" :change="numbers!.decidedChange" :compared="comparedName(numbers!.compared)" />
+						<StatisticsBars
+							:bars="numbers!.bars"
+							:kind="kind"
+							:unit="numbers!.unit"
+							:counted="numbers!.counted" />
+					</div>
 					<DeleteStats :stats="stats" tiles fit />
 					<p v-if="line" class="statistics-page__line">
 						{{ line }}
 					</p>
-					<StatisticsBars
-						:bars="numbers!.bars"
-						:kind="kind"
-						:unit="numbers!.unit"
-						:counted="numbers!.counted" />
 				</template>
 				<p v-else>
 					{{ t('honeycomb', 'Nothing counted yet. Cull a folder and the numbers show here.') }}
@@ -225,8 +231,22 @@ onMounted(async () => {
 	display: flex;
 	flex-direction: column;
 	gap: calc(2 * var(--default-grid-baseline));
-	max-width: 960px;
+	max-width: 1280px;
 	padding: calc(4 * var(--default-grid-baseline));
+	container-type: inline-size;
+}
+
+.statistics-page__overview {
+	display: grid;
+	gap: calc(2 * var(--default-grid-baseline));
+	align-items: start;
+}
+
+/* The hero beside the bars from 960 px of content width (STATS-001.59). */
+@container (min-width: 960px) {
+	.statistics-page__overview {
+		grid-template-columns: 1fr 2fr;
+	}
 }
 
 .statistics-page__line {

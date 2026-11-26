@@ -5,7 +5,7 @@ import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { METRIC } from '../../../src/logic/statistics.ts'
 import { formatDay, formatDayRange } from '../../../src/shared/l10n.ts'
-import { chip, COUNTERS, mountPage, periodLabel, step, tile, TODAY } from './statistics-page-fixtures.ts'
+import { chip, COUNTERS, hero, mountPage, periodLabel, step, tile, TODAY } from './statistics-page-fixtures.ts'
 
 vi.mock('../../../src/shared/logger.ts', () => ({ logger: { error: vi.fn() } }))
 
@@ -23,8 +23,10 @@ describe('StatisticsPage periods', () => {
 		await step(wrapper, 'Previous period').trigger('click')
 
 		expect(periodLabel(wrapper)).toBe('October 2026')
-		expect(tile(wrapper, 'Photos decided')).toContain('0')
-		expect(tile(wrapper, 'Photos decided')).not.toContain('%')
+		expect(wrapper.find('.statistics-hero__value').text()).toBe('0')
+		expect(hero(wrapper)).not.toContain('%')
+		expect(hero(wrapper)).toContain('No active day in this period')
+		expect(wrapper.findAll('.statistics-hero__split i')).toHaveLength(0)
 		expect(wrapper.find('.statistics-bars__empty').text()).toBe('Nothing counted in this period.')
 		expect(wrapper.find('.statistics-bars__chart').exists()).toBe(false)
 		expect(step(wrapper, 'Previous period').attributes('disabled')).toBeDefined()
@@ -55,14 +57,14 @@ describe('StatisticsPage periods', () => {
 		await flushPromises()
 		await chip(wrapper, 'Week').trigger('click')
 
-		expect(tile(wrapper, 'Photos decided')).not.toContain('%')
+		expect(hero(wrapper)).not.toContain('%')
 
 		const before = mountPage({ counters: [...COUNTERS, { day: '2026-11-10', metric: METRIC.decided, value: 9 }, { day: '2026-11-15', metric: METRIC.decided, value: 900 }], firstDay: '2026-10-01' })
 		await flushPromises()
 		await chip(before, 'Week').trigger('click')
 
-		expect(tile(before, 'Photos decided')).toMatch(/\+100\s?%/)
-		expect(tile(before, 'Photos decided')).toContain(`% on ${formatDayRange('2026-11-09', '2026-11-13')}`)
+		expect(wrapper.find('.statistics-hero__change').exists()).toBe(false)
+		expect(before.find('.statistics-hero__change').text()).toMatch(new RegExp(`^▲ 100\\s?% more than ${formatDayRange('2026-11-09', '2026-11-13')}$`))
 	})
 
 	// spec: STATS-001.41
@@ -71,14 +73,14 @@ describe('StatisticsPage periods', () => {
 		await flushPromises()
 		await step(wrapper, 'Previous period').trigger('click')
 
-		expect(tile(wrapper, 'Photos decided')).toMatch(/-50\s?% on September/)
+		expect(wrapper.find('.statistics-hero__change').text()).toMatch(/^▼ 50\s?% fewer than September$/)
 
 		const week = mountPage({ counters: [{ day: '2026-11-04', metric: METRIC.decided, value: 10 }, { day: '2026-11-11', metric: METRIC.decided, value: 5 }], firstDay: '2026-11-01' })
 		await flushPromises()
 		await chip(week, 'Week').trigger('click')
 		await step(week, 'Previous period').trigger('click')
 
-		expect(tile(week, 'Photos decided')).toMatch(/-50\s?% on the week before/)
+		expect(week.find('.statistics-hero__change').text()).toMatch(/^▼ 50\s?% fewer than the week before$/)
 	})
 
 	// spec: STATS-001.56

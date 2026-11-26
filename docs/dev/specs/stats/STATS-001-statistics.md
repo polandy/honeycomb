@@ -37,8 +37,8 @@ paths. The day is the calendar day in the user's Nextcloud time zone, UTC withou
 Only successful results count. A day's net counter never goes below zero. The server counts
 trash, deletes for good, *Remove RAWs*, sidecar saves, series done and moves in the request that
 acts, one sum per metric and request, with the sizes the server reads before it moves a file.
-*Space freed* is the bytes moved to the trash bin and deleted for good; the page notes that the
-space is freed when the trash bin is emptied.
+*Space freed* is the bytes moved to the trash bin, deleted for good and of the RAW files removed;
+the page notes that the space is freed when the trash bin is emptied.
 
 **What only the browser knows** rides as counts on the request that saves it. A flag save carries
 pictures decided, picked and rejected; a sidecar save carries ratings, colour labels and tags set,
@@ -70,12 +70,17 @@ with *Previous period* and *Next period* and *Today*, which goes to the period t
 *All time* has no stepper, only *Since {day}*. A week starts on the first day of the week of the
 user's Nextcloud locale. Changing the segment keeps the day the user stepped to, so March 2025
 becomes 2025 and back March 2025. The user's day is the `today` the server answers; stepping never
-goes past the period of today nor before the period of the first counted day. Tiles show pictures
-decided (with the change against the period before), moved to the trash bin (with space freed and
-deleted for good), sidecars created / updated (with those from digiKam or darktable) and days in a
-row (with the longest streak; in a past week, month or year the longest run of active days inside
-it); a day counts toward days in a row when any of its counters is above zero. A line shows active
-time, pictures a minute (from one active minute on), series done and RAW files removed. Bars show
+goes past the period of today nor before the period of the first counted day. The hero *Photos
+decided* shows the period's pictures decided in large, the change against the period before as an
+arrow and words (*▲ 12 % more than October*), a bar of picked (filled, ✓) against rejected
+(hatched, ✕) with both counts, and the pictures decided per active day with the active days (a day
+is active when any of its counters is above zero). Beside it, from a content width of 960 px, or
+below it, the bars. Four tiles follow: *Space freed* (with the pictures moved to the trash bin or
+deleted for good and the RAW files removed), *Keep rate* (the share picked of the pictures picked
+or rejected, with *n kept of m*), *Active time* (with pictures a minute from one active minute on)
+and *Days in a row* (with the longest streak; in a past week, month or year the longest run of
+active days inside it). A line shows the sidecars created and updated (with those from digiKam or
+darktable) and the series done, each once there is one, until *Work done* takes them. Bars show
 pictures decided and moved to the trash bin per day (week, month), per month (year) or per year
 (all time; per month while the counting lies in one calendar year). Days and months after today
 show as hatched empty slots, those before the first counted day as plain empty slots, and the bar
@@ -312,9 +317,9 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 
 - **Given** counters on several days
 - **When** the page opens, and when the user picks *Week*, *Month*, *Year* or *All time*
-- **Then** it opens on the current month; the tiles show the sums of that calendar period and the
-  bars split it per day (week, month), per month (year) or per year (all time, per month while
-  the counting lies in one calendar year)
+- **Then** it opens on the current month; the hero and the tiles show the sums of that calendar
+  period and the bars split it per day (week, month), per month (year) or per year (all time, per
+  month while the counting lies in one calendar year)
 
 ### STATS-001.22 – Days in a row
 
@@ -394,10 +399,11 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 ### STATS-001.41 – The period before
 
 - **Given** pictures decided in the period and in the period before it
-- **When** the page shows the tile *Photos decided*
+- **When** the page shows the hero *Photos decided*
 - **Then** it adds the change in percent against the period before, in the period of today only
-  up to the same day (1–26 November against 1–26 October); the note names the period before; without
-  numbers before, or for *All time*, it adds nothing
+  up to the same day (1–26 November against 1–26 October), as ▲ and *more than*, ▼ and *fewer
+  than*, or *Same as*, naming the period before; without numbers before, or for *All time*, it adds
+  nothing
 
 ### STATS-001.42 – The library progress
 
@@ -498,8 +504,8 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 
 - **Given** a period in which nothing was counted, e.g. a month off
 - **When** the page shows it
-- **Then** the tiles show 0 without a change, the bars give way to *Nothing counted in this
-  period.*, and the segment and the stepper stay usable
+- **Then** the hero shows 0 without a change, *No active day in this period* and an empty bar, the
+  bars give way to *Nothing counted in this period.*, and the segment and the stepper stay usable
 
 ### STATS-001.56 – Days in a row in a past period
 
@@ -526,6 +532,35 @@ Strings are English, translated per ADR 0007; the mockup lists them.
   word, `#month=2026-13`, `#week=2026-02-30`) shows the month of today; the address is then
   rewritten to the period shown
 
+### STATS-001.59 – Picked against rejected
+
+- **Given** a period with pictures picked and rejected
+- **When** the page shows the hero *Photos decided*
+- **Then** a bar splits picked from rejected by their shares, picked filled and rejected hatched,
+  with *✓ n picked* and *✕ n rejected* beside it and the bar's label naming both counts; below, the
+  pictures decided per active day, rounded, and the active days
+
+### STATS-001.60 – Keep rate
+
+- **Given** a period with 31 pictures picked and 55 rejected
+- **When** the page shows the tile *Keep rate*
+- **Then** it shows 36 % and *31 kept of 86*; with only rejected pictures 0 %, and with none picked
+  or rejected *—* and *Nothing decided*
+
+### STATS-001.61 – Space freed counts the RAW files removed
+
+- **Given** bytes moved to the trash bin, deleted for good and of RAW files removed in a period
+- **When** the page shows the tile *Space freed*
+- **Then** it shows the sum of the three, with the pictures moved to the trash bin or deleted for
+  good and, from one on, the RAW files removed
+
+### STATS-001.62 – Active time and pace
+
+- **Given** active time in a period
+- **When** the page shows the tile *Active time*
+- **Then** it shows the time with the pictures decided a minute to one decimal; below one active
+  minute the pace is *—*
+
 ## History
 
 | Date | Change |
@@ -541,3 +576,4 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | 2026-11-22 | The library progress replaces *Folder sets* (.42, .50, .51; ADR 0049, M12 PR 7) |
 | 2026-11-26 | Calendar periods replace the rolling 7 and 30 days: segment, stepper, *Today*, week start from the locale, bars with days to come (.21, .41 reworded; .52–.56; statistics slice 1) |
 | 2026-11-26 | The period in the address hash (.57, .58; statistics slice 2) |
+| 2026-11-26 | Redesign R1: the hero *Photos decided* with picked against rejected, the tiles *Space freed* with the RAW files removed, *Keep rate*, *Active time* with pace (.41, .55 reworded; .59–.62) |
