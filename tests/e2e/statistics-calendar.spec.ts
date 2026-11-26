@@ -84,10 +84,15 @@ test('shows the year with twelve months and all time with a row per year, and op
 	expect(await page.evaluate(() => window.location.hash)).toBe('#month=2026-10')
 })
 
-test('keeps the squares of a month at the size of a finger on a phone', async ({ page }) => {
-	await page.setViewportSize(PHONE)
-	await openStatistics(page, ANSWER)
+test.describe('on a phone', () => {
+	test.use({ hasTouch: true })
 
-	await expectTouchTargets(calendar(page).locator('.statistics-calendar__grid'), 'the month calendar on a phone')
-	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(PHONE.width)
+	// spec: STATS-001.70
+	test('keeps the squares of a month at the size of a finger inside the width', async ({ page }) => {
+		await page.setViewportSize(PHONE)
+		await openStatistics(page, ANSWER)
+
+		await expectTouchTargets(calendar(page).locator('.statistics-calendar__grid'), 'the month calendar on a phone')
+		expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(PHONE.width)
+	})
 })

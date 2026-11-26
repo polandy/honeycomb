@@ -2184,3 +2184,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-26: The real camera fixtures in `tests/fixtures/raw-headers/` are sanitized copies
   (`scripts/raw-header-fixture.sh`) that keep only the header structure and the four fields; CR3,
   NEF, ORF, RW2, PEF and SRW are built in the tests, as no samples of them exist (autonomous).
+- 2026-11-26: The activity calendar (STATS-001.70 to .72, redesign R4) has three fill levels, not
+  the mockup's four, so that it shares one `activityLevel` function with the year in review, whose
+  shade already has a third and two thirds as bounds; a square with a counter and nothing decided
+  is level 1, as in the year review (autonomous).
+- 2026-11-26: The calendar's detail panel is the chart's `StatisticsBarDetail` with its own hint,
+  so a held month of all time offers *Show {month}* like a month bar; the year view's day squares
+  stay small (2 px gap, no 44 px target), as 365 targets cannot all be a finger wide (autonomous).

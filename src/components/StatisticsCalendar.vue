@@ -53,7 +53,11 @@ async function drill(target: DrillTarget) {
 				</h4>
 				<div class="statistics-calendar__grid">
 					<template v-if="props.calendar.layout === 'days'">
-						<span v-for="weekday in props.calendar.weekDays" :key="weekday" class="statistics-calendar__weekday" aria-hidden="true">{{ weekdayInitial(weekday) }}</span>
+						<span
+							v-for="weekday in props.calendar.weekDays"
+							:key="weekday"
+							class="statistics-calendar__weekday"
+							aria-hidden="true">{{ weekdayInitial(weekday) }}</span>
 					</template>
 					<span v-for="place in group.lead" :key="`lead-${place}`" class="statistics-calendar__empty" />
 					<button
@@ -80,10 +84,19 @@ async function drill(target: DrillTarget) {
 		</div>
 		<p class="statistics-calendar__legend">
 			{{ t('honeycomb', 'Less') }}
-			<span v-for="level in LEVELS" :key="level" class="statistics-calendar__square statistics-calendar__key" :data-level="level" aria-hidden="true"><i class="statistics-calendar__fill" /></span>
+			<span
+				v-for="level in LEVELS"
+				:key="level"
+				class="statistics-calendar__square statistics-calendar__key"
+				:data-level="level"
+				aria-hidden="true"><i class="statistics-calendar__fill" /></span>
 			{{ t('honeycomb', 'More') }} · {{ t('honeycomb', 'the fill height shows the amount') }}
 		</p>
-		<StatisticsBarDetail :bar="shown" :unit="props.calendar.unit" :hint="calendarHint(props.calendar.unit)" @drill="drill" />
+		<StatisticsBarDetail
+			:bar="shown"
+			:unit="props.calendar.unit"
+			:hint="calendarHint(props.calendar.unit)"
+			@drill="drill" />
 	</section>
 </template>
 

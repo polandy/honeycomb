@@ -3,8 +3,8 @@
 import type { ActivityLevel } from './activity-level.ts'
 import type { Counter } from './statistics.ts'
 
-import { activityLevel } from './activity-level.ts'
 import { picturesPerMinute } from './active-time.ts'
+import { activityLevel } from './activity-level.ts'
 import { METRIC, streak } from './statistics.ts'
 
 /** One square of the calendar of active days; shade 0 is a day without a counter, 1 to 3 the share of the busiest day. */
