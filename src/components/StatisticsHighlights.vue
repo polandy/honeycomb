@@ -10,7 +10,6 @@ import { n, t } from '@nextcloud/l10n'
 import { computed } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { addDays } from '../logic/days.ts'
-import { changeDirection } from '../logic/stats-overview.ts'
 import { formatDay, formatDuration, formatNumber, formatPercent, PLAIN_TEXT } from '../shared/l10n.ts'
 
 const props = defineProps<{
@@ -27,7 +26,6 @@ const emit = defineEmits<{ showDay: [day: string] }>()
 const SUNDAY = '2026-11-01'
 const PERCENT = 100
 const SECOND_MS = 1000
-const PACE_STEPS = 10
 /** A card without a figure. */
 const NO_FIGURE = '—'
 
@@ -39,17 +37,17 @@ const weekdayLabel = computed(() => t('honeycomb', 'Average photos decided per w
 	days: (weekday.value?.days ?? []).map((each) => `${weekdayName(each.weekday, 'short')} ${formatNumber(Math.round(each.average))}`).join(', '),
 }, undefined, PLAIN_TEXT))
 const paceNote = computed(() => {
-	const { pace, before } = props.highlights!.pace
-	if (pace === null || before === null) {
+	const { change } = props.highlights!.pace
+	if (change === null) {
 		return t('honeycomb', 'photos a minute')
 	}
-	const change = formatNumber(Math.round(Math.abs(pace - before) * PACE_STEPS) / PACE_STEPS)
+	const amount = formatNumber(change.amount)
 	const period = props.compared
 	return {
-		more: () => t('honeycomb', '▲ {change} faster than {period}', { change, period }, undefined, PLAIN_TEXT),
-		fewer: () => t('honeycomb', '▼ {change} slower than {period}', { change, period }, undefined, PLAIN_TEXT),
+		more: () => t('honeycomb', '▲ {change} faster than {period}', { change: amount, period }, undefined, PLAIN_TEXT),
+		fewer: () => t('honeycomb', '▼ {change} slower than {period}', { change: amount, period }, undefined, PLAIN_TEXT),
 		same: () => t('honeycomb', 'Same as {period}', { period }, undefined, PLAIN_TEXT),
-	}[changeDirection(Math.round((pace - before) * PACE_STEPS))]()
+	}[change.direction]()
 })
 const activeShare = computed(() => {
 	const { active, days } = props.highlights!.activeDays

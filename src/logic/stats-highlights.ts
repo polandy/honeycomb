@@ -1,12 +1,13 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { DayRange } from './days.ts'
+import type { ChangeDirection } from './stats-overview.ts'
 import type { Counter } from './statistics.ts'
 import type { Period, PeriodBounds } from './stats-period.ts'
 
 import { addDays, dayCount, weekDay } from './days.ts'
 import { METRIC, periodSums } from './statistics.ts'
-import { periodOverview } from './stats-overview.ts'
+import { changeDirection, PACE_STEPS, periodOverview } from './stats-overview.ts'
 import { comparedRange } from './stats-period.ts'
 
 /** The day with the most pictures decided. */
@@ -28,10 +29,11 @@ export interface BusiestWeekday {
 	readonly days: readonly WeekdayAverage[]
 }
 
-/** The pictures decided a minute of the period and of the days compared with, null without a pace. */
+/** The pictures decided a minute of the period and of the days compared with, null without a pace, and the change between them. */
 export interface PaceHighlight {
 	readonly pace: number | null
 	readonly before: number | null
+	readonly change: { readonly direction: ChangeDirection, readonly amount: number } | null
 }
 
 /** The longest run of days with a counter, its length and first and last day. */
@@ -51,6 +53,15 @@ export interface Highlights {
 }
 
 const WEEK_DAYS = 7
+
+/** The pace and its change, in tenths so that equal paces are the same (STATS-001.69). */
+function paceOf(pace: number | null, before: number | null): PaceHighlight {
+	if (pace === null || before === null) {
+		return { pace, before, change: null }
+	}
+	const tenths = Math.round((pace - before) * PACE_STEPS)
+	return { pace, before, change: { direction: changeDirection(tenths), amount: Math.abs(tenths) / PACE_STEPS } }
+}
 
 /** The days of `range` that carry a counter above zero, oldest first. */
 function activeDaysOf(counters: readonly Counter[], range: DayRange): string[] {
@@ -113,12 +124,12 @@ export function periodHighlights(counters: readonly Counter[], period: Period, b
 	const days = activeDaysOf(counters, range)
 	const from = bounds.firstDay !== null && bounds.firstDay > range.from ? bounds.firstDay : range.from
 	const to = range.to < bounds.today ? range.to : bounds.today
-	const counted = { from, to }
+	const counted = { from, to: to < from ? from : to }
 	const compared = comparedRange(period, bounds)
 	return {
 		bestDay: bestDayOf(counters, days),
 		busiestWeekday: busiestWeekdayOf(counters, counted, bounds.firstWeekDay),
-		pace: { pace: periodOverview(counters, range).pace, before: compared === null ? null : periodOverview(counters, compared.range).pace },
+		pace: paceOf(periodOverview(counters, range).pace, compared === null ? null : periodOverview(counters, compared.range).pace),
 		activeDays: { active: days.length, days: dayCount(counted) },
 		longestStreak: longestStreakOf(days),
 	}

@@ -31,6 +31,9 @@ Open **Statistics** in the navigation, or press **Statistics** on the *Cull fini
   Tap or click a bar to hold its numbers in the panel below; a held month or year offers *Show
   {month}* or *Show {year}*. *Show as table* lists the same values. A period without a count says
   so.
+- **Highlights:** below the tiles, five cards for the period: the *Best day* (*Show day* opens its
+  week), the *Busiest weekday* with seven small bars, the *Pace* in photos a minute against the
+  period before, the *Active days* and the *Longest streak*. A period without a count says so.
 - **Library progress:** the share of your photos in done folders, for the library and each root,
   with the folders done, those marked done this month and the share of photos decided; *Open
   Folders* leads to the list ([cleaning up the library](cleaning-up-the-library.md)).

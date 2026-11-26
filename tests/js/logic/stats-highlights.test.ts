@@ -76,9 +76,9 @@ describe('periodHighlights', () => {
 		const both = november(counters)!.pace
 		const before = november(decided('2026-11-02', 90, 600))!.pace
 
-		expect(both).toEqual({ pace: 9, before: 6 })
-		expect(before).toEqual({ pace: 9, before: null })
-		expect(november(decided('2026-11-02', 90, 30))!.pace).toEqual({ pace: null, before: null })
+		expect(both).toEqual({ pace: 9, before: 6, change: { direction: 'more', amount: 3 } })
+		expect(before).toEqual({ pace: 9, before: null, change: null })
+		expect(november(decided('2026-11-02', 90, 30))!.pace).toEqual({ pace: null, before: null, change: null })
 	})
 
 	// spec: STATS-001.69
@@ -100,5 +100,22 @@ describe('periodHighlights', () => {
 	// spec: STATS-001.69
 	it('has a streak of one day for a single active day', () => {
 		expect(november(decided('2026-11-03', 1))!.longestStreak).toEqual({ length: 1, from: '2026-11-03', to: '2026-11-03' })
+	})
+
+	// spec: STATS-001.69
+	it('names a slower and an equal pace', () => {
+		const slower = november([...decided('2026-11-02', 30, 600), ...decided('2026-10-02', 60, 600)])!.pace
+		const equal = november([...decided('2026-11-02', 60, 600), ...decided('2026-10-02', 60, 600)])!.pace
+
+		expect(slower.change).toEqual({ direction: 'fewer', amount: 3 })
+		expect(equal.change).toEqual({ direction: 'same', amount: 0 })
+	})
+
+	// spec: STATS-001.69
+	it('keeps one counted day for a period that starts after today', () => {
+		const future = { today: '2026-11-26', firstDay: '2026-10-01', firstWeekDay: MONDAY }
+		const highlights = periodHighlights(decided('2026-12-03', 5), periodAt('month', '2026-12-10', future), future)!
+
+		expect(highlights.activeDays).toEqual({ active: 1, days: 1 })
 	})
 })
