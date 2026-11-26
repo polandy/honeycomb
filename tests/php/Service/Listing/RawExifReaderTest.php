@@ -57,8 +57,9 @@ final class RawExifReaderTest extends TestCase {
 	// spec: LISTING-004.7
 	public function testCountsAValueBeyondTheFirstMibAsAbsent(): void {
 		$make = RawBytes::tiff(['Make' => 'NIKON CORPORATION']);
-		$within = RawExifReader::READ_LIMIT - 18;
-		$beyond = RawExifReader::READ_LIMIT - 17;
+		$mib = 1_048_576;
+		$within = $mib - 18;
+		$beyond = $mib - 17;
 		$file = static fn (int $at): string => str_pad(substr($make, 0, 18) . pack('V', $at) . substr($make, 22), $at, "\0") . "NIKON CORPORATION\0";
 
 		$this->assertSame(['Make' => 'NIKON CORPORATION'], $this->reader()->read($this->file($file($within)), new DateTimeZone('UTC')));
