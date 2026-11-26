@@ -218,23 +218,13 @@ describe('periodNumbers', () => {
 	]
 
 	// spec: STATS-001.21, STATS-001.41
-	it('sums the tiles and the line of the period and compares pictures decided up to the same day before', () => {
+	it('sums the pictures decided of the period and compares them up to the same day before', () => {
 		const numbers = periodNumbers(counters, periodAt('month', TODAY, BOUNDS), BOUNDS)
 
 		expect(numbers).toMatchObject({
 			decided: 118,
 			decidedChange: 136,
 			compared: { range: { from: '2026-10-01', to: '2026-10-26' }, whole: false },
-			trashed: 4,
-			freedBytes: 4500,
-			deletedForGood: 1,
-			sidecarsCreated: 7,
-			sidecarsUpdated: 3,
-			sidecarsForeign: 2,
-			activeMs: 600_000,
-			perMinute: 11.8,
-			seriesDone: 5,
-			rawsRemoved: 9,
 			unit: 'day',
 		})
 		expect(numbers.bars).toHaveLength(30)
@@ -244,6 +234,14 @@ describe('periodNumbers', () => {
 	it('adds no change for all time, nor without numbers before', () => {
 		expect(periodNumbers(counters, periodAt('all', TODAY, BOUNDS), BOUNDS)).toMatchObject({ decidedChange: null, compared: null })
 		expect(periodNumbers(counters, periodAt('month', '2026-09-10', BOUNDS), BOUNDS)).toMatchObject({ decided: 0, decidedChange: null })
+	})
+
+	// spec: STATS-001.55
+	it('adds no change to a period without a count, also with numbers before', () => {
+		const november = { from: '2026-11-01', to: '2026-11-30' }
+		const before = counters.filter((each) => each.day < november.from)
+
+		expect(periodNumbers(before, periodAt('month', TODAY, BOUNDS), BOUNDS)).toMatchObject({ counted: false, decided: 0, decidedChange: null })
 	})
 
 	// spec: STATS-001.55
