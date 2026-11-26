@@ -92,6 +92,8 @@ test('keeps the navigation open on every page once the user opened it on an iPad
 	await page.goto('/index.php/apps/honeycomb/statistics')
 	await page.locator('.app-navigation-toggle').click()
 	await expect(page.locator('.app-navigation-toggle')).toHaveAttribute('aria-expanded', 'true')
+	// NcAppNavigation reports the toggle only after its slide animation.
+	await expect.poll(() => page.evaluate((name) => window.localStorage.getItem(`honeycomb.navigationOpen.${name}`), user.username)).toBe('true')
 
 	for (const route of ROUTES) {
 		await page.goto(route.path)
