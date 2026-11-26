@@ -61,4 +61,21 @@ describe('PhotoGrid keeps the focus when pictures leave it', () => {
 		outside.remove()
 		wrapper.unmount()
 	})
+
+	// spec: GRID-001.24
+	it('keeps the focused photo on a narrower filter and goes back to the top on a wider one', async () => {
+		const { wrapper, pictures, grid, scroller } = await mounted()
+		await grid.reveal(41)
+		const narrower = pictures.filter((_, index) => index % 2 === 1)
+
+		await wrapper.setProps({ pictures: narrower })
+		await wrapper.vm.$nextTick()
+		expect(focusedName()).toBe('IMG_41')
+		expect(scroller.scrollTop).toBeGreaterThan(0)
+
+		await wrapper.setProps({ pictures })
+		expect(grid.focusedIndex()).toBe(0)
+		expect(scroller.scrollTop).toBe(0)
+		wrapper.unmount()
+	})
 })
