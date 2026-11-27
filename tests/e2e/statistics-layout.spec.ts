@@ -92,3 +92,101 @@ for (const width of [820, 390]) {
 		await page.screenshot({ path: testInfo.outputPath(`statistics-layout-${width}.png`), animations: 'disabled' })
 	})
 }
+
+/** The fixed width of the period's name between the arrows (STATS-001.74). */
+const NAME_WIDTH = 168
+const PHONE_LIMIT = 560
+const period = (page: Page) => page.getByRole('group', { name: 'Period' })
+const previous = (page: Page) => page.getByRole('button', { name: 'Previous period' })
+const next = (page: Page) => page.getByRole('button', { name: 'Next period' })
+const today = (page: Page) => page.getByRole('button', { name: 'Today' })
+const name = (page: Page) => page.locator('.statistics-period__label')
+/** Counted since March 2025, so the arrows can step back from November 2026. */
+const STEPPABLE = { ...ANSWER, firstDay: '2025-03-14' }
+
+/** The arrows' left edges, which must not move while the user steps. */
+const arrows = async (page: Page) => [(await box(previous(page))).x, (await box(next(page))).x]
+
+/** Expects the segment's buttons to touch each other inside the segment, one group without gaps. */
+async function expectOneSegment(page: Page): Promise<void> {
+	const segment = await box(period(page))
+	const buttons = period(page).getByRole('button')
+	await expect(buttons).toHaveCount(4)
+	for (let index = 0; index < 4; index++) {
+		const button = await box(buttons.nth(index))
+		expect(Math.abs(button.y - segment.y), 'the buttons share one line').toBeLessThanOrEqual(TOLERANCE_PX)
+		if (index > 0) {
+			const before = await box(buttons.nth(index - 1))
+			expect(Math.abs(button.x - before.x - before.width), 'no gap between two buttons').toBeLessThanOrEqual(TOLERANCE_PX)
+		}
+	}
+}
+
+for (const width of [1440, 1180, 820]) {
+	// spec: STATS-001.74
+	test(`puts the segment left and Today before a stepper of fixed width right at ${width} px ${WEBKIT}`, async ({ page }, testInfo) => {
+		await page.setViewportSize({ width, height: HEIGHT })
+		await openStatistics(page, STEPPABLE)
+		const tiles = await box(page.locator('.delete-stats'))
+		const right = tiles.x + tiles.width
+
+		await expectOneSegment(page)
+		const segment = await box(period(page))
+		expect(Math.abs(segment.x - tiles.x), 'the segment starts at the content edge').toBeLessThanOrEqual(TOLERANCE_PX)
+		const todayBox = await box(today(page))
+		const previousBox = await box(previous(page))
+		const nextBox = await box(next(page))
+		const nameBox = await box(name(page))
+		expect(Math.abs(nameBox.width - NAME_WIDTH)).toBeLessThanOrEqual(TOLERANCE_PX)
+		expect(todayBox.x + todayBox.width, 'Today before the stepper').toBeLessThanOrEqual(previousBox.x)
+		expect(segment.x + segment.width, 'the segment clear of Today').toBeLessThan(todayBox.x)
+		expect(Math.abs(nextBox.x + nextBox.width - right), 'the stepper ends at the content edge').toBeLessThanOrEqual(TOLERANCE_PX)
+		for (const control of [todayBox, previousBox, nameBox, nextBox]) {
+			expect(Math.abs(control.y + control.height / 2 - (segment.y + segment.height / 2)), 'one row').toBeLessThanOrEqual(TOLERANCE_PX)
+		}
+		await page.screenshot({ path: testInfo.outputPath(`statistics-controls-${width}.png`), animations: 'disabled' })
+
+		const steady = await arrows(page)
+		await previous(page).click()
+		await expect(name(page)).toHaveText('October 2026')
+		expect(await arrows(page), 'the arrows stay put').toEqual(steady)
+		await today(page).click()
+		await page.getByRole('button', { name: 'Week' }).click()
+		await expect(name(page)).toContainText('2026')
+		expect(await arrows(page)).toEqual(steady)
+		await page.getByRole('button', { name: 'Year' }).click()
+		await expect(name(page)).toHaveText('2026')
+		expect(await arrows(page)).toEqual(steady)
+
+		await page.getByRole('button', { name: 'All time' }).click()
+		await expect(name(page)).toHaveText('Since Mar 14, 2025')
+		await expect(today(page)).toHaveCount(0)
+		await expect(previous(page)).toHaveCount(0)
+		const since = await box(name(page))
+		expect(Math.abs(since.x + since.width - right), 'Since {day} at the right edge').toBeLessThanOrEqual(TOLERANCE_PX)
+		expect(since.width).toBeLessThan(width / 2)
+	})
+}
+
+// spec: STATS-001.74
+test(`puts the segment and the stepper on two full-width rows on a phone ${WEBKIT}`, async ({ page }, testInfo) => {
+	await page.setViewportSize({ width: 390, height: HEIGHT })
+	await openStatistics(page, ANSWER)
+	const tiles = await box(page.locator('.delete-stats'))
+	expect(tiles.width).toBeLessThan(PHONE_LIMIT)
+
+	await expectOneSegment(page)
+	const segment = await box(period(page))
+	const stepper = await box(page.locator('.statistics-period__stepper'))
+	for (const row of [segment, stepper]) {
+		expect(Math.abs(row.x - tiles.x), 'the row starts at the content edge').toBeLessThanOrEqual(TOLERANCE_PX)
+		expect(Math.abs(row.width - tiles.width), 'the row spans the content').toBeLessThanOrEqual(TOLERANCE_PX)
+	}
+	expect(stepper.y, 'the stepper below the segment').toBeGreaterThanOrEqual(segment.y + segment.height)
+	const todayBox = await box(today(page))
+	expect(todayBox.x + todayBox.width).toBeLessThanOrEqual((await box(previous(page))).x)
+	const nextBox = await box(next(page))
+	expect(Math.abs(nextBox.x + nextBox.width - tiles.x - tiles.width)).toBeLessThanOrEqual(TOLERANCE_PX)
+	expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
+	await page.screenshot({ path: testInfo.outputPath('statistics-controls-390.png'), animations: 'disabled' })
+})

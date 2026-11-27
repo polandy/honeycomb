@@ -2210,3 +2210,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   cull* moves into the title row through a `PageLayout` `actions` slot, on the statistics page
   only for now, since *Similarity* and *Orphaned sidecars* keep their own 640 px column (TODO
   item) (STATS-001.73, layout variant A, autonomous).
+- 2026-11-27: The statistics control row keeps `NcButton` with `pressed` for the segment (no switch
+  to `NcRadioGroup`, so its words and roles stay) and draws one segment by a shared background
+  behind tertiary buttons of full control height, without the mockup's 4 px inner padding, so each
+  button keeps its 44 px touch target; the period's name is 168 px wide and wraps (a week across
+  the new year) rather than widen, so the arrows never move; one row from a content width of
+  560 px, as in the mockup (STATS-001.74, layout variant A task 3, autonomous).
