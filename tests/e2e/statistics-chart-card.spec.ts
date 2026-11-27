@@ -93,5 +93,11 @@ for (const width of WIDTHS) {
 		expect(cut, 'every name in Chart shows in full').toEqual([])
 		expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
 		await page.screenshot({ path: testInfo.outputPath(`statistics-chart-card-${width}.png`), animations: 'disabled' })
+
+		await card(page).getByRole('button', { name: 'Show as table' }).click()
+		const chartSwitchBack = await box(card(page).getByRole('button', { name: 'Show as chart' }))
+		expect(near(chartSwitchBack.x + chartSwitchBack.width, inner.right), 'Show as chart at the card\'s inner right edge').toBe(true)
+		await expect(card(page).locator('.statistics-bars__legend')).toHaveCount(0)
+		await expect(detail).toHaveCount(0)
 	})
 }
