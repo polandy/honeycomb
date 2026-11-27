@@ -19,6 +19,9 @@ sudo -u www-data php /var/www/nextcloud/occ upgrade
 Clicking *Update* in *Apps* does the same as `occ app:update`. Until the update has run, the
 new code may read tables that do not exist yet, and saving a flag, a rating or a tag fails.
 
+The update to 0.1.3 drops the folder summaries written without the days their photos were shot,
+so *Photos added* on the statistics page fills in as the next folder scan writes them again.
+
 ## Installed before 0.2.0: install again
 
 0.2.0 replaces the migrations of 0.1.0 and of every Git checkout before 2026-11-23 with one

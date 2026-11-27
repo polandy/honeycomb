@@ -98,7 +98,7 @@ final class FolderTallyTest extends TestCase {
 
 	// spec: FOLDERS-005.4
 	public function testAFolderWithoutCaptureTimesOrPhotosHasNoAges(): void {
-		$this->assertSame(['photos' => 1, 'bytes' => 1, 'rawBytes' => 0, 'bursts' => 0, 'oldest' => null, 'newest' => null, 'lastActivity' => 5], FolderTally::of([self::photo('a.jpg', mtime: 5)], PairingExtensions::defaults()));
-		$this->assertSame(['photos' => 0, 'bytes' => 0, 'rawBytes' => 0, 'bursts' => 0, 'oldest' => null, 'newest' => null, 'lastActivity' => null], FolderTally::of([self::photo('notes.png')], PairingExtensions::defaults()));
+		$this->assertSame(['photos' => 1, 'bytes' => 1, 'rawBytes' => 0, 'bursts' => 0, 'oldest' => null, 'newest' => null, 'lastActivity' => 5, 'shotDays' => ['1970-01-01' => 1]], FolderTally::of([self::photo('a.jpg', mtime: 5)], PairingExtensions::defaults()));
+		$this->assertSame(['photos' => 0, 'bytes' => 0, 'rawBytes' => 0, 'bursts' => 0, 'oldest' => null, 'newest' => null, 'lastActivity' => null, 'shotDays' => []], FolderTally::of([self::photo('notes.png')], PairingExtensions::defaults()));
 	}
 }

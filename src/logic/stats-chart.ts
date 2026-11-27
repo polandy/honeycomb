@@ -4,11 +4,11 @@ import type { BarUnit, PeriodBar } from './stats-period.ts'
 
 import { METRIC } from './statistics.ts'
 
-/** What the statistics chart shows (STATS-001.63). */
-export type ChartMetric = 'decided' | 'freed' | 'active'
+/** What the statistics chart shows (STATS-001.63, STATS-001.82). */
+export type ChartMetric = 'decided' | 'freed' | 'active' | 'added'
 
 /** One stacked part of a bar. */
-export type ChartPart = 'picked' | 'rejected' | 'trash' | 'deleted' | 'raws' | 'active'
+export type ChartPart = 'picked' | 'rejected' | 'trash' | 'deleted' | 'raws' | 'active' | 'added'
 
 /** One part's height in percent of the chart's scale. */
 export interface BarSegment {
@@ -16,10 +16,11 @@ export interface BarSegment {
 	readonly percent: number
 }
 
-/** What the detail panel shows of one bar (STATS-001.64). */
+/** What the detail panel shows of one bar, with its photos added unless it is to come (STATS-001.64, STATS-001.82). */
 export type BarDetail
-	= | { readonly state: 'future' | 'beforeFirst' | 'empty' }
-		| { readonly state: 'counted', readonly decided: number, readonly picked: number, readonly rejected: number, readonly freedBytes: number, readonly activeSeconds: number }
+	= | { readonly state: 'future' }
+		| { readonly state: 'beforeFirst' | 'empty', readonly added: number }
+		| { readonly state: 'counted', readonly decided: number, readonly picked: number, readonly rejected: number, readonly freedBytes: number, readonly activeSeconds: number, readonly added: number }
 
 /** The period a drill-down opens. */
 export interface DrillTarget {
@@ -28,7 +29,7 @@ export interface DrillTarget {
 }
 
 /** The chart choices in the order of the switch. */
-export const CHART_METRICS: readonly ChartMetric[] = ['decided', 'freed', 'active']
+export const CHART_METRICS: readonly ChartMetric[] = ['decided', 'freed', 'active', 'added']
 
 const PERCENT = 100
 /** The counter of each part, stacked from the bottom. */
@@ -39,11 +40,13 @@ const PART_METRIC: Readonly<Record<ChartPart, string>> = {
 	deleted: METRIC.deletedBytes,
 	raws: METRIC.rawsRemovedBytes,
 	active: METRIC.activeSeconds,
+	added: METRIC.photosAdded,
 }
 const PARTS: Readonly<Record<ChartMetric, readonly ChartPart[]>> = {
 	decided: ['picked', 'rejected'],
 	freed: ['trash', 'deleted', 'raws'],
 	active: ['active'],
+	added: ['added'],
 }
 
 const sum = (bar: PeriodBar, metric: string): number => bar.sums[metric] ?? 0
@@ -73,16 +76,14 @@ export function barSegments(bar: PeriodBar, chart: ChartMetric, scale: number): 
 	return PARTS[chart].map((part) => ({ part, percent: (partValue(bar, part) * PERCENT) / scale }))
 }
 
-/** A bar's numbers, or why it has none: to come, before the first counted day, nothing counted (STATS-001.64). */
+/** A bar's numbers, or why it has none: to come, before the first counted day, nothing counted (STATS-001.64, STATS-001.82). */
 export function barDetail(bar: PeriodBar): BarDetail {
 	if (bar.future) {
 		return { state: 'future' }
 	}
-	if (bar.beforeFirst) {
-		return { state: 'beforeFirst' }
-	}
-	if (!bar.counted) {
-		return { state: 'empty' }
+	const added = sum(bar, METRIC.photosAdded)
+	if (bar.beforeFirst || !bar.counted) {
+		return { state: bar.beforeFirst ? 'beforeFirst' : 'empty', added }
 	}
 	return {
 		state: 'counted',
@@ -91,6 +92,7 @@ export function barDetail(bar: PeriodBar): BarDetail {
 		rejected: sum(bar, METRIC.rejected),
 		freedBytes: barTotal(bar, 'freed'),
 		activeSeconds: sum(bar, METRIC.activeSeconds),
+		added,
 	}
 }
 
@@ -102,7 +104,7 @@ export function drillTarget(bar: PeriodBar, unit: BarUnit): DrillTarget | null {
 	return { kind: unit, anchor: bar.range.from }
 }
 
-/** The bars a table lists: up to today from the first counted day on (STATS-001.66). */
-export function tableBars(bars: readonly PeriodBar[]): PeriodBar[] {
-	return bars.filter((bar) => !bar.future && !bar.beforeFirst)
+/** The bars a table lists: up to today from the first counted day on, and before it those with photos added in their table (STATS-001.66, STATS-001.82). */
+export function tableBars(bars: readonly PeriodBar[], chart: ChartMetric): PeriodBar[] {
+	return bars.filter((bar) => !bar.future && (!bar.beforeFirst || (chart === 'added' && barTotal(bar, chart) > 0)))
 }

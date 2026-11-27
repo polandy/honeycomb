@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { FolderMark } from '../logic/folder-hierarchy.ts'
-import type { FolderDone, FolderPreview, FolderRow } from '../logic/folder-row.ts'
+import type { FolderDone, FolderPreview, FolderRow, ShotDay } from '../logic/folder-row.ts'
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -128,6 +128,7 @@ function isFolderRow(value: unknown): value is FolderRow {
 		&& ROW_NUMBERS.every((key) => typeof value[key] === 'number')
 		&& ROW_TIMES.every((key) => value[key] === null || typeof value[key] === 'number')
 		&& Array.isArray(value.previews) && value.previews.every(isFolderPreview)
+		&& Array.isArray(value.shotDays) && value.shotDays.every(isShotDay)
 		&& typeof value.root === 'string' && typeof value.path === 'string'
 		&& (value.done === null || isFolderDone(value.done))
 }
@@ -135,6 +136,11 @@ function isFolderRow(value: unknown): value is FolderRow {
 /** Whether a value is one of a folder's preview pictures. */
 function isFolderPreview(value: unknown): value is FolderPreview {
 	return isRecord(value) && typeof value.fileId === 'number' && typeof value.mtime === 'number'
+}
+
+/** Whether a value is one of a folder's shot days. */
+function isShotDay(value: unknown): value is ShotDay {
+	return isRecord(value) && typeof value.day === 'string' && typeof value.photos === 'number'
 }
 
 /** Whether a value is a folder's done status. */

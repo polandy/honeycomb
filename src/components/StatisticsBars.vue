@@ -3,6 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
+import type { PeriodIntake } from '../logic/stats-added.ts'
 import type { ChartMetric, DrillTarget } from '../logic/stats-chart.ts'
 import type { BarUnit, PeriodBar, PeriodKind } from '../logic/stats-period.ts'
 
@@ -13,9 +14,10 @@ import StatisticsBarDetail from './StatisticsBarDetail.vue'
 import StatisticsBarPlot from './StatisticsBarPlot.vue'
 import StatisticsBarTable from './StatisticsBarTable.vue'
 import { CHART_METRICS, chartParts } from '../logic/stats-chart.ts'
-import { chartHeading, chartSwitchLabel, partLabel } from '../statistics/chart-words.ts'
+import { chartHeading, chartSwitchLabel, intakeLine, partLabel } from '../statistics/chart-words.ts'
 
-const props = defineProps<{ bars: readonly PeriodBar[], kind: PeriodKind, unit: BarUnit, counted: boolean }>()
+/** `counted` is whether the period has a counter or photos added; `intake` its intake line, null for none (STATS-001.83). */
+const props = defineProps<{ bars: readonly PeriodBar[], kind: PeriodKind, unit: BarUnit, counted: boolean, intake: PeriodIntake | null }>()
 /** `drill` opens the month or year of a held bar (STATS-001.65). */
 const emit = defineEmits<{ drill: [target: DrillTarget] }>()
 
@@ -70,6 +72,9 @@ async function drill(target: DrillTarget) {
 				</NcButton>
 			</div>
 		</div>
+		<p v-if="props.intake" class="statistics-bars__intake">
+			{{ intakeLine(props.intake) }}
+		</p>
 		<p v-if="!props.counted" class="statistics-bars__empty">
 			{{ t('honeycomb', 'Nothing counted in this period.') }}
 		</p>
@@ -149,20 +154,19 @@ async function drill(target: DrillTarget) {
 }
 
 .statistics-bars__switch {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
 	width: 100%;
 }
 
-.statistics-bars__switch > * {
-	flex: auto;
-}
-
-/* A phone has room for the three names only with narrow padding. */
+/* A phone has room for the four names only in two rows of two. */
 .statistics-bars__switch :deep(.button-vue) {
 	padding-inline: var(--default-grid-baseline);
 }
 
 @container (min-width: 560px) {
 	.statistics-bars__switch {
+		display: flex;
 		width: auto;
 	}
 
@@ -175,9 +179,14 @@ async function drill(target: DrillTarget) {
 	}
 }
 
-.statistics-bars__empty {
+.statistics-bars__empty,
+.statistics-bars__intake {
 	margin: 0;
 	color: var(--color-text-maxcontrast);
+}
+
+.statistics-bars__intake {
+	font-variant-numeric: tabular-nums;
 }
 
 .statistics-bars__legend {

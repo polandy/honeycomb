@@ -17,6 +17,12 @@ export interface FolderPreview {
 	readonly mtime: number
 }
 
+/** How many of a folder's pictures were shot on one `YYYY-MM-DD` day (ADR 0062). */
+export interface ShotDay {
+	readonly day: string
+	readonly photos: number
+}
+
 /** One folder as `GET /api/v1/library/folders` answers; times are Unix seconds, null when unknown. */
 export interface FolderRow {
 	readonly fileId: number
@@ -33,6 +39,7 @@ export interface FolderRow {
 	readonly newest: number | null
 	readonly lastActivity: number | null
 	readonly previews: readonly FolderPreview[]
+	readonly shotDays: readonly ShotDay[]
 	readonly permissions: number
 	readonly done: FolderDone | null
 }
