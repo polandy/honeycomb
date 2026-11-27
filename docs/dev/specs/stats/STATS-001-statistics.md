@@ -624,9 +624,11 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 
 - **Given** a period with a count
 - **When** the page shows the highlights below the tiles
-- **Then** it shows *Best day*, *Busiest weekday*, *Pace*, *Active days* and *Longest streak*, each
-  with its figure and a line of words; a period without a counter shows the line *Nothing counted
-  in this period.* instead
+- **Then** it shows one card *Highlights* with five cells, *Best day*, *Busiest weekday*, *Pace*,
+  *Active days* and *Longest streak*, each with its label first, its figure and a line of words; from
+  880 px of content width the cells form one strip of equal width, below that five rows, the label
+  at the start and the figure at the end; a period without a counter shows the line *Nothing
+  counted in this period.* in the card instead
 
 ### STATS-001.68 – Best day and Show day
 
@@ -755,3 +757,4 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | 2026-11-27 | The hero beside the bars on four columns, its figures as rows below the bar (.55, .59 reworded; .75; layout variant A task 4) |
 | 2026-11-27 | The chart as a card: header row, footer row with the key and *Show as table*, the detail panel as a filled area (.76; layout variant A task 5) |
 | 2026-11-27 | The tiles as cards: label first, 16 px padding, equal height, no padding on the lines on a touch screen (.77; layout variant A, task 6) |
+| 2026-11-27 | The highlights as one card with five cells, a strip from 880 px of content width, rows below (.67 reworded; layout variant A task 7) |
