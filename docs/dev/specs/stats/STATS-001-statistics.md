@@ -759,7 +759,8 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **When** it renders with a content width of 880 px or more, or less
 - **Then** from 880 px the activity calendar and *Clean-up* share one row of two equal columns and
   *Library progress* and *Work done* the next, 16 px apart, the cards of a row equally tall;
-  below 880 px they stack in this order: calendar, *Clean-up*, *Library progress*, *Work done*;
+  a card alone in its row, *Library progress* without *Work done*, spans both columns; below 880 px
+  they stack in this order: calendar, *Clean-up*, *Library progress*, *Work done*;
   below 560 px the cards' sides are 4 px in and the days of the calendar 2 px apart,
   so the calendar's squares stay 44 px wide
 

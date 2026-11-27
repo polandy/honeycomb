@@ -8,12 +8,11 @@ import { METRIC, periodSums } from './statistics.ts'
 /** The parts the space freed is made of, in the order of the bar (STATS-001.78). */
 export type CleanUpPart = 'trash' | 'deleted' | 'raws'
 
-/** One part of the space freed: its pictures or RAW files, its bytes and its whole percent of the bytes. */
+/** One part of the space freed: its pictures or RAW files and its bytes. */
 export interface CleanUpRow {
 	readonly part: CleanUpPart
 	readonly count: number
 	readonly bytes: number
-	readonly share: number
 }
 
 /** The space freed in a period and what it is made of. */
@@ -32,7 +31,6 @@ export interface WorkRow {
 	readonly foreign: number
 }
 
-const PERCENT = 100
 const WORK_METRICS: readonly (readonly [WorkKey, string])[] = [
 	['sidecarsCreated', METRIC.sidecarsCreated],
 	['sidecarsUpdated', METRIC.sidecarsUpdated],
@@ -57,7 +55,7 @@ export function cleanUp(counters: readonly Counter[], range: DayRange): CleanUp 
 		freedBytes,
 		rows: parts
 			.filter(([, count, bytes]) => count > 0 || bytes > 0)
-			.map(([part, count, bytes]) => ({ part, count, bytes, share: freedBytes === 0 ? 0 : Math.round(bytes * PERCENT / freedBytes) })),
+			.map(([part, count, bytes]) => ({ part, count, bytes })),
 	}
 }
 

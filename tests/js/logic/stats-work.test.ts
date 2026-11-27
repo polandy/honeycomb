@@ -24,9 +24,9 @@ describe('cleanUp', () => {
 		expect(cleanUp(counters, NOVEMBER)).toEqual({
 			freedBytes: 10_000,
 			rows: [
-				{ part: 'trash', count: 4, bytes: 8000, share: 80 },
-				{ part: 'deleted', count: 2, bytes: 1000, share: 10 },
-				{ part: 'raws', count: 5, bytes: 1000, share: 10 },
+				{ part: 'trash', count: 4, bytes: 8000 },
+				{ part: 'deleted', count: 2, bytes: 1000 },
+				{ part: 'raws', count: 5, bytes: 1000 },
 			],
 		})
 	})
@@ -35,7 +35,7 @@ describe('cleanUp', () => {
 	it('leaves a part without a count and bytes out, and keeps one with only a count', () => {
 		const only = [{ day: '2026-11-03', metric: METRIC.rawsRemoved, value: 2 }, { day: '2026-11-03', metric: METRIC.trashPictures, value: 0 }]
 
-		expect(cleanUp(only, NOVEMBER)).toEqual({ freedBytes: 0, rows: [{ part: 'raws', count: 2, bytes: 0, share: 0 }] })
+		expect(cleanUp(only, NOVEMBER)).toEqual({ freedBytes: 0, rows: [{ part: 'raws', count: 2, bytes: 0 }] })
 		expect(cleanUp([], NOVEMBER)).toEqual({ freedBytes: 0, rows: [] })
 	})
 })
