@@ -13,7 +13,6 @@ import { n, t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import { computed, onMounted, ref, watch } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import AppIcon from './AppIcon.vue'
 import DeleteStats from './DeleteStats.vue'
@@ -21,11 +20,13 @@ import PageLayout from './PageLayout.vue'
 import StatisticsBars from './StatisticsBars.vue'
 import StatisticsCalendar from './StatisticsCalendar.vue'
 import StatisticsCleanup from './StatisticsCleanup.vue'
+import StatisticsEmpty from './StatisticsEmpty.vue'
 import StatisticsHero from './StatisticsHero.vue'
 import StatisticsHighlights from './StatisticsHighlights.vue'
 import StatisticsLibrary from './StatisticsLibrary.vue'
 import StatisticsPeriod from './StatisticsPeriod.vue'
 import StatisticsRead from './StatisticsRead.vue'
+import StatisticsSkeleton from './StatisticsSkeleton.vue'
 import StatisticsWork from './StatisticsWork.vue'
 import YearReview from './YearReview.vue'
 import { yearOf } from '../logic/days.ts'
@@ -169,7 +170,6 @@ onMounted(async () => {
 		roots.value = parsed.libraryRoots
 		answer.value = statistics
 		showLocated()
-		closeHint()
 		await loadLibrary()
 	} catch (error) {
 		failed.value = true
@@ -194,13 +194,13 @@ onMounted(async () => {
 			<NcNoteCard v-if="failed" type="error">
 				{{ t('honeycomb', 'The statistics could not be loaded.') }}
 			</NcNoteCard>
-			<NcLoadingIcon v-else-if="answer === null" />
+			<StatisticsSkeleton v-else-if="answer === null" />
 			<template v-else>
 				<NcNoteCard v-if="!keepStatistics" type="info">
 					{{ t('honeycomb', 'Statistics are off. Turn on Keep statistics in the settings to count again.') }}
 				</NcNoteCard>
 				<template v-if="counted">
-					<YearReview v-if="review" :review="review" />
+					<YearReview v-if="review" :review="review" @open="closeHint" />
 					<StatisticsPeriod
 						:period="period"
 						:bounds="bounds"
@@ -228,9 +228,7 @@ onMounted(async () => {
 						<StatisticsCleanup :cleanUp="freed" />
 					</div>
 				</template>
-				<p v-else>
-					{{ t('honeycomb', 'Nothing counted yet. Cull a folder and the numbers show here.') }}
-				</p>
+				<StatisticsEmpty v-else :foldersUrl="cullUrl" />
 				<div class="statistics-page__pair">
 					<StatisticsLibrary :roots="roots" :card="library" :failed="libraryFailed" />
 					<StatisticsWork v-if="counted" :rows="work" />
