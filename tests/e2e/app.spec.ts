@@ -12,6 +12,11 @@ test('runs background jobs only when a test asks for one, never inside a page re
 	expect(occ(['config:app:get', 'core', 'backgroundjobs_mode', '--default-value=ajax']).trim()).toBe('cron')
 })
 
+// With internet on, every `user:add` asks HaveIBeenPwned and a runner's slow DNS stalls the test for minutes.
+test('runs Nextcloud without the internet, so no test waits on the runner\'s DNS', () => {
+	expect(occ(['config:system:get', 'has_internet_connection', '--default-value=true']).trim()).toBe('false')
+})
+
 // spec: APP-001.3
 test('opens on the library setup while no library root is chosen, the folder picker closed', async ({ page }) => {
 	await page.goto('/index.php/apps/honeycomb/')
