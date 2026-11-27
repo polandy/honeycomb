@@ -1,6 +1,6 @@
-import type { LibraryProgress } from './folder-progress.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { LibraryProgress } from './folder-progress.ts'
 import type { FolderRow } from './folder-row.ts'
 import type { Counter, StatsAnswer } from './statistics.ts'
 
