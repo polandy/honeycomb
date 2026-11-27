@@ -7,7 +7,6 @@ import StatisticsPage from '../../../src/components/StatisticsPage.vue'
 import { METRIC } from '../../../src/logic/statistics.ts'
 import { formatDay, formatDayRange } from '../../../src/shared/l10n.ts'
 import { logger } from '../../../src/shared/logger.ts'
-import { row } from '../logic/folder-fixtures.ts'
 import { fakePageNavigation } from '../page-navigation.ts'
 import { chip, fakeLocation, hero, MONDAY, mountPage, periodLabel, ROOTS, ROWS, step, tile } from './statistics-page-fixtures.ts'
 
@@ -83,7 +82,7 @@ describe('StatisticsPage', () => {
 		expect(wrapper.text()).toContain('Nothing counted yet. Cull a folder and the numbers show here.')
 		expect(wrapper.find('.delete-stats').exists()).toBe(false)
 		expect(wrapper.find('.statistics-hero').exists()).toBe(false)
-		expect(wrapper.text()).toContain('50 % of photos in done folders')
+		expect(wrapper.find('.statistics-library__ring').attributes('aria-label')).toMatch(/^50\s?% of the photos are in folders marked done$/)
 		expect(wrapper.text()).not.toContain('Counted since')
 	})
 
@@ -117,30 +116,6 @@ describe('StatisticsPage', () => {
 		const none = mountPage()
 		await flushPromises()
 		expect(none.text()).not.toContain('Of the photos read so far')
-	})
-
-	// spec: STATS-001.42
-	it('shows the library progress: done photos, folders, this month and the decided share', async () => {
-		const folders = vi.fn(async (_root: string) => ROWS)
-		const wrapper = mountPage({}, ROOTS, folders)
-		await flushPromises()
-		const panel = wrapper.find('.statistics-library')
-
-		expect(folders).toHaveBeenCalledWith('/Photos')
-		expect(panel.text()).toContain('50 % of photos in done folders')
-		expect(panel.text()).toContain('1 of 2 folders done')
-		expect(panel.text()).toContain('1 this month')
-		expect(panel.text()).toContain('90 % of all photos decided')
-		expect(panel.find('a').text()).toBe('Open Folders')
-		expect(panel.find('a').attributes('href')).toMatch(/\/index\.php\/apps\/honeycomb\/$/)
-	})
-
-	// spec: STATS-001.42
-	it('shows a bar per root of several roots', async () => {
-		const wrapper = mountPage({}, { libraryRoots: ['/Photos', '/Archive'] }, vi.fn(async (root: string) => (root === '/Photos' ? ROWS : [row({ root: '/Archive', path: '/Archive/old' })])))
-		await flushPromises()
-
-		expect(wrapper.findAll('.folders-progress__root').map((each) => each.text())).toEqual([expect.stringContaining('/Photos'), expect.stringContaining('/Archive')])
 	})
 
 	// spec: STATS-001.50

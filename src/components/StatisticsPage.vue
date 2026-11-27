@@ -29,11 +29,11 @@ import StatisticsRead from './StatisticsRead.vue'
 import StatisticsWork from './StatisticsWork.vue'
 import YearReview from './YearReview.vue'
 import { yearOf } from '../logic/days.ts'
-import { folderProgress } from '../logic/folder-progress.ts'
 import { parseSettings } from '../logic/settings.ts'
 import { addedCounters, periodIntake, withAdded } from '../logic/stats-added.ts'
 import { periodCalendar } from '../logic/stats-calendar.ts'
 import { periodHighlights } from '../logic/stats-highlights.ts'
+import { libraryCard } from '../logic/stats-library.ts'
 import { parsePeriodHash, periodHash, resolveLocation } from '../logic/stats-location.ts'
 import { periodOverview } from '../logic/stats-overview.ts'
 import { periodAt, periodNumbers, periodRun } from '../logic/stats-period.ts'
@@ -87,8 +87,8 @@ const roots = ref<readonly string[]>([])
 const added = computed(() => addedCounters(libraryRows.value))
 const chartBars = computed(() => withAdded(numbers.value!.bars, added.value))
 const intake = computed(() => periodIntake(answer.value!.counters, added.value, period.value.range))
-/** The library's progress as of the user's today, whose month counts as this month (STATS-001.42). */
-const library = computed(() => answer.value === null ? null : folderProgress(libraryRows.value, roots.value, new Date(`${answer.value.today}T00:00:00Z`)))
+/** The library card as of the user's today, its forecast at the net pace of the last 90 days (STATS-001.42, STATS-001.84). */
+const library = computed(() => answer.value === null ? null : libraryCard(libraryRows.value, roots.value, answer.value, added.value))
 const cullUrl = generateUrl('/apps/honeycomb/')
 const stats = computed(() => {
 	const sums = overview.value
@@ -232,7 +232,7 @@ onMounted(async () => {
 					{{ t('honeycomb', 'Nothing counted yet. Cull a folder and the numbers show here.') }}
 				</p>
 				<div class="statistics-page__pair">
-					<StatisticsLibrary :roots="roots" :progress="library" :failed="libraryFailed" />
+					<StatisticsLibrary :roots="roots" :card="library" :failed="libraryFailed" />
 					<StatisticsWork v-if="counted" :rows="work" />
 				</div>
 				<StatisticsRead :read="answer.read" />

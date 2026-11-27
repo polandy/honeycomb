@@ -49,9 +49,14 @@ Open **Statistics** in the navigation, or press **Statistics** on the *Cull fini
   shows the pictures decided against the busiest one (a third, two thirds, more); days to come are
   hatched, days before the first count dotted and today framed. Tap a square to hold its numbers
   in the panel below; a held month of all time offers *Show {month}*.
-- **Library progress:** the share of your photos in done folders, for the library and each root,
-  with the folders done, those marked done this month and the share of photos decided; *Open
-  Folders* leads to the list ([cleaning up the library](cleaning-up-the-library.md)).
+- **Library progress:** a ring with the share of your photos in done folders; beside it the share
+  of photos decided, the folders done (*+n this month*) and the photos still undecided, and with
+  several roots a bar per root. A forecast says how long the rest takes at your pace of the last
+  90 days, the photos decided less the photos added a day (*About 7 weeks*); when you add photos
+  faster than you decide, it says *At this pace the backlog grows*, and without a decision in those
+  days it says nothing. *Up to 312 GB of RAW files lie in folders marked done* tells what *Remove
+  RAWs* could free there (less where *Keep RAW* is set); *Open Folders* leads to the list
+  ([cleaning up the library](cleaning-up-the-library.md)). The card does not hang on the period.
 - **Of the pictures read so far:** the shares picked, rejected, unflagged and rated among the
   pictures whose XMP honeycomb has read. A folder you have not opened yet is not in it, whichever
   program set its flags.
