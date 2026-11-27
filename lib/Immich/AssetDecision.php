@@ -34,11 +34,6 @@ final readonly class AssetDecision {
 	) {
 	}
 
-	/** The same decision with what was last written for it. */
-	public function withWritten(?WrittenState $written): self {
-		return new self($this->assetId, $this->rating, $this->colourLabel, $this->flag, $this->keepRaw, $this->takenAt, $this->cameraModel, $this->kind, $this->assetUpdatedAt, $written);
-	}
-
 	/** One decision of a save's body; anything malformed is a bad request (IMMICH-003.5). */
 	public static function fromRequest(mixed $raw): self {
 		if (!is_array($raw) || array_diff(array_keys($raw), self::KEYS) !== [] || count($raw) !== count(self::KEYS)) {

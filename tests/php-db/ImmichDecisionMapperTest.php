@@ -14,6 +14,7 @@ use OCA\Honeycomb\Immich\AssetDecision;
 use OCA\Honeycomb\Immich\AssetKind;
 use OCA\Honeycomb\Immich\ListingFilters;
 use OCA\Honeycomb\Immich\WrittenState;
+use OCA\Honeycomb\Tests\Immich\FakeImmichDecisionStore;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 
 /** The Immich decisions in the decision table and their facets (ADR 0043, 0054). */
@@ -170,7 +171,7 @@ final class ImmichDecisionMapperTest extends DbTestCase {
 		$this->decisions->save('alice', 'alice-phone', [self::decision(1, Flag::Unflagged)], 200);
 
 		$found = $this->decisions->find('alice', 'alice-phone', [self::id(1), self::id(2)]);
-		$this->assertEquals(self::decision(1, Flag::Unflagged)->withWritten(new WrittenState(Flag::Rejected, 3, -1)), $found[self::id(1)]);
+		$this->assertEquals(FakeImmichDecisionStore::withWritten(self::decision(1, Flag::Unflagged), new WrittenState(Flag::Rejected, 3, -1)), $found[self::id(1)]);
 		$this->assertNull($found[self::id(2)]->written);
 	}
 

@@ -10,6 +10,7 @@ namespace OCA\Honeycomb\Tests\Immich;
 use OCA\Honeycomb\Immich\AssetDecision;
 use OCA\Honeycomb\Immich\ImmichDecisionStore;
 use OCA\Honeycomb\Immich\ListingFilters;
+use OCA\Honeycomb\Immich\WrittenState;
 use OCA\Honeycomb\Tests\Service\FakeDbException;
 
 /** The decision table in memory, keyed by connection and asset like its unique index. */
@@ -28,7 +29,7 @@ final class FakeImmichDecisionStore implements ImmichDecisionStore {
 		foreach ($decisions as $decision) {
 			$key = "$connectionId/{$decision->assetId}";
 			$written = $this->rows[$key]['decision']->written ?? null;
-			$this->rows[$key] = ['user' => $userId, 'connection' => $connectionId, 'decision' => $decision->withWritten($written), 'updatedAt' => $updatedAt];
+			$this->rows[$key] = ['user' => $userId, 'connection' => $connectionId, 'decision' => self::withWritten($decision, $written), 'updatedAt' => $updatedAt];
 		}
 	}
 
@@ -37,7 +38,7 @@ final class FakeImmichDecisionStore implements ImmichDecisionStore {
 		foreach ($written as $assetId => $state) {
 			$key = "$connectionId/$assetId";
 			if (($this->rows[$key]['user'] ?? null) === $userId) {
-				$this->rows[$key]['decision'] = $this->rows[$key]['decision']->withWritten($state);
+				$this->rows[$key]['decision'] = self::withWritten($this->rows[$key]['decision'], $state);
 			}
 		}
 	}
@@ -108,5 +109,10 @@ final class FakeImmichDecisionStore implements ImmichDecisionStore {
 			&& ($filters->takenBefore === null || $row->takenAt < $filters->takenBefore)
 			&& ($filters->devices === [] || in_array($row->cameraModel, $filters->devices, true))
 			&& ($filters->kinds === [] || in_array($row->kind, $filters->kinds, true))));
+	}
+
+	/** The same decision with what was last written for it. */
+	public static function withWritten(AssetDecision $decision, ?WrittenState $written): AssetDecision {
+		return new AssetDecision($decision->assetId, $decision->rating, $decision->colourLabel, $decision->flag, $decision->keepRaw, $decision->takenAt, $decision->cameraModel, $decision->kind, $decision->assetUpdatedAt, $written);
 	}
 }
