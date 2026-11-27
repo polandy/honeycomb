@@ -107,6 +107,12 @@ const STEPPABLE = { ...ANSWER, firstDay: '2025-03-14' }
 /** The arrows' left edges, which must not move while the user steps. */
 const arrows = async (page: Page) => [(await box(previous(page))).x, (await box(next(page))).x]
 
+/** Expects the arrows where `steady` had them, within the tolerance WebKit's sub-pixel layout units need. */
+async function expectArrowsAt(page: Page, steady: number[]): Promise<void> {
+	const now = await arrows(page)
+	now.forEach((x, index) => expect(Math.abs(x - steady[index]!), 'the arrows stay put').toBeLessThanOrEqual(TOLERANCE_PX))
+}
+
 /** Expects the segment's buttons to touch each other inside the segment, one group without gaps. */
 async function expectOneSegment(page: Page): Promise<void> {
 	const segment = await box(period(page))
@@ -149,14 +155,14 @@ for (const width of [1440, 1180, 820]) {
 		const steady = await arrows(page)
 		await previous(page).click()
 		await expect(name(page)).toHaveText('October 2026')
-		expect(await arrows(page), 'the arrows stay put').toEqual(steady)
+		await expectArrowsAt(page, steady)
 		await today(page).click()
 		await page.getByRole('button', { name: 'Week' }).click()
 		await expect(name(page)).toContainText('2026')
-		expect(await arrows(page)).toEqual(steady)
+		await expectArrowsAt(page, steady)
 		await page.getByRole('button', { name: 'Year' }).click()
 		await expect(name(page)).toHaveText('2026')
-		expect(await arrows(page)).toEqual(steady)
+		await expectArrowsAt(page, steady)
 
 		await page.getByRole('button', { name: 'All time' }).click()
 		await expect(name(page)).toHaveText('Since Mar 14, 2025')
