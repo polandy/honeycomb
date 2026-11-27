@@ -60,7 +60,7 @@ test('shows what the space freed is made of, as a bar of three painted parts and
 	const whole = (await box(cleanup(page).locator('.statistics-cleanup__split'))).width
 	expect(widths.map((width) => Math.round(width / whole * 100))).toEqual([40, 10, 50])
 	for (const part of ['trash', 'deleted', 'raws']) {
-		const style = await cleanup(page).locator(`.statistics-bars__part--${part}`).evaluate((each) => getComputedStyle(each).backgroundImage !== 'none' || getComputedStyle(each).backgroundColor !== 'rgba(0, 0, 0, 0)')
+		const style = await cleanup(page).locator(`.statistics-cleanup__split .statistics-bars__part--${part}`).evaluate((each) => getComputedStyle(each).backgroundImage !== 'none' || getComputedStyle(each).backgroundColor !== 'rgba(0, 0, 0, 0)')
 		expect(style).toBe(true)
 	}
 	await expect(cleanup(page)).toContainText('Space is freed when the trash bin is emptied.')

@@ -286,6 +286,13 @@ onMounted(async () => {
 	border-radius: var(--border-radius-large);
 }
 
+/* Narrower sides keep the calendar's squares a finger wide on a phone. */
+@container (max-width: 559px) {
+	.statistics-page__pair > * {
+		padding-inline: calc(2 * var(--default-grid-baseline));
+	}
+}
+
 @container (min-width: 880px) {
 	.statistics-page__pair {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
