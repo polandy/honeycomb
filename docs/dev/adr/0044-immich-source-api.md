@@ -154,7 +154,11 @@ trashed, stack top) from it (ADR 0006); amended 2026-11-27, it first named the c
 handling and a resolution per asset, which would have computed the plan a second time in PHP
 (ADR 0006). The server still reads each asset's saved decision from the table: it trashes only a
 saved reject and stores the decision's flag and rating plus `immichRating` as what it wrote.
-`force:true` is never sent (ADR 0041).
+`force:true` is never sent (ADR 0041). The write plan starts from `GET write/candidates?cursor=`,
+which answers the user's decisions on the connection from honeycomb's tables, without asking
+Immich, as `{"candidates": [{"assetId", "decision": {"rating", "colourLabel", "flag", "keepRaw"},
+"written": {"flag", "rating", "immichRating"} | null, "decidedUpdatedAt"}], "nextCursor"}`, 500 per
+page in asset id order; the browser filters the pending ones (amended 2026-11-27).
 
 ### Resume position
 

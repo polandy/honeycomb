@@ -73,7 +73,7 @@ final class ImmichWriteCandidatesTest extends TestCase {
 	public static function malformedCursors(): array {
 		return [
 			'not an asset id' => ['zzz'],
-			'upper case' => [strtoupper(self::id(1))],
+			'upper case' => ['0A1B2C3D-4E5F-4A6B-8C7D-9E0F1A2B3C4D'],
 			'not a string' => [[self::id(1)]],
 		];
 	}

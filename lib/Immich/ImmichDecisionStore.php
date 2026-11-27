@@ -36,6 +36,12 @@ interface ImmichDecisionStore extends UserRowStore {
 	public function find(string $userId, string $connectionId, array $assetIds): array;
 
 	/**
+	 * The user's rows in asset id order, after the asset id, with what was last written for them.
+	 * @return list<AssetDecision>
+	 */
+	public function candidates(string $userId, string $connectionId, ?string $afterAssetId, int $limit): array;
+
+	/**
 	 * The user's rows that pass every filter, newest capture time first, ties by asset id, after the key.
 	 * @param ?array{takenAt: int, assetId: string} $after
 	 * @return list<AssetDecision>

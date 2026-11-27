@@ -12,6 +12,7 @@ use OCA\Honeycomb\Immich\Connections;
 use OCA\Honeycomb\Immich\ImmichPictureSource;
 use OCA\Honeycomb\Immich\ImmichStatus;
 use OCA\Honeycomb\Immich\ImmichWrite;
+use OCA\Honeycomb\Immich\ImmichWriteCandidates;
 use OCA\Honeycomb\Immich\ImmichWriteCheck;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -38,6 +39,7 @@ final class ImmichController extends Controller {
 		private ImmichStatus $status,
 		private ImmichPictureSource $source,
 		private ImmichWriteCheck $writeCheck,
+		private ImmichWriteCandidates $writeCandidates,
 		private ImmichWrite $write,
 	) {
 		parent::__construct($appName, $request);
@@ -97,6 +99,15 @@ final class ImmichController extends Controller {
 	public function writeCheck(string $connectionId, mixed $assetIds = null): Response {
 		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(
 			$this->writeCheck->check($this->connections->find($user->getUID(), $connectionId), $assetIds),
+		));
+	}
+
+	/** One page of the user's decisions on the connection with what was last written, from honeycomb's tables (IMMICH-004.22). */
+	#[NoAdminRequired]
+	#[FrontpageRoute(verb: 'GET', url: '/api/v1/immich/{connectionId}/write/candidates')]
+	public function writeCandidates(string $connectionId, mixed $cursor = null): Response {
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(
+			$this->writeCandidates->page($this->connections->find($user->getUID(), $connectionId), $cursor),
 		));
 	}
 

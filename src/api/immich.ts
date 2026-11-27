@@ -4,6 +4,7 @@ import type { DecisionRow, ImmichImageSize } from '../logic/immich-asset.ts'
 import type { ConnectionState, ConnectionStatus, FailedState, ImmichAvailability, ImmichConnection } from '../logic/immich-connections.ts'
 import type { CountsRequest, ImmichCounts } from '../logic/immich-counts.ts'
 import type { AssetsRequest, Page } from '../logic/immich-paging.ts'
+import type { WriteCandidate } from '../logic/immich-write-plan.ts'
 import type { ImmichPositionSave } from '../logic/immich-position.ts'
 
 import axios from '@nextcloud/axios'
@@ -73,6 +74,21 @@ export async function saveImmichDecisions(connectionId: string, rows: readonly D
 		throw new ApiResponseError('The Immich save came without the saved ids; check the server\'s version.')
 	}
 	return data.saved as string[]
+}
+
+/** Every decision on the connection with what was last written for it, page by page (IMMICH-004.22). */
+export async function immichWriteCandidates(connectionId: string): Promise<WriteCandidate[]> {
+	const candidates: WriteCandidate[] = []
+	let cursor: string | null = ''
+	while (cursor !== null) {
+		const { data } = await axios.get<unknown>(generateUrl(`${API}/immich/{connectionId}/write/candidates`, { connectionId }), { params: { cursor } })
+		if (!isRecord(data) || !Array.isArray(data.candidates) || !(data.nextCursor === null || typeof data.nextCursor === 'string')) {
+			throw new ApiResponseError('The Immich write candidates came without a candidates array and nextCursor; check the server\'s version.')
+		}
+		candidates.push(...data.candidates as WriteCandidate[])
+		cursor = data.nextCursor
+	}
+	return candidates
 }
 
 /** Stores where the user stopped in a connection (IMMICH-003.14, ADR 0044). */
