@@ -100,4 +100,13 @@ final class FolderSummaryMapperTest extends DbTestCase {
 		$this->assertSame(2, $this->summaries->deleteRows([$rowIds[0], $rowIds[2]]));
 		$this->assertSame([8], array_keys($this->summaries->find([7, 8, 9])));
 	}
+
+	// spec: LISTING-004.17
+	public function testDropsTheSummariesOfTheFoldersByFileId(): void {
+		$this->summaries->replace([self::row(7), self::row(8), self::row(9)]);
+
+		$this->summaries->drop([7, 9, 42]);
+
+		$this->assertSame([8], array_keys($this->summaries->find([7, 8, 9])));
+	}
 }

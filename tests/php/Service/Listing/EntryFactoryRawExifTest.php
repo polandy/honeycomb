@@ -33,7 +33,7 @@ final class EntryFactoryRawExifTest extends TestCase {
 		$manager = $this->createStub(IFilesMetadataManager::class);
 		$manager->method('getMetadataForFiles')->willReturn([7 => $this->metadata($values)]);
 		$factory = new EntryFactory($manager, new FakeVisualHashStore(), new FakeFlagStore(), new FakeQualityStore());
-		$entry = $this->entriesOf((new ListingService(new UserFolderResolver($this->rootWith(['/Photos' => $folder])), $factory))->list($this->user(), '/Photos', false))[0];
+		$entry = $this->entriesOf((new ListingService(new UserFolderResolver($this->rootWith(['/Photos' => $folder])), $factory, $this->noBackfill()))->list($this->user(), '/Photos', false))[0];
 		return ['captureTime' => $entry['captureTime'], 'camera' => $entry['camera']];
 	}
 

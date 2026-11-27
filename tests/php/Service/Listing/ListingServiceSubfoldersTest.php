@@ -27,7 +27,7 @@ final class ListingServiceSubfoldersTest extends TestCase {
 	use FakeFiles;
 
 	private function service(IRootFolder $root, int $entryLimit = Limits::ENTRIES): ListingService {
-		return new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class), new FakeVisualHashStore(), new FakeFlagStore(), new FakeQualityStore()), $entryLimit);
+		return new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class), new FakeVisualHashStore(), new FakeFlagStore(), new FakeQualityStore()), $this->noBackfill(), $entryLimit);
 	}
 
 	// spec: LISTING-001.4
@@ -145,7 +145,7 @@ final class ListingServiceSubfoldersTest extends TestCase {
 				return [];
 			},
 		);
-		$service = new ListingService(new UserFolderResolver($this->rootWith(['/Photos' => $photos])), new EntryFactory($metadata, new FakeVisualHashStore(), new FakeFlagStore(), new FakeQualityStore()));
+		$service = new ListingService(new UserFolderResolver($this->rootWith(['/Photos' => $photos])), new EntryFactory($metadata, new FakeVisualHashStore(), new FakeFlagStore(), new FakeQualityStore()), $this->noBackfill());
 
 		$listing = $service->list($this->user(), 'Photos', true);
 

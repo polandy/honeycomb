@@ -36,7 +36,7 @@ final class ListingServiceTest extends TestCase {
 		$manager->method('getMetadataForFiles')->willReturnCallback(
 			static fn (array $ids): array => array_intersect_key($metadata, array_flip($ids)),
 		);
-		return new ListingService(new UserFolderResolver($root), new EntryFactory($manager, $hashes, $flags, $quality), $entryLimit);
+		return new ListingService(new UserFolderResolver($root), new EntryFactory($manager, $hashes, $flags, $quality), $this->noBackfill(), $entryLimit);
 	}
 
 	// spec: LISTING-001.1

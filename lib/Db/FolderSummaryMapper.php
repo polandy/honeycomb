@@ -93,6 +93,11 @@ final class FolderSummaryMapper implements FolderSummaryStore {
 	}
 
 	#[\Override]
+	public function drop(array $fileIds): void {
+		$this->deleteFileRows(null, $fileIds);
+	}
+
+	#[\Override]
 	public function clearAll(): int {
 		return $this->clearRows(null);
 	}

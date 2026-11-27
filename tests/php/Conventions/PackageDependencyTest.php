@@ -28,7 +28,7 @@ final class PackageDependencyTest extends TestCase {
 		'Service\\Hash' => ['Domain', 'Service\\Files', 'Service\\Support'],
 		'Service\\Image' => ['Domain', 'Service\\Files', 'Service\\Support'],
 		'Service\\Lifecycle' => ['Domain', 'AppInfo', 'Immich', 'Service\\Support'],
-		'Service\\Listing' => ['Domain', 'Service\\Files'],
+		'Service\\Listing' => ['Domain', 'BackgroundJob', 'Service\\Files', 'Service\\Settings'],
 		'Service\\Move' => ['Domain', 'Service\\Files', 'Service\\Stats', 'Service\\Trash'],
 		'Service\\Quality' => ['Domain', 'Service\\Files', 'Service\\Support'],
 		'Service\\Series' => ['Domain', 'Service\\Files', 'Service\\Stats', 'Service\\Support'],

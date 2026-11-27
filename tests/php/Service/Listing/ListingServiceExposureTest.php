@@ -27,7 +27,7 @@ final class ListingServiceExposureTest extends TestCase {
 		$folder->method('getDirectoryListing')->willReturn([$this->file(7, '/Photos/IMG_0007.JPG')]);
 		$manager = $this->createStub(IFilesMetadataManager::class);
 		$manager->method('getMetadataForFiles')->willReturn([7 => $this->metadata($values)]);
-		$service = new ListingService(new UserFolderResolver($this->rootWith(['/Photos' => $folder])), new EntryFactory($manager, new FakeVisualHashStore(), new FakeFlagStore(), new FakeQualityStore()));
+		$service = new ListingService(new UserFolderResolver($this->rootWith(['/Photos' => $folder])), new EntryFactory($manager, new FakeVisualHashStore(), new FakeFlagStore(), new FakeQualityStore()), $this->noBackfill());
 
 		return $this->entriesOf($service->list($this->user(), '/Photos', false))[0]['exposure'];
 	}

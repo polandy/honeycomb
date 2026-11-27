@@ -34,6 +34,11 @@ final class FakeFolderSummaryStore implements FolderSummaryStore {
 		}
 	}
 
+	#[\Override]
+	public function drop(array $fileIds): void {
+		$this->rows = array_diff_key($this->rows, array_flip($fileIds));
+	}
+
 	/** The row moved to `$fileId`. */
 	private static function movedTo(FolderSummary $row, int $fileId): FolderSummary {
 		return new FolderSummary($fileId, $row->etag, $row->photos, $row->bytes, $row->rawBytes, $row->bursts, $row->oldest, $row->newest, $row->lastActivity, $row->scannedAt, $row->previews, $row->shotDays);
