@@ -7,7 +7,6 @@ import StatisticsPage from '../../../src/components/StatisticsPage.vue'
 import { METRIC } from '../../../src/logic/statistics.ts'
 import { formatDay, formatDayRange } from '../../../src/shared/l10n.ts'
 import { logger } from '../../../src/shared/logger.ts'
-import { row } from '../logic/folder-fixtures.ts'
 import { fakePageNavigation } from '../page-navigation.ts'
 import { chip, fakeLocation, hero, MONDAY, mountPage, periodLabel, ROOTS, ROWS, step, tile } from './statistics-page-fixtures.ts'
 

@@ -25,9 +25,23 @@ const ANSWER = {
 /** A library folder with 100 photos, done on 10 November with 2 GB of RAW files, or 70 undecided. */
 function libraryFolder(fileId: number, done: boolean, shotDays: readonly { day: string, photos: number }[] = []) {
 	return {
-		fileId, root: '/Photos', path: `/Photos/${fileId}`, photos: 100, bytes: 900_000_000, rawBytes: 2 * GB,
-		picked: done ? 60 : 20, rejected: done ? 40 : 10, undecided: done ? 0 : 70, bursts: 0, oldest: null, newest: null, lastActivity: null,
-		previews: [], shotDays, permissions: 31, done: done ? { by: 'admin', at: Date.UTC(2026, 10, 10) / 1000, photos: 100 } : null,
+		fileId,
+		root: '/Photos',
+		path: `/Photos/${fileId}`,
+		photos: 100,
+		bytes: 900_000_000,
+		rawBytes: 2 * GB,
+		picked: done ? 60 : 20,
+		rejected: done ? 40 : 10,
+		undecided: done ? 0 : 70,
+		bursts: 0,
+		oldest: null,
+		newest: null,
+		lastActivity: null,
+		previews: [],
+		shotDays,
+		permissions: 31,
+		done: done ? { by: 'admin', at: Date.UTC(2026, 10, 10) / 1000, photos: 100 } : null,
 	}
 }
 
