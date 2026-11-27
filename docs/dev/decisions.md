@@ -2243,3 +2243,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   answered), marked as `data-settled` on the `NcContent` root through an `AppLayout` prop, since
   the layout drops attributes; `pickFromNavigation` waits for it with `locator.waitFor` (APP-001.27)
   (autonomous).
+- 2026-11-27: The TODO item on grid tiles that never showed their 1024 px tier after an aborted
+  256 px load is closed without a client change: it did not reproduce on `main` (idle, under CPU
+  load, with forced garbage collection), no CI run of the last 200 waited for that tier since,
+  `loupe-budget.spec.ts` was fixed by #325, and a failed small preview is a broken tile with a
+  retry since GRID-001.23. The remaining red of `image-budgets.spec.ts`, the first sharp tile of a
+  rendered folder over 1000 ms, came from the preview lock's once-a-second retry and is fixed by
+  a 50 ms retry (ADR 0050 amended, IMAGES-001.19) (owner, 2026-11-27).

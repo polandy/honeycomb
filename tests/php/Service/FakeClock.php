@@ -9,7 +9,7 @@ namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\Support\Pause;
 
-/** A clock in whole seconds whose pause moves it on instead of sleeping. */
+/** A clock in whole seconds whose pause moves it on instead of sleeping; a short pause is only recorded. */
 final class FakeClock implements Pause {
 	/** @var list<int> the seconds paused until, in order */
 	public array $pauses = [];
@@ -27,6 +27,7 @@ final class FakeClock implements Pause {
 		$this->now = max($this->now, $second);
 	}
 
+	#[\Override]
 	public function forMilliseconds(int $milliseconds): void {
 		$this->waits[] = $milliseconds;
 	}
