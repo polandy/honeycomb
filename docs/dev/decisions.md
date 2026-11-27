@@ -2266,4 +2266,5 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   by the user's own RAW extensions, as the listener reads only a file whose owner opened
   honeycomb; a shared file of an owner who never did would be queued again on every listing.
   The job drops a folder summary only when a file of that folder got the key, so an unreadable
-  RAW cannot make every scan and job start over (LISTING-004.14, .17, #187, autonomous).
+  RAW cannot make every scan and job start over; a listing of its folder queues it again, with no
+  stored retry cap, as a cap would need a new table (LISTING-004.14, .17, #187, autonomous).

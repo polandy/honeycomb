@@ -57,8 +57,9 @@ whose argument already waits is not queued again. The job refreshes each file's 
 folder summaries of the folders of the files that got it: writing metadata leaves the folder's
 etag unchanged, so without that the next scan would keep the old bursts. A file that got no key,
 because it could not be read, leaves its folder's summary, so it cannot make every scan start
-over. A file that is gone, or whose refresh
-fails, is skipped and the failure logged; the job goes on with the next.
+over; a later listing of its folder queues it again, one bounded job per listing, with no
+stored retry count. A file that is gone, or whose refresh fails, is skipped and the failure
+logged; the job goes on with the next.
 
 ## Acceptance criteria
 
