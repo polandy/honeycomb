@@ -181,6 +181,7 @@ useHotkeys(() => {
 		:items="recent.items.value"
 		:recentConnections="immichResume.recent.value"
 		:storage="props.storage"
+		:settled="immichOnly.started.value"
 		:hintYear="yearReviewHint.year.value"
 		:source="immich.source.value"
 		:offersImmich="immich.offered.value"

@@ -2225,3 +2225,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-27: The stalled move of CI run 45878288778 did not reproduce, so the e2e Nextcloud logs
   each honeycomb API request's start and duration instead of a fix without a cause; the TODO item
   stays open (owner's choice).
+- 2026-11-27: The cull page is settled once the start decided between *Folders* and Immich
+  (`useImmichOnly`'s `started`: the settings and, where they ask for it, the Immich offer
+  answered), marked as `data-settled` on the `NcContent` root through an `AppLayout` prop, since
+  the layout drops attributes; `pickFromNavigation` waits for it with `locator.waitFor` (APP-001.27)
+  (autonomous).
