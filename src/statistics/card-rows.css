@@ -1,0 +1,40 @@
+/*
+ * SPDX-FileCopyrightText: 2026 honeycomb contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+/* The rows of the cards Clean-up and Work done: name with a note, the figure at the end (STATS-001.78, STATS-001.79). */
+.statistics-rows {
+	display: grid;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.statistics-rows__row {
+	display: flex;
+	align-items: center;
+	gap: calc(2 * var(--default-grid-baseline));
+	min-height: var(--default-clickable-area);
+	border-bottom: 1px solid var(--color-border);
+}
+
+.statistics-rows__row:last-child {
+	border-bottom: 0;
+}
+
+.statistics-rows__text {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.statistics-rows__note {
+	color: var(--color-text-maxcontrast);
+	font-size: var(--font-size-small);
+}
+
+.statistics-rows__value {
+	font-variant-numeric: tabular-nums;
+	font-weight: bold;
+}

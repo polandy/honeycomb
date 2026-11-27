@@ -31,7 +31,7 @@ paths. The day is the calendar day in the user's Nextcloud time zone, UTC withou
 | Sidecars from digiKam or darktable | `sidecars_foreign` | A sidecar updated that holds data of digiKam or darktable: `darktable:xmp_version`, or a digiKam property honeycomb does not write |
 | Series done | `series_done` | A series write sets a stored open series to done or creates a series as done |
 | Folders done | `folders_done` | A *Mark done* request succeeds (FOLDERS-006); a reopen subtracts nothing |
-| Pictures moved | `pictures_moved` | A move reports every file of a picture as moved |
+| Photos moved | `pictures_moved` | A move reports every file of a picture as moved |
 | Active time | `active_seconds` | Seconds of the cull with an input at most 2 minutes earlier |
 
 Only successful results count. A day's net counter never goes below zero. The server counts
@@ -85,10 +85,9 @@ below that the hero is a band above the bars. Four tiles follow: *Space freed* (
 moved to the trash bin or deleted for good and the RAW files removed), *Keep rate* (the share picked
 of the pictures picked or rejected, with *n kept of m*), *Active time* (with pictures a minute from
 one active minute on) and *Days in a row* (with the longest streak; in a past week, month or year
-the longest run of active days inside it). A line shows the sidecars created and updated (with those
-from digiKam or darktable) and the series done, each once there is one, until *Work done* takes
-them. The chart shows one bar per day (week, month), per month (year) or per year (all time; per
-month while the counting lies in one calendar year). A switch *Chart shows* picks *Decided* (the
+the longest run of active days inside it). The chart shows one bar per day (week, month), per month
+(year) or per year (all time; per month
+while the counting lies in one calendar year). A switch *Chart shows* picks *Decided* (the
 default: picked filled with ✓ stacked under rejected hatched with ✕), *Space freed* (moved to the
 trash bin filled, deleted for good hatched, RAWs removed dotted) or *Active time*; the axis names
 the highest bar and its half, and a key names every part. Days and months after today show as
@@ -733,6 +732,38 @@ Strings are English, translated per ADR 0007; the mockup lists them.
   each line as tall as its text and 4 px apart, so a tile is about 100 px tall; the tiles of a row
   are equally tall, 16 px apart, and the first starts at the content's start edge
 
+### STATS-001.78 – Clean-up shows what the space freed is made of
+
+- **Given** a period with bytes moved to the trash bin, deleted for good or of RAW files removed
+- **When** the page shows the card *Clean-up*
+- **Then** its heading names the space freed in all; a bar splits it into *Moved to the trash bin*
+  (filled), *Deleted for good* (hatched) and *RAW files removed* (dotted), the parts the key of the
+  chart uses; below it a row per part names its pictures or RAW files and its bytes; a part with
+  neither a count nor bytes has no row and none of the parts no bar; a period without a row says
+  *Nothing freed in this period.*; the note *Space is freed when the trash bin is emptied.* closes
+  it
+
+### STATS-001.79 – Work done lists what the user did besides deciding
+
+- **Given** a period with sidecars saved, ratings, colour labels and tags set, series and folders
+  done and pictures moved
+- **When** the page shows the card *Work done*
+- **Then** it lists, in this order, *Sidecars created*, *Sidecars updated* (with *n from digiKam or
+  darktable* below it from one on), *Ratings set*, *Colour labels set*, *Tags set*, *Series done*,
+  *Folders done* and *Photos moved* with their sums; a row at zero is left out; a period with
+  none says *Nothing done in this period.*
+
+### STATS-001.80 – The two pairs of cards
+
+- **Given** the statistics page with numbers counted
+- **When** it renders with a content width of 880 px or more, or less
+- **Then** from 880 px the activity calendar and *Clean-up* share one row of two equal columns and
+  *Library progress* and *Work done* the next, 16 px apart, the cards of a row equally tall;
+  a card alone in its row, *Library progress* without *Work done*, spans both columns; below 880 px
+  they stack in this order: calendar, *Clean-up*, *Library progress*, *Work done*;
+  below 560 px the cards' sides are 4 px in and the days of the calendar 2 px apart,
+  so the calendar's squares stay 44 px wide
+
 ## History
 
 | Date | Change |
@@ -758,3 +789,4 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | 2026-11-27 | The chart as a card: header row, footer row with the key and *Show as table*, the detail panel as a filled area (.76; layout variant A task 5) |
 | 2026-11-27 | The tiles as cards: label first, 16 px padding, equal height, no padding on the lines on a touch screen (.77; layout variant A, task 6) |
 | 2026-11-27 | The highlights as one card with five cells, a strip from 880 px of content width, rows below (.67 reworded; layout variant A task 7) |
+| 2026-11-27 | Redesign R5: *Clean-up* with the space freed by part and *Work done* with the sidecars, ratings, colour labels, tags, series, folders and moves (.78–.80) |

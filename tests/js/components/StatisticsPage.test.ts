@@ -58,13 +58,12 @@ describe('StatisticsPage', () => {
 	})
 
 	// spec: STATS-001.21
-	it('shows the four tiles in order and the sidecars created and updated in the line', async () => {
+	it('shows the four tiles in order', async () => {
 		const wrapper = mountPage()
 		await flushPromises()
 
 		expect(wrapper.findAll('.delete-stats__label').map((each) => each.text())).toEqual(['Space freed', 'Keep rate', 'Active time', 'Days in a row'])
 		expect(tile(wrapper, 'Space freed')).toContain('4 photos')
-		expect(wrapper.find('.statistics-page__line').text()).toBe('7 sidecars created · 3 sidecars updated')
 	})
 
 	// spec: STATS-001.22

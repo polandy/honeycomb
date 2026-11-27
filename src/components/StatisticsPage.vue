@@ -20,11 +20,13 @@ import DeleteStats from './DeleteStats.vue'
 import PageLayout from './PageLayout.vue'
 import StatisticsBars from './StatisticsBars.vue'
 import StatisticsCalendar from './StatisticsCalendar.vue'
+import StatisticsCleanup from './StatisticsCleanup.vue'
 import StatisticsHero from './StatisticsHero.vue'
 import StatisticsHighlights from './StatisticsHighlights.vue'
 import StatisticsLibrary from './StatisticsLibrary.vue'
 import StatisticsPeriod from './StatisticsPeriod.vue'
 import StatisticsRead from './StatisticsRead.vue'
+import StatisticsWork from './StatisticsWork.vue'
 import YearReview from './YearReview.vue'
 import { yearOf } from '../logic/days.ts'
 import { folderProgress } from '../logic/folder-progress.ts'
@@ -34,6 +36,7 @@ import { periodHighlights } from '../logic/stats-highlights.ts'
 import { parsePeriodHash, periodHash, resolveLocation } from '../logic/stats-location.ts'
 import { periodOverview } from '../logic/stats-overview.ts'
 import { periodAt, periodNumbers, periodRun } from '../logic/stats-period.ts'
+import { cleanUp, workDone } from '../logic/stats-work.ts'
 import { reviewYear, yearReview } from '../logic/year-review.ts'
 import { formatDay, formatDayRange, formatDuration, formatFileSize, formatNumber, formatPercent, PLAIN_TEXT } from '../shared/l10n.ts'
 import { logger } from '../shared/logger.ts'
@@ -111,16 +114,8 @@ const stats = computed(() => {
 		},
 	]
 })
-/** The sidecars and the series until *Work done* takes them. */
-const line = computed(() => {
-	const sums = overview.value
-	return [
-		sums.sidecarsCreated > 0 ? n('honeycomb', '%n sidecar created', '%n sidecars created', sums.sidecarsCreated, undefined, PLAIN_TEXT) : null,
-		sums.sidecarsUpdated > 0 ? n('honeycomb', '%n sidecar updated', '%n sidecars updated', sums.sidecarsUpdated, undefined, PLAIN_TEXT) : null,
-		sums.sidecarsForeign > 0 ? n('honeycomb', '%n from digiKam or darktable', '%n from digiKam or darktable', sums.sidecarsForeign, undefined, PLAIN_TEXT) : null,
-		sums.seriesDone > 0 ? n('honeycomb', '%n series done', '%n series done', sums.seriesDone, undefined, PLAIN_TEXT) : null,
-	].filter((part) => part !== null).join(' · ')
-})
+const freed = computed(() => cleanUp(answer.value!.counters, period.value.range))
+const work = computed(() => workDone(answer.value!.counters, period.value.range))
 
 /** The days pictures decided are compared with: by their days, or the month, year or week before when whole (STATS-001.41). */
 function comparedName(compared: Compared | null): string {
@@ -222,15 +217,18 @@ onMounted(async () => {
 						:kind="kind"
 						:compared="comparedName(numbers!.compared)"
 						@showDay="kind = 'week'; anchor = $event" />
-					<StatisticsCalendar :calendar="calendar" @drill="kind = $event.kind; anchor = $event.anchor" />
-					<p v-if="line" class="statistics-page__line">
-						{{ line }}
-					</p>
+					<div class="statistics-page__pair">
+						<StatisticsCalendar :calendar="calendar" @drill="kind = $event.kind; anchor = $event.anchor" />
+						<StatisticsCleanup :cleanUp="freed" />
+					</div>
 				</template>
 				<p v-else>
 					{{ t('honeycomb', 'Nothing counted yet. Cull a folder and the numbers show here.') }}
 				</p>
-				<StatisticsLibrary :roots="roots" :progress="library" :failed="libraryFailed" />
+				<div class="statistics-page__pair">
+					<StatisticsLibrary :roots="roots" :progress="library" :failed="libraryFailed" />
+					<StatisticsWork v-if="counted" :rows="work" />
+				</div>
 				<StatisticsRead :read="answer.read" />
 				<p v-if="counted && answer.firstDay" class="statistics-page__line">
 					{{ t('honeycomb', 'Counted since {day}.', { day: formatDay(answer.firstDay) }, undefined, PLAIN_TEXT) }}
@@ -245,6 +243,8 @@ onMounted(async () => {
 </template>
 
 <style src="../shared/coarse-controls.css" />
+
+<style scoped src="../statistics/card-pair.css" />
 
 <style scoped>
 .statistics-page {

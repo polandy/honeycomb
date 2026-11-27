@@ -25,8 +25,11 @@ Open **Statistics** in the navigation, or press **Statistics** on the *Cull fini
   *Active time*, with the photos a minute from one active minute on; and *Days in a row*, the days
   you culled without a gap up to today or yesterday, with your longest run (in a past period, the
   longest run inside it).
-- **A line below:** the sidecars created and updated, those from digiKam or darktable and the
-  series done, each once there is one.
+- **Clean-up**, beside the activity calendar: the space freed in all, a bar and a row for what it
+  is made of (moved to the trash bin, deleted for good, RAW files removed), each with its size.
+- **Work done**, beside the library progress: the sidecars created and updated (and how many came
+  from digiKam or darktable), the ratings, colour labels and tags set, the series and folders
+  done and the pictures moved. A row at zero is left out.
 - **Chart:** one bar per day (week, month), per month (year) or per year (all time), in a card.
   *Chart shows*, at its top right, picks *Decided* (picked ✓ filled under rejected ✕ hatched),
   *Space freed* (trash bin filled, deleted for good hatched, RAW files removed dotted) or *Active
