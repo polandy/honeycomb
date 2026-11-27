@@ -71,7 +71,8 @@ preselected. At the right end of its row *Today*, which goes to the period that 
 before a stepper that names the period (*Nov 22 – 28, 2026*, *November 2026*, *2026*) between
 *Previous period* and *Next period*; the name has a fixed width, so the arrows stay put while the
 user steps. *All time* has no stepper and no *Today*, only *Since {day}*. Below a content width of
-560 px the segment and the stepper each fill a row of their own. A week starts on the first day of the week of the
+560 px the segment and the stepper each fill a row of their own.
+A week starts on the first day of the week of the
 user's Nextcloud locale. Changing the segment keeps the day the user stepped to, so March 2025
 becomes 2025 and back March 2025. The user's day is the `today` the server answers; stepping never
 goes past the period of today nor before the period of the first counted day. The hero *Photos
