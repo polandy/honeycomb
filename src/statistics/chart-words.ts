@@ -1,6 +1,6 @@
-import type { PeriodIntake } from '../logic/stats-added.ts'
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { PeriodIntake } from '../logic/stats-added.ts'
 import type { BarDetail, ChartMetric, ChartPart, DrillTarget } from '../logic/stats-chart.ts'
 import type { BarUnit, PeriodBar, PeriodKind } from '../logic/stats-period.ts'
 
