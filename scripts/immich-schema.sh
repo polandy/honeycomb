@@ -6,7 +6,7 @@
 #          -H "Accept: application/vnd.github.raw" | scripts/immich-schema.sh > tests/fixtures/immich/openapi.json
 set -euo pipefail
 
-ROUTES='["/assets", "/assets/{id}", "/assets/{id}/thumbnail", "/search/metadata", "/search/statistics", "/search/suggestions", "/server/version", "/users/me"]'
+ROUTES='["/albums", "/assets", "/assets/{id}", "/assets/{id}/thumbnail", "/search/metadata", "/search/statistics", "/search/suggestions", "/server/version", "/users/me"]'
 
 upstream=$(cat)
 names=$(jq --argjson routes "$ROUTES" '
