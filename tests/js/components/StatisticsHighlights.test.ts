@@ -19,7 +19,7 @@ const COUNTERS = [
 ]
 
 /** The text of the highlight card titled `title`. */
-const card = (wrapper: ReturnType<typeof mountPage>, title: string) => wrapper.findAll('.statistics-highlights__card').find((each) => each.find('h3').text() === title)!
+const card = (wrapper: ReturnType<typeof mountPage>, title: string) => wrapper.findAll('.statistics-highlights__cell').find((each) => each.find('h4').text() === title)!
 
 describe('StatisticsPage highlights', () => {
 	// spec: STATS-001.67, STATS-001.68, STATS-001.69
@@ -27,7 +27,7 @@ describe('StatisticsPage highlights', () => {
 		const wrapper = mountPage({ counters: COUNTERS })
 		await flushPromises()
 
-		expect(wrapper.findAll('.statistics-highlights__card').map((each) => each.find('h3').text())).toEqual(['Best day', 'Busiest weekday', 'Pace', 'Active days', 'Longest streak'])
+		expect(wrapper.findAll('.statistics-highlights__cell').map((each) => each.find('h4').text())).toEqual(['Best day', 'Busiest weekday', 'Pace', 'Active days', 'Longest streak'])
 		expect(card(wrapper, 'Best day').text()).toContain('60')
 		expect(card(wrapper, 'Best day').text()).toContain('in 5 min 0 s')
 		const weekday = card(wrapper, 'Busiest weekday')
@@ -67,7 +67,7 @@ describe('StatisticsPage highlights', () => {
 		await flushPromises()
 		await wrapper.find('button[aria-label="Previous period"]').trigger('click')
 
-		expect(wrapper.find('.statistics-highlights').text()).toBe('Nothing counted in this period.')
+		expect(wrapper.find('.statistics-highlights').text()).toBe('HighlightsNothing counted in this period.')
 	})
 
 	// spec: STATS-001.68

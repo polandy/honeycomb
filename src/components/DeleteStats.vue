@@ -51,7 +51,8 @@ const props = defineProps<{
 }
 
 .delete-stats--fit {
-	grid-template-columns: repeat(auto-fit, minmax(max(160px, calc(25% - 2 * var(--default-grid-baseline))), 1fr));
+	gap: calc(var(--default-grid-baseline) * 4);
+	grid-template-columns: repeat(auto-fit, minmax(max(160px, calc(25% - 3 * var(--default-grid-baseline))), 1fr));
 }
 
 .delete-stats--tiles .delete-stats__item {
@@ -65,7 +66,18 @@ const props = defineProps<{
 .delete-stats--tiles :is(.delete-stats__value, .delete-stats__label, .delete-stats__note) {
 	display: block;
 	margin: 0;
+	padding: 0;
 	text-align: start;
+}
+
+/* The statistics card shape: label, value, note, 16 px in (STATS-001.77). */
+.delete-stats--fit .delete-stats__item {
+	gap: var(--default-grid-baseline);
+	padding: calc(var(--default-grid-baseline) * 4);
+}
+
+.delete-stats--fit .delete-stats__label {
+	order: -1;
 }
 
 .delete-stats__value {

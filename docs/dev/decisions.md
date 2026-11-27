@@ -2238,6 +2238,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   HaveIBeenPwned through password_policy, and a runner's slow DNS (4 × 10 s) timed out a login in
   CI run 45941755017; the flag also turns off the app store and update checks, while local calls
   such as the Immich stub still work; `tests/e2e/app.spec.ts` checks it (PR #442, autonomous).
+- 2026-11-27: The tiles' ~165 px height on the iPad came from Nextcloud's padding on `dt` and `dd`
+  (12 px on each line), not from the 44 px control size; `DeleteStats` clears it for every tiles
+  variant, and only the statistics tiles (`fit`) take the card shape (label first, 16 px padding),
+  so *Cull finished* keeps its value-first tiles (STATS-001.77, #187, autonomous).
 - 2026-11-27: The cull page is settled once the start decided between *Folders* and Immich
   (`useImmichOnly`'s `started`: the settings and, where they ask for it, the Immich offer
   answered), marked as `data-settled` on the `NcContent` root through an `AppLayout` prop, since
@@ -2250,3 +2254,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   retry since GRID-001.23. The remaining red of `image-budgets.spec.ts`, the first sharp tile of a
   rendered folder over 1000 ms, came from the preview lock's once-a-second retry and is fixed by
   a 50 ms retry (ADR 0050 amended, IMAGES-001.19) (owner, 2026-11-27).
+- 2026-11-27: The highlights card measures its own width with a container query on the section
+  (880 px of the page's column), not the viewport; the card's heading is an `h3` and the cells'
+  labels `h4`, the empty line stays inside the card (STATS-001.67, #187, autonomous).
