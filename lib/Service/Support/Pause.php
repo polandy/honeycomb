@@ -11,4 +11,7 @@ namespace OCA\Honeycomb\Service\Support;
 interface Pause {
 	/** Returns once the clock reads at least `$second` (Unix time). */
 	public function until(int $second): void;
+
+	/** Returns after `$milliseconds`. */
+	public function forMilliseconds(int $milliseconds): void;
 }

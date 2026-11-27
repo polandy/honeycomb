@@ -9,9 +9,10 @@ namespace OCA\Honeycomb\Service\Support;
 
 use OCP\AppFramework\Utility\ITimeFactory;
 
-/** Pauses the request until the server clock reaches a second. */
+/** Pauses the request until the server clock reaches a second, or for some milliseconds. */
 final class SystemPause implements Pause {
 	private const MICROSECONDS_PER_SECOND = 1_000_000;
+	private const MICROSECONDS_PER_MILLISECOND = 1_000;
 
 	/** @psalm-suppress PossiblyUnusedMethod Nextcloud constructs it through its alias. */
 	public function __construct(
@@ -25,6 +26,14 @@ final class SystemPause implements Pause {
 		if ($wait > 0) {
 			/** @psalm-suppress ForbiddenCode The app's one sleep, injected everywhere as Pause. */
 			usleep((int)ceil($wait * (float)self::MICROSECONDS_PER_SECOND));
+		}
+	}
+
+	#[\Override]
+	public function forMilliseconds(int $milliseconds): void {
+		if ($milliseconds > 0) {
+			/** @psalm-suppress ForbiddenCode The app's one sleep, injected everywhere as Pause. */
+			usleep($milliseconds * self::MICROSECONDS_PER_MILLISECOND);
 		}
 	}
 }
