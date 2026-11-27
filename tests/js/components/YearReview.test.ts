@@ -72,7 +72,7 @@ describe('YearReview', () => {
 	})
 
 	// spec: STATS-001.25
-	it('tells the page once each time the year is shown, not when it is hidden', async () => {
+	it('tells the page once, when the year is first shown', async () => {
 		const wrapper = mount(YearReview, { props: { review: BUSY } })
 		const toggle = wrapper.find('.year-review__toggle')
 
@@ -80,6 +80,6 @@ describe('YearReview', () => {
 		await toggle.trigger('click')
 		await toggle.trigger('click')
 
-		expect(wrapper.emitted('open')).toHaveLength(2)
+		expect(wrapper.emitted('open')).toHaveLength(1)
 	})
 })

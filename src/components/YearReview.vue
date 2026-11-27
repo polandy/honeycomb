@@ -15,6 +15,7 @@ const emit = defineEmits<{ open: [] }>()
 
 /** Whether the numbers of the year show below the banner. */
 const open = ref(false)
+let opened = false
 
 /** Rounds pictures a minute to one decimal. */
 const RATE_STEPS = 10
@@ -39,10 +40,11 @@ const tiles = computed(() => {
 	]
 })
 
-/** Shows or hides the year's numbers; showing them tells the page the year in review was opened (STATS-001.48). */
+/** Shows or hides the year's numbers; showing them the first time tells the page the year in review was opened (STATS-001.48). */
 function toggle() {
 	open.value = !open.value
-	if (open.value) {
+	if (open.value && !opened) {
+		opened = true
 		emit('open')
 	}
 }

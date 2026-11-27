@@ -117,7 +117,7 @@ describe('year in review', () => {
 	})
 
 	// spec: STATS-001.48
-	it('stores the year as closed for the hint once the year in review is shown, not when it is hidden', async () => {
+	it('stores the year as closed for the hint once the year in review is first shown, once', async () => {
 		const wrapper = mountPage({ counters: YEAR, today: DECEMBER, firstDay: '2026-01-01' })
 		await flushPromises()
 		const save = (wrapper.vm.$.props.seams as { saveViewState: unknown }).saveViewState
@@ -128,7 +128,7 @@ describe('year in review', () => {
 		await showReview(wrapper)
 		await showReview(wrapper)
 
-		expect(save).toHaveBeenCalledTimes(2)
+		expect(save).toHaveBeenCalledTimes(1)
 		expect(save).toHaveBeenNthCalledWith(1, { year_review_hint_closed: 2026 })
 	})
 
