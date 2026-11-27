@@ -29,7 +29,6 @@ Add items with `/todo`.
 - [ ] Folders phase 2 (M12, ADR 0049): shares, group folders and external storage as library roots, with a done status that survives the owner's permissions; the walker of ADR 0025 and the roots check of FOLDERS-005 list only the home storage today (2026-11-22)
 - [ ] Folders phase 2 (M12, ADR 0049): Immich albums as folders in the list, with their own summaries and done status (ADR 0041 keeps them out of phase 1) (2026-11-22)
 - [ ] Immich kinds *Screenshots* and *Messenger images* from the Phase 1 mockup: Immich cannot filter them, so the server cannot count them without paging the library (ADR 0044); needs a server-side classification first (2026-11-20)
-- [ ] Fix `tests/e2e/a11y.spec.ts:40` (light theme) running past its 30 s test timeout on a loaded host: it walks every screen through axe in one test, 11 s in CI and 33 s locally at load 39 on 16 cores, red on both Nextcloud versions in the third local run of PR #331 (2026-11-21)
 - [ ] Measure the grid scroll at 2,000+ items (`docs/dev/plan.md` Image delivery budgets), which `tests/e2e/image-budgets.spec.ts` leaves out (2026-11-18)
 - [ ] Add a `main` ruleset (pull requests only, CI required), with a bypass for `nextcloud-bot` if issue #17 says so, and the `RELEASE_PLEASE_TOKEN` secret — owner (2026-11-09)
 - [ ] Publish to the Nextcloud App Store: request the certificate, register the app and add the secrets `APP_SIGNING_KEY`, `APP_SIGNING_CERT` and `APPSTORE_TOKEN` ([`docs/dev/releasing.md`](docs/dev/releasing.md)) — owner (2026-11-09)
