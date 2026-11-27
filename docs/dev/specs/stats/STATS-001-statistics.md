@@ -640,6 +640,40 @@ Strings are English, translated per ADR 0007; the mockup lists them.
   share; *Longest streak* shows the longest run of days with a counter inside the period with
   its first and last day, the earlier run when two tie
 
+### STATS-001.70 – The activity calendar of the period
+
+- **Given** a period with a count
+- **When** the page shows the card *Activity*
+- **Then** a week and a month show one square per day with its date, under the weekdays from the
+  locale's first weekday and after as many empty places as the first day lies after it (a month
+  starting on a Sunday has six of them with Monday first, none with Sunday first); a year shows
+  its twelve months as small day squares; all time shows one row per year with a square per
+  month, the months of the first and of the current year in full; each square is filled from the
+  bottom to the height of its level (STATS-001.71), a day to come is hatched, one before the
+  first counted day dotted and today framed, so no state shows by colour alone; a key says that
+  the fill height shows the amount
+
+### STATS-001.71 – One level for the calendar and the year in review
+
+- **Given** the pictures decided of each square and the highest of the period (of the year for
+  the year in review)
+- **When** a level is chosen
+- **Then** a square without a counter is level 0, one at or below a third of the highest level 1,
+  one at or below two thirds level 2, any higher level 3; a square with a counter and no picture
+  decided is level 1; the calendar and the year in review's calendar take it from the same
+  function, so a day has the same level in both
+
+### STATS-001.72 – A square's numbers in the detail panel
+
+- **Given** the calendar of a period
+- **When** the user taps or clicks a square, or focuses it and presses Enter or Space
+- **Then** the panel below the calendar shows the day or month as the chart's panel does
+  (STATS-001.64), and the square is pressed; the same input again releases it and the panel asks
+  to select a day; a square to come, one before the first counted day and one without a counter
+  say why they have no numbers; a month of all time offers *Show {month}* (STATS-001.65); a new
+  period releases the square; each square is named for a screen reader by its date and numbers
+  and the panel is announced politely
+
 ## History
 
 | Date | Change |
@@ -658,3 +692,4 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | 2026-11-26 | Redesign R1: the hero *Photos decided* with picked against rejected, the tiles *Space freed* with the RAW files removed, *Keep rate*, *Active time* with pace (.41, .55 reworded; .59–.62) |
 | 2026-11-26 | Redesign R2: the main chart with *Decided*, *Space freed* and *Active time*, the detail panel, the drill-down and the table (.63–.66) |
 | 2026-11-26 | Redesign R3: the highlights Best day, Busiest weekday, Pace, Active days and Longest streak (.67–.69) |
+| 2026-11-26 | Redesign R4: the activity calendar of every period with one level function shared with the year in review (.70–.72) |

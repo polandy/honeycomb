@@ -34,6 +34,11 @@ Open **Statistics** in the navigation, or press **Statistics** on the *Cull fini
 - **Highlights:** below the tiles, five cards for the period: the *Best day* (*Show day* opens its
   week), the *Busiest weekday* with seven small bars, the *Pace* in photos a minute against the
   period before, the *Active days* and the *Longest streak*. A period without a count says so.
+- **Activity:** a calendar of the period. A week and a month show a square per day, a year its
+  twelve months, all time a row per year with a square per month. The fill height of a square
+  shows the pictures decided against the busiest one (a third, two thirds, more); days to come are
+  hatched, days before the first count dotted and today framed. Tap a square to hold its numbers
+  in the panel below; a held month of all time offers *Show {month}*.
 - **Library progress:** the share of your photos in done folders, for the library and each root,
   with the folders done, those marked done this month and the share of photos decided; *Open
   Folders* leads to the list ([cleaning up the library](cleaning-up-the-library.md)).

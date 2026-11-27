@@ -12,8 +12,8 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import { barDetail, drillTarget } from '../logic/stats-chart.ts'
 import { barName, detailLines, drillLabel } from '../statistics/chart-words.ts'
 
-/** `bar` is the held or previewed bar, null for none. */
-const props = defineProps<{ bar: PeriodBar | null, unit: BarUnit }>()
+/** `bar` is the held or previewed bar, null for none; `hint` asks to select one, by default a bar. */
+const props = defineProps<{ bar: PeriodBar | null, unit: BarUnit, hint?: string }>()
 /** `drill` opens the month or year of the shown bar (STATS-001.65). */
 const emit = defineEmits<{ drill: [target: DrillTarget] }>()
 
@@ -30,7 +30,7 @@ const target = computed(() => (props.bar ? drillTarget(props.bar, props.unit) : 
 				{{ drillLabel(target) }}
 			</NcButton>
 		</template>
-		<span v-else class="statistics-bars__hint">{{ t('honeycomb', 'Select a bar to see its numbers.') }}</span>
+		<span v-else class="statistics-bars__hint">{{ props.hint ?? t('honeycomb', 'Select a bar to see its numbers.') }}</span>
 	</div>
 </template>
 
