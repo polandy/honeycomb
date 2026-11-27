@@ -95,6 +95,6 @@ test('puts the calendar beside Clean-up and the library beside Work done from 88
 
 	await page.setViewportSize({ width: 390, height: HEIGHT })
 	const phone = [await box(calendar(page)), await box(cleanup(page)), await box(library(page)), await box(work(page))]
-	phone.slice(1).forEach((each, index) => expect(each.y).toBeGreaterThanOrEqual(phone[index].y + phone[index].height - TOLERANCE_PX))
+	phone.slice(1).forEach((each, index) => expect(each.y).toBeGreaterThanOrEqual(phone[index]!.y + phone[index]!.height - TOLERANCE_PX))
 	phone.forEach((each) => expect(each.x + each.width).toBeLessThanOrEqual(390 + TOLERANCE_PX))
 })
