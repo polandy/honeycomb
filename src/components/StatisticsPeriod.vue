@@ -50,64 +50,110 @@ function step(by: Step) {
 			<NcButton
 				v-for="each in kinds"
 				:key="each.kind"
+				variant="tertiary"
 				:pressed="props.period.kind === each.kind"
 				@update:pressed="emit('kind', each.kind)">
 				{{ each.label }}
 			</NcButton>
 		</div>
 		<div class="statistics-period__stepper">
-			<NcButton
-				v-if="stepper"
-				variant="tertiary"
-				:aria-label="t('honeycomb', 'Previous period')"
-				:disabled="!canStep(props.period, -1, props.bounds)"
-				@click="step(-1)">
-				<template #icon>
-					<AppIcon name="chevronLeft" />
-				</template>
-			</NcButton>
-			<span class="statistics-period__label">{{ label }}</span>
 			<template v-if="stepper">
-				<NcButton
-					variant="tertiary"
-					:aria-label="t('honeycomb', 'Next period')"
-					:disabled="!canStep(props.period, 1, props.bounds)"
-					@click="step(1)">
-					<template #icon>
-						<AppIcon name="chevronRight" />
-					</template>
-				</NcButton>
 				<NcButton :disabled="current" @click="emit('anchor', null)">
 					{{ t('honeycomb', 'Today') }}
 				</NcButton>
+				<div class="statistics-period__steps">
+					<NcButton
+						variant="tertiary"
+						:aria-label="t('honeycomb', 'Previous period')"
+						:disabled="!canStep(props.period, -1, props.bounds)"
+						@click="step(-1)">
+						<template #icon>
+							<AppIcon name="chevronLeft" />
+						</template>
+					</NcButton>
+					<span class="statistics-period__label statistics-period__name">{{ label }}</span>
+					<NcButton
+						variant="tertiary"
+						:aria-label="t('honeycomb', 'Next period')"
+						:disabled="!canStep(props.period, 1, props.bounds)"
+						@click="step(1)">
+						<template #icon>
+							<AppIcon name="chevronRight" />
+						</template>
+					</NcButton>
+				</div>
 			</template>
+			<span v-else class="statistics-period__label">{{ label }}</span>
 		</div>
 	</div>
 </template>
 
 <style scoped>
+/* A phone stacks the segment above the stepper, each across the content (STATS-001.74). */
 .statistics-period {
+	--statistics-period-name-width: 168px;
+
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: calc(2 * var(--default-grid-baseline));
+	justify-content: space-between;
+	gap: calc(2 * var(--default-grid-baseline)) calc(4 * var(--default-grid-baseline));
+}
+
+.statistics-period__segment,
+.statistics-period__steps {
+	display: flex;
+	align-items: center;
+	border-radius: var(--border-radius-element);
+	background: var(--color-background-dark);
 }
 
 .statistics-period__segment,
 .statistics-period__stepper {
-	display: flex;
-	align-items: center;
-	gap: var(--default-grid-baseline);
+	width: 100%;
+}
+
+.statistics-period__segment > *,
+.statistics-period__steps {
+	flex: 1;
 }
 
 .statistics-period__stepper {
-	flex: 1 1 auto;
+	display: flex;
+	align-items: center;
+	gap: calc(2 * var(--default-grid-baseline));
 }
 
 .statistics-period__label {
+	font-weight: bold;
+	font-variant-numeric: tabular-nums;
+}
+
+.statistics-period__name {
 	flex: 1;
 	min-width: 0;
-	font-weight: bold;
 	text-align: center;
+}
+
+/* From 560 px one row: the name keeps its width, so the arrows stay put while stepping. */
+@container (min-width: 560px) {
+	.statistics-period__segment,
+	.statistics-period__stepper {
+		width: auto;
+	}
+
+	.statistics-period__segment > *,
+	.statistics-period__steps,
+	.statistics-period__name {
+		flex: none;
+	}
+
+	.statistics-period__stepper {
+		margin-inline-start: auto;
+	}
+
+	.statistics-period__name {
+		width: var(--statistics-period-name-width);
+	}
 }
 </style>
