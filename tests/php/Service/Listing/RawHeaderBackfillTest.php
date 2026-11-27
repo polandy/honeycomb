@@ -29,7 +29,7 @@ final class RawHeaderBackfillTest extends TestCase {
 
 	private function backfill(string $settings = '{}'): RawHeaderBackfill {
 		$manager = $this->createStub(IFilesMetadataManager::class);
-		$manager->method('getMetadataForFiles')->willReturnCallback(function (array $ids): array {
+		$manager->method('getMetadataForFiles')->willReturnCallback(/** @param list<int> $ids */ function (array $ids): array {
 			$metadata = [];
 			foreach ($ids as $id) {
 				$entry = $this->createStub(IFilesMetadata::class);
@@ -84,7 +84,7 @@ final class RawHeaderBackfillTest extends TestCase {
 
 		$this->backfill()->queueRows($this->user(), $rows);
 
-		$this->assertSame([range(1, 500), range(501, 1_000), range(1_001, 1_201)], array_map(static fn (array $job): mixed => $job[1]['fileIds'], $this->added));
+		$this->assertSame([range(1, 500), range(501, 1_000), range(1_001, 1_201)], array_map(static fn (array $job): mixed => is_array($job[1]) ? $job[1]['fileIds'] : null, $this->added));
 	}
 
 	// spec: LISTING-004.14

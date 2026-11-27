@@ -8,6 +8,10 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Tests\Service;
 
 use OCA\Honeycomb\Service\Listing\Listing;
+use OCA\Honeycomb\Service\Listing\RawHeaderBackfill;
+use OCA\Honeycomb\Service\Settings\SettingsService;
+use OCP\BackgroundJob\IJobList;
+use OCP\Config\IUserConfig;
 use OCP\Constants;
 use OCP\Files\File;
 use OCP\Files\Folder;
@@ -16,6 +20,7 @@ use OCP\Files\Mount\IMountPoint;
 use OCP\Files\Node;
 use OCP\Files\Storage\IStorage;
 use OCP\FilesMetadata\Exceptions\FilesMetadataNotFoundException;
+use OCP\FilesMetadata\IFilesMetadataManager;
 use OCP\FilesMetadata\Model\IFilesMetadata;
 use OCP\IUser;
 use PHPUnit\Framework\MockObject\Stub;
@@ -103,6 +108,11 @@ trait FakeFiles {
 		$root = $this->createStub(IRootFolder::class);
 		$root->method('getUserFolder')->willReturnMap([['alice', $userFolder]]);
 		return $root;
+	}
+
+	/** A header backfill whose jobs go nowhere. */
+	private function noBackfill(): RawHeaderBackfill {
+		return new RawHeaderBackfill($this->createStub(IFilesMetadataManager::class), $this->createStub(IJobList::class), new SettingsService($this->createStub(IUserConfig::class)));
 	}
 
 	/** Metadata as Nextcloud's Photos app stores it, missing keys throw like the real one. */

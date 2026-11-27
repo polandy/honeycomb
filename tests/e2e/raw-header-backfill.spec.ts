@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { expect, type Page, test } from '@playwright/test'
+import type { Page } from '@playwright/test'
+
+import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
 import { cullFolder, resetViewState } from './cull.ts'
 import { createFolder, JPEG, rawWithCaptureTime, upload, withCaptureTime } from './files.ts'

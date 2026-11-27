@@ -9,7 +9,6 @@ namespace OCA\Honeycomb\Tests\BackgroundJob;
 
 use OCA\Honeycomb\BackgroundJob\ReadRawHeaders;
 use OCA\Honeycomb\Domain\FolderSummary;
-use OCA\Honeycomb\Service\Listing\RawExif;
 use OCA\Honeycomb\Tests\Service\FakeFolderSummaryStore;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\File;
@@ -42,7 +41,7 @@ final class ReadRawHeadersTest extends TestCase {
 	 * @param list<int> $unread the file ids whose refresh writes no key
 	 * @param list<int> $failing the file ids whose refresh throws
 	 */
-	private function run(mixed $argument, array $nodes, array $unread = [], array $failing = []): void {
+	private function runJob(mixed $argument, array $nodes, array $unread = [], array $failing = []): void {
 		$userFolder = $this->createStub(Folder::class);
 		$userFolder->method('getFirstNodeById')->willReturnCallback(static fn (int $id): ?Node => $nodes[$id] ?? null);
 		$root = $this->createStub(IRootFolder::class);
@@ -78,7 +77,7 @@ final class ReadRawHeadersTest extends TestCase {
 
 	// spec: LISTING-004.17
 	public function testRefreshesEachFileAsOccDoesAndDropsTheSummariesOfTheirFolders(): void {
-		$this->run(['userId' => 'alice', 'fileIds' => [1, 2, 3]], [1 => $this->file(1, 10), 2 => $this->file(2, 10), 3 => $this->file(3, 11)]);
+		$this->runJob(['userId' => 'alice', 'fileIds' => [1, 2, 3]], [1 => $this->file(1, 10), 2 => $this->file(2, 10), 3 => $this->file(3, 11)]);
 
 		$both = IFilesMetadataManager::PROCESS_LIVE | IFilesMetadataManager::PROCESS_BACKGROUND;
 		$this->assertSame([[1, $both], [2, $both], [3, $both]], $this->refreshed);
@@ -91,7 +90,7 @@ final class ReadRawHeadersTest extends TestCase {
 		$folder = $this->createStub(Folder::class);
 		$folder->method('getId')->willReturn(4);
 
-		$this->run(['userId' => 'alice', 'fileIds' => [1, 2, 3, 4]], [2 => $this->file(2, 10), 3 => $this->file(3, 11), 4 => $folder], failing: [2]);
+		$this->runJob(['userId' => 'alice', 'fileIds' => [1, 2, 3, 4]], [2 => $this->file(2, 10), 3 => $this->file(3, 11), 4 => $folder], failing: [2]);
 
 		$this->assertSame([3], array_column($this->refreshed, 0));
 		$this->assertSame([10, 12], array_keys($this->summaries->rows));
@@ -100,7 +99,7 @@ final class ReadRawHeadersTest extends TestCase {
 
 	// spec: LISTING-004.17
 	public function testKeepsTheSummaryOfAFolderWhoseFilesGotNoKey(): void {
-		$this->run(['userId' => 'alice', 'fileIds' => [1, 2]], [1 => $this->file(1, 10), 2 => $this->file(2, 11)], unread: [1]);
+		$this->runJob(['userId' => 'alice', 'fileIds' => [1, 2]], [1 => $this->file(1, 10), 2 => $this->file(2, 11)], unread: [1]);
 
 		$this->assertSame([10, 12], array_keys($this->summaries->rows));
 	}
@@ -108,7 +107,7 @@ final class ReadRawHeadersTest extends TestCase {
 	// spec: LISTING-004.17
 	public function testLogsAnArgumentWithoutAUserAndFileIdsAndDoesNothing(): void {
 		foreach ([null, ['userId' => 'alice'], ['userId' => 'alice', 'fileIds' => ['1']], ['userId' => 3, 'fileIds' => [1]]] as $argument) {
-			$this->run($argument, [1 => $this->file(1, 10)]);
+			$this->runJob($argument, [1 => $this->file(1, 10)]);
 		}
 
 		$this->assertSame([], $this->refreshed);
@@ -118,7 +117,7 @@ final class ReadRawHeadersTest extends TestCase {
 
 	// spec: LISTING-004.17
 	public function testLogsAUserWhoIsGone(): void {
-		$this->run(['userId' => 'bob', 'fileIds' => [1]], []);
+		$this->runJob(['userId' => 'bob', 'fileIds' => [1]], []);
 
 		$this->assertSame([], $this->refreshed);
 		$this->assertSame(['RAW header job for a user without files'], $this->warnings);

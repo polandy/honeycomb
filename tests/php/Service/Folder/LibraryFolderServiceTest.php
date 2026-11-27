@@ -57,7 +57,7 @@ final class LibraryFolderServiceTest extends TestCase {
 	/** @param array<string, \OCP\Files\Node|\Throwable> $nodes */
 	private function service(array $nodes = []): LibraryFolderService {
 		$metadata = $this->createStub(IFilesMetadataManager::class);
-		$metadata->method('getMetadataForFiles')->willReturnCallback(fn (array $ids): array => array_map(
+		$metadata->method('getMetadataForFiles')->willReturnCallback(/** @param list<int> $ids */ fn (array $ids): array => array_map(
 			fn (int $id): \OCP\FilesMetadata\Model\IFilesMetadata => $this->metadata(array_filter([CaptureTimes::KEY => $this->captureTimes[$id] ?? null, RawExif::KEY => in_array($id, $this->rawKeys, true) ? [] : null], static fn (mixed $value): bool => $value !== null)),
 			array_combine($ids, $ids),
 		));

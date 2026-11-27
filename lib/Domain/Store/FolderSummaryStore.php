@@ -23,4 +23,10 @@ interface FolderSummaryStore extends FileRowStore, SharedCacheRows {
 	 * @param list<FolderSummary> $summaries each of another folder
 	 */
 	public function replace(array $summaries): void;
+
+	/**
+	 * Drops the summaries of `$fileIds`, so the next scan computes them again.
+	 * @param list<int> $fileIds folder file ids
+	 */
+	public function drop(array $fileIds): void;
 }

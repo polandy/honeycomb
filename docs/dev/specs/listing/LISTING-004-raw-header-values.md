@@ -54,8 +54,10 @@ The listing (LISTING-001) and the library scan (FOLDERS-005) queue the backgroun
 RAW extensions, belong to the user and have no key: the ids sorted, at most 500 per job, and a job
 whose argument already waits is not queued again. The job refreshes each file's metadata as
 `occ files:scan --generate-metadata` does, so the read above writes the key, then drops the
-folder summaries of the files' folders: writing metadata leaves the folder's etag unchanged, so
-without that the next scan would keep the old bursts. A file that is gone, or whose refresh
+folder summaries of the folders of the files that got it: writing metadata leaves the folder's
+etag unchanged, so without that the next scan would keep the old bursts. A file that got no key,
+because it could not be read, leaves its folder's summary, so it cannot make every scan start
+over. A file that is gone, or whose refresh
 fails, is skipped and the failure logged; the job goes on with the next.
 
 ## Acceptance criteria
@@ -172,8 +174,9 @@ fails, is skipped and the failure logged; the job goes on with the next.
 
 - **Given** a `ReadRawHeaders` job
 - **When** it runs
-- **Then** each file's metadata is refreshed and the summaries of their folders are dropped, so
-  the next scan counts the RAW-only picture in its burst; a missing file is skipped, a failed
+- **Then** each file's metadata is refreshed and the summaries of the folders of the files that
+  got the key are dropped, so the next scan counts the RAW-only picture in its burst; a file
+  that got no key keeps its folder's summary, a missing file or a folder is skipped, a failed
   refresh is logged and the others still run, and an argument without a user and file ids is
   logged and does nothing
 
