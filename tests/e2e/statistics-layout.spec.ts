@@ -101,6 +101,8 @@ const previous = (page: Page) => page.getByRole('button', { name: 'Previous peri
 const next = (page: Page) => page.getByRole('button', { name: 'Next period' })
 const today = (page: Page) => page.getByRole('button', { name: 'Today' })
 const name = (page: Page) => page.locator('.statistics-period__label')
+/** Counted since March 2025, so the arrows can step back from November 2026. */
+const STEPPABLE = { ...ANSWER, firstDay: '2025-03-14' }
 
 /** The arrows' left edges, which must not move while the user steps. */
 const arrows = async (page: Page) => [(await box(previous(page))).x, (await box(next(page))).x]
@@ -124,7 +126,7 @@ for (const width of [1440, 1180, 820]) {
 	// spec: STATS-001.74
 	test(`puts the segment left and Today before a stepper of fixed width right at ${width} px ${WEBKIT}`, async ({ page }, testInfo) => {
 		await page.setViewportSize({ width, height: HEIGHT })
-		await openStatistics(page, ANSWER)
+		await openStatistics(page, STEPPABLE)
 		const tiles = await box(page.locator('.delete-stats'))
 		const right = tiles.x + tiles.width
 
@@ -157,7 +159,7 @@ for (const width of [1440, 1180, 820]) {
 		expect(await arrows(page)).toEqual(steady)
 
 		await page.getByRole('button', { name: 'All time' }).click()
-		await expect(name(page)).toHaveText('Since Nov 2, 2026')
+		await expect(name(page)).toHaveText('Since Mar 14, 2025')
 		await expect(today(page)).toHaveCount(0)
 		await expect(previous(page)).toHaveCount(0)
 		const since = await box(name(page))
