@@ -10,7 +10,7 @@ Add items with `/todo`.
 ## Milestones
 
 - [ ] Immich (M10, ADR 0041): owner: Phase 1 hand test on the test server with two real accounts and read-only keys (2026-11-19)
-- [ ] Immich (M10, ADR 0041): PR 13 Phase 2 (done: the write plan `src/logic/immich-write-plan.ts`, the check `POST write/check`): *Write to Immich*, the write-back endpoint and the dialog, the scope `album.read` in `docs/user/admin/immich.md`, with the `updatedAt` conflict check, rejects as Immich trash bin by default, per-asset results, undo; Immich decisions enter the statistics (2026-11-19)
+- [ ] Immich (M10, ADR 0041): PR 13 Phase 2 (done: the write plan `src/logic/immich-write-plan.ts`, the check `POST write/check`, the write-back endpoint `POST write` and the stored written state): *Write to Immich*, the dialog, the listing answering the written state, the scope `album.read` in `docs/user/admin/immich.md`, with the `updatedAt` conflict check, rejects as Immich trash bin by default, per-asset results, undo; Immich decisions enter the statistics (2026-11-19)
 - [ ] Immich (M10, ADR 0041): PR 14 user docs (the admin page `docs/user/admin/immich.md` is done): an account without partner sharing in its timeline (ADR 0044), the guide for culling Immich uploads (2026-11-19)
 - [ ] Culling aids (M11, ADR 0046): the similarity page (SERIES-004) measures the sharpness of its series members too, once it shows series; the cull measures them since PR 2 (SERIES-006) (2026-11-20)
 

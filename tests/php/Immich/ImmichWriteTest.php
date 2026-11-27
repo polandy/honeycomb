@@ -110,7 +110,7 @@ final class ImmichWriteTest extends TestCase {
 	// spec: IMMICH-004.10
 	public function testARefusedBulkTrashIsRepeatedPerAssetSoOnlyTheRefusedOneFails(): void {
 		$this->decide(self::RESTORED, Flag::Rejected, 0);
-		$this->immichRoute('DELETE /assets', static fn (array $options): array => in_array(self::RESTORED, (array)json_decode((string)$options['body'], true)['ids'], true)
+		$this->immichRoute('DELETE /assets', static fn (array $options): array => in_array(self::RESTORED, self::idsOf((string)$options['body']), true)
 			? [400, '{"message":"Not found or no asset.delete access"}', 'application/json'] : [204, '', 'application/json']);
 
 		$answer = $this->write()->write($this->connection(), [
@@ -195,7 +195,7 @@ final class ImmichWriteTest extends TestCase {
 			'an unknown field' => [[['assetId' => self::PICK, 'isFavorite' => true, 'immichRating' => 5]]],
 			'no Immich rating' => [[['assetId' => self::PICK, 'favorite' => true]]],
 			'a trash beside an update' => [[[...$trash, 'archived' => true]]],
-			'a trash that is false' => [[[...$trash, 'trash' => false]]],
+			'a trash that is false' => [[['assetId' => self::REJECT, 'trash' => false, 'immichRating' => null]]],
 			'a restore that is false' => [[['assetId' => self::RESTORED, 'restore' => false, 'immichRating' => 2]]],
 			'a rating of 0' => [[['assetId' => self::RATED, 'rating' => 0, 'immichRating' => 0]]],
 			'a rating above 5' => [[['assetId' => self::RATED, 'rating' => 6, 'immichRating' => 6]]],
@@ -229,7 +229,14 @@ final class ImmichWriteTest extends TestCase {
 	/** @return list<list<string>> */
 	private function trashedIds(): array {
 		$bodies = array_filter($this->immichRequests, static fn (array $request): bool => $request['method'] === 'DELETE');
-		return array_values(array_map(static fn (array $request): array => (array)json_decode((string)$request['options']['body'], true)['ids'], $bodies));
+		return array_values(array_map(static fn (array $request): array => self::idsOf((string)$request['options']['body']), $bodies));
+	}
+
+	/** @return list<string> the `ids` of a bulk call's body */
+	private static function idsOf(string $body): array {
+		/** @var array{ids: list<string>} $decoded */
+		$decoded = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+		return $decoded['ids'];
 	}
 
 	private function write(): ImmichWrite {

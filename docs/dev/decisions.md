@@ -2286,3 +2286,16 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   Immich ignores `isShared` beside `assetId`; it needs `album.read`, and a key without it fails the
   check with `scope` rather than writing without knowing the album. `others` counts the album's
   members besides the key's account, which Immich always lists (#187, autonomous).
+- 2026-11-27: `POST write` takes the write plan's changes per asset instead of the reject handling
+  and a resolution, so PHP does not compute the plan a second time (ADR 0006); the server still
+  trashes only an asset saved as a reject (#187, autonomous; ADR 0044 amended).
+- 2026-11-27: Once Immich does not answer or refuses the key, every asset of the block not yet
+  written fails with that error without another call; the ones written before keep `written`
+  (#187, autonomous).
+- 2026-11-27: A bulk trash or restore Immich refuses with 400 or 404 is repeated per asset, so
+  only the refused asset fails (#187, autonomous).
+- 2026-11-27: The written state (flag, rating, Immich's rating) lives in three nullable columns on
+  `honeycomb_immich_assets`, and a later save keeps them (#187, owner's choice).
+- 2026-11-27: The written state takes the decision saved when the write runs; a save racing the
+  write may be stored as written though Immich got the earlier one; accepted, since the browser
+  saves its decisions before it plans the write (#187, autonomous).

@@ -17,13 +17,19 @@ use OCA\Honeycomb\Domain\Store\UserRowStore;
  */
 interface ImmichDecisionStore extends UserRowStore {
 	/**
-	 * Replaces the rows of the assets with the decisions, as the user's, in one transaction.
+	 * Replaces the rows of the assets with the decisions, as the user's, in one transaction, keeping what was written for them.
 	 * @param list<AssetDecision> $decisions
 	 */
 	public function save(string $userId, string $connectionId, array $decisions, int $updatedAt): void;
 
 	/**
-	 * The user's decisions on those of the assets that have a row.
+	 * Stores what was written to Immich for those of the user's assets that have a row; a later save keeps it.
+	 * @param array<string, WrittenState> $written by asset id
+	 */
+	public function markWritten(string $userId, string $connectionId, array $written): void;
+
+	/**
+	 * The user's decisions on those of the assets that have a row, with what was last written for them.
 	 * @param list<string> $assetIds
 	 * @return array<string, AssetDecision> by asset id
 	 */

@@ -30,7 +30,13 @@ final readonly class AssetDecision {
 		public ?string $cameraModel,
 		public AssetKind $kind,
 		public string $assetUpdatedAt,
+		public ?WrittenState $written = null,
 	) {
+	}
+
+	/** The same decision with what was last written for it. */
+	public function withWritten(?WrittenState $written): self {
+		return new self($this->assetId, $this->rating, $this->colourLabel, $this->flag, $this->keepRaw, $this->takenAt, $this->cameraModel, $this->kind, $this->assetUpdatedAt, $written);
 	}
 
 	/** One decision of a save's body; anything malformed is a bad request (IMMICH-003.5). */
