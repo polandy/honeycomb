@@ -67,9 +67,11 @@ opens the statistics page and comes with it (metrics PR 6); *Close* closes the c
 its content share one centred column of 1040 px, so the title starts at the content's left edge.
 It shows one
 calendar period: a segment offers *Week*, *Month*, *Year* and *All time*, the current month
-preselected. Beside it a stepper names the period (*Nov 22 – 28, 2026*, *November 2026*, *2026*)
-with *Previous period* and *Next period* and *Today*, which goes to the period that holds today;
-*All time* has no stepper, only *Since {day}*. A week starts on the first day of the week of the
+preselected. At the right end of its row *Today*, which goes to the period that holds today, comes
+before a stepper that names the period (*Nov 22 – 28, 2026*, *November 2026*, *2026*) between
+*Previous period* and *Next period*; the name has a fixed width, so the arrows stay put while the
+user steps. *All time* has no stepper and no *Today*, only *Since {day}*. Below a content width of
+560 px the segment and the stepper each fill a row of their own. A week starts on the first day of the week of the
 user's Nextcloud locale. Changing the segment keeps the day the user stepped to, so March 2025
 becomes 2025 and back March 2025. The user's day is the `today` the server answers; stepping never
 goes past the period of today nor before the period of the first counted day. The hero *Photos
@@ -685,6 +687,16 @@ Strings are English, translated per ADR 0007; the mockup lists them.
   navigation toggle (APP-001.22); *Back to the cull* stands at the right end of the title row, on
   the title's line, its right edge the cards' right edge
 
+### STATS-001.74 – The control row
+
+- **Given** the statistics page with numbers counted
+- **When** it shows a week, month or year, or *All time*, with a content width of 560 px or more,
+  or less
+- **Then** the segment is one group at the content's left edge and *Today* stands before the
+  stepper at its right edge, the name between the arrows 168 px wide so stepping never moves them;
+  under *All time* only *Since {day}* stands there; below 560 px the segment and the stepper each
+  span the content's width on a row of their own, the segment above
+
 ## History
 
 | Date | Change |
@@ -705,3 +717,4 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | 2026-11-26 | Redesign R3: the highlights Best day, Busiest weekday, Pace, Active days and Longest streak (.67–.69) |
 | 2026-11-26 | Redesign R4: the activity calendar of every period with one level function shared with the year in review (.70–.72) |
 | 2026-11-27 | One centred column of 1040 px for the title row and the page, *Back to the cull* in the title row (.40 reworded, .73; layout variant A, tasks 1+2) |
+| 2026-11-27 | The control row: the segment at the left, *Today* before a stepper of fixed width at the right, two rows on a phone (.74; layout variant A, task 3) |
