@@ -49,7 +49,7 @@ const rows = (page: Page) => hero(page).locator('.statistics-hero__row')
 async function rowBoxes(page: Page) {
 	await expect(rows(page).locator('dt')).toHaveText(ROWS)
 	await expect(rows(page).locator('dd')).toHaveText(['15', '25', '30', '2'])
-	return Promise.all((await rows(page).all()).map(async (row) => {
+	const boxes = await Promise.all((await rows(page).all()).map(async (row) => {
 		const rowBox = await box(row)
 		const name = await row.locator('dt').evaluate(textBox)
 		const figure = await row.locator('dd').evaluate(textBox)
@@ -57,6 +57,7 @@ async function rowBoxes(page: Page) {
 		expect(near(figure.right, rowBox.x + rowBox.width), 'the figure at the row\'s end').toBe(true)
 		return rowBox
 	}))
+	return { picked: boxes[0]!, rejected: boxes[1]!, perDay: boxes[2]!, days: boxes[3]! }
 }
 
 /** The box of an element's text, which shows where it is aligned. */
@@ -77,7 +78,7 @@ for (const { width, layout } of LAYOUTS) {
 		const chart = await box(page.locator('.statistics-bars'))
 		const value = await box(hero(page).locator('.statistics-hero__value'))
 		const split = await box(hero(page).locator('.statistics-hero__split'))
-		const [picked, rejected, perDay, days] = await rowBoxes(page)
+		const { picked, rejected, perDay, days } = await rowBoxes(page)
 		expect(near(heroBox.x, grid.x), 'the hero starts at the content edge').toBe(true)
 
 		if (layout === 'columns') {
@@ -85,7 +86,7 @@ for (const { width, layout } of LAYOUTS) {
 			expect(near(chart.x, heroBox.x + heroBox.width + GAP_PX), '16 px between hero and bars').toBe(true)
 			expect(near(chart.x + chart.width, grid.x + grid.width), 'the bars take the other three columns').toBe(true)
 			expect(near(chart.y, heroBox.y) && near(chart.height, heroBox.height), 'hero and bars equally tall on one line').toBe(true)
-			for (const [above, below] of [[picked, rejected], [rejected, perDay], [perDay, days]]) {
+			for (const [above, below] of [[picked, rejected], [rejected, perDay], [perDay, days]] as const) {
 				expect(below.y, 'one row below the other').toBeGreaterThanOrEqual(above.y + above.height - TOLERANCE_PX)
 			}
 			expect(heroBox.y + heroBox.height - days.y - days.height, 'the rows fill the hero').toBeLessThanOrEqual(GAP_PX + 2 * TOLERANCE_PX)
@@ -100,7 +101,7 @@ for (const { width, layout } of LAYOUTS) {
 		}
 		if (layout === 'stacked') {
 			expect(split.y, 'the bar below the number').toBeGreaterThanOrEqual(value.y + value.height)
-			for (const row of [picked, rejected, perDay, days]) {
+			for (const row of [picked, rejected, perDay, days] as const) {
 				expect(near(row.x, split.x) && near(row.width, split.width), 'each row as wide as the bar').toBe(true)
 			}
 		}
