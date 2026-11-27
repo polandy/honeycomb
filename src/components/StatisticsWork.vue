@@ -18,7 +18,7 @@ const names: Record<WorkKey, () => string> = {
 	tagsSet: () => t('honeycomb', 'Tags set'),
 	seriesDone: () => t('honeycomb', 'Series done'),
 	foldersDone: () => t('honeycomb', 'Folders done'),
-	picturesMoved: () => t('honeycomb', 'Pictures moved'),
+	picturesMoved: () => t('honeycomb', 'Photos moved'),
 }
 </script>
 

@@ -145,6 +145,13 @@ async function drill(target: DrillTarget) {
 	gap: 2px;
 }
 
+/* Two px less between the days keep the squares a finger wide inside a card on a phone. */
+@container (max-width: 559px) {
+	.statistics-calendar--days .statistics-calendar__grid {
+		gap: 2px;
+	}
+}
+
 .statistics-calendar--all .statistics-calendar__group {
 	display: grid;
 	grid-template-columns: auto 1fr;

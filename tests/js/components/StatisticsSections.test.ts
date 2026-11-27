@@ -90,7 +90,7 @@ describe('StatisticsPage Work done', () => {
 			['Tags set', '', '10'],
 			['Series done', '', '2'],
 			['Folders done', '', '1'],
-			['Pictures moved', '', '30'],
+			['Photos moved', '', '30'],
 		])
 	})
 
@@ -100,7 +100,7 @@ describe('StatisticsPage Work done', () => {
 		const none = mountPage({ counters: [{ day: TODAY, metric: METRIC.decided, value: 5 }] })
 		await flushPromises()
 
-		expect(rows(some, 'statistics-work')).toEqual([['Pictures moved', '', '1,234']])
+		expect(rows(some, 'statistics-work')).toEqual([['Photos moved', '', '1,234']])
 		expect(none.find('.statistics-work').text()).toContain('Nothing done in this period.')
 		expect(none.findAll('.statistics-work .statistics-rows__row')).toHaveLength(0)
 	})

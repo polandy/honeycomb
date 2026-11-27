@@ -31,7 +31,7 @@ paths. The day is the calendar day in the user's Nextcloud time zone, UTC withou
 | Sidecars from digiKam or darktable | `sidecars_foreign` | A sidecar updated that holds data of digiKam or darktable: `darktable:xmp_version`, or a digiKam property honeycomb does not write |
 | Series done | `series_done` | A series write sets a stored open series to done or creates a series as done |
 | Folders done | `folders_done` | A *Mark done* request succeeds (FOLDERS-006); a reopen subtracts nothing |
-| Pictures moved | `pictures_moved` | A move reports every file of a picture as moved |
+| Photos moved | `pictures_moved` | A move reports every file of a picture as moved |
 | Active time | `active_seconds` | Seconds of the cull with an input at most 2 minutes earlier |
 
 Only successful results count. A day's net counter never goes below zero. The server counts
@@ -755,7 +755,7 @@ note,
 - **When** the page shows the card *Work done*
 - **Then** it lists, in this order, *Sidecars created*, *Sidecars updated* (with *n from digiKam or
   darktable* below it from one on), *Ratings set*, *Colour labels set*, *Tags set*, *Series done*,
-  *Folders done* and *Pictures moved* with their sums; a row at zero is left out; a period with
+  *Folders done* and *Photos moved* with their sums; a row at zero is left out; a period with
   none says *Nothing done in this period.*
 
 ### STATS-001.80 – The two pairs of cards
@@ -765,7 +765,7 @@ note,
 - **Then** from 880 px the activity calendar and *Clean-up* share one row of two equal columns and
   *Library progress* and *Work done* the next, 16 px apart, the cards of a row equally tall;
   below 880 px they stack in this order: calendar, *Clean-up*, *Library progress*, *Work done*;
-  below 560 px the cards' sides are 4 px in, so the calendar's squares stay 44 px wide
+  below 560 px the cards' sides are 4 px in and the days of the calendar 2 px apart, so the calendar's squares stay 44 px wide
 
 ## History
 

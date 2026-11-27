@@ -244,6 +244,8 @@ onMounted(async () => {
 
 <style src="../shared/coarse-controls.css" />
 
+<style scoped src="../statistics/card-pair.css" />
+
 <style scoped>
 .statistics-page {
 	display: flex;
@@ -269,37 +271,6 @@ onMounted(async () => {
 
 	.statistics-page__chart {
 		grid-column: 2 / -1;
-	}
-}
-
-/* Two equal cards from 880 px, one card shape for the calendar, Clean-up, the library and Work done (STATS-001.80). */
-.statistics-page__pair {
-	display: grid;
-	gap: calc(4 * var(--default-grid-baseline));
-}
-
-.statistics-page__pair > * {
-	box-sizing: border-box;
-	min-width: 0;
-	padding: calc(4 * var(--default-grid-baseline));
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius-large);
-}
-
-/* Narrower sides keep the calendar's squares a finger wide on a phone. */
-@container (max-width: 559px) {
-	.statistics-page__pair > * {
-		padding-inline: var(--default-grid-baseline);
-	}
-}
-
-@container (min-width: 880px) {
-	.statistics-page__pair {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-	}
-
-	.statistics-page__pair > :only-child {
-		grid-column: 1 / -1;
 	}
 }
 

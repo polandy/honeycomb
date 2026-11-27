@@ -72,11 +72,11 @@ test('lists the work done of the month, hides the rows at zero and leaves Octobe
 	await openStatistics(page, ANSWER)
 
 	expect(await rows(work(page))).toHaveLength(ROWS)
-	expect(await rows(work(page))).toEqual([['Sidecars created', '7'], ['Sidecars updated', '3'], ['Ratings set', '12'], ['Colour labels set', '4'], ['Tags set', '10'], ['Series done', '2'], ['Folders done', '1'], ['Pictures moved', '30']])
+	expect(await rows(work(page))).toEqual([['Sidecars created', '7'], ['Sidecars updated', '3'], ['Ratings set', '12'], ['Colour labels set', '4'], ['Tags set', '10'], ['Series done', '2'], ['Folders done', '1'], ['Photos moved', '30']])
 	await expect(work(page)).toContainText('2 from digiKam or darktable')
 
 	await openStatistics(page, SPARSE)
-	expect(await rows(work(page))).toEqual([['Pictures moved', '5']])
+	expect(await rows(work(page))).toEqual([['Photos moved', '5']])
 	await expect(cleanup(page)).toContainText('Nothing freed in this period.')
 	await expect(cleanup(page).locator('.statistics-cleanup__split')).toHaveCount(0)
 })
