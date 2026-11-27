@@ -7,11 +7,14 @@ import { t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 
 defineProps<{ foldersUrl: string }>()
+
+/** Three cells of a honeycomb, drawn only for the eye. */
+const HEXES = '⬡⬢⬡'
 </script>
 
 <template>
 	<section class="statistics-empty" :aria-label="t('honeycomb', 'Nothing counted yet')">
-		<span class="statistics-empty__hexes" aria-hidden="true">⬡⬢⬡</span>
+		<span class="statistics-empty__hexes" aria-hidden="true">{{ HEXES }}</span>
 		<h3>{{ t('honeycomb', 'Nothing counted yet') }}</h3>
 		<p>{{ t('honeycomb', 'Cull a folder and the numbers show here.') }}</p>
 		<NcButton variant="primary" :href="foldersUrl">

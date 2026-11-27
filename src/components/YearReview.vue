@@ -72,7 +72,11 @@ const activeDays = computed(() => n('honeycomb', '%n active day', '%n active day
 		<h4 v-if="open">
 			{{ t('honeycomb', 'Active days') }}
 		</h4>
-		<div v-if="open" class="year-review__days" role="group" :aria-label="activeDays">
+		<div
+			v-if="open"
+			class="year-review__days"
+			role="group"
+			:aria-label="activeDays">
 			<div class="year-review__calendar" aria-hidden="true">
 				<i
 					v-for="(each, index) in props.review.calendar"
