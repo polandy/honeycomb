@@ -35,8 +35,16 @@ const summary = computed(() => bar.value.map((row) => `${names[row.part]()} ${fo
 			{{ t('honeycomb', 'Nothing freed in this period.') }}
 		</p>
 		<template v-else>
-			<div v-if="bar.length > 0" class="statistics-cleanup__split" role="img" :aria-label="summary">
-				<i v-for="row in bar" :key="row.part" :class="`statistics-bars__part--${row.part}`" :style="{ flexGrow: row.bytes }" />
+			<div
+				v-if="bar.length > 0"
+				class="statistics-cleanup__split"
+				role="img"
+				:aria-label="summary">
+				<i
+					v-for="row in bar"
+					:key="row.part"
+					:class="`statistics-bars__part--${row.part}`"
+					:style="{ flexGrow: row.bytes }" />
 			</div>
 			<ul class="statistics-rows">
 				<li v-for="row in props.cleanUp.rows" :key="row.part" class="statistics-rows__row">
@@ -56,6 +64,7 @@ const summary = computed(() => bar.value.map((row) => `${names[row.part]()} ${fo
 </template>
 
 <style scoped src="../statistics/bar-parts.css" />
+
 <style scoped src="../statistics/card-rows.css" />
 
 <style scoped>

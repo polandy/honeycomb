@@ -289,7 +289,7 @@ onMounted(async () => {
 /* Narrower sides keep the calendar's squares a finger wide on a phone. */
 @container (max-width: 559px) {
 	.statistics-page__pair > * {
-		padding-inline: calc(2 * var(--default-grid-baseline));
+		padding-inline: var(--default-grid-baseline);
 	}
 }
 

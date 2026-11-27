@@ -85,7 +85,8 @@ below that the hero is a band above the bars. Four tiles follow: *Space freed* (
 moved to the trash bin or deleted for good and the RAW files removed), *Keep rate* (the share picked
 of the pictures picked or rejected, with *n kept of m*), *Active time* (with pictures a minute from
 one active minute on) and *Days in a row* (with the longest streak; in a past week, month or year
-the longest run of active days inside it). The chart shows one bar per day (week, month), per month (year) or per year (all time; per
+the longest run of active days inside it). The chart shows one bar per day (week, month), per month
+(year) or per year (all time; per
 month while the counting lies in one calendar year). A switch *Chart shows* picks *Decided* (the
 default: picked filled with ✓ stacked under rejected hatched with ✕), *Space freed* (moved to the
 trash bin filled, deleted for good hatched, RAWs removed dotted) or *Active time*; the axis names
@@ -289,7 +290,8 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 
 - **Given** a folder set of 3 pictures of 30 MB when the session started
 - **When** the user deletes 1 picture of 10 MB from the reject review
-- **Then** *Cull finished* shows before 3 pictures · 30 MB and after 2 · 20 MB, 1 picture moved to the
+- **Then** *Cull finished* shows before 3 pictures · 30 MB and after 2 · 20 MB, 1 picture moved to
+the
   trash bin and 10 MB freed
 
 ### STATS-001.34 – Only a decision of the user opens the card
@@ -476,7 +478,8 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 
 - **Given** the hint shows
 - **When** the user closes it, or opens the year in review on the statistics page
-- **Then** the year is stored as the view state's `year_review_hint_closed`; a failed write is logged,
+- **Then** the year is stored as the view state's `year_review_hint_closed`; a failed write is
+logged,
   keeps the hint away for this visit and tells the user nothing
 
 ### STATS-001.49 – Counted since inside the year
@@ -524,7 +527,8 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **Given** a period in which nothing was counted, e.g. a month off
 - **When** the page shows it
 - **Then** the hero shows 0 without a change, *—* per active day, 0 active days and an empty bar,
-  the bars give way to *Nothing counted in this period.*, and the segment and the stepper stay usable
+  the bars give way to *Nothing counted in this period.*, and the segment and the stepper stay
+  usable
 
 ### STATS-001.56 – Days in a row in a past period
 
@@ -623,7 +627,8 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **Given** a period with a count
 - **When** the page shows the highlights below the tiles
 - **Then** it shows one card *Highlights* with five cells, *Best day*, *Busiest weekday*, *Pace*,
-  *Active days* and *Longest streak*, each with its label first, its figure and a line of words; from
+  *Active days* and *Longest streak*, each with its label first, its figure and a line of words;
+  from
   880 px of content width the cells form one strip of equal width, below that five rows, the label
   at the start and the figure at the end; a period without a counter shows the line *Nothing
   counted in this period.* in the card instead
@@ -727,7 +732,8 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 
 - **Given** the statistics page with numbers counted in the period
 - **When** it shows the four tiles on a screen with a mouse or on a touch screen
-- **Then** each tile is a card with 16 px padding and the label first, then the value, then the note,
+- **Then** each tile is a card with 16 px padding and the label first, then the value, then the
+note,
   each line as tall as its text and 4 px apart, so a tile is about 100 px tall; the tiles of a row
   are equally tall, 16 px apart, and the first starts at the content's start edge
 
@@ -739,7 +745,8 @@ Strings are English, translated per ADR 0007; the mockup lists them.
   (filled), *Deleted for good* (hatched) and *RAW files removed* (dotted), the parts the key of the
   chart uses; below it a row per part names its pictures or RAW files and its bytes; a part with
   neither a count nor bytes has no row and none of the parts no bar; a period without a row says
-  *Nothing freed in this period.*; the note *Space is freed when the trash bin is emptied.* closes it
+  *Nothing freed in this period.*; the note *Space is freed when the trash bin is emptied.* closes
+  it
 
 ### STATS-001.79 – Work done lists what the user did besides deciding
 
@@ -757,7 +764,8 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **When** it renders with a content width of 880 px or more, or less
 - **Then** from 880 px the activity calendar and *Clean-up* share one row of two equal columns and
   *Library progress* and *Work done* the next, 16 px apart, the cards of a row equally tall;
-  below 880 px they stack in this order: calendar, *Clean-up*, *Library progress*, *Work done*; below 560 px the cards' sides are 8 px in, so the calendar's squares stay 44 px wide
+  below 880 px they stack in this order: calendar, *Clean-up*, *Library progress*, *Work done*;
+  below 560 px the cards' sides are 4 px in, so the calendar's squares stay 44 px wide
 
 ## History
 
