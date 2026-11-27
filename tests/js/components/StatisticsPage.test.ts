@@ -83,7 +83,7 @@ describe('StatisticsPage', () => {
 		expect(wrapper.text()).toContain('Nothing counted yet. Cull a folder and the numbers show here.')
 		expect(wrapper.find('.delete-stats').exists()).toBe(false)
 		expect(wrapper.find('.statistics-hero').exists()).toBe(false)
-		expect(wrapper.text()).toContain('50 % of photos in done folders')
+		expect(wrapper.find('.statistics-library__ring').attributes('aria-label')).toMatch(/^50\s?% of the photos are in folders marked done$/)
 		expect(wrapper.text()).not.toContain('Counted since')
 	})
 
