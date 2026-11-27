@@ -64,125 +64,151 @@ const streakLength = computed(() => props.highlights?.longestStreak?.length ?? 0
 
 <template>
 	<section class="statistics-highlights" :aria-label="t('honeycomb', 'Highlights')">
-		<p v-if="props.highlights === null" class="statistics-highlights__empty">
-			{{ t('honeycomb', 'Nothing counted in this period.') }}
-		</p>
-		<template v-else>
-			<div class="statistics-highlights__card">
-				<h3>{{ t('honeycomb', 'Best day') }}</h3>
-				<p class="statistics-highlights__value">
-					{{ bestDay ? formatNumber(bestDay.decided) : NO_FIGURE }}
-				</p>
-				<p v-if="bestDay" class="statistics-highlights__note">
-					{{ t('honeycomb', '{day} · in {time}', { day: formatDay(bestDay.day), time: formatDuration(bestDay.activeSeconds * SECOND_MS) }, undefined, PLAIN_TEXT) }}
-				</p>
-				<NcButton
-					v-if="bestDay && props.kind !== 'week'"
-					variant="tertiary"
-					class="statistics-highlights__show"
-					@click="emit('showDay', bestDay.day)">
-					{{ t('honeycomb', 'Show day') }}
-				</NcButton>
-			</div>
-			<div class="statistics-highlights__card">
-				<h3>{{ t('honeycomb', 'Busiest weekday') }}</h3>
-				<p class="statistics-highlights__value">
-					{{ weekday ? weekdayName(weekday.weekday, 'long') : NO_FIGURE }}
-				</p>
-				<template v-if="weekday">
-					<p class="statistics-highlights__note">
-						{{ n('honeycomb', '%n photo on average', '%n photos on average', shownTop, undefined, PLAIN_TEXT) }}
+		<div class="statistics-highlights__card">
+			<h3>{{ t('honeycomb', 'Highlights') }}</h3>
+			<p v-if="props.highlights === null" class="statistics-highlights__empty">
+				{{ t('honeycomb', 'Nothing counted in this period.') }}
+			</p>
+			<div v-else class="statistics-highlights__cells">
+				<div class="statistics-highlights__cell">
+					<h4>{{ t('honeycomb', 'Best day') }}</h4>
+					<p class="statistics-highlights__value">
+						{{ bestDay ? formatNumber(bestDay.decided) : NO_FIGURE }}
 					</p>
-					<div class="statistics-highlights__week" role="img" :aria-label="weekdayLabel">
-						<div v-for="each in weekday.days" :key="each.weekday" :class="{ 'statistics-highlights__day--top': each.weekday === weekday.weekday }">
-							<i :style="{ height: `${each.average * PERCENT / weekdayTop}%` }" />
-							<span aria-hidden="true">{{ weekdayName(each.weekday, 'short') }}</span>
+					<p v-if="bestDay" class="statistics-highlights__note">
+						{{ t('honeycomb', '{day} · in {time}', { day: formatDay(bestDay.day), time: formatDuration(bestDay.activeSeconds * SECOND_MS) }, undefined, PLAIN_TEXT) }}
+					</p>
+					<NcButton
+						v-if="bestDay && props.kind !== 'week'"
+						variant="tertiary"
+						class="statistics-highlights__show"
+						@click="emit('showDay', bestDay.day)">
+						{{ t('honeycomb', 'Show day') }}
+					</NcButton>
+				</div>
+				<div class="statistics-highlights__cell">
+					<h4>{{ t('honeycomb', 'Busiest weekday') }}</h4>
+					<p class="statistics-highlights__value">
+						{{ weekday ? weekdayName(weekday.weekday, 'long') : NO_FIGURE }}
+					</p>
+					<template v-if="weekday">
+						<p class="statistics-highlights__note">
+							{{ n('honeycomb', '%n photo on average', '%n photos on average', shownTop, undefined, PLAIN_TEXT) }}
+						</p>
+						<div class="statistics-highlights__week" role="img" :aria-label="weekdayLabel">
+							<div v-for="each in weekday.days" :key="each.weekday" :class="{ 'statistics-highlights__day--top': each.weekday === weekday.weekday }">
+								<i :style="{ height: `${each.average * PERCENT / weekdayTop}%` }" />
+								<span aria-hidden="true">{{ weekdayName(each.weekday, 'short') }}</span>
+							</div>
 						</div>
-					</div>
-				</template>
+					</template>
+				</div>
+				<div class="statistics-highlights__cell">
+					<h4>{{ t('honeycomb', 'Pace') }}</h4>
+					<p class="statistics-highlights__value">
+						{{ props.highlights.pace.pace === null ? NO_FIGURE : formatNumber(props.highlights.pace.pace) }}
+					</p>
+					<p class="statistics-highlights__note">
+						{{ paceNote }}
+					</p>
+				</div>
+				<div class="statistics-highlights__cell">
+					<h4>{{ t('honeycomb', 'Active days') }}</h4>
+					<p class="statistics-highlights__value">
+						{{ t('honeycomb', '{active} of {days}', { active: formatNumber(props.highlights.activeDays.active), days: formatNumber(props.highlights.activeDays.days) }, undefined, PLAIN_TEXT) }}
+					</p>
+					<p class="statistics-highlights__note">
+						{{ t('honeycomb', '{share} of the days', { share: activeShare }, undefined, PLAIN_TEXT) }}
+					</p>
+				</div>
+				<div class="statistics-highlights__cell">
+					<h4>{{ t('honeycomb', 'Longest streak') }}</h4>
+					<p class="statistics-highlights__value">
+						{{ n('honeycomb', '%n day', '%n days', streakLength, undefined, PLAIN_TEXT) }}
+					</p>
+					<p v-if="props.highlights.longestStreak" class="statistics-highlights__note">
+						{{ props.highlights.longestStreak.length === 1 ? formatDay(props.highlights.longestStreak.from) : t('honeycomb', '{from} to {to}', { from: formatDay(props.highlights.longestStreak.from), to: formatDay(props.highlights.longestStreak.to) }, undefined, PLAIN_TEXT) }}
+					</p>
+				</div>
 			</div>
-			<div class="statistics-highlights__card">
-				<h3>{{ t('honeycomb', 'Pace') }}</h3>
-				<p class="statistics-highlights__value">
-					{{ props.highlights.pace.pace === null ? NO_FIGURE : formatNumber(props.highlights.pace.pace) }}
-				</p>
-				<p class="statistics-highlights__note">
-					{{ paceNote }}
-				</p>
-			</div>
-			<div class="statistics-highlights__card">
-				<h3>{{ t('honeycomb', 'Active days') }}</h3>
-				<p class="statistics-highlights__value">
-					{{ t('honeycomb', '{active} of {days}', { active: formatNumber(props.highlights.activeDays.active), days: formatNumber(props.highlights.activeDays.days) }, undefined, PLAIN_TEXT) }}
-				</p>
-				<p class="statistics-highlights__note">
-					{{ t('honeycomb', '{share} of the days', { share: activeShare }, undefined, PLAIN_TEXT) }}
-				</p>
-			</div>
-			<div class="statistics-highlights__card">
-				<h3>{{ t('honeycomb', 'Longest streak') }}</h3>
-				<p class="statistics-highlights__value">
-					{{ n('honeycomb', '%n day', '%n days', streakLength, undefined, PLAIN_TEXT) }}
-				</p>
-				<p v-if="props.highlights.longestStreak" class="statistics-highlights__note">
-					{{ props.highlights.longestStreak.length === 1 ? formatDay(props.highlights.longestStreak.from) : t('honeycomb', '{from} to {to}', { from: formatDay(props.highlights.longestStreak.from), to: formatDay(props.highlights.longestStreak.to) }, undefined, PLAIN_TEXT) }}
-				</p>
-			</div>
-		</template>
+		</div>
 	</section>
 </template>
 
 <style scoped>
 .statistics-highlights {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-	gap: calc(2 * var(--default-grid-baseline));
+	container-type: inline-size;
 }
 
 .statistics-highlights__card {
-	display: flex;
-	flex-direction: column;
-	gap: var(--default-grid-baseline);
-	padding: calc(2 * var(--default-grid-baseline)) calc(3 * var(--default-grid-baseline));
+	display: grid;
+	gap: calc(1.5 * var(--default-grid-baseline));
+	padding: calc(2 * var(--default-grid-baseline));
 	border: 1px solid var(--color-border);
 	border-radius: var(--border-radius-large);
 }
 
-.statistics-highlights__card h3,
-.statistics-highlights__card p,
+.statistics-highlights__card > h3,
+.statistics-highlights__cell h4,
+.statistics-highlights__cell p,
 .statistics-highlights__empty {
 	margin: 0;
 }
 
-.statistics-highlights__card h3 {
+.statistics-highlights__card > h3 {
+	font-size: 1em;
+	font-weight: bold;
+}
+
+.statistics-highlights__cell {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: start;
+	column-gap: calc(2 * var(--default-grid-baseline));
+	padding: calc(1.5 * var(--default-grid-baseline)) 0;
+	border-top: 1px solid var(--color-border);
+}
+
+.statistics-highlights__cell:last-child {
+	padding-bottom: 0;
+}
+
+.statistics-highlights__cell h4 {
 	font-size: 1em;
 	font-weight: normal;
 	color: var(--color-text-maxcontrast);
 }
 
 .statistics-highlights__value {
-	font-size: 1.5em;
+	grid-column: 2;
+	grid-row: 1 / span 2;
+	font-size: 1.25em;
 	font-weight: bold;
+	text-align: end;
 	font-variant-numeric: tabular-nums;
 }
 
 .statistics-highlights__note,
 .statistics-highlights__empty {
+	font-size: 0.8125em;
 	color: var(--color-text-maxcontrast);
 	font-variant-numeric: tabular-nums;
 }
 
-.statistics-highlights__show {
-	align-self: flex-start;
+.statistics-highlights__show,
+.statistics-highlights__week {
+	grid-column: 1 / -1;
+	margin-top: var(--default-grid-baseline);
 }
 
-.statistics-highlights__empty {
-	grid-column: 1 / -1;
+.statistics-highlights__show {
+	justify-self: start;
 }
 
 .statistics-highlights__week {
 	display: flex;
 	gap: var(--default-grid-baseline);
+	max-width: calc(30 * var(--default-grid-baseline));
 	height: calc(8 * var(--default-grid-baseline));
 }
 
@@ -214,5 +240,42 @@ const streakLength = computed(() => props.highlights?.longestStreak?.length ?? 0
 .statistics-highlights__day--top i {
 	background: var(--color-primary-element);
 	box-shadow: none;
+}
+
+/* The strip needs 880 px of the page's column. */
+@container (min-width: 880px) {
+	.statistics-highlights__cells {
+		display: grid;
+		grid-template-columns: repeat(5, minmax(0, 1fr));
+		padding-top: calc(1.5 * var(--default-grid-baseline));
+		border-top: 1px solid var(--color-border);
+	}
+
+	.statistics-highlights__cell {
+		display: flex;
+		flex-direction: column;
+		gap: calc(0.5 * var(--default-grid-baseline));
+		padding: 0 calc(2 * var(--default-grid-baseline));
+		border-top: 0;
+		border-inline-start: 1px solid var(--color-border);
+	}
+
+	.statistics-highlights__cell:first-child {
+		padding-inline-start: 0;
+		border-inline-start: 0;
+	}
+
+	.statistics-highlights__cell:last-child {
+		padding-inline-end: 0;
+	}
+
+	.statistics-highlights__value {
+		text-align: start;
+	}
+
+	.statistics-highlights__show,
+	.statistics-highlights__week {
+		margin-top: calc(0.5 * var(--default-grid-baseline));
+	}
 }
 </style>
