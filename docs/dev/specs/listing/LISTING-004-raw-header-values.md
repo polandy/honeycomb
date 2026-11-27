@@ -9,8 +9,8 @@
 
 The Photos app reads no capture time or camera from RAW files. honeycomb reads both from a RAW
 file's header and keeps them in Nextcloud's file metadata, so a RAW-only picture can join its
-burst's series. This spec covers the read, the write and the listing reading the key; the
-backfill of existing files follows (TODO.md, ADR 0061).
+burst's series. This spec covers the read, the write, the listing reading the key and the
+backfill of existing files (ADR 0061).
 
 ## Behaviour
 
@@ -47,6 +47,19 @@ file cannot be opened or read, the failure is logged and no key is written.
 The camera is the key's `Make` and `Model` joined as LISTING-001.2 joins Photos' values. A key
 whose fields have the wrong type counts as one without them. So a RAW-only picture joins its
 burst's series, and *Pick this, reject the rest* takes it.
+
+**Backfill.** A RAW file written before its owner's first visit, or before honeycomb, has no key.
+The listing (LISTING-001) and the library scan (FOLDERS-005) queue the background job
+`ReadRawHeaders` with `{"userId", "fileIds"}` for the files they meet that have one of the user's
+RAW extensions, belong to the user and have no key: the ids sorted, at most 500 per job, and a job
+whose argument already waits is not queued again. The job refreshes each file's metadata as
+`occ files:scan --generate-metadata` does, so the read above writes the key, then drops the
+folder summaries of the folders of the files that got it: writing metadata leaves the folder's
+etag unchanged, so without that the next scan would keep the old bursts. A file that got no key,
+because it could not be read, leaves its folder's summary, so it cannot make every scan start
+over; a later listing of its folder queues it again, one bounded job per listing, with no
+stored retry count. A file that is gone, or whose refresh fails, is skipped and the failure
+logged; the job goes on with the next.
 
 ## Acceptance criteria
 
@@ -138,9 +151,40 @@ burst's series, and *Pick this, reject the rest* takes it.
 - **Then** the RAW-only picture is a card of the burst's series, and *Pick this, reject the rest*
   on another card rejects it
 
+### LISTING-004.14 – The listing queues the backfill
+
+- **Given** a listed folder with RAW files of the user without the key
+- **When** it is listed
+- **Then** one `ReadRawHeaders` job per 500 of their sorted ids is queued; a file with the key,
+  a file of another owner, a JPEG and an extension the user removed from the RAW list are left
+  out, and nothing is queued without such a file
+
+### LISTING-004.15 – The library scan queues the backfill
+
+- **Given** folders of a library root with RAW files without the key
+- **When** the scan summarises them
+- **Then** their ids are queued as in LISTING-004.14
+
+### LISTING-004.16 – Queued once while it waits
+
+- **Given** a `ReadRawHeaders` job that waits with the same argument
+- **When** the same files are met again
+- **Then** no second job is queued
+
+### LISTING-004.17 – The job writes the key and drops the summaries
+
+- **Given** a `ReadRawHeaders` job
+- **When** it runs
+- **Then** each file's metadata is refreshed and the summaries of the folders of the files that
+  got the key are dropped, so the next scan counts the RAW-only picture in its burst; a file
+  that got no key keeps its folder's summary, a missing file or a folder is skipped, a failed
+  refresh is logged and the others still run, and an argument without a user and file ids is
+  logged and does nothing
+
 ## History
 
 | Date | Change |
 |---|---|
 | 2026-11-26 | Created with the parser and the listener (ADR 0061, PR 2) |
 | 2026-11-26 | The listing and the folder summary read the key (ADR 0061, PR 3) |
+| 2026-11-27 | The listing and the library scan backfill files without the key (ADR 0061, PR 4) |

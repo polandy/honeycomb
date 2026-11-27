@@ -13,6 +13,7 @@ use OCA\Honeycomb\Service\Files\UserPhotos;
 use OCA\Honeycomb\Service\Image\ImageService;
 use OCA\Honeycomb\Service\Listing\EntryFactory;
 use OCA\Honeycomb\Service\Listing\ListingService;
+use OCA\Honeycomb\Service\Listing\RawHeaderBackfill;
 use OCA\Honeycomb\Service\Settings\SettingsService;
 use OCA\Honeycomb\Service\Source\FolderPictureSource;
 use OCA\Honeycomb\Service\Stats\StatsDay;
@@ -23,6 +24,7 @@ use OCA\Honeycomb\Tests\Service\FakeQualityStore;
 use OCA\Honeycomb\Tests\Service\FakeStatsStore;
 use OCA\Honeycomb\Tests\Service\FakeVisualHashStore;
 use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\BackgroundJob\IJobList;
 use OCP\Config\IUserConfig;
 use OCP\Files\IRootFolder;
 use OCP\FilesMetadata\IFilesMetadataManager;
@@ -37,7 +39,7 @@ trait FolderSourceFixture {
 		$time = $this->createStub(ITimeFactory::class);
 		$logger = $this->createStub(LoggerInterface::class);
 		return new FolderPictureSource(
-			$listing ?? new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class), new FakeVisualHashStore(), new FakeFlagStore(), new FakeQualityStore())),
+			$listing ?? new ListingService(new UserFolderResolver($root), new EntryFactory($this->createStub(IFilesMetadataManager::class), new FakeVisualHashStore(), new FakeFlagStore(), new FakeQualityStore()), new RawHeaderBackfill($this->createStub(IFilesMetadataManager::class), $this->createStub(IJobList::class), new SettingsService($this->createStub(IUserConfig::class)))),
 			$images ?? new ImageService(new UserPhotos(new UserFolderResolver($root)), $this->createStub(IPreview::class), $logger, new FakePreviewLock()),
 			$flags ?? new FlagService(new FakeFlagStore(), new UserPhotos(new UserFolderResolver($root)), $time, new StatsService(new FakeStatsStore(), new StatsDay($config, $time), new SettingsService($config), $logger)),
 		);

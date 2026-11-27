@@ -16,12 +16,17 @@ use OCA\Honeycomb\Service\Files\FolderNotReadableException;
 use OCA\Honeycomb\Service\Files\UserFolderResolver;
 use OCA\Honeycomb\Service\Folder\LibraryFolderService;
 use OCA\Honeycomb\Service\Listing\CaptureTimes;
+use OCA\Honeycomb\Service\Listing\RawExif;
+use OCA\Honeycomb\Service\Listing\RawHeaderBackfill;
+use OCA\Honeycomb\Service\Settings\SettingsService;
 use OCA\Honeycomb\Tests\Service\FakeFiles;
 use OCA\Honeycomb\Tests\Service\FakeFolderDoneStore;
 use OCA\Honeycomb\Tests\Service\FakeFolderSummaryStore;
 use OCA\Honeycomb\Tests\Service\FakeLibraryFiles;
 use OCA\Honeycomb\Tests\Service\ReasonOf;
 use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\BackgroundJob\IJobList;
+use OCP\Config\IUserConfig;
 use OCP\Constants;
 use OCP\FilesMetadata\IFilesMetadataManager;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -37,6 +42,10 @@ final class LibraryFolderServiceTest extends TestCase {
 	private FakeFolderDoneStore $done;
 	/** @var array<int, int> capture times by file id */
 	private array $captureTimes = [];
+	/** @var list<int> the file ids with the RAW header key */
+	private array $rawKeys = [];
+	/** @var list<mixed> the arguments of the queued jobs */
+	private array $queued = [];
 
 	#[\Override]
 	protected function setUp(): void {
@@ -48,14 +57,18 @@ final class LibraryFolderServiceTest extends TestCase {
 	/** @param array<string, \OCP\Files\Node|\Throwable> $nodes */
 	private function service(array $nodes = []): LibraryFolderService {
 		$metadata = $this->createStub(IFilesMetadataManager::class);
-		$metadata->method('getMetadataForFiles')->willReturnCallback(fn (array $ids): array => array_map(
-			fn (int $time): \OCP\FilesMetadata\Model\IFilesMetadata => $this->metadata([CaptureTimes::KEY => $time]),
-			array_intersect_key($this->captureTimes, array_flip($ids)),
+		$metadata->method('getMetadataForFiles')->willReturnCallback(/** @param list<int> $ids */ fn (array $ids): array => array_map(
+			fn (int $id): \OCP\FilesMetadata\Model\IFilesMetadata => $this->metadata(array_filter([CaptureTimes::KEY => $this->captureTimes[$id] ?? null, RawExif::KEY => in_array($id, $this->rawKeys, true) ? [] : null], static fn (mixed $value): bool => $value !== null)),
+			array_combine($ids, $ids),
 		));
+		$jobs = $this->createStub(IJobList::class);
+		$jobs->method('add')->willReturnCallback(function (string $class, mixed $argument): void {
+			$this->queued[] = $argument;
+		});
 		$time = $this->createStub(ITimeFactory::class);
 		$time->method('getTime')->willReturn(self::NOW);
 		$root = $this->rootWith($nodes + ['/Photos' => $this->folder('/Photos', fileId: 10)]);
-		return new LibraryFolderService(new UserFolderResolver($root), $this->files, $this->summaries, $this->done, new CaptureTimes($metadata), $time);
+		return new LibraryFolderService(new UserFolderResolver($root), $this->files, $this->summaries, $this->done, new CaptureTimes($metadata), new RawHeaderBackfill($metadata, $jobs, new SettingsService($this->createStub(IUserConfig::class))), $time);
 	}
 
 	private function libraryFolder(int $fileId, string $path, string $etag = 'e', int $permissions = Constants::PERMISSION_ALL): LibraryFolder {
@@ -82,6 +95,22 @@ final class LibraryFolderServiceTest extends TestCase {
 			10 => new FolderSummary(10, 'e-10', 2, 32, 25, 1, 1_000, 1_002, 50, self::NOW, [['fileId' => 1, 'mtime' => 50], ['fileId' => 3, 'mtime' => 30]]),
 			11 => new FolderSummary(11, 'e-11', 0, 0, 0, 0, null, null, null, self::NOW),
 		], $this->summaries->rows);
+	}
+
+	// spec: LISTING-004.15
+	public function testAScanQueuesTheRawFilesWithoutTheKey(): void {
+		$this->files->folders = [$this->libraryFolder(10, ''), $this->libraryFolder(11, '/2024')];
+		$this->files->photos = [
+			['fileId' => 1, 'parent' => 10, 'name' => 'a.jpg', 'size' => 3, 'mtime' => 50],
+			['fileId' => 2, 'parent' => 10, 'name' => 'a.nef', 'size' => 25, 'mtime' => 40],
+			['fileId' => 3, 'parent' => 11, 'name' => 'b.cr3', 'size' => 4, 'mtime' => 30],
+			['fileId' => 4, 'parent' => 11, 'name' => 'c.nef', 'size' => 4, 'mtime' => 30],
+		];
+		$this->rawKeys = [3];
+
+		$this->service()->scan($this->user(), 'Photos');
+
+		$this->assertSame([['userId' => 'alice', 'fileIds' => [2, 4]]], $this->queued);
 	}
 
 	// spec: FOLDERS-005.18

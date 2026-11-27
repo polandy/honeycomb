@@ -2262,3 +2262,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   live Docker Hub pull per run, after a stalled layer timed out the oldest shard 1/3 of #446; a
   GHCR mirror was not chosen as it needs a publishing job and a second pin to keep in step
   (#187, orchestrator).
+- 2026-11-27: The RAW header backfill (ADR 0061, PR 4) queues only files the listing user owns,
+  by the user's own RAW extensions, as the listener reads only a file whose owner opened
+  honeycomb; a shared file of an owner who never did would be queued again on every listing.
+  The job drops a folder summary only when a file of that folder got the key, so an unreadable
+  RAW cannot make every scan and job start over; a listing of its folder queues it again, with no
+  stored retry cap, as a cap would need a new table (LISTING-004.14, .17, #187, autonomous).

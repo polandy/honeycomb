@@ -25,6 +25,7 @@ final class ListingService {
 	public function __construct(
 		private UserFolderResolver $folders,
 		private EntryFactory $entryFactory,
+		private RawHeaderBackfill $backfill,
 		private int $entryLimit = Limits::ENTRIES,
 	) {
 	}
@@ -57,16 +58,26 @@ final class ListingService {
 				continue;
 			}
 			if (count($entries) + count($batch) === $this->entryLimit) {
-				return new Listing([...$entries, ...$this->entryFactory->create($userFolder, $batch)], true, array_values($folders), $folder->getId());
+				return new Listing([...$entries, ...$this->entries($user, $userFolder, $batch)], true, array_values($folders), $folder->getId());
 			}
 			$batch[] = $node;
 			$folders[dirname($node->getPath())] ??= $this->folderOf($userFolder, $node);
 			if (count($batch) === self::METADATA_BATCH) {
-				array_push($entries, ...$this->entryFactory->create($userFolder, $batch));
+				array_push($entries, ...$this->entries($user, $userFolder, $batch));
 				$batch = [];
 			}
 		}
-		return new Listing([...$entries, ...$this->entryFactory->create($userFolder, $batch)], false, array_values($folders), $folder->getId());
+		return new Listing([...$entries, ...$this->entries($user, $userFolder, $batch)], false, array_values($folders), $folder->getId());
+	}
+
+	/**
+	 * The entries of `$files`, queueing the header read of their RAW files without the key (LISTING-004.14).
+	 * @param list<File> $files
+	 * @return list<Entry>
+	 */
+	private function entries(IUser $user, Folder $userFolder, array $files): array {
+		$this->backfill->queueFiles($user, $files);
+		return $this->entryFactory->create($userFolder, $files);
 	}
 
 	/**
