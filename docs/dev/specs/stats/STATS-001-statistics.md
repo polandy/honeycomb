@@ -82,8 +82,8 @@ arrow and words (*▲ 12 % more than October*), a bar of picked (filled, ✓) ag
 active days (a day is active when any of its counters is above zero). From a content width of
 960 px the hero takes the first of four columns and the bars the other three, both as tall as the
 taller; below that the hero is a band above the bars. Four tiles follow: *Space freed* (with the
-pictures moved to the trash bin or deleted for good and the RAW files removed), *Keep rate* (the share picked of the pictures picked
-or rejected, with *n kept of m*), *Active time* (with pictures a minute from one active minute on)
+pictures moved to the trash bin or deleted for good and the RAW files removed), *Keep rate* (the
+share picked of the pictures picked or rejected, with *n kept of m*), *Active time* (with pictures a minute from one active minute on)
 and *Days in a row* (with the longest streak; in a past week, month or year the longest run of
 active days inside it). A line shows the sidecars created and updated (with those from digiKam or
 darktable) and the series done, each once there is one, until *Work done* takes them. The chart
