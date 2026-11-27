@@ -35,70 +35,120 @@ async function checkDialog(page: Page, dialog: Locator, screen: string, open: ()
 	await expect(dialog).toBeHidden()
 }
 
-for (const scheme of SCHEMES) {
-	// spec: APP-001.15
-	test(`finds no accessibility fault on the grid, its dialogs and menus, in the ${scheme} theme`, async ({ page }) => {
-		await page.emulateMedia({ colorScheme: scheme })
-		await cullPhotos(page)
-		const at = (screen: string) => `${screen}, ${scheme}`
+type Screen = (page: Page, at: (screen: string) => string) => Promise<void>
 
-		await expectAccessible(page, at('grid'))
+/** Selects the loose photo and moves on to the rejected state, as the screens after it need one reject. */
+async function rejectLoosePhoto(page: Page): Promise<void> {
+	await page.getByRole('button', { name: 'Select', exact: true }).click()
+	await page.getByRole('gridcell', { name: /^IMG_0003/ }).click()
+	await page.getByRole('button', { name: 'Reject', exact: true }).click()
+	await page.getByRole('button', { name: 'Done' }).click()
+}
 
-		await checkDialog(page, page.getByRole('dialog', { name: 'Choose folders' }), at('folder tree'), async () => {
-			await page.getByRole('button', { name: 'Change folders', exact: true }).click()
-			// An empty tree, still loading, has no treeitem and axe rejects it.
-			await expect(page.getByRole('dialog', { name: 'Choose folders' }).getByRole('treeitem').first()).toBeVisible()
-		})
-		await expect(page.getByRole('gridcell')).toHaveCount(3)
+/** Opens the ⋯ menu once the reject count is on it. */
+async function openMenu(page: Page): Promise<void> {
+	await page.getByRole('button', { name: 'More' }).click()
+	await expect(page.getByRole('menu').or(page.locator('.v-popper__popper--shown'))).toBeVisible()
+}
 
+/** Opens the reject review from the ⋯ menu. */
+async function openReview(page: Page): Promise<Locator> {
+	await rejectLoosePhoto(page)
+	await openMenu(page)
+	await page.getByRole('button', { name: 'Review rejects: 1' }).click()
+	await expect(page.getByRole('menu')).toBeHidden()
+	const review = page.getByRole('dialog', { name: 'Review rejects' })
+	await expect(review).toBeVisible()
+	return review
+}
+
+/** Opens the loupe on the burst's first photo. */
+async function openLoupe(page: Page): Promise<Locator> {
+	await page.getByRole('gridcell', { name: /^IMG_0001/ }).click()
+	const loupe = page.getByRole('dialog', { name: 'Loupe' })
+	await expect(loupe.getByRole('heading', { name: 'IMG_0001' })).toBeVisible()
+	return loupe
+}
+
+/** Opens the series compare screen. */
+async function openCompare(page: Page): Promise<Locator> {
+	await page.getByRole('button', { name: /^Compare series: \d/ }).click()
+	const compare = page.getByRole('dialog', { name: /^Compare series 1 of 1/ })
+	await expect(compare).toBeVisible()
+	return compare
+}
+
+/** One screen per entry, each scanned in its own test so a slow host never runs one test past its timeout. */
+const SCREENS: Record<string, Screen> = {
+	grid: (page, at) => expectAccessible(page, at('grid')),
+	'folder tree': (page, at) => checkDialog(page, page.getByRole('dialog', { name: 'Choose folders' }), at('folder tree'), async () => {
+		await page.getByRole('button', { name: 'Change folders', exact: true }).click()
+		// An empty tree, still loading, has no treeitem and axe rejects it.
+		await expect(page.getByRole('dialog', { name: 'Choose folders' }).getByRole('treeitem').first()).toBeVisible()
+	}),
+	settings: async (page, at) => {
 		await page.getByRole('button', { name: 'More' }).click()
 		await checkDialog(page, page.getByRole('dialog', { name: 'Settings' }), at('settings'), () => page.getByRole('button', { name: 'Settings', exact: true }).click())
-
+	},
+	selection: async (page, at) => {
 		await page.getByRole('button', { name: 'Select', exact: true }).click()
 		await page.getByRole('gridcell', { name: /^IMG_0003/ }).click()
 		await expectAccessible(page, at('selection'))
+	},
+	'Move…': async (page, at) => {
+		await page.getByRole('button', { name: 'Select', exact: true }).click()
+		await page.getByRole('gridcell', { name: /^IMG_0003/ }).click()
 		await checkDialog(page, page.getByRole('dialog', { name: 'Move 1 photo' }), at('Move…'), () => page.getByRole('button', { name: 'Move…', exact: true }).click())
-		await page.getByRole('button', { name: 'Reject', exact: true }).click()
-		await page.getByRole('button', { name: 'Done' }).click()
-
-		await page.getByRole('button', { name: 'More' }).click()
-		await expect(page.getByRole('menu').or(page.locator('.v-popper__popper--shown'))).toBeVisible()
+	},
+	'⋯ menu': async (page, at) => {
+		await rejectLoosePhoto(page)
+		await openMenu(page)
 		await expectAccessible(page, at('⋯ menu'))
-		await page.getByRole('button', { name: 'Review rejects: 1' }).click()
-		await expect(page.getByRole('menu')).toBeHidden()
-		const review = page.getByRole('dialog', { name: 'Review rejects' })
-		await expect(review).toBeVisible()
+	},
+	'reject review': async (page, at) => {
+		await openReview(page)
 		await expectAccessible(page, at('reject review'))
+	},
+	'Delete…': async (page, at) => {
+		const review = await openReview(page)
 		await review.getByRole('button', { name: 'Continue: delete 1' }).click()
 		const summary = page.getByRole('dialog', { name: 'Delete 1 photo' })
 		await expect(summary).toBeVisible()
 		await expectAccessible(page, at('Delete…'))
 		await closeByEscape(page, summary)
-	})
-
-	// spec: APP-001.15
-	test(`finds no accessibility fault in the loupe and the series screens, in the ${scheme} theme`, async ({ page }) => {
-		await page.emulateMedia({ colorScheme: scheme })
-		await cullPhotos(page)
-		const at = (screen: string) => `${screen}, ${scheme}`
-
-		await page.getByRole('gridcell', { name: /^IMG_0001/ }).click()
-		const loupe = page.getByRole('dialog', { name: 'Loupe' })
-		await expect(loupe.getByRole('heading', { name: 'IMG_0001' })).toBeVisible()
+	},
+	'gesture guide': async (page, at) => {
+		const loupe = await openLoupe(page)
+		await expect(loupe.getByRole('dialog', { name: 'How to cull' })).toBeVisible()
+		await expectAccessible(page, at('gesture guide'))
+	},
+	loupe: async (page, at) => {
+		const loupe = await openLoupe(page)
 		const guide = loupe.getByRole('dialog', { name: 'How to cull' })
 		await expect(guide).toBeVisible()
-		await expectAccessible(page, at('gesture guide'))
 		await guide.getByRole('button', { name: 'Got it' }).click()
+		await expect(guide).toBeHidden()
 		await expectAccessible(page, at('loupe'))
-		await loupe.getByRole('button', { name: 'Close loupe' }).click()
-		await expect(loupe).toBeHidden()
-
-		await page.getByRole('button', { name: /^Compare series: \d/ }).click()
-		const compare = page.getByRole('dialog', { name: /^Compare series 1 of 1/ })
-		await expect(compare).toBeVisible()
+	},
+	'series compare': async (page, at) => {
+		await openCompare(page)
 		await expectAccessible(page, at('series compare'))
+	},
+	'series viewer': async (page, at) => {
+		const compare = await openCompare(page)
 		await compare.getByRole('button', { name: 'View photo 1 full screen' }).click()
 		await expect(page.getByRole('dialog', { name: 'Series viewer' })).toBeVisible()
 		await expectAccessible(page, at('series viewer'))
-	})
+	},
+}
+
+for (const scheme of SCHEMES) {
+	for (const [name, screen] of Object.entries(SCREENS)) {
+		// spec: APP-001.15
+		test(`finds no accessibility fault on ${name}, in the ${scheme} theme`, async ({ page }) => {
+			await page.emulateMedia({ colorScheme: scheme })
+			await cullPhotos(page)
+			await screen(page, (label) => `${label}, ${scheme}`)
+		})
+	}
 }
