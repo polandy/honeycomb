@@ -232,10 +232,8 @@ final class ImmichControllerTest extends TestCase {
 	public function testTheWriteCandidatesComeFromTheTablesWithoutAskingImmich(): void {
 		$this->controller()->decisions('alice-phone', [$this->decision()]);
 
-		$this->assertAnswer(Http::STATUS_OK, ['candidates' => [[
-			'assetId' => self::ASSET, 'decision' => ['rating' => 3, 'colourLabel' => null, 'flag' => 'picked', 'keepRaw' => false],
-			'written' => null, 'decidedUpdatedAt' => '2026-11-19T08:00:00.000Z',
-		]], 'nextCursor' => null], $this->controller()->writeCandidates('alice-phone'));
+		$candidate = ['assetId' => self::ASSET, 'decision' => ['rating' => 3, 'colourLabel' => null, 'flag' => 'picked', 'keepRaw' => false], 'written' => null, 'decidedUpdatedAt' => '2026-11-19T08:00:00.000Z'];
+		$this->assertAnswer(Http::STATUS_OK, ['candidates' => [$candidate], 'nextCursor' => null], $this->controller()->writeCandidates('alice-phone'));
 		$this->assertAnswer(Http::STATUS_BAD_REQUEST, ['error' => 'request'], $this->controller()->writeCandidates('alice-phone', 'zzz'));
 		$this->assertSame([], $this->immichRequests);
 	}

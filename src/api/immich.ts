@@ -81,7 +81,7 @@ export async function immichWriteCandidates(connectionId: string): Promise<Write
 	const candidates: WriteCandidate[] = []
 	let cursor: string | null = ''
 	while (cursor !== null) {
-		const { data } = await axios.get<unknown>(generateUrl(`${API}/immich/{connectionId}/write/candidates`, { connectionId }), { params: { cursor } })
+		const { data }: { data: unknown } = await axios.get<unknown>(generateUrl(`${API}/immich/{connectionId}/write/candidates`, { connectionId }), { params: { cursor } })
 		if (!isRecord(data) || !Array.isArray(data.candidates) || !(data.nextCursor === null || typeof data.nextCursor === 'string')) {
 			throw new ApiResponseError('The Immich write candidates came without a candidates array and nextCursor; check the server\'s version.')
 		}
