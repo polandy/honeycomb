@@ -181,8 +181,11 @@ async function drill(target: DrillTarget) {
 }
 
 .statistics-calendar--year .statistics-calendar__grid .statistics-calendar__square {
-	border-width: 0;
 	border-radius: 2px;
+}
+
+.statistics-calendar--year .statistics-calendar__grid .statistics-calendar__square:not(.statistics-calendar__square--today, .statistics-calendar__square--future, .statistics-calendar__square--before-first) {
+	border-color: transparent;
 }
 
 .statistics-calendar--all .statistics-calendar__grid .statistics-calendar__square {
