@@ -2247,3 +2247,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   answered), marked as `data-settled` on the `NcContent` root through an `AppLayout` prop, since
   the layout drops attributes; `pickFromNavigation` waits for it with `locator.waitFor` (APP-001.27)
   (autonomous).
+- 2026-11-27: The highlights card measures its own width with a container query on the section
+  (880 px of the page's column), not the viewport; the card's heading is an `h3` and the cells'
+  labels `h4`, the empty line stays inside the card (STATS-001.67, #187, autonomous).
