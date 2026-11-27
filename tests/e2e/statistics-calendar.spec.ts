@@ -80,6 +80,18 @@ test('holds a day with Enter and releases it with Space from the keyboard', asyn
 	await expect(calendar(page).locator('.statistics-bars__detail')).toHaveText('Select a day to see its numbers.')
 })
 
+// spec: STATS-001.70
+test('frames today and marks the days to come and before the first count in the year view', async ({ page }) => {
+	await openStatistics(page, ANSWER, '#year=2026')
+	const style = (from: string, property: 'borderTopWidth' | 'borderStyle') => square(page, from).evaluate((element, name) => getComputedStyle(element)[name], property)
+	expect(await style('2026-11-26', 'borderTopWidth')).toBe('2px')
+	expect(await style('2026-11-27', 'borderStyle')).toBe('dashed')
+	expect(await style('2026-11-25', 'borderTopWidth')).toBe('1px')
+
+	await openStatistics(page, ANSWER, '#year=2025')
+	expect(await style('2025-03-13', 'borderStyle')).toBe('dotted')
+})
+
 // spec: STATS-001.70, STATS-001.72
 test('shows the year with twelve months and all time with a row per year, and opens a month from all time', async ({ page }) => {
 	await openStatistics(page, ANSWER, '#year=2026')
