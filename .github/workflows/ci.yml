@@ -80,6 +80,7 @@ jobs:
       - run: scripts/test-specs.sh
       - run: scripts/test-spec-trailers.sh
       - run: scripts/test-nextcloud-versions.sh
+      - run: scripts/test-e2e-image.sh
       - run: scripts/test-package.sh
       - run: scripts/test-verify-steps.sh
       - run: scripts/source-sizes.sh
