@@ -94,9 +94,11 @@ trash bin filled, deleted for good hatched, RAWs removed dotted) or *Active time
 the highest bar and its half, and a key names every part. Days and months after today show as
 hatched empty slots (*Still to come* in the key), those before the first counted day as plain empty
 slots, and the bar of today (week, month, year) is outlined. Every bar is a button whose label
-names its day and value. A fixed panel below the chart, never a bubble over it, shows one bar's
-numbers: its name, the pictures decided with picked and rejected, the space freed and the active
-time; *Still to come.*, *Before counting began.* or *Nothing counted.* for a bar without them.
+names its day and value. The chart is a card: the heading and *Chart shows* in its header row,
+the key and *Show as table* in its footer row. A fixed panel below the chart, never a bubble over
+it, shows one bar's numbers: its name, the pictures decided with picked and rejected, the space
+freed and the active time; *Still to come.*, *Before counting began.* or *Nothing counted.* for a
+bar without them.
 A tap, a click, Enter or Space holds a bar (pressed) and again releases it; a mouse over a bar
 only previews it, and the panel returns to the held bar when the mouse leaves. A held month or
 year with a count offers *Show {month}* or *Show {year}*, which opens that month or year. *Show
@@ -710,6 +712,17 @@ Strings are English, translated per ADR 0007; the mockup lists them.
   above the bars, its number at the start and the bar with its rows beside it, the rows in two
   columns, from a content width of 560 px, and all stacked below that
 
+### STATS-001.76 – The chart as a card
+
+- **Given** the statistics page with numbers counted in the period
+- **When** it shows the chart with a content width of 560 px or more, or less
+- **Then** the chart is a card with 16 px padding; its header row has the heading at the start and
+  *Chart shows* as one segment at the end, on the heading's line; the axis labels start at the
+  card's inner edge, the heading's left edge, and the bars end at its inner right edge; a footer
+  row below the bars has the key at the start and *Show as table* at the end; the detail panel is
+  a filled area across the card's inner width below the footer; below 560 px *Chart shows* spans
+  the card's inner width on a row of its own below the heading
+
 ## History
 
 | Date | Change |
@@ -732,3 +745,4 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | 2026-11-27 | One centred column of 1040 px for the title row and the page, *Back to the cull* in the title row (.40 reworded, .73; layout variant A, tasks 1+2) |
 | 2026-11-27 | The control row: the segment at the left, *Today* before a stepper of fixed width at the right, two rows on a phone (.74; layout variant A, task 3) |
 | 2026-11-27 | The hero beside the bars on four columns, its figures as rows below the bar (.55, .59 reworded; .75; layout variant A task 4) |
+| 2026-11-27 | The chart as a card: header row, footer row with the key and *Show as table*, the detail panel as a filled area (.76; layout variant A task 5) |
