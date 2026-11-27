@@ -10,7 +10,7 @@ namespace OCA\Honeycomb\Tests\Service;
 use OCP\Lock\ILockingProvider;
 use OCP\Lock\LockedException;
 
-/** Core's locking as another request holds it until a second on the fake clock, and as this request takes it. */
+/** Core's locking as another request holds it for its first attempts, and as this request takes it. */
 final class FakeLockingProvider implements ILockingProvider {
 	/** @var array<string, int> the exclusive locks held, with their type */
 	public array $held = [];
@@ -20,14 +20,13 @@ final class FakeLockingProvider implements ILockingProvider {
 	public int $attempts = 0;
 
 	public function __construct(
-		private FakeClock $clock,
-		private int $otherHoldsUntil = PHP_INT_MIN,
+		private int $otherHoldsFor = 0,
 	) {
 	}
 
 	#[\Override]
 	public function isLocked(string $path, int $type): bool {
-		return isset($this->held[$path]) || $this->clock->now < $this->otherHoldsUntil;
+		return isset($this->held[$path]) || $this->attempts <= $this->otherHoldsFor;
 	}
 
 	#[\Override]

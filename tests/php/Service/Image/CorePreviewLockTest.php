@@ -10,7 +10,6 @@ namespace OCA\Honeycomb\Tests\Service\Image;
 use OCA\Honeycomb\Service\Image\CorePreviewLock;
 use OCA\Honeycomb\Tests\Service\FakeClock;
 use OCA\Honeycomb\Tests\Service\FakeLockingProvider;
-use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Lock\ILockingProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -26,9 +25,7 @@ final class CorePreviewLockTest extends TestCase {
 	}
 
 	private function lock(FakeLockingProvider $locks, ?LoggerInterface $logger = null): CorePreviewLock {
-		$time = $this->createStub(ITimeFactory::class);
-		$time->method('getTime')->willReturnCallback(fn (): int => $this->clock->now);
-		return new CorePreviewLock($locks, $time, $this->clock, $logger ?? $this->createStub(LoggerInterface::class));
+		return new CorePreviewLock($locks, $this->clock, $logger ?? $this->createStub(LoggerInterface::class));
 	}
 
 	/** A render that fails. */
@@ -38,7 +35,7 @@ final class CorePreviewLockTest extends TestCase {
 
 	// spec: IMAGES-001.18
 	public function testRendersUnderTheFilesExclusiveLockAndFreesIt(): void {
-		$locks = new FakeLockingProvider($this->clock);
+		$locks = new FakeLockingProvider();
 		$heldWhileRendering = null;
 		$preview = new \stdClass();
 
@@ -51,12 +48,12 @@ final class CorePreviewLockTest extends TestCase {
 		$this->assertSame([self::KEY => ILockingProvider::LOCK_EXCLUSIVE], $heldWhileRendering);
 		$this->assertSame([], $locks->held);
 		$this->assertSame([self::KEY], $locks->released);
-		$this->assertSame([], $this->clock->pauses);
+		$this->assertSame([], $this->clock->waits);
 	}
 
 	// spec: IMAGES-001.19
 	public function testFreesTheLockAfterAFailedRender(): void {
-		$locks = new FakeLockingProvider($this->clock);
+		$locks = new FakeLockingProvider();
 		$failure = null;
 
 		try {
@@ -71,26 +68,27 @@ final class CorePreviewLockTest extends TestCase {
 	}
 
 	// spec: IMAGES-001.19
-	public function testWaitsOnceASecondUntilAnotherRequestFreesTheLock(): void {
-		$locks = new FakeLockingProvider($this->clock, otherHoldsUntil: 103);
+	public function testTriesAgainEvery50MillisecondsUntilAnotherRequestFreesTheLock(): void {
+		$locks = new FakeLockingProvider(otherHoldsFor: 3);
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->never())->method('warning');
-		$renderedAt = null;
+		$heldWhileRendering = null;
 
-		$this->lock($locks, $logger)->whileRendering(7, function () use (&$renderedAt): string {
-			$renderedAt = $this->clock->now;
+		$this->lock($locks, $logger)->whileRendering(7, function () use ($locks, &$heldWhileRendering): string {
+			$heldWhileRendering = $locks->held;
 			return 'rendered';
 		});
 
-		$this->assertSame([101, 102, 103], $this->clock->pauses);
-		$this->assertSame(103, $renderedAt);
+		$this->assertSame([50, 50, 50], $this->clock->waits);
+		$this->assertSame([], $this->clock->pauses);
+		$this->assertSame([self::KEY => ILockingProvider::LOCK_EXCLUSIVE], $heldWhileRendering);
 		$this->assertSame(4, $locks->attempts);
 		$this->assertSame([self::KEY], $locks->released);
 	}
 
 	// spec: IMAGES-001.20
 	public function testRendersWithoutTheLockOnceItStaysHeldForThirtySeconds(): void {
-		$locks = new FakeLockingProvider($this->clock, otherHoldsUntil: PHP_INT_MAX);
+		$locks = new FakeLockingProvider(otherHoldsFor: PHP_INT_MAX);
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects($this->once())->method('warning')
 			->with($this->anything(), $this->equalTo(['fileId' => 7, 'waitedSeconds' => 30]));
@@ -100,13 +98,14 @@ final class CorePreviewLockTest extends TestCase {
 		$result = $this->lock($locks, $logger)->whileRendering(7, fn (): \stdClass => $preview);
 
 		$this->assertSame($preview, $result);
-		$this->assertSame(range(101, 130), $this->clock->pauses);
+		$this->assertSame(array_fill(0, 600, 50), $this->clock->waits);
+		$this->assertSame(601, $locks->attempts);
 		$this->assertSame([], $locks->released);
 	}
 
 	// spec: IMAGES-001.20
 	public function testFailsTheRenderWithoutTheLockAndFreesNothing(): void {
-		$locks = new FakeLockingProvider($this->clock, otherHoldsUntil: PHP_INT_MAX);
+		$locks = new FakeLockingProvider(otherHoldsFor: PHP_INT_MAX);
 		$this->expectExceptionMessage('render failed');
 
 		try {

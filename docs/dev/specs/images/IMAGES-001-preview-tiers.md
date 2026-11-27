@@ -178,12 +178,12 @@ core's own previews do.
 
 - **Given** another request holds the file's lock
 - **When** a tile, the loupe or the warm-up renders the file
-- **Then** it tries again once a second and renders once the lock is free, under the lock; a
+- **Then** it tries again every 50 ms and renders once the lock is free, under the lock; a
   render that fails still frees the lock
 
 ### IMAGES-001.20 – A lock held too long does not block the file
 
-- **Given** the file's lock stays held for 30 s, by a stuck or killed request
+- **Given** the file's lock stays held for 30 s (600 tries), by a stuck or killed request
 - **When** a render waits for it
 - **Then** it renders without the lock, logs a warning and never frees the lock it did not take
 
@@ -202,4 +202,5 @@ core's own previews do.
 | 2026-11-11 | Tiers 256, 1024 and 4096, core's preview sizes, in place of 512 and 2048 (owner, nc-test analysis) |
 | 2026-11-20 | One request at a time renders a file's previews; Nextcloud 35.0.0 served an empty tile when the warm-up rendered it too (IMAGES-001.18) |
 | 2026-11-22 | The lock is core's file locking, not a System V semaphore, and waits at most 30 s (IMAGES-001.19, IMAGES-001.20, ADR 0050) |
+| 2026-11-27 | A render waiting for the lock tries again every 50 ms, not once a second: the warm-up holds the files in the grid's order, so a tile waited up to a second (IMAGES-001.19, ADR 0050) |
 | 2026-11-14 | A new folder set stops the warm-up; warmed files are skipped by `fileId` and `mtime` (ADR 0010, amended 2026-11-14) |

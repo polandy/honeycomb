@@ -13,6 +13,8 @@ use OCA\Honeycomb\Service\Support\Pause;
 final class FakeClock implements Pause {
 	/** @var list<int> the seconds paused until, in order */
 	public array $pauses = [];
+	/** @var list<int> the milliseconds of each short pause, in order */
+	public array $waits = [];
 
 	public function __construct(
 		public int $now = 100,
@@ -23,5 +25,9 @@ final class FakeClock implements Pause {
 	public function until(int $second): void {
 		$this->pauses[] = $second;
 		$this->now = max($this->now, $second);
+	}
+
+	public function forMilliseconds(int $milliseconds): void {
+		$this->waits[] = $milliseconds;
 	}
 }
