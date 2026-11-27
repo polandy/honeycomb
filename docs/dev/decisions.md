@@ -2234,3 +2234,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   lost 3 px at the top and bottom to Nextcloud core's button margin, which outranked their
   `margin: 0`, so they now sit level with the axis; the plot moved into `StatisticsBarPlot.vue` to
   keep `StatisticsBars.vue` under 300 lines (STATS-001.76, layout variant A task 5, autonomous).
+- 2026-11-27: The e2e Nextcloud runs with `has_internet_connection=false`: `occ user:add` asked
+  HaveIBeenPwned through password_policy, and a runner's slow DNS (4 × 10 s) timed out a login in
+  CI run 45941755017; the flag also turns off the app store and update checks, while local calls
+  such as the Immich stub still work; `tests/e2e/app.spec.ts` checks it (PR #442, autonomous).
