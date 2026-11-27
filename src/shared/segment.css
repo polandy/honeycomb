@@ -1,0 +1,11 @@
+/*
+ * SPDX-FileCopyrightText: 2026 honeycomb contributors
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+/* A group of tertiary buttons of which one is pressed, on one shared ground (STATS-001.74, .76). */
+.honeycomb-segment {
+	display: flex;
+	align-items: center;
+	border-radius: var(--border-radius-element);
+	background: var(--color-background-dark);
+}
