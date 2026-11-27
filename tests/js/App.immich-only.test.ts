@@ -127,4 +127,37 @@ describe('App: I only use Immich', () => {
 
 		expect(savedSettings).toEqual([])
 	})
+	// spec: APP-001.27
+	it('marks the page settled once the settings and the Immich offer the start waits for have answered', async () => {
+		let answerSettings: (stored: object) => void = () => undefined
+		let answerConnections: (availability: ImmichAvailability) => void = () => undefined
+		const immich: ImmichApi = { listConnections: async () => new Promise((resolve) => {
+			answerConnections = resolve
+		}), status: async () => OK }
+		const { wrapper } = mountApp({ immich, loadSettings: async () => new Promise((resolve) => {
+			answerSettings = resolve
+		}) })
+		await flushPromises()
+		expect(wrapper.attributes('data-settled')).toBeUndefined()
+
+		answerSettings({ immichOnly: true })
+		await flushPromises()
+		expect(wrapper.attributes('data-settled')).toBeUndefined()
+
+		answerConnections(CONNECTED)
+		await flushPromises()
+		expect(wrapper.attributes('data-settled')).toBe('true')
+	})
+
+	// spec: APP-001.27
+	it('marks the page settled on unreadable settings, the start then on Folders', async () => {
+		vi.spyOn(logger, 'error').mockImplementation(() => undefined)
+		const { wrapper } = await start({}, immichOn({ kind: 'none' }))
+		const failed = mountApp({ immich: immichOn({ kind: 'none' }), loadSettings: async () => Promise.reject(new Error('down')) }).wrapper
+		await flushPromises()
+
+		expect(wrapper.attributes('data-settled')).toBe('true')
+		expect(failed.attributes('data-settled')).toBe('true')
+		expect(failed.findComponent(FoldersHome).isVisible()).toBe(true)
+	})
 })
