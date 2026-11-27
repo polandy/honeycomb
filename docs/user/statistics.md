@@ -33,9 +33,10 @@ Open **Statistics** in the navigation, or press **Statistics** on the *Cull fini
   time*. Days to come are hatched. Tap or click a bar to hold its numbers in the panel below; a
   held month or year offers *Show {month}* or *Show {year}*. *Show as table*, at the card's bottom
   right, lists the same values. A period without a count says so.
-- **Highlights:** below the tiles, five cards for the period: the *Best day* (*Show day* opens its
-  week), the *Busiest weekday* with seven small bars, the *Pace* in photos a minute against the
-  period before, the *Active days* and the *Longest streak*. A period without a count says so.
+- **Highlights:** below the tiles, one card for the period with five cells, a strip on a wide
+  page and rows on a narrow one: the *Best day* (*Show day* opens its week), the *Busiest weekday*
+  with seven small bars, the *Pace* in photos a minute against the period before, the *Active
+  days* and the *Longest streak*. A period without a count says so.
 - **Activity:** a calendar of the period. A week and a month show a square per day, a year its
   twelve months, all time a row per year with a square per month. The fill height of a square
   shows the pictures decided against the busiest one (a third, two thirds, more); days to come are
