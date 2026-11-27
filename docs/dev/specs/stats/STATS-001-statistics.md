@@ -64,7 +64,8 @@ between two inputs (a pointer press, a key, a wheel turn), at most 2 minutes eac
 opens the statistics page and comes with it (metrics PR 6); *Close* closes the card.
 
 **The statistics page** is a navigation entry *Statistics* beside *Similarity*. Its title row and
-its content share one centred column of 1040 px, so the title starts at the content's left edge. It shows one
+its content share one centred column of 1040 px, so the title starts at the content's left edge.
+It shows one
 calendar period: a segment offers *Week*, *Month*, *Year* and *All time*, the current month
 preselected. Beside it a stepper names the period (*Nov 22 – 28, 2026*, *November 2026*, *2026*)
 with *Previous period* and *Next period* and *Today*, which goes to the period that holds today;
@@ -407,8 +408,8 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **Given** the cull page or the *Cull finished* card
 - **When** the user picks *Statistics* in the navigation or on the card
 - **Then** the statistics page opens at `/apps/honeycomb/statistics`, a page of its own like
-  *Similarity* with the navigation (APP-001.25) and *Back to the cull* at the right end of its title row (STATS-001.73); the navigation's page
-  entries come from one list
+  *Similarity* with the navigation (APP-001.25) and *Back to the cull* at the right end of its
+  title row (STATS-001.73); the navigation's page entries come from one list
 
 ### STATS-001.41 – The period before
 
