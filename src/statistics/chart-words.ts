@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { PeriodIntake } from '../logic/stats-added.ts'
 import type { BarDetail, ChartMetric, ChartPart, DrillTarget } from '../logic/stats-chart.ts'
 import type { BarUnit, PeriodBar, PeriodKind } from '../logic/stats-period.ts'
 
@@ -16,12 +17,12 @@ const MONTH_STYLE: Intl.DateTimeFormatOptions = { month: 'long', year: 'numeric'
 
 /** The chart's heading, e.g. "Photos decided" (STATS-001.63). */
 function chartTitle(chart: ChartMetric): string {
-	return { decided: t('honeycomb', 'Photos decided'), freed: t('honeycomb', 'Space freed'), active: t('honeycomb', 'Active time') }[chart]
+	return { decided: t('honeycomb', 'Photos decided'), freed: t('honeycomb', 'Space freed'), active: t('honeycomb', 'Active time'), added: t('honeycomb', 'Photos added') }[chart]
 }
 
 /** The chart's button in the switch *Chart shows*. */
 export function chartSwitchLabel(chart: ChartMetric): string {
-	return { decided: t('honeycomb', 'Decided'), freed: t('honeycomb', 'Space freed'), active: t('honeycomb', 'Active time') }[chart]
+	return { decided: t('honeycomb', 'Decided'), freed: t('honeycomb', 'Space freed'), active: t('honeycomb', 'Active time'), added: t('honeycomb', 'Added') }[chart]
 }
 
 /** A part's name in the key and the table, with ✓ and ✕ so colour is never alone. */
@@ -33,6 +34,7 @@ export function partLabel(part: ChartPart): string {
 		deleted: t('honeycomb', 'Deleted for good'),
 		raws: t('honeycomb', 'RAWs removed'),
 		active: t('honeycomb', 'Active time'),
+		added: t('honeycomb', 'Photos added'),
 	}[part]
 }
 
@@ -59,14 +61,14 @@ export function barName(bar: PeriodBar, unit: BarUnit): string {
 
 /** A chart value in its unit: a count, a size or a duration of seconds. */
 export function formatChartValue(chart: ChartMetric, value: number): string {
-	return { decided: () => formatNumber(value), freed: () => formatFileSize(value), active: () => formatDuration(value * SECOND_MS) }[chart]()
+	return { decided: () => formatNumber(value), freed: () => formatFileSize(value), active: () => formatDuration(value * SECOND_MS), added: () => formatNumber(value) }[chart]()
 }
 
-/** A bar's label for a screen reader: its name and the chart's value (STATS-001.64). */
+/** A bar's label for a screen reader: its name and the chart's value, photos added also before counting began (STATS-001.64, STATS-001.82). */
 export function barLabel(bar: PeriodBar, unit: BarUnit, chart: ChartMetric): string {
 	const name = barName(bar, unit)
 	const detail = barDetail(bar)
-	if (detail.state === 'future' || detail.state === 'beforeFirst') {
+	if (detail.state === 'future' || (detail.state === 'beforeFirst' && chart !== 'added')) {
 		return detail.state === 'future'
 			? t('honeycomb', '{name}: still to come', { name }, undefined, PLAIN_TEXT)
 			: t('honeycomb', '{name}: before counting began', { name }, undefined, PLAIN_TEXT)
@@ -81,6 +83,7 @@ export function barLabel(bar: PeriodBar, unit: BarUnit, chart: ChartMetric): str
 		}, undefined, PLAIN_TEXT),
 		freed: () => t('honeycomb', '{name}: {size} freed', { name, size: value }, undefined, PLAIN_TEXT),
 		active: () => t('honeycomb', '{name}: {duration} active', { name, duration: value }, undefined, PLAIN_TEXT),
+		added: () => t('honeycomb', '{name}: {added} photos added', { name, added: value }, undefined, PLAIN_TEXT),
 	}[chart]()
 }
 
@@ -107,10 +110,14 @@ export function drillLabel(target: DrillTarget): string {
 		: t('honeycomb', 'Show {year}', { year: target.anchor.slice(0, YEAR_LENGTH) }, undefined, PLAIN_TEXT)
 }
 
-/** The detail panel's lines of a bar: its numbers, or why it has none (STATS-001.64). */
+/** The detail panel's lines of a bar: its numbers, or why it has none, and its photos added (STATS-001.64, STATS-001.82). */
 export function detailLines(detail: BarDetail): string[] {
+	if (detail.state === 'future') {
+		return [t('honeycomb', 'Still to come.')]
+	}
+	const added = detail.added > 0 ? [t('honeycomb', '{added} added', { added: formatNumber(detail.added) }, undefined, PLAIN_TEXT)] : []
 	if (detail.state !== 'counted') {
-		return [{ future: t('honeycomb', 'Still to come.'), beforeFirst: t('honeycomb', 'Before counting began.'), empty: t('honeycomb', 'Nothing counted.') }[detail.state]]
+		return [{ beforeFirst: t('honeycomb', 'Before counting began.'), empty: t('honeycomb', 'Nothing counted.') }[detail.state], ...added]
 	}
 	return [
 		t('honeycomb', '{decided} decided (✓ {picked} · ✕ {rejected})', {
@@ -120,5 +127,15 @@ export function detailLines(detail: BarDetail): string[] {
 		}, undefined, PLAIN_TEXT),
 		t('honeycomb', '{size} freed', { size: formatFileSize(detail.freedBytes) }, undefined, PLAIN_TEXT),
 		t('honeycomb', '{duration} active', { duration: formatDuration(detail.activeSeconds * SECOND_MS) }, undefined, PLAIN_TEXT),
+		...added,
 	]
+}
+
+/** The line of a period's intake against its clean-up, e.g. "Added 1,240 · Decided 980 · Deleted 410" (STATS-001.83). */
+export function intakeLine(intake: PeriodIntake): string {
+	return t('honeycomb', 'Added {added} · Decided {decided} · Deleted {deleted}', {
+		added: formatNumber(intake.added),
+		decided: formatNumber(intake.decided),
+		deleted: formatNumber(intake.deleted),
+	}, undefined, PLAIN_TEXT)
 }

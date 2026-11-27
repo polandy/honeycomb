@@ -30,6 +30,7 @@ final class FolderSummaryMapper implements FolderSummaryStore {
 		'newest' => IQueryBuilder::PARAM_INT,
 		'last_activity' => IQueryBuilder::PARAM_INT,
 		'previews' => IQueryBuilder::PARAM_STR,
+		'shot_days' => IQueryBuilder::PARAM_STR,
 		'scanned_at' => IQueryBuilder::PARAM_INT,
 	];
 
@@ -61,6 +62,7 @@ final class FolderSummaryMapper implements FolderSummaryStore {
 				self::nullableInt($row['last_activity']),
 				(int)$row['scanned_at'],
 				self::decodePreviews($row['previews']),
+				self::decodeShotDays($row['shot_days']),
 			);
 			$summaries[$summary->fileId] = $summary;
 		}
@@ -85,6 +87,7 @@ final class FolderSummaryMapper implements FolderSummaryStore {
 				'last_activity' => $summary->lastActivity,
 				'scanned_at' => $summary->scannedAt,
 				'previews' => self::encodePreviews($summary->previews),
+				'shot_days' => self::encodeShotDays($summary->shotDays),
 			], $summaries));
 		}, $this->db);
 	}
@@ -115,6 +118,26 @@ final class FolderSummaryMapper implements FolderSummaryStore {
 			}
 			return ['fileId' => (int)$parts[1], 'mtime' => (int)$parts[2]];
 		}, explode(',', $value));
+	}
+
+	/** @param array<string, int> $shotDays as `YYYY-MM-DD:n,YYYY-MM-DD:n` (ADR 0062); null without any */
+	private static function encodeShotDays(array $shotDays): ?string {
+		return $shotDays === [] ? null : implode(',', array_map(static fn (string $day, int $photos): string => "$day:$photos", array_keys($shotDays), array_values($shotDays)));
+	}
+
+	/** @return array<string, int> */
+	private static function decodeShotDays(mixed $value): array {
+		if (!is_string($value) || $value === '') {
+			return [];
+		}
+		$shotDays = [];
+		foreach (explode(',', $value) as $pair) {
+			if (preg_match('/^(\d{4}-\d{2}-\d{2}):(\d+)$/', $pair, $parts) !== 1) {
+				throw new \UnexpectedValueException("Malformed folder shot days: $value");
+			}
+			$shotDays[$parts[1]] = (int)$parts[2];
+		}
+		return $shotDays;
 	}
 
 	private static function nullableInt(mixed $value): ?int {

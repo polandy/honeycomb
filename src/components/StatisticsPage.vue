@@ -31,6 +31,7 @@ import YearReview from './YearReview.vue'
 import { yearOf } from '../logic/days.ts'
 import { folderProgress } from '../logic/folder-progress.ts'
 import { parseSettings } from '../logic/settings.ts'
+import { addedCounters, periodIntake, withAdded } from '../logic/stats-added.ts'
 import { periodCalendar } from '../logic/stats-calendar.ts'
 import { periodHighlights } from '../logic/stats-highlights.ts'
 import { parsePeriodHash, periodHash, resolveLocation } from '../logic/stats-location.ts'
@@ -82,6 +83,10 @@ const highlights = computed(() => periodHighlights(answer.value!.counters, perio
 const calendar = computed(() => periodCalendar(answer.value!.counters, period.value, bounds.value))
 const overview = computed(() => periodOverview(answer.value!.counters, period.value.range))
 const roots = ref<readonly string[]>([])
+/** Photos added from the library folders' shot days (STATS-001.81). */
+const added = computed(() => addedCounters(libraryRows.value))
+const chartBars = computed(() => withAdded(numbers.value!.bars, added.value))
+const intake = computed(() => periodIntake(answer.value!.counters, added.value, period.value.range))
 /** The library's progress as of the user's today, whose month counts as this month (STATS-001.42). */
 const library = computed(() => answer.value === null ? null : folderProgress(libraryRows.value, roots.value, new Date(`${answer.value.today}T00:00:00Z`)))
 const cullUrl = generateUrl('/apps/honeycomb/')
@@ -205,10 +210,11 @@ onMounted(async () => {
 						<StatisticsHero :overview="overview" :change="numbers!.decidedChange" :compared="comparedName(numbers!.compared)" />
 						<StatisticsBars
 							class="statistics-page__chart"
-							:bars="numbers!.bars"
+							:bars="chartBars"
 							:kind="kind"
 							:unit="numbers!.unit"
-							:counted="numbers!.counted"
+							:counted="numbers!.counted || intake !== null"
+							:intake="intake"
 							@drill="kind = $event.kind; anchor = $event.anchor" />
 					</div>
 					<DeleteStats :stats="stats" tiles fit />

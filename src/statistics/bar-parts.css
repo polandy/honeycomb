@@ -13,7 +13,8 @@
 }
 
 .statistics-bars__part--trash,
-.statistics-bars__part--active {
+.statistics-bars__part--active,
+.statistics-bars__part--added {
 	background: var(--color-primary-element);
 }
 

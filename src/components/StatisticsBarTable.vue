@@ -12,7 +12,7 @@ import { barName, chartHeading, formatChartValue, partLabel, unitName } from '..
 
 const props = defineProps<{ bars: readonly PeriodBar[], unit: BarUnit, chart: ChartMetric }>()
 
-const rows = computed(() => tableBars(props.bars))
+const rows = computed(() => tableBars(props.bars, props.chart))
 const parts = computed(() => chartParts(props.chart))
 </script>
 

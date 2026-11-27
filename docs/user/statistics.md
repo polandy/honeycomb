@@ -32,10 +32,14 @@ Open **Statistics** in the navigation, or press **Statistics** on the *Cull fini
   done and the pictures moved. A row at zero is left out.
 - **Chart:** one bar per day (week, month), per month (year) or per year (all time), in a card.
   *Chart shows*, at its top right, picks *Decided* (picked ✓ filled under rejected ✕ hatched),
-  *Space freed* (trash bin filled, deleted for good hatched, RAW files removed dotted) or *Active
-  time*. Days to come are hatched. Tap or click a bar to hold its numbers in the panel below; a
-  held month or year offers *Show {month}* or *Show {year}*. *Show as table*, at the card's bottom
-  right, lists the same values. A period without a count says so.
+  *Space freed* (trash bin filled, deleted for good hatched, RAW files removed dotted), *Active
+  time* or *Added*, the photos added to the library on the day they were shot, also before the
+  counting began. Days to come are hatched. Tap or click a bar to hold its numbers in the panel
+  below; a held month or year offers *Show {month}* or *Show {year}*. *Show as table*, at the
+  card's bottom right, lists the same values. A line below the card's header sets the period's
+  photos added against its pictures decided and deleted: *Added 1,240 · Decided 980 · Deleted
+  410*. Photos added count only the pictures still in the library roots, from their folders' last
+  scan. A period without a count or photos added says so.
 - **Highlights:** below the tiles, one card for the period with five cells, a strip on a wide
   page and rows on a narrow one: the *Best day* (*Show day* opens its week), the *Busiest weekday*
   with seven small bars, the *Pace* in photos a minute against the period before, the *Active

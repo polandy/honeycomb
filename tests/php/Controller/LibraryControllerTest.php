@@ -18,6 +18,7 @@ use OCA\Honeycomb\Service\Files\UserPhotos;
 use OCA\Honeycomb\Service\Folder\FolderDoneService;
 use OCA\Honeycomb\Service\Folder\LibraryFolderService;
 use OCA\Honeycomb\Service\Listing\CaptureTimes;
+use OCA\Honeycomb\Service\Stats\StatsDay;
 use OCA\Honeycomb\Tests\Service\FakeFiles;
 use OCA\Honeycomb\Tests\Service\FakeFolderDoneStore;
 use OCA\Honeycomb\Tests\Service\FakeFolderSummaryStore;
@@ -28,6 +29,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\UserRateLimit;
 use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\Config\IUserConfig;
 use OCP\Constants;
 use OCP\FilesMetadata\IFilesMetadataManager;
 use OCP\IRequest;
@@ -60,7 +62,7 @@ final class LibraryControllerTest extends TestCase {
 		$root = $this->rootWith(['/Photos' => $this->folder('/Photos', fileId: 10), '/Shared' => $this->folder('/Shared', mountType: 'shared'), '/Locked' => $this->folder('/Locked', readable: false), '/ReadOnly' => $this->folder('/ReadOnly', fileId: 11, permissions: Constants::PERMISSION_READ)]);
 		$time = $this->createStub(ITimeFactory::class);
 		$time->method('getTime')->willReturn(1_772_407_800);
-		$service = new LibraryFolderService(new UserFolderResolver($root), $files, $this->summaries, $this->done, new CaptureTimes($this->createStub(IFilesMetadataManager::class)), $this->noBackfill(), $time);
+		$service = new LibraryFolderService(new UserFolderResolver($root), $files, $this->summaries, $this->done, new CaptureTimes($this->createStub(IFilesMetadataManager::class)), $this->noBackfill(), $time, new StatsDay($this->createStub(IUserConfig::class), $time));
 		$done = new FolderDoneService(new UserPhotos(new UserFolderResolver($root)), $this->done, $time, $this->stats());
 		return new LibraryController(Application::APP_ID, $this->createStub(IRequest::class), new ApiResponse($session), $service, $this->rootsGuard($roots), $done);
 	}

@@ -27,6 +27,14 @@ describe('listLibraryFolders', () => {
 		await expect(listLibraryFolders('/Photos')).resolves.toMatchObject({ folders: [{ previews: [{ fileId: 3, mtime: 9 }] }] })
 	})
 
+	// spec: FOLDERS-005.22
+	it('keeps a row\'s shot days', async () => {
+		const shot = row({ fileId: 8, shotDays: [{ day: '2026-11-24', photos: 2 }] })
+		vi.mocked(axios.get).mockResolvedValue({ data: { folders: [shot], nextCursor: null, scanning: null } })
+
+		await expect(listLibraryFolders('/Photos')).resolves.toMatchObject({ folders: [{ shotDays: [{ day: '2026-11-24', photos: 2 }] }] })
+	})
+
 	// spec: FOLDERS-007.4
 	it('asks a page of the given size', async () => {
 		vi.mocked(axios.get).mockResolvedValue({ data: { folders: [], nextCursor: null, scanning: null } })
@@ -36,7 +44,7 @@ describe('listLibraryFolders', () => {
 	})
 
 	it('refuses a page of the wrong shape', async () => {
-		for (const data of [null, { folders: {}, nextCursor: null, scanning: null }, { folders: [{ fileId: '7' }], nextCursor: null, scanning: null }, { folders: [{ ...ROW, previews: undefined }], nextCursor: null, scanning: null }, { folders: [{ ...ROW, previews: [{ fileId: 1 }] }], nextCursor: null, scanning: null }, { folders: [], nextCursor: '7', scanning: null }, { folders: [], nextCursor: null, scanning: { done: 1 } }]) {
+		for (const data of [null, { folders: {}, nextCursor: null, scanning: null }, { folders: [{ fileId: '7' }], nextCursor: null, scanning: null }, { folders: [{ ...ROW, previews: undefined }], nextCursor: null, scanning: null }, { folders: [{ ...ROW, previews: [{ fileId: 1 }] }], nextCursor: null, scanning: null }, { folders: [{ ...ROW, shotDays: undefined }], nextCursor: null, scanning: null }, { folders: [{ ...ROW, shotDays: [{ day: '2026-11-24' }] }], nextCursor: null, scanning: null }, { folders: [{ ...ROW, shotDays: [{ day: 20261124, photos: 1 }] }], nextCursor: null, scanning: null }, { folders: [], nextCursor: '7', scanning: null }, { folders: [], nextCursor: null, scanning: { done: 1 } }]) {
 			vi.mocked(axios.get).mockResolvedValue({ data })
 			await expect(listLibraryFolders('/Photos')).rejects.toThrow(ApiResponseError)
 		}
