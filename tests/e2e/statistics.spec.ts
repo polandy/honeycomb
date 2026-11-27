@@ -69,7 +69,7 @@ test('opens the statistics page from the navigation and says nothing is counted 
 
 	await expect(page).toHaveURL(/\/apps\/honeycomb\/statistics$/)
 	await expect(page.getByRole('heading', { name: 'Statistics' })).toBeVisible()
-	await expect(page.getByText('Nothing counted yet. Cull a folder and the numbers show here.')).toBeVisible()
+	await expect(page.getByRole('region', { name: 'Nothing counted yet' })).toContainText('Cull a folder and the numbers show here.')
 	await page.getByRole('link', { name: 'Back to the cull' }).click()
 	await expect(page).toHaveURL(/\/apps\/honeycomb\/$/)
 })
@@ -142,6 +142,7 @@ test('shows the year in review above the periods on the desktop', async ({ page 
 
 	const review = page.getByRole('region', { name: 'Your 2026 in honeycomb' })
 	await expect(review).toContainText('70 photos decided')
+	await review.getByRole('button', { name: 'Show the year in review' }).click()
 	await expect(review.locator('.year-review__tile', { hasText: 'Busiest day' })).toContainText('40 photos decided')
 	await expect(review.locator('.year-review__tile', { hasText: 'Longest streak' })).toContainText('2 days in a row')
 	await expect(review.locator('.year-review__tile', { hasText: 'Sidecars updated' })).toContainText('3 from digiKam or darktable')
@@ -159,7 +160,8 @@ test('fits the year in review on a phone', async ({ page }, testInfo) => {
 
 	await gotoStatistics(page)
 
-	await expect(page.getByRole('region', { name: 'Your 2026 in honeycomb' })).toBeVisible()
+	await page.getByRole('button', { name: 'Show the year in review' }).click()
+	await expect(page.getByRole('region', { name: 'Your 2026 in honeycomb' }).locator('.year-review__tile').first()).toBeVisible()
 	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(PHONE.width)
 	await page.screenshot({ path: testInfo.outputPath('year-review-phone.png'), fullPage: true, animations: 'disabled' })
 })
