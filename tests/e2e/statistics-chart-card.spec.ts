@@ -89,6 +89,8 @@ for (const width of WIDTHS) {
 			expect(chartSwitch.y, 'Chart shows below the heading').toBeGreaterThanOrEqual(heading.y + heading.height)
 			expect(near(chartSwitch.x, inner.left), 'Chart shows across the card').toBe(true)
 		}
+		const cut = await card(page).locator('.statistics-bars__switch .button-vue__text').evaluateAll((names) => names.filter((name) => name.scrollWidth > name.clientWidth).map((name) => name.textContent))
+		expect(cut, 'every name in Chart shows in full').toEqual([])
 		expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
 		await page.screenshot({ path: testInfo.outputPath(`statistics-chart-card-${width}.png`), animations: 'disabled' })
 	})

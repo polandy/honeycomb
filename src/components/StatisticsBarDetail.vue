@@ -40,7 +40,11 @@ const target = computed(() => (props.bar ? drillTarget(props.bar, props.unit) : 
 	flex-wrap: wrap;
 	align-items: center;
 	gap: var(--default-grid-baseline) calc(3 * var(--default-grid-baseline));
+	box-sizing: border-box;
 	min-height: var(--default-clickable-area);
+	padding: calc(2 * var(--default-grid-baseline)) calc(3 * var(--default-grid-baseline));
+	border-radius: var(--border-radius-element);
+	background: var(--color-background-hover);
 	font-variant-numeric: tabular-nums;
 }
 

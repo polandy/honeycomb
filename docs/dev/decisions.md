@@ -2222,3 +2222,12 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   one shape, so the hero's right edge meets the first tile's only then; the iPad in landscape
   (1180 px) shows the four columns while the navigation is closed, its default below 1280 px, and
   the band once the user opens it (STATS-001.75, layout variant A task 4, autonomous).
+- 2026-11-27: The chart is a card of the hero's shape (16 px padding, border, large radius) with
+  its heading at 18 px on 24 px instead of Nextcloud's `h3`, as in the mockup; *Chart shows* takes
+  the period segment's look, now one shared `honeycomb-segment` class, and on a phone narrows its
+  buttons' padding to 4 px so *Space freed* and *Active time* are not cut off; the detail panel is
+  filled with the hover colour, which also fills the activity calendar's panel, the one component
+  both share; the axis labels start at the card's edge instead of ending at the bars; the bars
+  lost 3 px at the top and bottom to Nextcloud core's button margin, which outranked their
+  `margin: 0`, so they now sit level with the axis; the plot moved into `StatisticsBarPlot.vue` to
+  keep `StatisticsBars.vue` under 300 lines (STATS-001.76, layout variant A task 5, autonomous).
