@@ -17,9 +17,9 @@ const SET = { paths: ['/Trip'], subfolders: false }
 const POSITION = { folderSet: SET, fileId: 9, decided: 3, total: 40 }
 const CULL_URL = generateUrl('/apps/honeycomb/')
 
-function mountLayout(positions: unknown = [POSITION]) {
+function mountLayout(positions: unknown = [POSITION], wide = false) {
 	const fake = fakePageNavigation(positions)
-	const wrapper = mount(PageLayout, { props: { page: 'statistics', seams: fake.seams }, slots: { default: '<p class="page-body">Body</p>' } })
+	const wrapper = mount(PageLayout, { props: { page: 'statistics', seams: fake.seams, wide }, slots: { default: '<p class="page-body">Body</p>' } })
 	return { wrapper, visited: fake.visited, navigation: () => wrapper.findComponent(AppNavigation) }
 }
 
@@ -34,6 +34,35 @@ describe('PageLayout', () => {
 		expect(wrapper.findComponent(AppLayout).exists()).toBe(true)
 		expect(navigation().props('page')).toBe('statistics')
 		expect(wrapper.find('.app-content .page-body').text()).toBe('Body')
+	})
+
+	// spec: STATS-001.73
+	it('puts the page\'s actions into the title row, after the title', async () => {
+		const fake = fakePageNavigation()
+		const wrapper = mount(PageLayout, { props: { page: 'statistics', seams: fake.seams }, slots: { actions: '<a class="page-back" href="/back">Back</a>' } })
+		await flushPromises()
+		const row = wrapper.find('.page-title-row')
+
+		expect(row.find('h2').text()).toBe('Statistics')
+		expect(row.element.lastElementChild!.querySelector('.page-back')?.textContent).toBe('Back')
+	})
+
+	it('leaves the title row without actions when the page has none', async () => {
+		const { wrapper } = mountLayout()
+		await flushPromises()
+
+		expect(wrapper.find('.page-title-row__actions').exists()).toBe(false)
+	})
+
+	// spec: STATS-001.73
+	it.each([
+		[false, false],
+		[true, true],
+	])('gives the title row the shared page width when wide is %s', async (wide, shared) => {
+		const { wrapper } = mountLayout([POSITION], wide)
+		await flushPromises()
+
+		expect(wrapper.find('.page-title-row').classes('page-title-row--page-width')).toBe(shared)
 	})
 
 	// spec: APP-001.26

@@ -63,7 +63,8 @@ pictures a minute. A session starts when a folder set opens with pictures. Activ
 between two inputs (a pointer press, a key, a wheel turn), at most 2 minutes each. *Statistics*
 opens the statistics page and comes with it (metrics PR 6); *Close* closes the card.
 
-**The statistics page** is a navigation entry *Statistics* beside *Similarity*. It shows one
+**The statistics page** is a navigation entry *Statistics* beside *Similarity*. Its title row and
+its content share one centred column of 1040 px, so the title starts at the content's left edge. It shows one
 calendar period: a segment offers *Week*, *Month*, *Year* and *All time*, the current month
 preselected. Beside it a stepper names the period (*Nov 22 – 28, 2026*, *November 2026*, *2026*)
 with *Previous period* and *Next period* and *Today*, which goes to the period that holds today;
@@ -406,7 +407,7 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **Given** the cull page or the *Cull finished* card
 - **When** the user picks *Statistics* in the navigation or on the card
 - **Then** the statistics page opens at `/apps/honeycomb/statistics`, a page of its own like
-  *Similarity* with the navigation (APP-001.25) and *Back to the cull*; the navigation's page
+  *Similarity* with the navigation (APP-001.25) and *Back to the cull* at the right end of its title row (STATS-001.73); the navigation's page
   entries come from one list
 
 ### STATS-001.41 – The period before
@@ -674,6 +675,15 @@ Strings are English, translated per ADR 0007; the mockup lists them.
   period releases the square; each square is named for a screen reader by its date and numbers
   and the panel is announced politely
 
+### STATS-001.73 – One column for the title row and the page
+
+- **Given** the statistics page with numbers counted
+- **When** it renders with a content width of 1040 px or more, or less
+- **Then** the title row and the page share one column of at most 1040 px, centred in the
+  content; the title's left edge is the first card's unless the title steps aside for the
+  navigation toggle (APP-001.22); *Back to the cull* stands at the right end of the title row, on
+  the title's line, its right edge the cards' right edge
+
 ## History
 
 | Date | Change |
@@ -693,3 +703,4 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | 2026-11-26 | Redesign R2: the main chart with *Decided*, *Space freed* and *Active time*, the detail panel, the drill-down and the table (.63–.66) |
 | 2026-11-26 | Redesign R3: the highlights Best day, Busiest weekday, Pace, Active days and Longest streak (.67–.69) |
 | 2026-11-26 | Redesign R4: the activity calendar of every period with one level function shared with the year in review (.70–.72) |
+| 2026-11-27 | One centred column of 1040 px for the title row and the page, *Back to the cull* in the title row (.40 reworded, .73; layout variant A, tasks 1+2) |

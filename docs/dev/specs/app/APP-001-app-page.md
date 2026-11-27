@@ -213,8 +213,9 @@ stays the same.
 - **When** the toggle floats over the content, on a screen narrower than 1024 px or with the
   navigation closed
 - **Then** the title row is as tall as the toolbar row and its left padding keeps the title clear
-  of the toggle, so their boxes do not overlap; with the navigation open on a wide screen the
-  title sits flush left
+  of the toggle, so their boxes do not overlap; where the toggle fits in the margin beside the
+  centred row the title keeps the row's own padding, flush with the content below; with the
+  navigation open on a wide screen the title sits flush left
 
 ### APP-001.23 – Every modal panel closes by its close button, Esc and the backdrop
 
@@ -272,6 +273,7 @@ stays the same.
 | 2026-11-20 | A dialog opens without motion under reduced motion (APP-001.17) |
 | 2026-11-22 | Every toast has *Close* and goes by a sideways swipe; a toast may stay longer (APP-001.18, .19; M12 PR 6) |
 | 2026-11-25 | Every page has one title row that clears the navigation toggle (APP-001.22) |
+| 2026-11-27 | The title steps aside only where the toggle does not fit in the margin (APP-001.22 reworded; statistics layout task 1) |
 | 2026-11-20 | *Escape* closes a confirm dialog also from a switch or a checkbox, which `NcModal` leaves to the field (APP-001.16) |
 | 2026-11-24 | The gesture guide and the tag entry are modal: inert page, focus trap, `Esc` (APP-001.20; Fable review) |
 | 2026-11-24 | The page opts in to `viewport-fit=cover` and pads its edges with the safe areas (APP-001.21; Fable review) |
