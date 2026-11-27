@@ -20,6 +20,7 @@ final class WriteRateLimitTest extends TestCase {
 		'ImageController::warm',
 		'ImmichController::assets',
 		'ImmichController::counts',
+		'ImmichController::writeCheck',
 		'MoveController::targets',
 		'SeriesController::lookup',
 		'SidecarController::lookup',

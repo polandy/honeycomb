@@ -33,6 +33,7 @@ final class ImmichWriteCheck {
 		$ids = $this->assetIds($assetIds);
 		$items = $this->client->search($connection, ['filter' => $this->filter->heldByIds($ids), 'size' => count($ids), 'withExif' => true, 'withStacked' => true])['items'];
 		$held = [];
+		/** @var mixed $item */
 		foreach ($items as $item) {
 			/** @var mixed $id */
 			$id = is_array($item) ? ($item['id'] ?? null) : null;
@@ -96,6 +97,7 @@ final class ImmichWriteCheck {
 		if (!is_array($stack) || ($stack['primaryAssetId'] ?? null) !== $assetId) {
 			return null;
 		}
+		/** @var mixed $size */
 		$size = $stack['assetCount'] ?? null;
 		return is_int($size) ? $size : throw new ImmichException(ImmichError::Version);
 	}
@@ -106,6 +108,7 @@ final class ImmichWriteCheck {
 	 * @return ?SharedAlbum
 	 */
 	private function sharedAlbum(array $albums): ?array {
+		/** @var mixed $album */
 		foreach ($albums as $album) {
 			$shared = is_array($album) ? ($album['shared'] ?? null) : null;
 			$name = is_array($album) ? ($album['albumName'] ?? null) : null;

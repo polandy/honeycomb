@@ -45,6 +45,7 @@ final class ImmichWriteCheckTest extends TestCase {
 
 	// spec: IMMICH-004.18
 	public function testItAnswersEachHeldAssetsStateInTheAskedOrder(): void {
+		/** @var array<string, mixed> $answer */
 		$answer = $this->check()->check($this->connection(), [self::STACK_TOP, self::GONE, self::TRASHED, self::ARCHIVED, self::SHARED, self::IN_STACK]);
 
 		$state = static fn (string $id, ?int $rating, bool $favorite, bool $trashed, bool $archived, ?array $album, ?int $stack): array => [
