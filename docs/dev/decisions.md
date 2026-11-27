@@ -2238,3 +2238,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   HaveIBeenPwned through password_policy, and a runner's slow DNS (4 × 10 s) timed out a login in
   CI run 45941755017; the flag also turns off the app store and update checks, while local calls
   such as the Immich stub still work; `tests/e2e/app.spec.ts` checks it (PR #442, autonomous).
+- 2026-11-27: The cull page is settled once the start decided between *Folders* and Immich
+  (`useImmichOnly`'s `started`: the settings and, where they ask for it, the Immich offer
+  answered), marked as `data-settled` on the `NcContent` root through an `AppLayout` prop, since
+  the layout drops attributes; `pickFromNavigation` waits for it with `locator.waitFor` (APP-001.27)
+  (autonomous).

@@ -252,6 +252,14 @@ stays the same.
   position or with the settings open; the address it opened with is then replaced by the cull's
   own (DECISIONS-002.17)
 
+### APP-001.27 – The cull page marks when its start is decided
+
+- **Given** the cull page opening
+- **When** its stored settings and, where they ask for it, the Immich offer have answered, so the
+  start has decided between *Folders* and Immich (IMMICH-001.22)
+- **Then** its root carries `data-settled`, before that it does not; the browser tests wait for
+  it, bounded by the test's timeout, like the statistics page's own
+
 ## Out of scope
 
 - The folder picker itself: LISTING-003.
@@ -280,3 +288,4 @@ stays the same.
 | 2026-11-26 | Every page has the navigation from one app layout; the pages of their own open the cull page from it; the choice is kept per user (APP-001.8, .25, .26) |
 | 2026-11-22 | The page starts on *Folders* or the library setup, the picker no longer opens by itself (APP-001.3, M12 PR 5) |
 | 2026-11-26 | One `ModalPanel` for every modal panel: close button, `Esc`, backdrop, focus return, scroll lock, bottom sheet on a phone (APP-001.6, .23, .24; owner request) |
+| 2026-11-27 | The cull page marks when its start is decided (APP-001.27) |

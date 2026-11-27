@@ -16,11 +16,13 @@ defineOptions({ inheritAttrs: false })
 const props = defineProps<{
 	items: readonly RecentFolderSet[]
 	storage: BrowserStorage
+	/** Whether the page's start is decided, marked as `data-settled` for the browser tests (APP-001.27). */
+	settled?: boolean
 }>()
 </script>
 
 <template>
-	<NcContent appName="honeycomb">
+	<NcContent appName="honeycomb" :data-settled="props.settled || undefined">
 		<AppNavigation :items="props.items" :storage="props.storage" v-bind="$attrs" />
 		<NcAppContent class="app-layout__content">
 			<slot />
