@@ -2196,3 +2196,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-26: A trashed reject sends only the trash, a pick taken back drops the favourite with
   `picksAsFavorites`, and the stack note shows for a reject to trash or archive (IMMICH-004,
   autonomous).
+- 2026-11-27: The stalled move of CI run 45878288778 did not reproduce, so the e2e Nextcloud logs
+  each honeycomb API request's start and duration instead of a fix without a cause; the TODO item
+  stays open (owner's choice).
