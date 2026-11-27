@@ -17,7 +17,7 @@ Add items with `/todo`.
 
 ## Later
 
-- [ ] Red e2e on #433 (CI run 45878288778, newest Nextcloud, webkit): `tests/e2e/move.spec.ts:10` saw the `POST /api/v1/move` unanswered after 5 s with no server log line; a move emits no write or metadata event, find why the request stalls (2026-11-26)
+- [ ] Red e2e on #433 (CI run 45878288778, newest Nextcloud, webkit): `tests/e2e/move.spec.ts:10` saw the `POST /api/v1/move` unanswered after 5 s with no server log line; a move emits no write or metadata event, find why the request stalls (2026-11-26). Not reproduced in 24 local runs (move.spec alone, in CI order, shard 2/3 on 35.0.3; the move takes 130 ms); the next red run shows the request's arrival and duration as a `[request]` line (`docs/dev/02-workflow.md` §2.3) (2026-11-27)
 - [ ] Architecture review of 2026-11-24 (done: migration rules ADR 0055, filecache exception ADR 0049, XMP-before-rebuild note, wiring rule ADR 0028): add the canary test that runs `FileCacheLibrary`'s raw `oc_filecache` queries on every Nextcloud version CI covers (ADR 0049) (2026-11-24)
 - [ ] Picture source step 2 follow-up (ADR 0058): the folder listing flows (recent, folder picker, fresh check) and the grid's image URLs through `folderPictureSource`'s `list`, `counts` and `imageUrl` instead of their seams (2026-11-25)
 - [ ] Architecture review of 2026-11-24: rename the glue files in `src/` that share a name with a `src/logic` file (`cull.ts`, `series.ts`, `settings.ts` and 14 more) to `-flow` or `-run` (conventions §1) (2026-11-24)

@@ -50,4 +50,5 @@ exec docker run --rm "${KEEP[@]}" --name "$CONTAINER" -p "127.0.0.1:$1:80" --lab
   -v "$PWD:/var/www/html/custom_apps/honeycomb:ro" \
   -v "$TEAM_FOLDERS:/var/www/html/custom_apps/groupfolders:ro" \
   -v "$PWD/tests/e2e/nextcloud/post-installation:/docker-entrypoint-hooks.d/post-installation:ro" \
+  -v "$PWD/tests/e2e/nextcloud/apache/request-timing.conf:/etc/apache2/conf-enabled/honeycomb-request-timing.conf:ro" \
   "$NEXTCLOUD"

@@ -2222,3 +2222,6 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   one shape, so the hero's right edge meets the first tile's only then; the iPad in landscape
   (1180 px) shows the four columns while the navigation is closed, its default below 1280 px, and
   the band once the user opens it (STATS-001.75, layout variant A task 4, autonomous).
+- 2026-11-27: The stalled move of CI run 45878288778 did not reproduce, so the e2e Nextcloud logs
+  each honeycomb API request's start and duration instead of a fix without a cause; the TODO item
+  stays open (owner's choice).

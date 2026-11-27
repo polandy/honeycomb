@@ -61,6 +61,10 @@ during a task becomes an issue as above.
 - Tests are deterministic: no sleep, no timing waits, no wall clock (inject a clock), no
   network, no shared state between tests. Playwright waits on a visible state, never on a
   timeout. Never skip, ignore or retry a failing test; fix the cause.
+- The e2e Nextcloud prints each honeycomb API request into the Playwright output as
+  `[request] <start> <ms> ms <status> <connection> <method> <path>`
+  (`tests/e2e/nextcloud/apache/request-timing.conf`): a request the trace shows unanswered and
+  this log lacks never reached Apache or never ended there; a long one names its duration.
 - Pairing and deleting cover their edge and failure cases (CLAUDE.md rules 1–2).
 - A test that proves a spec criterion carries `// spec: <ID>.<n>` on the line above it
   (`docs/dev/specs/README.md`).
