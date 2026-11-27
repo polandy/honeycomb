@@ -17,7 +17,9 @@ Open **Statistics** in the navigation, or press **Statistics** on the *Cull fini
   zone of your Nextcloud account.
 - **Photos decided:** the big number of the period, with the change against the period before
   in words, e.g. *▲ 12 % more than October* (in the current period, up to the same day), a bar of
-  the picked (✓, filled) against the rejected (✕, hatched), and the photos per active day.
+  the picked (✓, filled) against the rejected (✕, hatched), and below it the photos picked,
+  rejected and decided per active day and the active days. On a wide screen it stands beside the
+  chart, as tall as it; on a narrower one it is a band above the chart.
 - **Tiles:** *Space freed*, the size moved to the trash bin, deleted for good and of the RAW files
   removed; *Keep rate*, the picked among the picked and rejected (*—* when nothing was decided);
   *Active time*, with the photos a minute from one active minute on; and *Days in a row*, the days

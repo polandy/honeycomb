@@ -28,10 +28,10 @@ const ANSWER = {
 	read: { pictures: 0, picked: 0, rejected: 0, rated: 0 },
 }
 
-/** The overview each viewport gets: at 1180 px the open navigation leaves less than 960 px of content. */
+/** The overview each viewport gets; below 1280 px the navigation starts closed (NAVIGATION_OPEN_MIN_WIDTH). */
 const LAYOUTS = [
 	{ width: 1440, layout: 'columns' },
-	{ width: 1180, layout: 'band' },
+	{ width: 1180, layout: 'columns' },
 	{ width: 820, layout: 'band' },
 	{ width: 390, layout: 'stacked' },
 ] as const
@@ -45,11 +45,26 @@ const near = (actual: number, expected: number) => Math.abs(actual - expected) <
 const hero = (page: Page) => page.getByRole('region', { name: 'Photos decided' })
 const rows = (page: Page) => hero(page).locator('.statistics-hero__row')
 
-/** The rows' boxes after checking that each names its figure. */
+/** The rows' boxes after checking that each names its figure, the name at the row's start and the figure at its end. */
 async function rowBoxes(page: Page) {
 	await expect(rows(page).locator('dt')).toHaveText(ROWS)
 	await expect(rows(page).locator('dd')).toHaveText(['15', '25', '30', '2'])
-	return Promise.all((await rows(page).all()).map(box))
+	return Promise.all((await rows(page).all()).map(async (row) => {
+		const rowBox = await box(row)
+		const name = await row.locator('dt').evaluate(textBox)
+		const figure = await row.locator('dd').evaluate(textBox)
+		expect(near(name.left, rowBox.x), 'the name at the row\'s start').toBe(true)
+		expect(near(figure.right, rowBox.x + rowBox.width), 'the figure at the row\'s end').toBe(true)
+		return rowBox
+	}))
+}
+
+/** The box of an element's text, which shows where it is aligned. */
+function textBox(element: Element) {
+	const range = document.createRange()
+	range.selectNodeContents(element)
+	const { left, right } = range.getBoundingClientRect()
+	return { left, right }
 }
 
 for (const { width, layout } of LAYOUTS) {
