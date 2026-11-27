@@ -64,49 +64,53 @@ between two inputs (a pointer press, a key, a wheel turn), at most 2 minutes eac
 opens the statistics page and comes with it (metrics PR 6); *Close* closes the card.
 
 **The statistics page** is a navigation entry *Statistics* beside *Similarity*. Its title row and
-its content share one centred column of 1040 px, so the title starts at the content's left edge. It
-shows one calendar period: a segment offers *Week*, *Month*, *Year* and *All time*, the current
-month preselected. At the right end of its row *Today*, which goes to the period that holds today,
-comes before a stepper that names the period (*Nov 22 – 28, 2026*, *November 2026*, *2026*) between
+its content share one centred column of 1040 px, so the title starts at the content's left edge.
+It shows one
+calendar period: a segment offers *Week*, *Month*, *Year* and *All time*, the current month
+preselected. At the right end of its row *Today*, which goes to the period that holds today, comes
+before a stepper that names the period (*Nov 22 – 28, 2026*, *November 2026*, *2026*) between
 *Previous period* and *Next period*; the name has a fixed width, so the arrows stay put while the
 user steps. *All time* has no stepper and no *Today*, only *Since {day}*. Below a content width of
-560 px the segment and the stepper each fill a row of their own. A week starts on the first day of
-the week of the user's Nextcloud locale. Changing the segment keeps the day the user stepped to, so
-March 2025 becomes 2025 and back March 2025. The user's day is the `today` the server answers;
-stepping never goes past the period of today nor before the period of the first counted day. The
-hero *Photos decided* shows the period's pictures decided in large, the change against the period
-before as an arrow and words (*▲ 12 % more than October*), a bar of picked (filled, ✓) against
-rejected (hatched, ✕) and, as rows below it, the pictures picked, rejected, decided per active day
-and the active days (a day is active when any of its counters is above zero). From a content width
-of 960 px the hero takes the first of four columns and the bars the other three, both as tall as the
-taller; below that the hero is a band above the bars. Four tiles follow: *Space freed* (with the
-pictures moved to the trash bin or deleted for good and the RAW files removed), *Keep rate* (the
-share picked of the pictures picked or rejected, with *n kept of m*), *Active time* (with pictures a
-minute from one active minute on) and *Days in a row* (with the longest streak; in a past week,
-month or year the longest run of active days inside it). A line shows the sidecars created and
-updated (with those from digiKam or darktable) and the series done, each once there is one, until
-*Work done* takes them. The chart shows one bar per day (week, month), per month (year) or per year
-(all time; per month while the counting lies in one calendar year). A switch *Chart shows* picks
-*Decided* (the default: picked filled with ✓ stacked under rejected hatched with ✕), *Space freed*
-(moved to the trash bin filled, deleted for good hatched, RAWs removed dotted) or *Active time*; the
-axis names the highest bar and its half, and a key names every part. Days and months after today
-show as hatched empty slots (*Still to come* in the key), those before the first counted day as
-plain empty slots, and the bar of today (week, month, year) is outlined. Every bar is a button whose
-label names its day and value. A fixed panel below the chart, never a bubble over it, shows one
-bar's numbers: its name, the pictures decided with picked and rejected, the space freed and the
-active time; *Still to come.*, *Before counting began.* or *Nothing counted.* for a bar without
-them. A tap, a click, Enter or Space holds a bar (pressed) and again releases it; a mouse over a bar
-only previews it, and the panel returns to the held bar when the mouse leaves. A held month or year
-with a count offers *Show {month}* or *Show {year}*, which opens that month or year. *Show as table*
-swaps the bars for a table of the same values, one row per day, month or year up to today from the
-first counted day on, and *Show as chart* swaps back; the switch and the table stay when the period
-changes, a held bar does not. A period without a count says *Nothing counted in this period.*
-instead of the chart. *Library progress* shows how far the library roots have come (below); *Of the
-pictures read so far* shows the shares picked, rejected, unflagged and rated from the XMP cache,
-counting only the pictures whose XMP honeycomb has read, so a library not yet opened shows little. A
-footnote says *Counted since {date}.* and, when stored series were done before the counting began,
-*Before that: n series done (no date).* There is no start value for decided pictures: honeycomb is
-deployed nowhere with decisions of the old table, so the page counts from the first counter on.
+560 px the segment and the stepper each fill a row of their own.
+A week starts on the first day of the week of the
+user's Nextcloud locale. Changing the segment keeps the day the user stepped to, so March 2025
+becomes 2025 and back March 2025. The user's day is the `today` the server answers; stepping never
+goes past the period of today nor before the period of the first counted day. The hero *Photos
+decided* shows the period's pictures decided in large, the change against the period before as an
+arrow and words (*▲ 12 % more than October*), a bar of picked (filled, ✓) against rejected
+(hatched, ✕) and, as rows below it, the pictures picked, rejected, decided per active day and the
+active days (a day is active when any of its counters is above zero). From a content width of 960 px
+the hero takes the first of four columns and the bars the other three, both as tall as the taller;
+below that the hero is a band above the bars. Four tiles follow: *Space freed* (with the pictures
+moved to the trash bin or deleted for good and the RAW files removed), *Keep rate* (the share picked
+of the pictures picked or rejected, with *n kept of m*), *Active time* (with pictures a minute from
+one active minute on) and *Days in a row* (with the longest streak; in a past week, month or year
+the longest run of active days inside it). A line shows the sidecars created and updated (with those
+from digiKam or darktable) and the series done, each once there is one, until *Work done* takes
+them. The chart shows one bar per day (week, month), per month (year) or per year (all time; per
+month while the counting lies in one calendar year). A switch *Chart shows* picks *Decided* (the
+default: picked filled with ✓ stacked under rejected hatched with ✕), *Space freed* (moved to the
+trash bin filled, deleted for good hatched, RAWs removed dotted) or *Active time*; the axis names
+the highest bar and its half, and a key names every part. Days and months after today show as
+hatched empty slots (*Still to come* in the key), those before the first counted day as plain empty
+slots, and the bar of today (week, month, year) is outlined. Every bar is a button whose label
+names its day and value. A fixed panel below the chart, never a bubble over it, shows one bar's
+numbers: its name, the pictures decided with picked and rejected, the space freed and the active
+time; *Still to come.*, *Before counting began.* or *Nothing counted.* for a bar without them.
+A tap, a click, Enter or Space holds a bar (pressed) and again releases it; a mouse over a bar
+only previews it, and the panel returns to the held bar when the mouse leaves. A held month or
+year with a count offers *Show {month}* or *Show {year}*, which opens that month or year. *Show
+as table* swaps the bars for a table of the same values, one row per day, month or year up to
+today from the first counted day on, and *Show as chart* swaps back; the switch and the table
+stay when the period changes, a held bar does not. A period without a count says *Nothing
+counted in this period.* instead of the chart.
+*Library progress* shows how far the library roots have come (below);
+*Of the pictures read so far* shows the shares picked, rejected, unflagged and rated from the XMP
+cache, counting only the pictures whose XMP honeycomb has read, so a library not yet opened shows
+little. A footnote says *Counted since {date}.* and, when stored series were done before the
+counting began, *Before that: n series done (no date).* There is no start value for decided
+pictures: honeycomb is deployed nowhere with decisions of the old table, so the page counts from
+the first counter on.
 
 **The year in review** opens the page from 1 December to 31 January, for the year that ends or
 just ended, above the period tiles: a headline with the pictures decided and the space freed, tiles
@@ -519,8 +523,8 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 
 - **Given** a period in which nothing was counted, e.g. a month off
 - **When** the page shows it
-- **Then** the hero shows 0 without a change, *—* per active day, 0 active days and an empty bar, the
-  bars give way to *Nothing counted in this period.*, and the segment and the stepper stay usable
+- **Then** the hero shows 0 without a change, *—* per active day, 0 active days and an empty bar,
+  the bars give way to *Nothing counted in this period.*, and the segment and the stepper stay usable
 
 ### STATS-001.56 – Days in a row in a past period
 
