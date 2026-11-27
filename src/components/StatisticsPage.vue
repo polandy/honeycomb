@@ -209,6 +209,7 @@ onMounted(async () => {
 					<div class="statistics-page__overview">
 						<StatisticsHero :overview="overview" :change="numbers!.decidedChange" :compared="comparedName(numbers!.compared)" />
 						<StatisticsBars
+							class="statistics-page__chart"
 							:bars="numbers!.bars"
 							:kind="kind"
 							:unit="numbers!.unit"
@@ -259,14 +260,17 @@ onMounted(async () => {
 
 .statistics-page__overview {
 	display: grid;
-	gap: calc(2 * var(--default-grid-baseline));
-	align-items: start;
+	gap: calc(4 * var(--default-grid-baseline));
 }
 
-/* The hero beside the bars from 960 px of content width (STATS-001.59). */
+/* The hero in the first of four columns, the bars in the other three, equally tall (STATS-001.75). */
 @container (min-width: 960px) {
 	.statistics-page__overview {
-		grid-template-columns: 1fr 2fr;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+
+	.statistics-page__chart {
+		grid-column: 2 / -1;
 	}
 }
 

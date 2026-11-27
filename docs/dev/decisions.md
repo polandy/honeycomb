@@ -2216,3 +2216,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   button keeps its 44 px touch target; the period's name is 168 px wide and wraps (a week across
   the new year) rather than widen, so the arrows never move; one row from a content width of
   560 px, as in the mockup (STATS-001.74, layout variant A task 3, autonomous).
+- 2026-11-27: The hero's figures are a `dl` of four rows (*✓ Picked*, *✕ Rejected*, *Per active
+  day*, *Active days*) as in the mockup, replacing the key line and *No active day in this period*
+  with *—*; the overview gap is 16 px while the tiles keep their 8 px until task 6 gives every card
+  one shape, so the hero's right edge meets the first tile's only then; the iPad in landscape
+  (1180 px) shows the four columns while the navigation is closed, its default below 1280 px, and
+  the band once the user opens it (STATS-001.75, layout variant A task 4, autonomous).
