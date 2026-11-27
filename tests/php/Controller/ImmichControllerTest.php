@@ -22,6 +22,7 @@ use OCA\Honeycomb\Immich\ImmichListing;
 use OCA\Honeycomb\Immich\ImmichPictureSource;
 use OCA\Honeycomb\Immich\ImmichSearchFilter;
 use OCA\Honeycomb\Immich\ImmichStatus;
+use OCA\Honeycomb\Immich\ImmichWriteCheck;
 use OCA\Honeycomb\Immich\ListingCursors;
 use OCA\Honeycomb\Tests\Immich\FakeImmichDecisionStore;
 use OCA\Honeycomb\Tests\Immich\FakeImmichServer;
@@ -68,7 +69,7 @@ final class ImmichControllerTest extends TestCase {
 
 	public function testTheRoutesAreForSignedInUsersAndOnlyTheImageSkipsTheCsrfCheck(): void {
 		$routes = [];
-		foreach (['connections', 'status', 'assets', 'image', 'decisions', 'counts'] as $method) {
+		foreach (['connections', 'status', 'assets', 'image', 'decisions', 'counts', 'writeCheck'] as $method) {
 			$reflection = new ReflectionMethod(ImmichController::class, $method);
 			$this->assertNotEmpty($reflection->getAttributes(NoAdminRequired::class));
 			$route = $reflection->getAttributes(FrontpageRoute::class)[0]->getArguments();
@@ -82,6 +83,7 @@ final class ImmichControllerTest extends TestCase {
 			'image' => ['GET', '/api/v1/immich/{connectionId}/assets/{assetId}/image', true],
 			'decisions' => ['PUT', '/api/v1/immich/{connectionId}/decisions', false],
 			'counts' => ['POST', '/api/v1/immich/{connectionId}/counts', false],
+			'writeCheck' => ['POST', '/api/v1/immich/{connectionId}/write/check', false],
 		], $routes);
 	}
 
@@ -117,10 +119,10 @@ final class ImmichControllerTest extends TestCase {
 	// spec: IMMICH-001.5
 	public function testSomeoneElsesConnectionIsUnknownOnEveryRouteBeforeAKeyIsRead(): void {
 		$controller = $this->controller();
-		foreach ([$controller->status('bob-phone'), $controller->assets('bob-phone'), $controller->image('bob-phone', self::ASSET, 'thumbnail'), $controller->status('nobody'), $controller->counts('bob-phone')] as $answer) {
+		foreach ([$controller->status('bob-phone'), $controller->assets('bob-phone'), $controller->image('bob-phone', self::ASSET, 'thumbnail'), $controller->status('nobody'), $controller->counts('bob-phone'), $controller->writeCheck('bob-phone', [self::ASSET])] as $answer) {
 			$this->assertAnswer(Http::STATUS_NOT_FOUND, ['error' => 'unknown-connection'], $answer);
 		}
-		$this->assertSame([self::FILE, self::FILE, self::FILE, self::FILE, self::FILE], $this->files->reads);
+		$this->assertSame([self::FILE, self::FILE, self::FILE, self::FILE, self::FILE, self::FILE], $this->files->reads);
 		$this->assertSame([], $this->immichRequests);
 	}
 
@@ -203,6 +205,24 @@ final class ImmichControllerTest extends TestCase {
 		$this->assertSame([], $this->immichRequests);
 	}
 
+	// spec: IMMICH-004.18
+	public function testTheWriteCheckAnswersImmichsStateOfTheAssets(): void {
+		$asset = ['id' => self::ASSET, 'updatedAt' => '2026-11-21T20:33:35.789Z', 'isFavorite' => true, 'isTrashed' => false, 'visibility' => 'timeline', 'stack' => null, 'exifInfo' => ['rating' => 4]];
+		$this->immichAnswers('POST /search/metadata', 200, ['assets' => ['items' => [$asset], 'nextCursor' => null]]);
+		$this->immichAnswers('GET /albums', 200, []);
+
+		$this->assertAnswer(Http::STATUS_OK, ['assets' => [[
+			'assetId' => self::ASSET, 'updatedAt' => '2026-11-21T20:33:35.789Z', 'rating' => 4, 'favorite' => true, 'trashed' => false,
+			'archived' => false, 'sharedAlbum' => null, 'stackSize' => null,
+		]]], $this->controller()->writeCheck('alice-phone', [self::ASSET]));
+	}
+
+	// spec: IMMICH-004.18
+	public function testAMalformedWriteCheckIsABadRequest(): void {
+		$this->assertAnswer(Http::STATUS_BAD_REQUEST, ['error' => 'request'], $this->controller()->writeCheck('alice-phone', null));
+		$this->assertSame([], $this->immichRequests);
+	}
+
 	/** @return array<string, mixed> */
 	private function decision(): array {
 		return ['assetId' => self::ASSET, 'rating' => 3, 'colourLabel' => null, 'flag' => 'picked', 'keepRaw' => false, 'takenAt' => 1_794_990_000, 'cameraModel' => null, 'kind' => 'photo', 'assetUpdatedAt' => '2026-11-19T08:00:00.000Z'];
@@ -242,6 +262,7 @@ final class ImmichControllerTest extends TestCase {
 				new ImmichImages($client),
 				new ImmichDecisions($this->decisions, $time),
 			),
+			new ImmichWriteCheck($client, $filter),
 		);
 	}
 }

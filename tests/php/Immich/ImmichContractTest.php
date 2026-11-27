@@ -18,6 +18,7 @@ use OCA\Honeycomb\Immich\ImmichCounts;
 use OCA\Honeycomb\Immich\ImmichListing;
 use OCA\Honeycomb\Immich\ImmichSearchFilter;
 use OCA\Honeycomb\Immich\ImmichStatus;
+use OCA\Honeycomb\Immich\ImmichWriteCheck;
 use OCA\Honeycomb\Immich\ListingCursors;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Security\ICrypto;
@@ -93,6 +94,14 @@ final class ImmichContractTest extends TestCase {
 		$this->assertSame([], $this->schema->requestViolations('POST', '/search/metadata', $this->lastImmichBody('POST /search/metadata')));
 	}
 
+	public function testTheSearchOfTheWriteCheckFitsTheSchema(): void {
+		$this->immichAnswers('GET /albums', 200, $this->fixture('albums-of-asset.json'));
+
+		(new ImmichWriteCheck($this->client(), new ImmichSearchFilter()))->check($this->connection(), ['7e9a1c3d-5f7b-4d9e-8a1c-3d5f7b9e1a3c']);
+
+		$this->assertSame([], $this->schema->requestViolations('POST', '/search/metadata', $this->lastImmichBody('POST /search/metadata')));
+	}
+
 	/** @return array<string, array{string, string, string}> */
 	public static function answers(): array {
 		return [
@@ -101,6 +110,7 @@ final class ImmichContractTest extends TestCase {
 			'the version' => ['GET', '/server/version', 'version.json'],
 			'the account' => ['GET', '/users/me', 'me.json'],
 			'the camera models' => ['GET', '/search/suggestions', 'suggestions.json'],
+			'the albums of an asset' => ['GET', '/albums', 'albums-of-asset.json'],
 		];
 	}
 

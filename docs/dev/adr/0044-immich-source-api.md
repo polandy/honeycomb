@@ -143,9 +143,11 @@ while chosen, *No camera data* always. *Decided* means picked or rejected, so `u
 ### Write to Immich (Phase 2)
 
 Both routes take at most **100 assets** per request (`400` above it); the browser sends blocks of
-100 in sequence. `write/check` takes `{"assets": [{"assetId", "assetUpdatedAt"}]}`, reloads them
-from Immich and answers each asset's conflicts (`rating-changed` with both values,
-`shared-album` with the album name and the number of other members, `already-trashed`, `stack`).
+100 in sequence. `write/check` takes `{"assetIds": [...]}`, reloads them from Immich and answers
+`{"assets": [{"assetId", "updatedAt", "rating", "favorite", "trashed", "archived", "sharedAlbum",
+"stackSize"}]}` for each asset Immich still holds; `sharedAlbum` is `{"name", "others"}` or
+`null`. The write plan in the browser finds the conflicts (rating changed, shared album, already
+trashed, stack top) from it (ADR 0006); amended 2026-11-27, it first named the conflicts here.
 `write` takes `{"rejects": "trash"|"archive"|"rating", "assets": [{"assetId", "resolution"}]}`
 and answers per asset `written`, `skipped` or `failed` with an error code. The server reads each
 asset's decision from the table; the browser sends no decision values. `force:true` is never sent
