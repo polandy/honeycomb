@@ -34,6 +34,14 @@ a reject goes to the Immich trash bin by default and can be restored.
   rating, favourite, trash bin, archive, the first shared album with the number of its other
   members, the size of a stack it tops); the write plan in the browser finds the conflicts, and an
   asset Immich no longer holds is left out.
+- **The write:** the server's `write` takes the changes the write plan made, per asset the fields
+  it sets in Immich and the rating Immich holds afterwards. It trashes the trashed ones in one
+  `DELETE /assets` (`force:false`), restores the restored ones in one `POST /trash/restore/assets`,
+  then sets favourite, archive and rating with one `PUT /assets/{id}` each; a bulk call Immich
+  refuses is repeated per asset, so a refused asset fails alone. It trashes only an asset whose
+  saved decision is a reject. Once Immich does not answer or refuses the key, every asset not yet
+  written fails with that error. For each written asset it stores the saved decision's flag and
+  rating and Immich's rating as what was last written; a later save of the decision keeps them.
 - **The dialog** names the counts of rejects, of rejects taken back, of picks and of ratings, the
   choice for rejects and the conflicts. With more than 100 affected assets it shows numbers and
   the conflicts only, never a thumbnail per asset. *Write N changes* is disabled at 0 or while
@@ -170,3 +178,25 @@ a reject goes to the Immich trash bin by default and can be restored.
   the shared album's name and number of other members and the stack's size, leaves out the one
   Immich no longer holds, and a body with no asset, a malformed id or an id twice is `400`
   `request`
+
+### IMMICH-004.19 – The write sends the changes
+
+- **Given** a block with a trashed, a restored and an archived and rated asset
+- **When** `write` runs
+- **Then** Immich receives one `DELETE /assets` with `force:false`, one `POST
+  /trash/restore/assets` and one `PUT /assets/{id}`, each asset answers `written`, and a body with
+  an unknown field, a malformed id or rating, an id twice or a trash beside another field is `400`
+  `request`
+
+### IMMICH-004.20 – Only a reject is trashed
+
+- **Given** a trash for an asset whose saved decision is not a reject, or that has no decision
+- **When** `write` runs
+- **Then** that asset fails with `request` or `unknown-asset` and nothing is trashed for it
+
+### IMMICH-004.21 – What was written is stored
+
+- **Given** a write in which one asset is written and one fails
+- **When** the decisions are read again, also after a later save of the written asset's decision
+- **Then** the written asset keeps the flag and rating it was written with and Immich's rating
+  afterwards, and the failed one has no written state

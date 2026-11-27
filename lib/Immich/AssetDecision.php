@@ -30,6 +30,7 @@ final readonly class AssetDecision {
 		public ?string $cameraModel,
 		public AssetKind $kind,
 		public string $assetUpdatedAt,
+		public ?WrittenState $written = null,
 	) {
 	}
 

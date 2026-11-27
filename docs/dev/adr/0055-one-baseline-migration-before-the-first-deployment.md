@@ -56,6 +56,7 @@ supported database makes without losing a value. `SchemaRepairTest` builds the f
 fixture on SQLite, MariaDB and PostgreSQL. `Version000200Date20261125150000` then drops the
 folder summaries with photos the first form wrote without `previews`, so the next scan rewrites them.
 `Version000200Date20261127120000` adds `shot_days` and drops the summaries without it (ADR 0062).
+`Version000200Date20261127180000` adds the written state to `honeycomb_immich_assets` (ADR 0044).
 
 - **`honeycomb_decisions.updated_by`** (`string(64)`, null) notes who saved or took a row over
   last, for information like `honeycomb_folder_done.user_id`: nothing reads it to decide, and

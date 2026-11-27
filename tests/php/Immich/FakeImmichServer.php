@@ -45,6 +45,8 @@ trait FakeImmichServer {
 		$client = $this->createStub(IClient::class);
 		$client->method('get')->willReturnCallback(/** @param array<string, mixed> $options */ fn (string $url, array $options = []): IResponse => $this->immichRespond('GET', $url, $options));
 		$client->method('post')->willReturnCallback(/** @param array<string, mixed> $options */ fn (string $url, array $options = []): IResponse => $this->immichRespond('POST', $url, $options));
+		$client->method('put')->willReturnCallback(/** @param array<string, mixed> $options */ fn (string $url, array $options = []): IResponse => $this->immichRespond('PUT', $url, $options));
+		$client->method('delete')->willReturnCallback(/** @param array<string, mixed> $options */ fn (string $url, array $options = []): IResponse => $this->immichRespond('DELETE', $url, $options));
 		$clients = $this->createStub(IClientService::class);
 		$clients->method('newClient')->willReturn($client);
 		return $clients;

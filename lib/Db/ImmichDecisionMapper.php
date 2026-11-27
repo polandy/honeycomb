@@ -13,6 +13,7 @@ use OCA\Honeycomb\Immich\AssetDecision;
 use OCA\Honeycomb\Immich\AssetKind;
 use OCA\Honeycomb\Immich\ImmichDecisionStore;
 use OCA\Honeycomb\Immich\ListingFilters;
+use OCA\Honeycomb\Immich\WrittenState;
 use OCP\AppFramework\Db\TTransactional;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
@@ -47,6 +48,9 @@ final class ImmichDecisionMapper implements ImmichDecisionStore {
 		'camera_model' => IQueryBuilder::PARAM_STR,
 		'kind' => IQueryBuilder::PARAM_STR,
 		'asset_updated_at' => IQueryBuilder::PARAM_STR,
+		'written_flag' => IQueryBuilder::PARAM_STR,
+		'written_rating' => IQueryBuilder::PARAM_INT,
+		'written_immich_rating' => IQueryBuilder::PARAM_INT,
 	];
 
 	/** @psalm-suppress PossiblyUnusedMethod Nextcloud constructs it. */
@@ -59,11 +63,12 @@ final class ImmichDecisionMapper implements ImmichDecisionStore {
 	#[\Override]
 	public function save(string $userId, string $connectionId, array $decisions, int $updatedAt): void {
 		$this->atomic(function () use ($userId, $connectionId, $decisions, $updatedAt): void {
+			$written = [];
 			foreach (array_chunk(array_map(static fn (AssetDecision $decision): string => $decision->assetId, $decisions), self::IN_CHUNK) as $chunk) {
-				foreach ([self::DECISIONS, self::ASSETS] as $table) {
-					$query = $this->deleteFrom($table, $connectionId);
-					$query->andWhere($query->expr()->in('asset_id', $query->createNamedParameter($chunk, IQueryBuilder::PARAM_STR_ARRAY)))->executeStatement();
-				}
+				// A write before the first read, so SQLite takes its write lock rather than failing to upgrade a read lock.
+				$this->deleteChunk(self::DECISIONS, $connectionId, $chunk);
+				$written += $this->writtenOf($connectionId, $chunk);
+				$this->deleteChunk(self::ASSETS, $connectionId, $chunk);
 			}
 			$this->insertRows(new InsertStatements(self::DECISIONS, self::DECISION_COLUMNS), array_map(static fn (AssetDecision $decision): array => [
 				'source' => self::SOURCE,
@@ -85,7 +90,28 @@ final class ImmichDecisionMapper implements ImmichDecisionStore {
 				'camera_model' => $decision->cameraModel,
 				'kind' => $decision->kind->value,
 				'asset_updated_at' => $decision->assetUpdatedAt,
+				'written_flag' => ($written[$decision->assetId] ?? null)?->flag->value,
+				'written_rating' => ($written[$decision->assetId] ?? null)?->rating,
+				'written_immich_rating' => ($written[$decision->assetId] ?? null)?->immichRating,
 			], $decisions));
+		}, $this->db);
+	}
+
+	#[\Override]
+	public function markWritten(string $userId, string $connectionId, array $written): void {
+		$this->atomic(function () use ($userId, $connectionId, $written): void {
+			foreach ($written as $assetId => $state) {
+				$query = $this->db->getQueryBuilder();
+				$expr = $query->expr();
+				$query->update(self::ASSETS)
+					->set('written_flag', $query->createNamedParameter($state->flag->value))
+					->set('written_rating', $query->createNamedParameter($state->rating, IQueryBuilder::PARAM_INT))
+					->set('written_immich_rating', $query->createNamedParameter($state->immichRating, $state->immichRating === null ? IQueryBuilder::PARAM_NULL : IQueryBuilder::PARAM_INT))
+					->where($expr->eq('connection_id', $query->createNamedParameter($connectionId)))
+					->andWhere($expr->eq('asset_id', $query->createNamedParameter($assetId)))
+					->andWhere($expr->eq('user_id', $query->createNamedParameter($userId)))
+					->executeStatement();
+			}
 		}, $this->db);
 	}
 
@@ -166,6 +192,33 @@ final class ImmichDecisionMapper implements ImmichDecisionStore {
 		$this->deleteUserRows(self::ASSETS, $userId);
 	}
 
+	/**
+	 * The written columns of those of the assets that have a row under the connection, whoever kept them.
+	 * @param list<string> $assetIds
+	 * @return array<string, WrittenState> by asset id
+	 */
+	private function writtenOf(string $connectionId, array $assetIds): array {
+		$query = $this->db->getQueryBuilder();
+		$query->select('asset_id', 'written_flag', 'written_rating', 'written_immich_rating')->from(self::ASSETS)
+			->where($query->expr()->eq('connection_id', $query->createNamedParameter($connectionId)))
+			->andWhere($query->expr()->in('asset_id', $query->createNamedParameter($assetIds, IQueryBuilder::PARAM_STR_ARRAY)))
+			->andWhere($query->expr()->isNotNull('written_flag'));
+		$written = [];
+		foreach ($this->rows($query) as $row) {
+			$written[(string)$row['asset_id']] = self::writtenFromRow($row);
+		}
+		return $written;
+	}
+
+	/**
+	 * Deletes the connection's rows of those assets from the table.
+	 * @param list<string> $assetIds
+	 */
+	private function deleteChunk(string $table, string $connectionId, array $assetIds): void {
+		$query = $this->deleteFrom($table, $connectionId);
+		$query->andWhere($query->expr()->in('asset_id', $query->createNamedParameter($assetIds, IQueryBuilder::PARAM_STR_ARRAY)))->executeStatement();
+	}
+
 	/** A delete of the connection's rows in the asset table, or of its Immich rows in the decision table. */
 	private function deleteFrom(string $table, string $connectionId): IQueryBuilder {
 		$query = $this->db->getQueryBuilder();
@@ -178,7 +231,7 @@ final class ImmichDecisionMapper implements ImmichDecisionStore {
 
 	/** The user's decisions under the connection with their facets. */
 	private function owned(string $userId, string $connectionId): IQueryBuilder {
-		return $this->joined($userId, $connectionId)->select('d.asset_id', 'd.flag', 'd.keep_raw', 'd.rating', 'd.colour_label', 'a.taken_at', 'a.camera_model', 'a.kind', 'a.asset_updated_at');
+		return $this->joined($userId, $connectionId)->select('d.asset_id', 'd.flag', 'd.keep_raw', 'd.rating', 'd.colour_label', 'a.taken_at', 'a.camera_model', 'a.kind', 'a.asset_updated_at', 'a.written_flag', 'a.written_rating', 'a.written_immich_rating');
 	}
 
 	/** A query of the user's decisions under the connection, `d`, joined to their facets, `a`. */
@@ -213,6 +266,16 @@ final class ImmichDecisionMapper implements ImmichDecisionStore {
 			$row['camera_model'] === null ? null : (string)$row['camera_model'],
 			AssetKind::from((string)$row['kind']),
 			(string)$row['asset_updated_at'],
+			$row['written_flag'] === null ? null : self::writtenFromRow($row),
+		);
+	}
+
+	/** @param array<string, mixed> $row with a written flag */
+	private static function writtenFromRow(array $row): WrittenState {
+		return new WrittenState(
+			Flag::from((string)$row['written_flag']),
+			(int)$row['written_rating'],
+			$row['written_immich_rating'] === null ? null : (int)$row['written_immich_rating'],
 		);
 	}
 }

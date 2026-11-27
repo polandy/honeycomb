@@ -18,6 +18,7 @@ use OCA\Honeycomb\Immich\ImmichCounts;
 use OCA\Honeycomb\Immich\ImmichListing;
 use OCA\Honeycomb\Immich\ImmichSearchFilter;
 use OCA\Honeycomb\Immich\ImmichStatus;
+use OCA\Honeycomb\Immich\ImmichWrite;
 use OCA\Honeycomb\Immich\ImmichWriteCheck;
 use OCA\Honeycomb\Immich\ListingCursors;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -30,6 +31,8 @@ final class ImmichContractTest extends TestCase {
 	use FakeImmichServer;
 
 	private const string FIXTURES = __DIR__ . '/../../fixtures/immich/';
+	private const string WRITTEN = '1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d';
+	private const string RESTORED = '2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e';
 	private const array ALL_FILTERS = [
 		'takenAfter' => 1_793_491_200,
 		'takenBefore' => 1_796_083_200,
@@ -100,6 +103,25 @@ final class ImmichContractTest extends TestCase {
 		(new ImmichWriteCheck($this->client(), new ImmichSearchFilter()))->check($this->connection(), ['7e9a1c3d-5f7b-4d9e-8a1c-3d5f7b9e1a3c']);
 
 		$this->assertSame([], $this->schema->requestViolations('POST', '/search/metadata', $this->lastImmichBody('POST /search/metadata')));
+	}
+
+	public function testEveryCallOfTheWriteFitsTheSchema(): void {
+		$decisions = new FakeImmichDecisionStore();
+		foreach ([self::WRITTEN, self::RESTORED] as $id) {
+			$decisions->decide('alice', 'alice-phone', new AssetDecision($id, 4, null, Flag::Rejected, false, 1_795_000_000, null, AssetKind::Photo, 'x'));
+		}
+		$this->immichAnswers('DELETE /assets', 204);
+		$this->immichAnswers('POST /trash/restore/assets', 200, ['count' => 1]);
+		$this->immichAnswers('PUT /assets/' . self::RESTORED, 200, ['id' => self::RESTORED]);
+
+		(new ImmichWrite($this->client(), $decisions))->write($this->connection(), [
+			['assetId' => self::WRITTEN, 'trash' => true, 'immichRating' => null],
+			['assetId' => self::RESTORED, 'restore' => true, 'archived' => true, 'favorite' => false, 'rating' => -1, 'immichRating' => -1],
+		]);
+
+		$this->assertSame([], $this->schema->requestViolations('DELETE', '/assets', $this->lastImmichBody('DELETE /assets')));
+		$this->assertSame([], $this->schema->requestViolations('POST', '/trash/restore/assets', $this->lastImmichBody('POST /trash/restore/assets')));
+		$this->assertSame([], $this->schema->requestViolations('PUT', '/assets/{id}', $this->lastImmichBody('PUT /assets/' . self::RESTORED)));
 	}
 
 	/** @return array<string, array{string, string, string}> */

@@ -22,6 +22,7 @@ use OCA\Honeycomb\Immich\ImmichListing;
 use OCA\Honeycomb\Immich\ImmichPictureSource;
 use OCA\Honeycomb\Immich\ImmichSearchFilter;
 use OCA\Honeycomb\Immich\ImmichStatus;
+use OCA\Honeycomb\Immich\ImmichWrite;
 use OCA\Honeycomb\Immich\ImmichWriteCheck;
 use OCA\Honeycomb\Immich\ListingCursors;
 use OCA\Honeycomb\Tests\Immich\FakeImmichDecisionStore;
@@ -69,7 +70,7 @@ final class ImmichControllerTest extends TestCase {
 
 	public function testTheRoutesAreForSignedInUsersAndOnlyTheImageSkipsTheCsrfCheck(): void {
 		$routes = [];
-		foreach (['connections', 'status', 'assets', 'image', 'decisions', 'counts', 'writeCheck'] as $method) {
+		foreach (['connections', 'status', 'assets', 'image', 'decisions', 'counts', 'writeCheck', 'write'] as $method) {
 			$reflection = new ReflectionMethod(ImmichController::class, $method);
 			$this->assertNotEmpty($reflection->getAttributes(NoAdminRequired::class));
 			$route = $reflection->getAttributes(FrontpageRoute::class)[0]->getArguments();
@@ -84,13 +85,15 @@ final class ImmichControllerTest extends TestCase {
 			'decisions' => ['PUT', '/api/v1/immich/{connectionId}/decisions', false],
 			'counts' => ['POST', '/api/v1/immich/{connectionId}/counts', false],
 			'writeCheck' => ['POST', '/api/v1/immich/{connectionId}/write/check', false],
+			'write' => ['POST', '/api/v1/immich/{connectionId}/write', false],
 		], $routes);
 	}
 
-	public function testOnlyTheSaveIsRateLimitedAsAWrite(): void {
-		$limits = array_map(static fn (string $method): array => array_map(static fn (\ReflectionAttribute $limit): array => $limit->getArguments(), (new ReflectionMethod(ImmichController::class, $method))->getAttributes(UserRateLimit::class)), ['decisions', 'counts', 'assets']);
+	public function testOnlyTheSaveAndTheWriteAreRateLimitedAsAWrite(): void {
+		$limits = array_map(static fn (string $method): array => array_map(static fn (\ReflectionAttribute $limit): array => $limit->getArguments(), (new ReflectionMethod(ImmichController::class, $method))->getAttributes(UserRateLimit::class)), ['decisions', 'write', 'counts', 'assets', 'writeCheck']);
 
-		$this->assertSame([[['limit' => WriteRateLimit::LIMIT, 'period' => WriteRateLimit::PERIOD_SECONDS]], [], []], $limits);
+		$limit = [['limit' => WriteRateLimit::LIMIT, 'period' => WriteRateLimit::PERIOD_SECONDS]];
+		$this->assertSame([$limit, $limit, [], [], []], $limits);
 	}
 
 	public function testWithoutAUserEveryRouteIsUnauthorised(): void {
@@ -119,10 +122,10 @@ final class ImmichControllerTest extends TestCase {
 	// spec: IMMICH-001.5
 	public function testSomeoneElsesConnectionIsUnknownOnEveryRouteBeforeAKeyIsRead(): void {
 		$controller = $this->controller();
-		foreach ([$controller->status('bob-phone'), $controller->assets('bob-phone'), $controller->image('bob-phone', self::ASSET, 'thumbnail'), $controller->status('nobody'), $controller->counts('bob-phone'), $controller->writeCheck('bob-phone', [self::ASSET])] as $answer) {
+		foreach ([$controller->status('bob-phone'), $controller->assets('bob-phone'), $controller->image('bob-phone', self::ASSET, 'thumbnail'), $controller->status('nobody'), $controller->counts('bob-phone'), $controller->writeCheck('bob-phone', [self::ASSET]), $controller->write('bob-phone', [['assetId' => self::ASSET, 'immichRating' => null]])] as $answer) {
 			$this->assertAnswer(Http::STATUS_NOT_FOUND, ['error' => 'unknown-connection'], $answer);
 		}
-		$this->assertSame([self::FILE, self::FILE, self::FILE, self::FILE, self::FILE, self::FILE], $this->files->reads);
+		$this->assertSame(array_fill(0, 7, self::FILE), $this->files->reads);
 		$this->assertSame([], $this->immichRequests);
 	}
 
@@ -223,6 +226,21 @@ final class ImmichControllerTest extends TestCase {
 		$this->assertSame([], $this->immichRequests);
 	}
 
+	// spec: IMMICH-004.19
+	public function testTheWriteAnswersEachAssetsResult(): void {
+		$this->controller()->decisions('alice-phone', [$this->decision()]);
+		$this->immichAnswers('PUT /assets/' . self::ASSET, 200, ['id' => self::ASSET]);
+
+		$this->assertAnswer(Http::STATUS_OK, ['results' => [['assetId' => self::ASSET, 'state' => 'written']]], $this->controller()->write('alice-phone', [['assetId' => self::ASSET, 'favorite' => true, 'immichRating' => 3]]));
+		$this->assertSame(['isFavorite' => true], $this->lastImmichBody('PUT /assets/' . self::ASSET));
+	}
+
+	// spec: IMMICH-004.2
+	public function testAWriteAskingForForceIsABadRequest(): void {
+		$this->assertAnswer(Http::STATUS_BAD_REQUEST, ['error' => 'request'], $this->controller()->write('alice-phone', [['assetId' => self::ASSET, 'trash' => true, 'force' => true, 'immichRating' => null]]));
+		$this->assertSame([], $this->immichRequests);
+	}
+
 	/** @return array<string, mixed> */
 	private function decision(): array {
 		return ['assetId' => self::ASSET, 'rating' => 3, 'colourLabel' => null, 'flag' => 'picked', 'keepRaw' => false, 'takenAt' => 1_794_990_000, 'cameraModel' => null, 'kind' => 'photo', 'assetUpdatedAt' => '2026-11-19T08:00:00.000Z'];
@@ -263,6 +281,7 @@ final class ImmichControllerTest extends TestCase {
 				new ImmichDecisions($this->decisions, $time),
 			),
 			new ImmichWriteCheck($client, $filter),
+			new ImmichWrite($client, $this->decisions),
 		);
 	}
 }

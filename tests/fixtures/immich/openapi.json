@@ -927,6 +927,66 @@
         "x-immich-state": "Stable"
       }
     },
+    "/trash/restore/assets": {
+      "post": {
+        "description": "Restore specific assets from the trash.",
+        "operationId": "restoreAssets",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkIdsDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrashResponseDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "summary": "Restore assets",
+        "tags": [
+          "Trash"
+        ],
+        "x-immich-history": [
+          {
+            "version": "v1",
+            "state": "Added"
+          },
+          {
+            "version": "v1",
+            "state": "Beta"
+          },
+          {
+            "version": "v2",
+            "state": "Stable"
+          }
+        ],
+        "x-immich-permission": "asset.delete",
+        "x-immich-state": "Stable"
+      }
+    },
     "/users/me": {
       "get": {
         "description": "Retrieve information about the user making the API request.",
@@ -1702,6 +1762,23 @@
         },
         "required": [
           "eq"
+        ],
+        "type": "object"
+      },
+      "BulkIdsDto": {
+        "properties": {
+          "ids": {
+            "description": "IDs to process",
+            "items": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$",
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "ids"
         ],
         "type": "object"
       },
@@ -4537,6 +4614,20 @@
           "name",
           "updatedAt",
           "value"
+        ],
+        "type": "object"
+      },
+      "TrashResponseDto": {
+        "properties": {
+          "count": {
+            "description": "Number of items in trash",
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "count"
         ],
         "type": "object"
       },

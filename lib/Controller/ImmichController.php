@@ -11,6 +11,7 @@ use OCA\Honeycomb\Immich\Connection;
 use OCA\Honeycomb\Immich\Connections;
 use OCA\Honeycomb\Immich\ImmichPictureSource;
 use OCA\Honeycomb\Immich\ImmichStatus;
+use OCA\Honeycomb\Immich\ImmichWrite;
 use OCA\Honeycomb\Immich\ImmichWriteCheck;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -37,6 +38,7 @@ final class ImmichController extends Controller {
 		private ImmichStatus $status,
 		private ImmichPictureSource $source,
 		private ImmichWriteCheck $writeCheck,
+		private ImmichWrite $write,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -95,6 +97,16 @@ final class ImmichController extends Controller {
 	public function writeCheck(string $connectionId, mixed $assetIds = null): Response {
 		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(
 			$this->writeCheck->check($this->connections->find($user->getUID(), $connectionId), $assetIds),
+		));
+	}
+
+	/** Sends one block of the write plan's changes to Immich and answers each asset's result (IMMICH-004.19). */
+	#[NoAdminRequired]
+	#[UserRateLimit(limit: WriteRateLimit::LIMIT, period: WriteRateLimit::PERIOD_SECONDS)]
+	#[FrontpageRoute(verb: 'POST', url: '/api/v1/immich/{connectionId}/write')]
+	public function write(string $connectionId, mixed $assets = null): Response {
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(
+			$this->write->write($this->connections->find($user->getUID(), $connectionId), $assets),
 		));
 	}
 

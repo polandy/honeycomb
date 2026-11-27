@@ -148,10 +148,13 @@ Both routes take at most **100 assets** per request (`400` above it); the browse
 "stackSize"}]}` for each asset Immich still holds; `sharedAlbum` is `{"name", "others"}` or
 `null`. The write plan in the browser finds the conflicts (rating changed, shared album, already
 trashed, stack top) from it (ADR 0006); amended 2026-11-27, it first named the conflicts here.
-`write` takes `{"rejects": "trash"|"archive"|"rating", "assets": [{"assetId", "resolution"}]}`
-and answers per asset `written`, `skipped` or `failed` with an error code. The server reads each
-asset's decision from the table; the browser sends no decision values. `force:true` is never sent
-(ADR 0041).
+`write` takes the write plan's changes, `{"assets": [{"assetId", "immichRating", "trash"?,
+"restore"?, "archived"?, "favorite"?, "rating"?}]}`, and answers `{"results": [{"assetId", "state":
+"written"|"failed", "error"?}]}` in the asked order; amended 2026-11-27, it first took the reject
+handling and a resolution per asset, which would have computed the plan a second time in PHP
+(ADR 0006). The server still reads each asset's saved decision from the table: it trashes only a
+saved reject and stores the decision's flag and rating plus `immichRating` as what it wrote.
+`force:true` is never sent (ADR 0041).
 
 ### Resume position
 

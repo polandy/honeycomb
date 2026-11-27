@@ -84,6 +84,30 @@ final class ImmichClient {
 		return array_is_list($albums) ? $albums : throw $this->failure($connection, ImmichError::Version, 'the albums answer does not fit');
 	}
 
+	/**
+	 * Moves the assets to Immich's trash bin; `force` is always false, so Immich keeps them (ADR 0041).
+	 * @param non-empty-list<string> $assetIds
+	 */
+	public function trash(Connection $connection, array $assetIds): void {
+		$this->change($connection, 'DELETE', '/assets', 'asset.delete', ['ids' => $assetIds, 'force' => false]);
+	}
+
+	/**
+	 * Takes the assets out of Immich's trash bin.
+	 * @param non-empty-list<string> $assetIds
+	 */
+	public function restore(Connection $connection, array $assetIds): void {
+		$this->change($connection, 'POST', '/trash/restore/assets', 'asset.delete', ['ids' => $assetIds]);
+	}
+
+	/**
+	 * Sets the asset's fields, of `isFavorite`, `visibility` and `rating`.
+	 * @param non-empty-array<string, bool|int|string|null> $fields
+	 */
+	public function update(Connection $connection, string $assetId, array $fields): void {
+		$this->change($connection, 'PUT', '/assets/' . rawurlencode($assetId), 'asset.update', $fields);
+	}
+
 	/** The name of the key's Immich account. */
 	public function userName(Connection $connection): string {
 		/** @var mixed $name */
@@ -123,6 +147,29 @@ final class ImmichClient {
 	}
 
 	/**
+	 * Sends a change; an asset Immich does not hold or lets the key change is an unknown asset.
+	 * @param non-empty-array<string, mixed> $body
+	 */
+	private function change(Connection $connection, string $method, string $path, string $scope, array $body): void {
+		$status = $this->send($connection, $method, $path, $scope, self::jsonBody($body))->getStatusCode();
+		if ($status === 400 || $status === 404) {
+			throw $this->failure($connection, ImmichError::UnknownAsset, "$method $path answered $status");
+		}
+		if ($status < 200 || $status > 299) {
+			throw $this->failure($connection, ImmichError::Version, "$method $path answered $status");
+		}
+	}
+
+	/**
+	 * The options sending the body as JSON.
+	 * @param array<string, mixed> $body
+	 * @return array{body: string, headers: array{Content-Type: string}}
+	 */
+	private static function jsonBody(array $body): array {
+		return ['body' => json_encode($body === [] ? new \stdClass() : $body, JSON_THROW_ON_ERROR), 'headers' => ['Content-Type' => self::JSON]];
+	}
+
+	/**
 	 * The JSON object of a successful answer.
 	 * @param array{body?: array<string, mixed>, query?: array<string, string>} $request
 	 * @return array<array-key, mixed>
@@ -130,8 +177,7 @@ final class ImmichClient {
 	private function json(Connection $connection, string $method, string $path, ?string $scope, array $request): array {
 		$options = isset($request['query']) ? ['query' => $request['query']] : [];
 		if (isset($request['body'])) {
-			$options['body'] = json_encode($request['body'] === [] ? new \stdClass() : $request['body'], JSON_THROW_ON_ERROR);
-			$options['headers'] = ['Content-Type' => self::JSON];
+			$options = [...$options, ...self::jsonBody($request['body'])];
 		}
 		$response = $this->send($connection, $method, $path, $scope, $options);
 		$status = $response->getStatusCode();
@@ -161,7 +207,12 @@ final class ImmichClient {
 		$url = rtrim($connection->url, '/') . self::API . $path;
 		try {
 			$client = $this->clients->newClient();
-			$response = $method === 'POST' ? $client->post($url, $options) : $client->get($url, $options);
+			$response = match ($method) {
+				'POST' => $client->post($url, $options),
+				'PUT' => $client->put($url, $options),
+				'DELETE' => $client->delete($url, $options),
+				default => $client->get($url, $options),
+			};
 		} catch (\Exception $failure) {
 			throw $this->failure($connection, ImmichError::Unreachable, "$method $path failed: " . $failure->getMessage());
 		}
