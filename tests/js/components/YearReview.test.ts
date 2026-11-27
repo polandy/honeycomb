@@ -49,8 +49,10 @@ const BUSY: Review = {
 
 describe('YearReview', () => {
 	// spec: STATS-001.46
-	it('shows a note under a number only where it has something to say', () => {
-		const text = mount(YearReview, { props: { review: BUSY } }).text()
+	it('shows a note under a number only where it has something to say', async () => {
+		const wrapper = mount(YearReview, { props: { review: BUSY } })
+		await wrapper.find('.year-review__toggle').trigger('click')
+		const text = wrapper.text()
 
 		expect(text).toContain('2 deleted for good')
 		expect(text).toContain('3 from digiKam or darktable')
@@ -59,11 +61,25 @@ describe('YearReview', () => {
 	})
 
 	// spec: STATS-001.46
-	it('leaves out the notes, the active time and the busiest day of a quiet year', () => {
-		const text = mount(YearReview, { props: { review: BARE } }).text()
+	it('leaves out the notes, the active time and the busiest day of a quiet year', async () => {
+		const wrapper = mount(YearReview, { props: { review: BARE } })
+		await wrapper.find('.year-review__toggle').trigger('click')
+		const text = wrapper.text()
 
 		expect(text).not.toContain('deleted for good')
 		expect(text).not.toContain('Active time')
 		expect(text).not.toContain('Busiest day')
+	})
+
+	// spec: STATS-001.25
+	it('tells the page once, when the year is first shown', async () => {
+		const wrapper = mount(YearReview, { props: { review: BUSY } })
+		const toggle = wrapper.find('.year-review__toggle')
+
+		await toggle.trigger('click')
+		await toggle.trigger('click')
+		await toggle.trigger('click')
+
+		expect(wrapper.emitted('open')).toHaveLength(1)
 	})
 })

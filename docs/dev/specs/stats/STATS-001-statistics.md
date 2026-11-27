@@ -113,7 +113,10 @@ day. The detail panel adds *n added* to every bar with photos added. Below the c
 row a line sums the period's intake against its clean-up: *Added 1,240 · Decided 980 · Deleted
 410*, deleted being the pictures moved to the trash bin and deleted for good. A period with photos
 added but no count shows the chart too.
-*Library progress* shows how far the library roots have come (below);
+*Library progress* shows how far the library roots have come (below), with a forecast of the
+rest at the user's pace of the last 90 days: the pictures decided less the photos added a day, so
+a library that grows faster than it is culled says so instead of naming a date; it does not hang
+on the period shown;
 *Of the pictures read so far* shows the shares picked, rejected, unflagged and rated from the XMP
 cache, counting only the pictures whose XMP honeycomb has read, so a library not yet opened shows
 little. A footnote says *Counted since {date}.* and, when stored series were done before the
@@ -359,8 +362,9 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 
 - **Given** a user without counters
 - **When** they open the statistics page
-- **Then** it shows *Nothing counted yet. Cull a folder and the numbers show here.* and the folder
-  sets
+- **Then** it shows no period bar but the card *Nothing counted yet* with *Cull a folder and the
+  numbers show here.* and the link *Open Folders*, then the library progress and *Of the pictures
+  read so far*; it names no way to reset the numbers
 
 ### STATS-001.24 – Counted since
 
@@ -372,8 +376,10 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 
 - **Given** the date is 1 December 2026 to 31 January 2027 and a user with counters
 - **When** the user opens the statistics page
-- **Then** the year in review for 2026 is shown above the period tiles; outside those dates it is
-  not
+- **Then** the banner *Your 2026 in honeycomb* is shown above the period bar with the pictures
+  decided and the space freed and the button *Show the year in review*, which shows the tiles and the
+  calendar of the year below it and *Hide the year in review* hides them again; outside those dates
+  there is no banner
 
 ### STATS-001.26 – The year-in-review hint shows once
 
@@ -437,10 +443,13 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 
 - **Given** library roots whose folders are in part done
 - **When** the page shows the *Library progress*
-- **Then** it shows the photos in done folders as a share of all photos below the roots, in
-  total and per root, the folders done of all folders, the folders marked done in the month of
-  the user's today and the share of photos decided as a cross-check (the card of *Folders*,
-  ADR 0049), read from the library folders of each root, and a link *Open Folders*
+- **Then** a ring shows the photos in done folders as a share of all photos below the roots
+  (ADR 0049), the share as text in its middle above *done*, a full ring at 100 %; beside it the
+  share of photos decided with a bar, the folders done of all folders with *+n this month* for
+  those marked done in the month of the user's today, and the photos still undecided, with
+  tabular figures; for several roots a row per root names it, its photos done of its photos and
+  its share above a bar; all read from the library folders of each root, with a link *Open
+  Folders*
 
 ### STATS-001.43 – Statistics off
 
@@ -484,7 +493,7 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 ### STATS-001.48 – A closed or opened year in review is remembered
 
 - **Given** the hint shows
-- **When** the user closes it, or opens the year in review on the statistics page
+- **When** the user closes it, or shows the year in review with the banner's button
 - **Then** the year is stored as the view state's `year_review_hint_closed`; a failed write is logged,
   keeps the hint away for this visit and tells the user nothing
 
@@ -799,6 +808,35 @@ Strings are English, translated per ADR 0007; the mockup lists them.
   {deleted}*, deleted the pictures moved to the trash bin and deleted for good, with tabular
   figures; a period without photos added leaves the line out
 
+### STATS-001.84 – The forecast of the rest
+
+- **Given** photos still undecided below the library roots and a pace: pictures decided in the
+  last 90 days up to the user's today, from the first counted day on when that is later
+- **When** the page shows the *Library progress*
+- **Then** the net rate is those days' pictures decided less their photos added (STATS-001.81),
+  divided by the days; above zero it says *About n days*, under 14 days, *About n weeks*, under
+  120 days, or *About n months*, from the undecided photos divided by the net rate rounded up to
+  whole days and then to whole weeks or months, with *at your pace (last 90 days)*; at or below
+  zero it says *At this pace the backlog grows*; without a picture decided in those days, or
+  without a photo undecided, it says nothing of the rest
+
+### STATS-001.85 – RAW space in done folders
+
+- **Given** folders marked done below the library roots that hold RAW files
+- **When** the page shows the *Library progress*
+- **Then** it says *Up to {size} of RAW files lie in folders marked done.* beside *Open Folders*,
+  *up to* as *Keep RAW* may keep some; without RAW files in done folders the line is left out and
+  the link stays
+
+### STATS-001.86 – A skeleton while the numbers load
+
+- **Given** the statistics page was opened and the server has not answered yet
+- **When** the page draws
+- **Then** it shows blocks in the shape of the period bar, hero, chart, four tiles, calendar and
+  clean-up card instead of a spinner, announces *Loading the statistics…* as a status and marks the
+  page busy; the pulse stops with a reduced-motion setting; the answer replaces the blocks and a failed
+  load shows the error card instead
+
 ## History
 
 | Date | Change |
@@ -826,3 +864,5 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | 2026-11-27 | The highlights as one card with five cells, a strip from 880 px of content width, rows below (.67 reworded; layout variant A task 7) |
 | 2026-11-27 | Redesign R5: *Clean-up* with the space freed by part and *Work done* with the sidecars, ratings, colour labels, tags, series, folders and moves (.78–.80) |
 | 2026-11-27 | Redesign R5b: *Photos added* from the library's shot days in the chart, the detail panel and the intake line (.81–.83; ADR 0062) |
+| 2026-11-27 | Redesign R6: the library progress as a ring with the decided share, folders and undecided photos beside it, a row per root, the forecast at the net pace and the RAW space in done folders (.42 reworded; .84, .85) |
+| 2026-11-27 | Redesign R7: a skeleton while loading (.86), the card *Nothing counted yet* with *Open Folders* (.23 reworded), the December banner that shows the year in review on demand (.25, .48 reworded) |

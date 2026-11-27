@@ -6,10 +6,16 @@
 import type { YearReview } from '../logic/year-review.ts'
 
 import { n, t } from '@nextcloud/l10n'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import NcButton from '@nextcloud/vue/components/NcButton'
 import { formatDay, formatDuration, formatFileSize, formatNumber, PLAIN_TEXT } from '../shared/l10n.ts'
 
 const props = defineProps<{ review: YearReview }>()
+const emit = defineEmits<{ open: [] }>()
+
+/** Whether the numbers of the year show below the banner. */
+const open = ref(false)
+let opened = false
 
 /** Rounds pictures a minute to one decimal. */
 const RATE_STEPS = 10
@@ -33,6 +39,15 @@ const tiles = computed(() => {
 		...(each.busiest === null ? [] : [tile(t('honeycomb', 'Busiest day'), formatDay(each.busiest.day), n('honeycomb', '%n photo decided', '%n photos decided', each.busiest.decided, undefined, PLAIN_TEXT))]),
 	]
 })
+
+/** Shows or hides the year's numbers; showing them the first time tells the page the year in review was opened (STATS-001.48). */
+function toggle() {
+	open.value = !open.value
+	if (open.value && !opened) {
+		opened = true
+		emit('open')
+	}
+}
 const activeDays = computed(() => n('honeycomb', '%n active day', '%n active days', props.review.activeDays, undefined, PLAIN_TEXT))
 </script>
 
@@ -42,7 +57,10 @@ const activeDays = computed(() => n('honeycomb', '%n active day', '%n active day
 		<p class="year-review__headline">
 			{{ headline }}
 		</p>
-		<dl class="year-review__tiles">
+		<NcButton class="year-review__toggle" :aria-expanded="open" @click="toggle">
+			{{ open ? t('honeycomb', 'Hide the year in review') : t('honeycomb', 'Show the year in review') }}
+		</NcButton>
+		<dl v-if="open" class="year-review__tiles">
 			<div v-for="tile in tiles" :key="tile.label" class="year-review__tile">
 				<dt>{{ tile.label }}</dt>
 				<dd class="year-review__value">
@@ -53,8 +71,14 @@ const activeDays = computed(() => n('honeycomb', '%n active day', '%n active day
 				</dd>
 			</div>
 		</dl>
-		<h4>{{ t('honeycomb', 'Active days') }}</h4>
-		<div class="year-review__days" role="group" :aria-label="activeDays">
+		<h4 v-if="open">
+			{{ t('honeycomb', 'Active days') }}
+		</h4>
+		<div
+			v-if="open"
+			class="year-review__days"
+			role="group"
+			:aria-label="activeDays">
 			<div class="year-review__calendar" aria-hidden="true">
 				<i
 					v-for="(each, index) in props.review.calendar"
@@ -65,7 +89,7 @@ const activeDays = computed(() => n('honeycomb', '%n active day', '%n active day
 			</div>
 			<p>{{ activeDays }}</p>
 		</div>
-		<p v-if="props.review.countedSince" class="year-review__note">
+		<p v-if="open && props.review.countedSince" class="year-review__note">
 			{{ t('honeycomb', 'Counted since {day}.', { day: formatDay(props.review.countedSince) }, undefined, PLAIN_TEXT) }}
 		</p>
 	</section>
@@ -90,6 +114,10 @@ const activeDays = computed(() => n('honeycomb', '%n active day', '%n active day
 .year-review__headline {
 	font-size: var(--font-size-xlarge, 22px);
 	font-weight: bold;
+}
+
+.year-review__toggle {
+	align-self: flex-start;
 }
 
 .year-review__tiles {

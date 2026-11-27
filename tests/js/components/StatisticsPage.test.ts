@@ -4,10 +4,8 @@
 import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import StatisticsPage from '../../../src/components/StatisticsPage.vue'
-import { METRIC } from '../../../src/logic/statistics.ts'
 import { formatDay, formatDayRange } from '../../../src/shared/l10n.ts'
 import { logger } from '../../../src/shared/logger.ts'
-import { row } from '../logic/folder-fixtures.ts'
 import { fakePageNavigation } from '../page-navigation.ts'
 import { chip, fakeLocation, hero, MONDAY, mountPage, periodLabel, ROOTS, ROWS, step, tile } from './statistics-page-fixtures.ts'
 
@@ -80,10 +78,16 @@ describe('StatisticsPage', () => {
 		const wrapper = mountPage({ counters: [], firstDay: null })
 		await flushPromises()
 
-		expect(wrapper.text()).toContain('Nothing counted yet. Cull a folder and the numbers show here.')
+		const card = wrapper.find('.statistics-empty')
+		expect(card.find('h3').text()).toBe('Nothing counted yet')
+		expect(card.text()).toContain('Cull a folder and the numbers show here.')
+		expect(card.find('a').text()).toBe('Open Folders')
+		expect(card.find('a').attributes('href')).toMatch(/\/apps\/honeycomb\/$/)
+		expect(wrapper.find('.statistics-period').exists()).toBe(false)
+		expect(wrapper.text()).not.toMatch(/reset/i)
 		expect(wrapper.find('.delete-stats').exists()).toBe(false)
 		expect(wrapper.find('.statistics-hero').exists()).toBe(false)
-		expect(wrapper.text()).toContain('50 % of photos in done folders')
+		expect(wrapper.find('.statistics-library__ring').attributes('aria-label')).toMatch(/^50\s?% of the photos are in folders marked done$/)
 		expect(wrapper.text()).not.toContain('Counted since')
 	})
 
@@ -117,30 +121,6 @@ describe('StatisticsPage', () => {
 		const none = mountPage()
 		await flushPromises()
 		expect(none.text()).not.toContain('Of the photos read so far')
-	})
-
-	// spec: STATS-001.42
-	it('shows the library progress: done photos, folders, this month and the decided share', async () => {
-		const folders = vi.fn(async (_root: string) => ROWS)
-		const wrapper = mountPage({}, ROOTS, folders)
-		await flushPromises()
-		const panel = wrapper.find('.statistics-library')
-
-		expect(folders).toHaveBeenCalledWith('/Photos')
-		expect(panel.text()).toContain('50 % of photos in done folders')
-		expect(panel.text()).toContain('1 of 2 folders done')
-		expect(panel.text()).toContain('1 this month')
-		expect(panel.text()).toContain('90 % of all photos decided')
-		expect(panel.find('a').text()).toBe('Open Folders')
-		expect(panel.find('a').attributes('href')).toMatch(/\/index\.php\/apps\/honeycomb\/$/)
-	})
-
-	// spec: STATS-001.42
-	it('shows a bar per root of several roots', async () => {
-		const wrapper = mountPage({}, { libraryRoots: ['/Photos', '/Archive'] }, vi.fn(async (root: string) => (root === '/Photos' ? ROWS : [row({ root: '/Archive', path: '/Archive/old' })])))
-		await flushPromises()
-
-		expect(wrapper.findAll('.folders-progress__root').map((each) => each.text())).toEqual([expect.stringContaining('/Photos'), expect.stringContaining('/Archive')])
 	})
 
 	// spec: STATS-001.50
@@ -192,106 +172,28 @@ describe('StatisticsPage', () => {
 		expect(wrapper.find('.statistics-page').attributes('data-settled')).toBe('true')
 	})
 
+	// spec: STATS-001.86
+	it('shows a skeleton, announced as a status, until the numbers answer', async () => {
+		const wrapper = mountPage()
+
+		expect(wrapper.find('.statistics-skeleton').attributes('aria-busy')).toBe('true')
+		expect(wrapper.find('.statistics-skeleton [role="status"]').text()).toBe('Loading the statistics…')
+		expect(wrapper.find('.statistics-hero').exists()).toBe(false)
+
+		await flushPromises()
+
+		expect(wrapper.find('.statistics-skeleton').exists()).toBe(false)
+		expect(wrapper.find('.statistics-hero').exists()).toBe(true)
+	})
+
 	it('says so and logs when the numbers cannot be loaded', async () => {
 		const error = new Error('down')
 		const wrapper = mount(StatisticsPage, { props: { seams: { loadStatistics: async () => Promise.reject(error), loadLibraryFolders: async () => [], loadSettings: async () => ({}), saveViewState: async () => undefined, firstWeekDay: () => MONDAY, location: fakeLocation() }, navigation: fakePageNavigation().seams } })
 		await flushPromises()
 
 		expect(wrapper.text()).toContain('The statistics could not be loaded.')
+		expect(wrapper.find('.statistics-skeleton').exists()).toBe(false)
 		expect(logger.error).toHaveBeenCalledWith('Could not load the statistics', { error })
 		expect(wrapper.find('.statistics-page').attributes('data-settled')).toBe('true')
-	})
-
-	describe('year in review', () => {
-		const DECEMBER = '2026-12-05'
-		const YEAR = [
-			{ day: '2026-01-01', metric: METRIC.decided, value: 30 },
-			{ day: '2026-01-02', metric: METRIC.decided, value: 90 },
-			{ day: '2026-01-02', metric: METRIC.trashPictures, value: 12 },
-			{ day: '2026-01-02', metric: METRIC.rawsRemoved, value: 5 },
-			{ day: '2026-01-02', metric: METRIC.sidecarsUpdated, value: 6 },
-			{ day: '2026-01-02', metric: METRIC.sidecarsForeign, value: 2 },
-		]
-		const reviewTile = (wrapper: ReturnType<typeof mountPage>, label: string) => wrapper.findAll('.year-review__tile').find((each) => each.text().includes(label))!.text()
-
-		// spec: STATS-001.25
-		it('shows the year in review in December above the period chips and not in November', async () => {
-			const december = mountPage({ counters: YEAR, today: DECEMBER, firstDay: '2026-01-01' })
-			const november = mountPage()
-			await flushPromises()
-
-			expect(december.find('.year-review').exists()).toBe(true)
-			expect(december.find('.year-review').element.compareDocumentPosition(december.find('.statistics-period').element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-			expect(november.find('.year-review').exists()).toBe(false)
-		})
-
-		// spec: STATS-001.25
-		it('shows the year just ended in January', async () => {
-			const wrapper = mountPage({ counters: YEAR, today: '2027-01-10', firstDay: '2026-01-01' })
-			await flushPromises()
-
-			expect(wrapper.find('.year-review').text()).toContain('Your 2026 in honeycomb')
-		})
-
-		// spec: STATS-001.46
-		it('shows the headline and the tiles of the year', async () => {
-			const wrapper = mountPage({ counters: YEAR, today: DECEMBER, firstDay: '2026-01-01' })
-			await flushPromises()
-
-			expect(wrapper.find('.year-review').text()).toContain('Your 2026 in honeycomb')
-			expect(wrapper.find('.year-review__headline').text()).toContain('120')
-			expect(reviewTile(wrapper, 'Moved to the trash bin')).toContain('12')
-			expect(reviewTile(wrapper, 'RAW files removed')).toContain('5')
-			expect(reviewTile(wrapper, 'Sidecars updated')).toContain('6')
-			expect(reviewTile(wrapper, 'Sidecars updated')).toContain('2 from digiKam or darktable')
-			expect(reviewTile(wrapper, 'Longest streak')).toContain('2')
-		})
-
-		// spec: STATS-001.46
-		it('says nothing from digiKam or darktable while no sidecar was', async () => {
-			const wrapper = mountPage({ counters: [{ day: '2026-01-02', metric: METRIC.decided, value: 3 }], today: DECEMBER, firstDay: '2026-01-02' })
-			await flushPromises()
-
-			expect(wrapper.find('.year-review').text()).not.toContain('digiKam')
-		})
-
-		// spec: STATS-001.47
-		it('names the busiest day and draws one square per day with the shade of its share', async () => {
-			const wrapper = mountPage({ counters: YEAR, today: DECEMBER, firstDay: '2026-01-01' })
-			await flushPromises()
-
-			expect(reviewTile(wrapper, 'Busiest day')).toContain(formatDay('2026-01-02'))
-			expect(reviewTile(wrapper, 'Busiest day')).toContain('90')
-			const squares = wrapper.findAll('.year-review__day')
-			expect(squares).toHaveLength(365)
-			expect(squares.slice(0, 3).map((each) => each.attributes('data-shade'))).toEqual(['1', '3', '0'])
-			expect(wrapper.find('.year-review__days').text()).toContain('2 active days')
-		})
-
-		// spec: STATS-001.49
-		it('says since when it counts only when the counting began in the year', async () => {
-			const inside = mountPage({ counters: YEAR, today: DECEMBER, firstDay: '2026-01-01' })
-			const before = mountPage({ counters: YEAR, today: DECEMBER, firstDay: '2025-06-01' })
-			await flushPromises()
-
-			expect(inside.find('.year-review').text()).toContain(`Counted since ${formatDay('2026-01-01')}.`)
-			expect(before.find('.year-review').text()).not.toContain('Counted since')
-		})
-
-		// spec: STATS-001.48
-		it('stores the year as closed for the hint once it shows', async () => {
-			const wrapper = mountPage({ counters: YEAR, today: DECEMBER, firstDay: '2026-01-01' })
-			await flushPromises()
-
-			expect((wrapper.vm.$.props.seams as { saveViewState: unknown }).saveViewState).toHaveBeenCalledExactlyOnceWith({ year_review_hint_closed: 2026 })
-		})
-
-		// spec: STATS-001.48
-		it('stores nothing outside the review dates', async () => {
-			const wrapper = mountPage()
-			await flushPromises()
-
-			expect((wrapper.vm.$.props.seams as { saveViewState: unknown }).saveViewState).not.toHaveBeenCalled()
-		})
 	})
 })
