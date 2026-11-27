@@ -33,6 +33,10 @@ done status writes, the ranking and the screen follow in their own specs.
     (those without one come last, in name order) at the first, the middle and the last place
     (the first and the last of two, the one of one); empty without a candidate. The scan takes
     them from the files it reads anyway.
+  - `shotDays`: how many of its pictures were shot on each day, `{day: "YYYY-MM-DD", photos: n}`
+    in day order, empty without a photo. A picture's shot time is its earliest member's capture
+    time, else its earliest member's modification time; its day is the scanning user's day in their
+    Nextcloud time zone, UTC without one (STATS-001.81).
   - It is **fresh** while it was taken from the folder's current etag. A stale summary is listed
     with its stored values until a scan replaces it.
 - `GET /apps/honeycomb/api/v1/library/folders?root=<path>&cursor=<fileId>&limit=<n>` answers
@@ -42,7 +46,7 @@ done status writes, the ranking and the screen follow in their own specs.
     default 200). `nextCursor` is the last listed file id when more follow, else `null`.
   - Each row: `fileId`, `root` and `path` (paths in the user's files, `/` first), `photos`,
     `bytes`, `rawBytes`, `bursts`, `oldest`, `newest`, `lastActivity`, `picked`, `rejected`,
-    `undecided`, `previews` (the summary's), `permissions` (the folder's Nextcloud permission
+    `undecided`, `previews` and `shotDays` (the summary's), `permissions` (the folder's Nextcloud permission
     bits) and `done`:
     `{"by": <user id>, "at": <Unix seconds>, "photos": n}` when the folder is marked done, else
     `null`.
@@ -195,6 +199,22 @@ done status writes, the ranking and the screen follow in their own specs.
 - **Then** the first summary is gone, so the next scan writes it with its previews; the other two
   stay
 
+### FOLDERS-005.22 – Shot days
+
+- **Given** a folder with a JPEG+RAW pair shot on 24 November 2026, a JPEG with the capture time of
+  24 November and one without a capture time changed on 20 November, for a user in Europe/Zurich
+- **When** a scan summarises the folder
+- **Then** `shotDays` is `[{"day": "2026-11-20", "photos": 1}, {"day": "2026-11-24", "photos": 2}]`,
+  the pair counted once by its earliest member's capture time
+
+### FOLDERS-005.23 – Summaries from before the shot days
+
+- **Given** a summary of a folder with photos and one of a folder without, both written before the
+  summary had `shotDays`, and a summary with shot days
+- **When** honeycomb updates to a release with the migration that adds `shot_days`
+- **Then** the first summary is gone, so the next scan writes it with its shot days; the other two
+  stay
+
 ### FOLDERS-005.20 – Only the library roots are listed and scanned
 
 - **Given** the library roots `/Photos`, and the folders `/Photos-old` and `/Photos/2024`
@@ -226,3 +246,4 @@ done status writes, the ranking and the screen follow in their own specs.
 | 2026-11-25 | `previews` in the summary and the row (FOLDERS-005.18). |
 | 2026-11-25 | Summaries from before the previews are scanned again (FOLDERS-005.19). |
 | 2026-11-26 | Only the library roots are listed and scanned; the candidate root check (FOLDERS-005.20, .21). |
+| 2026-11-27 | The summary's shot days, for *Photos added* on the statistics page (FOLDERS-005.22, .23; ADR 0062). |

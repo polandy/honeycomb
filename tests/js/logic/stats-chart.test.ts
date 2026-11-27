@@ -38,6 +38,13 @@ describe('chartParts', () => {
 		expect(chartParts('freed')).toEqual(['trash', 'deleted', 'raws'])
 		expect(chartParts('active')).toEqual(['active'])
 	})
+
+	// spec: STATS-001.82
+	it('shows photos added as one part', () => {
+		expect(chartParts('added')).toEqual(['added'])
+		expect(barTotal(bar({ [METRIC.photosAdded]: 12, [METRIC.decided]: 4 }), 'added')).toBe(12)
+		expect(barSegments(bar({ [METRIC.photosAdded]: 12 }), 'added', 48)).toEqual([{ part: 'added', percent: 25 }])
+	})
 })
 
 describe('barTotal and chartScale', () => {
@@ -74,15 +81,24 @@ describe('barSegments', () => {
 describe('barDetail', () => {
 	// spec: STATS-001.64
 	it('names the pictures decided with picked and rejected, the space freed and the active time', () => {
-		expect(barDetail(COUNTED)).toEqual({ state: 'counted', decided: 86, picked: 31, rejected: 55, freedBytes: 120, activeSeconds: 1260 })
+		expect(barDetail(COUNTED)).toEqual({ state: 'counted', decided: 86, picked: 31, rejected: 55, freedBytes: 120, activeSeconds: 1260, added: 0 })
 	})
 
 	// spec: STATS-001.64
 	it('is to come after today, before counting began, or nothing counted', () => {
 		expect(barDetail(bar({}, { future: true }))).toEqual({ state: 'future' })
-		expect(barDetail(bar({}, { beforeFirst: true }))).toEqual({ state: 'beforeFirst' })
-		expect(barDetail(bar({}))).toEqual({ state: 'empty' })
-		expect(barDetail(bar({ [METRIC.decided]: 0 }))).toEqual({ state: 'counted', decided: 0, picked: 0, rejected: 0, freedBytes: 0, activeSeconds: 0 })
+		expect(barDetail(bar({}, { beforeFirst: true }))).toEqual({ state: 'beforeFirst', added: 0 })
+		expect(barDetail(bar({}))).toEqual({ state: 'empty', added: 0 })
+		expect(barDetail(bar({ [METRIC.decided]: 0 }))).toEqual({ state: 'counted', decided: 0, picked: 0, rejected: 0, freedBytes: 0, activeSeconds: 0, added: 0 })
+	})
+
+	// spec: STATS-001.82
+	it('names the photos added of a counted bar and of one without a count, not of one to come', () => {
+		const added = { [METRIC.photosAdded]: 7 }
+		expect(barDetail(bar({ ...added, [METRIC.decided]: 2 }))).toMatchObject({ state: 'counted', decided: 2, added: 7 })
+		expect(barDetail(bar(added, { counted: false, beforeFirst: true }))).toEqual({ state: 'beforeFirst', added: 7 })
+		expect(barDetail(bar(added, { counted: false }))).toEqual({ state: 'empty', added: 7 })
+		expect(barDetail(bar(added, { counted: false, future: true }))).toEqual({ state: 'future' })
 	})
 })
 
@@ -110,7 +126,16 @@ describe('tableBars', () => {
 		const future = bar({}, { future: true, range: { from: '2026-11-27', to: '2026-11-27' } })
 		const empty = bar({}, { range: { from: '2026-11-25', to: '2026-11-25' } })
 
-		expect(tableBars([before, COUNTED, empty, future])).toEqual([COUNTED, empty])
-		expect(tableBars([])).toEqual([])
+		expect(tableBars([before, COUNTED, empty, future], 'decided')).toEqual([COUNTED, empty])
+		expect(tableBars([], 'decided')).toEqual([])
+	})
+
+	// spec: STATS-001.82
+	it('keeps a bar before the first counted day with photos added in the table of photos added', () => {
+		const before = bar({}, { beforeFirst: true, range: { from: '2026-11-22', to: '2026-11-22' } })
+		const added = bar({ [METRIC.photosAdded]: 3 }, { counted: false, beforeFirst: true, range: { from: '2026-11-23', to: '2026-11-23' } })
+
+		expect(tableBars([before, added, COUNTED], 'added')).toEqual([added, COUNTED])
+		expect(tableBars([before, added, COUNTED], 'decided')).toEqual([COUNTED])
 	})
 })

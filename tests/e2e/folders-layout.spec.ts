@@ -30,7 +30,7 @@ let nextId = 9100
 
 /** A rateable row of the stubbed list below the level. */
 function folder(name: string, fields: object) {
-	return { fileId: ++nextId, root: ROOT, path: `${ROOT}/${LEVEL}/${name}`, photos: 3, bytes: 3_000_000, rawBytes: 0, picked: 3, rejected: 0, undecided: 0, bursts: 0, oldest: 1_600_000_000, newest: 1_600_000_100, lastActivity: null, previews: [], permissions: 31, done: null, ...fields }
+	return { fileId: ++nextId, root: ROOT, path: `${ROOT}/${LEVEL}/${name}`, photos: 3, bytes: 3_000_000, rawBytes: 0, picked: 3, rejected: 0, undecided: 0, bursts: 0, oldest: 1_600_000_000, newest: 1_600_000_100, lastActivity: null, previews: [], shotDays: [], permissions: 31, done: null, ...fields }
 }
 
 // Like the owner's test set: a folder with subfolders between leaves, a complete one and a done one.

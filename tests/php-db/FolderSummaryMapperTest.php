@@ -25,9 +25,10 @@ final class FolderSummaryMapperTest extends DbTestCase {
 	}
 
 	private const array PREVIEWS = [['fileId' => 1_234_567_890, 'mtime' => 1_700_000_001], ['fileId' => 5, 'mtime' => 1_700_000_002], ['fileId' => 99, 'mtime' => 3]];
+	private const array SHOT_DAYS = ['2026-11-20' => 1, '2026-11-24' => 599];
 
 	private static function row(int $fileId, string $etag = ''): FolderSummary {
-		return new FolderSummary($fileId, $etag === '' ? "etag-$fileId" : $etag, 600, 30_000_000_000, 25_000_000_000, 12, 1_600_000_000, 1_600_000_900, 1_700_000_000, 1_800_000_000, self::PREVIEWS);
+		return new FolderSummary($fileId, $etag === '' ? "etag-$fileId" : $etag, 600, 30_000_000_000, 25_000_000_000, 12, 1_600_000_000, 1_600_000_900, 1_700_000_000, 1_800_000_000, self::PREVIEWS, self::SHOT_DAYS);
 	}
 
 	// spec: FOLDERS-005.1, FOLDERS-005.2, FOLDERS-005.4
@@ -55,6 +56,22 @@ final class FolderSummaryMapperTest extends DbTestCase {
 		$this->summaries->find([8]);
 	}
 
+	// spec: FOLDERS-005.22
+	public function testAFolderWithoutShotDaysComesBackEmptyAndACorruptValueFailsLoud(): void {
+		$this->summaries->replace([new FolderSummary(7, 'etag-7', 0, 0, 0, 0, null, null, null, 5), self::row(8)]);
+		$this->assertSame([], $this->summaries->find([7])[7]->shotDays);
+
+		$update = $this->db->getQueryBuilder();
+		$update->update('honeycomb_folder_summary')
+			->set('shot_days', $update->createNamedParameter('2026-11-20:1,2026-11:3'))
+			->where($update->expr()->eq('file_id', $update->createNamedParameter(8, IQueryBuilder::PARAM_INT)))
+			->executeStatement();
+
+		$this->expectException(\UnexpectedValueException::class);
+		$this->expectExceptionMessage('Malformed folder shot days: 2026-11-20:1,2026-11:3');
+		$this->summaries->find([8]);
+	}
+
 	public function testFindsAndReplacesMoreFoldersThanOneInListTakes(): void {
 		$fileIds = range(1, self::BEYOND_CHUNK);
 		$this->summaries->replace(array_map(static fn (int $fileId): FolderSummary => self::row($fileId), $fileIds));
@@ -69,7 +86,7 @@ final class FolderSummaryMapperTest extends DbTestCase {
 		$this->summaries->replace([self::row(7)]);
 		$this->summaries->carryOver(7, 20);
 
-		$this->assertEquals([20 => new FolderSummary(20, 'etag-7', 600, 30_000_000_000, 25_000_000_000, 12, 1_600_000_000, 1_600_000_900, 1_700_000_000, 1_800_000_000, self::PREVIEWS)], $this->summaries->find([7, 20]));
+		$this->assertEquals([20 => new FolderSummary(20, 'etag-7', 600, 30_000_000_000, 25_000_000_000, 12, 1_600_000_000, 1_600_000_900, 1_700_000_000, 1_800_000_000, self::PREVIEWS, self::SHOT_DAYS)], $this->summaries->find([7, 20]));
 	}
 
 	// spec: FOLDERS-005.17

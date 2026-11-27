@@ -2257,6 +2257,16 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-27: The highlights card measures its own width with a container query on the section
   (880 px of the page's column), not the viewport; the card's heading is an `h3` and the cells'
   labels `h4`, the empty line stays inside the card (STATS-001.67, #187, autonomous).
+- 2026-11-27: *Photos added* (R5b) come from the folder summaries' shot days, not a new counter
+  (owner, ADR 0062); a picture's shot day is in the scanning user's time zone, like the counters'
+  days, and the page sums the folder rows it already loads for *Library progress*, so
+  `/api/v1/stats` stays unchanged (STATS-001.81, #187, autonomous).
+- 2026-11-27: The *Added* chart is one filled bar per slot, not grouped bars beside decided and
+  deleted, which would narrow every bar below its 44 px target; the comparison is the intake line
+  and the detail panel. The panel names *n added* only for a bar with photos added, and *All time*
+  still begins on the first counted day (STATS-001.82, #187, autonomous).
+- 2026-11-27: Below 560 px the *Chart shows* switch lays its four names out in two rows of two, since
+  four in one row cut their names at 390 px (STATS-001.76, #187, autonomous).
 - 2026-11-27: CI's e2e job loads the pinned Nextcloud image from an Actions cache archive
   (`docker save`/`load`, keyed by `scripts/nextcloud-images.sh`, tagged by digest) instead of a
   live Docker Hub pull per run, after a stalled layer timed out the oldest shard 1/3 of #446; a

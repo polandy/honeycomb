@@ -105,6 +105,14 @@ as table* swaps the bars for a table of the same values, one row per day, month 
 today from the first counted day on, and *Show as chart* swaps back; the switch and the table
 stay when the period changes, a held bar does not. A period without a count says *Nothing
 counted in this period.* instead of the chart.
+*Photos added* is no counter: the page sums the shot days of the library folders' summaries
+(FOLDERS-005), so it reaches back before the counting began, and only the pictures still in the
+library roots count; a picture deleted since is no longer there (ADR 0062). The switch offers it
+as a fourth choice, *Added*: one filled bar per day, month or year, also before the first counted
+day. The detail panel adds *n added* to every bar with photos added. Below the chart's header
+row a line sums the period's intake against its clean-up: *Added 1,240 · Decided 980 · Deleted
+410*, deleted being the pictures moved to the trash bin and deleted for good. A period with photos
+added but no count shows the chart too.
 *Library progress* shows how far the library roots have come (below);
 *Of the pictures read so far* shows the shares picked, rejected, unflagged and rated from the XMP
 cache, counting only the pictures whose XMP honeycomb has read, so a library not yet opened shows
@@ -764,6 +772,33 @@ Strings are English, translated per ADR 0007; the mockup lists them.
   below 560 px the cards' sides are 4 px in and the days of the calendar 2 px apart,
   so the calendar's squares stay 44 px wide
 
+### STATS-001.81 – Photos added from the library's shot days
+
+- **Given** library folders whose summaries hold shot days, some before the first counted day, and
+  a period with photos added but no counter
+- **When** the page shows a period
+- **Then** each bar's photos added are the folders' pictures of its days, summed over every folder
+  of every library root; a period without a shot day has none; the period with photos added but no
+  counter shows the chart, not *Nothing counted in this period.*
+
+### STATS-001.82 – The chart shows photos added
+
+- **Given** a period with photos added
+- **When** the user picks *Added* under *Chart shows* and holds a bar
+- **Then** each bar is one filled part of its photos added, its height its share of the highest
+  bar, the key names *Photos added* and the bar's label its name and photos added; the detail panel
+  shows *n added* with the bar's other numbers, and below *Before counting began.* or *Nothing
+  counted.* for a bar with photos added but no counter
+
+### STATS-001.83 – Intake against clean-up
+
+- **Given** a period with photos added, pictures decided, moved to the trash bin and deleted for
+  good
+- **When** the page shows the chart card
+- **Then** a line below its header row reads *Added {added} · Decided {decided} · Deleted
+  {deleted}*, deleted the pictures moved to the trash bin and deleted for good, with tabular
+  figures; a period without photos added leaves the line out
+
 ## History
 
 | Date | Change |
@@ -790,3 +825,4 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | 2026-11-27 | The tiles as cards: label first, 16 px padding, equal height, no padding on the lines on a touch screen (.77; layout variant A, task 6) |
 | 2026-11-27 | The highlights as one card with five cells, a strip from 880 px of content width, rows below (.67 reworded; layout variant A task 7) |
 | 2026-11-27 | Redesign R5: *Clean-up* with the space freed by part and *Work done* with the sidecars, ratings, colour labels, tags, series, folders and moves (.78–.80) |
+| 2026-11-27 | Redesign R5b: *Photos added* from the library's shot days in the chart, the detail panel and the intake line (.81–.83; ADR 0062) |

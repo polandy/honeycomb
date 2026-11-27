@@ -33,7 +33,8 @@ final readonly class StatsDay {
 		return $this->time->getDateTime('now', $this->zone($user))->setTime(0, 0)->getTimestamp();
 	}
 
-	private function zone(IUser $user): \DateTimeZone {
+	/** The user's Nextcloud time zone, UTC without a known one. */
+	public function zone(IUser $user): \DateTimeZone {
 		$name = $this->config->getValueString($user->getUID(), 'core', 'timezone', '');
 		return new \DateTimeZone(in_array($name, \DateTimeZone::listIdentifiers(), true) && $name !== '' ? $name : self::FALLBACK_ZONE);
 	}

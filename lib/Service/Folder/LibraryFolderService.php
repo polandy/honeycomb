@@ -21,6 +21,7 @@ use OCA\Honeycomb\Service\Files\FolderNotReadableException;
 use OCA\Honeycomb\Service\Files\UserFolderResolver;
 use OCA\Honeycomb\Service\Listing\CaptureTimes;
 use OCA\Honeycomb\Service\Listing\RawHeaderBackfill;
+use OCA\Honeycomb\Service\Stats\StatsDay;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\Folder;
 use OCP\IUser;
@@ -43,6 +44,7 @@ final class LibraryFolderService {
 		private CaptureTimes $captureTimes,
 		private RawHeaderBackfill $backfill,
 		private ITimeFactory $time,
+		private StatsDay $day,
 	) {
 	}
 
@@ -59,7 +61,7 @@ final class LibraryFolderService {
 		usort($stale, static fn (LibraryFolder $a, LibraryFolder $b): int => strcmp($a->path, $b->path));
 		$batch = array_slice($stale, 0, self::SCAN_BATCH);
 		if ($batch !== []) {
-			$this->summaries->replace($this->summarise($user, $batch));
+			$this->summaries->replace($this->summarise($user, $batch, $this->day->zone($user)));
 		}
 		return ['scanning' => ['done' => count($folders) - count($stale) + count($batch), 'total' => count($folders)]];
 	}
@@ -103,11 +105,11 @@ final class LibraryFolderService {
 	}
 
 	/**
-	 * The summaries of `$folders`, at the etags they were listed with, queueing the header read of their RAW files without the key (LISTING-004.15).
+	 * The summaries of `$folders`, at the etags they were listed with, queueing the header read of their RAW files without the key (LISTING-004.15), their shot days in `$zone`.
 	 * @param non-empty-list<LibraryFolder> $folders
 	 * @return list<FolderSummary>
 	 */
-	private function summarise(IUser $user, array $folders): array {
+	private function summarise(IUser $user, array $folders, \DateTimeZone $zone): array {
 		$byFolder = [];
 		$photos = $this->files->photoFiles(array_map(static fn (LibraryFolder $folder): int => $folder->fileId, $folders));
 		$this->backfill->queueRows($user, $photos);
@@ -117,9 +119,9 @@ final class LibraryFolderService {
 		}
 		$now = $this->time->getTime();
 		$extensions = PairingExtensions::defaults();
-		return array_map(static function (LibraryFolder $folder) use ($byFolder, $now, $extensions): FolderSummary {
-			$tally = FolderTally::of($byFolder[$folder->fileId] ?? [], $extensions);
-			return new FolderSummary($folder->fileId, $folder->etag, $tally['photos'], $tally['bytes'], $tally['rawBytes'], $tally['bursts'], $tally['oldest'], $tally['newest'], $tally['lastActivity'], $now, FolderPreviews::pick($byFolder[$folder->fileId] ?? [], $extensions));
+		return array_map(static function (LibraryFolder $folder) use ($byFolder, $now, $extensions, $zone): FolderSummary {
+			$tally = FolderTally::of($byFolder[$folder->fileId] ?? [], $extensions, $zone);
+			return new FolderSummary($folder->fileId, $folder->etag, $tally['photos'], $tally['bytes'], $tally['rawBytes'], $tally['bursts'], $tally['oldest'], $tally['newest'], $tally['lastActivity'], $now, FolderPreviews::pick($byFolder[$folder->fileId] ?? [], $extensions), $tally['shotDays']);
 		}, $folders);
 	}
 
@@ -141,6 +143,7 @@ final class LibraryFolderService {
 			'newest' => $summary->newest,
 			'lastActivity' => $summary->lastActivity,
 			'previews' => $summary->previews,
+			'shotDays' => array_map(static fn (string $day, int $photos): array => ['day' => $day, 'photos' => $photos], array_keys($summary->shotDays), array_values($summary->shotDays)),
 			'picked' => $decisions['picked'],
 			'rejected' => $decisions['rejected'],
 			'undecided' => max(0, $summary->photos - $decisions['picked'] - $decisions['rejected'] - $decisions['doneUnflagged']),

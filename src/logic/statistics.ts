@@ -25,6 +25,8 @@ export const METRIC = {
 	tagsSet: 'tags_set',
 	picturesMoved: 'pictures_moved',
 	activeSeconds: 'active_seconds',
+	/** No counter of the server: the page sums it from the folder rows' shot days (ADR 0062). */
+	photosAdded: 'photos_added',
 } as const
 
 /** One daily counter of the user. */

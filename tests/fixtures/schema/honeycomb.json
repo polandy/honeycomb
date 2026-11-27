@@ -49,7 +49,8 @@
             "photos": "integer notnull",
             "previews": "string(100) null",
             "raw_bytes": "bigint notnull",
-            "scanned_at": "bigint notnull"
+            "scanned_at": "bigint notnull",
+            "shot_days": "text null"
         },
         "indexes": {
             "honeycomb_folder_summary_file_id": "unique(file_id)",
