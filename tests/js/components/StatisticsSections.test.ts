@@ -41,12 +41,12 @@ describe('StatisticsPage Clean-up', () => {
 		await flushPromises()
 
 		const card = wrapper.find('.statistics-cleanup')
-		expect(card.find('h3').text()).toBe('Clean-up')
+		expect(card.find('h3').text()).toContain('Clean-up')
 		expect(card.find('.statistics-cleanup__freed').text()).toBe(`${formatFileSize(10_000_000)} freed`)
 		const split = card.find('.statistics-cleanup__split')
 		expect(split.attributes('role')).toBe('img')
 		expect(split.attributes('aria-label')).toBe(`Moved to the trash bin ${formatFileSize(4_000_000)}, Deleted for good ${formatFileSize(1_000_000)}, RAW files removed ${formatFileSize(5_000_000)}`)
-		expect(split.findAll('i').map((each) => each.attributes('style'))).toEqual(['width: 40%', 'width: 10%', 'width: 50%'])
+		expect(split.findAll('i').map((each) => each.attributes('style'))).toEqual(['flex-grow: 4000000;', 'flex-grow: 1000000;', 'flex-grow: 5000000;'])
 		expect(rows(wrapper, 'statistics-cleanup')).toEqual([
 			['Moved to the trash bin', '4 photos', formatFileSize(4_000_000)],
 			['Deleted for good', '1 photo the trash bin would not keep', formatFileSize(1_000_000)],

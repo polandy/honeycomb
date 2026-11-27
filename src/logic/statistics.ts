@@ -20,6 +20,10 @@ export const METRIC = {
 	sidecarsForeign: 'sidecars_foreign',
 	seriesDone: 'series_done',
 	foldersDone: 'folders_done',
+	ratingsSet: 'ratings_set',
+	colourLabelsSet: 'colour_labels_set',
+	tagsSet: 'tags_set',
+	picturesMoved: 'pictures_moved',
 	activeSeconds: 'active_seconds',
 } as const
 

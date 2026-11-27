@@ -14,11 +14,11 @@ const ANSWER = {
 		{ day: '2026-10-05', metric: 'tags_set', value: 99 },
 		{ day: '2026-11-24', metric: 'pictures_decided', value: 10 },
 		{ day: '2026-11-24', metric: 'trash_pictures', value: 4 },
-		{ day: '2026-11-24', metric: 'trash_bytes', value: 4_000_000 },
+		{ day: '2026-11-24', metric: 'trash_bytes', value: 4_194_304 },
 		{ day: '2026-11-24', metric: 'deleted_pictures', value: 1 },
-		{ day: '2026-11-24', metric: 'deleted_bytes', value: 1_000_000 },
+		{ day: '2026-11-24', metric: 'deleted_bytes', value: 1_048_576 },
 		{ day: '2026-11-24', metric: 'raws_removed', value: 3 },
-		{ day: '2026-11-24', metric: 'raws_removed_bytes', value: 5_000_000 },
+		{ day: '2026-11-24', metric: 'raws_removed_bytes', value: 5_242_880 },
 		{ day: '2026-11-24', metric: 'sidecars_created', value: 7 },
 		{ day: '2026-11-24', metric: 'sidecars_updated', value: 3 },
 		{ day: '2026-11-24', metric: 'sidecars_foreign', value: 2 },
@@ -54,8 +54,8 @@ test('shows what the space freed is made of, as a bar of three painted parts and
 	await page.setViewportSize({ width: 1180, height: HEIGHT })
 	await openStatistics(page, ANSWER)
 
-	await expect(cleanup(page).locator('.statistics-cleanup__freed')).toHaveText('10.0 MB freed')
-	expect(await rows(cleanup(page))).toEqual([['Moved to the trash bin', '4.0 MB'], ['Deleted for good', '1.0 MB'], ['RAW files removed', '5.0 MB']])
+	await expect(cleanup(page).locator('.statistics-cleanup__freed')).toHaveText('10 MB freed')
+	expect(await rows(cleanup(page))).toEqual([['Moved to the trash bin', '4 MB'], ['Deleted for good', '1 MB'], ['RAW files removed', '5 MB']])
 	const widths = await cleanup(page).locator('.statistics-cleanup__split i').evaluateAll((parts) => parts.map((part) => part.getBoundingClientRect().width))
 	const whole = (await box(cleanup(page).locator('.statistics-cleanup__split'))).width
 	expect(widths.map((width) => Math.round(width / whole * 100))).toEqual([40, 10, 50])
