@@ -39,7 +39,11 @@ const foldersUrl = generateUrl('/apps/honeycomb/')
 					role="img"
 					:aria-label="t('honeycomb', '{percent} of the photos are in folders marked done', { percent: formatPercent(props.card.progress.total.donePercent) }, undefined, PLAIN_TEXT)">
 					<svg viewBox="0 0 120 120" aria-hidden="true">
-						<circle class="statistics-library__track" cx="60" cy="60" r="52" />
+						<circle
+							class="statistics-library__track"
+							cx="60"
+							cy="60"
+							r="52" />
 						<circle
 							class="statistics-library__arc"
 							cx="60"
