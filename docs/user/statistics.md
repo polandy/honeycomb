@@ -28,12 +28,11 @@ Open **Statistics** in the navigation, or press **Statistics** on the *Cull fini
 - **A line below:** the sidecars created and updated, those from digiKam or darktable and the
   series done, each once there is one.
 - **Chart:** one bar per day (week, month), per month (year) or per year (all time), in a card.
-  *Chart shows*, at its top right, picks *Decided* (picked ✓ filled under rejected ✕ hatched), *Space freed* (trash bin filled,
-  deleted for good hatched, RAW files removed dotted) or *Active time*. Days to come are hatched.
-  Tap or click a bar to hold its numbers in the panel below; a held month or year offers *Show
-  {month}* or *Show {year}*. *Show as table*, at the card's bottom right,
-  lists the same values. A period without a count says
-  so.
+  *Chart shows*, at its top right, picks *Decided* (picked ✓ filled under rejected ✕ hatched),
+  *Space freed* (trash bin filled, deleted for good hatched, RAW files removed dotted) or *Active
+  time*. Days to come are hatched. Tap or click a bar to hold its numbers in the panel below; a
+  held month or year offers *Show {month}* or *Show {year}*. *Show as table*, at the card's bottom
+  right, lists the same values. A period without a count says so.
 - **Highlights:** below the tiles, five cards for the period: the *Best day* (*Show day* opens its
   week), the *Busiest weekday* with seven small bars, the *Pace* in photos a minute against the
   period before, the *Active days* and the *Longest streak*. A period without a count says so.
