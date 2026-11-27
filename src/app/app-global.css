@@ -7,4 +7,5 @@
 @import '../shared/coarse-controls.css';
 @import './navigation-toggle.css';
 @import '../shared/page-title-row.css';
+@import '../shared/segment.css';
 @import './reduced-motion.css';

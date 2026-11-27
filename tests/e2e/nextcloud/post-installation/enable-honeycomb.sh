@@ -14,3 +14,5 @@ php /var/www/html/occ config:system:set fs_mount_cache_duration --type=integer -
 php /var/www/html/occ background:cron
 # Server errors go to the container's output, which Playwright prints, so a red e2e run shows its cause.
 php /var/www/html/occ config:system:set log_type --value=errorlog
+# No outgoing call (HaveIBeenPwned on user:add, app store, update check) waits on the runner's DNS.
+php /var/www/html/occ config:system:set has_internet_connection --type=boolean --value=false

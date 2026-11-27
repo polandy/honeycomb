@@ -46,7 +46,7 @@ function step(by: Step) {
 
 <template>
 	<div class="statistics-period">
-		<div class="statistics-period__segment" role="group" :aria-label="t('honeycomb', 'Period')">
+		<div class="statistics-period__segment honeycomb-segment" role="group" :aria-label="t('honeycomb', 'Period')">
 			<NcButton
 				v-for="each in kinds"
 				:key="each.kind"
@@ -61,7 +61,7 @@ function step(by: Step) {
 				<NcButton :disabled="current" @click="emit('anchor', null)">
 					{{ t('honeycomb', 'Today') }}
 				</NcButton>
-				<div class="statistics-period__steps">
+				<div class="statistics-period__steps honeycomb-segment">
 					<NcButton
 						variant="tertiary"
 						:aria-label="t('honeycomb', 'Previous period')"
@@ -98,14 +98,6 @@ function step(by: Step) {
 	align-items: center;
 	justify-content: space-between;
 	gap: calc(2 * var(--default-grid-baseline)) calc(4 * var(--default-grid-baseline));
-}
-
-.statistics-period__segment,
-.statistics-period__steps {
-	display: flex;
-	align-items: center;
-	border-radius: var(--border-radius-element);
-	background: var(--color-background-dark);
 }
 
 .statistics-period__segment {
