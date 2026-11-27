@@ -1,7 +1,7 @@
 # 0050 – The preview lock through core's locking
 
 - Status: accepted
-- Date: 2026-11-22
+- Date: 2026-11-22, retry amended 2026-11-27
 - Replaces: the System V semaphore of 2026-11-20 in [`decisions.md`](../decisions.md) (IMAGES-001.18)
 
 ## Context
@@ -31,8 +31,8 @@ The options were:
 
 - `CorePreviewLock` takes an exclusive core lock on the key `honeycomb/preview/<fileId>` while
   `$render` runs, and releases it in `finally`.
-- Core's locks do not wait: a locked key throws `LockedException`. The lock tries again once a
-  second through the injected `Pause`, for at most 30 s (`WAIT_SECONDS`).
+- Core's locks do not wait: a locked key throws `LockedException`. The lock tries again every
+  50 ms through the injected `Pause`, 600 times, so for at most 30 s (`WAIT_SECONDS`).
 - After 30 s it renders without the lock and logs a warning: the holder is stuck or was killed,
   and an empty tile is better than none. A lock it did not take is never released.
 - With `filelocking.enabled` off core locks nothing, and the renders run unlocked, as core's own
@@ -43,6 +43,8 @@ The options were:
 - honeycomb leaves nothing in the kernel; `removing.md` loses its semaphore step. A lock row in
   `oc_file_locks` is core's, removed when the request ends or expires.
 - No PHP extension is needed for the lock.
-- A tile that meets a lock waits up to a second longer than the render, as the retry runs once a
-  second; contention is rare (a tile and the warm-up on the same file).
+- A tile that meets a lock waits at most 50 ms longer than the render. Contention is common, not
+  rare: the warm-up renders the files in the grid's order, the order the tiles load. Until the
+  amendment of 2026-11-27 the lock tried again once a second, and the first sharp tile of a
+  folder whose previews were rendered took over the 1000 ms budget on CI (IMAGES-001.12).
 - Tests drive `LockedException` and the clock through fakes; they never sleep.

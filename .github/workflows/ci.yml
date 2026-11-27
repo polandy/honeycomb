@@ -80,6 +80,7 @@ jobs:
       - run: scripts/test-specs.sh
       - run: scripts/test-spec-trailers.sh
       - run: scripts/test-nextcloud-versions.sh
+      - run: scripts/test-e2e-image.sh
       - run: scripts/test-package.sh
       - run: scripts/test-verify-steps.sh
       - run: scripts/source-sizes.sh
@@ -243,7 +244,24 @@ jobs:
           npx playwright install --with-deps webkit
           find /var/cache/apt/archives -maxdepth 1 -name '*.deb' -exec cp -t ~/webkit-apt/ {} +
         timeout-minutes: 10
+      # A stalled Docker Hub pull ran the job into Playwright's server timeout; the cache holds the pinned image.
+      - id: image-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/nextcloud-image
+          key: nextcloud-image-${{ matrix.nextcloud }}-${{ hashFiles('scripts/nextcloud-images.sh') }}
+      - id: image
+        run: |
+          tag=$(scripts/e2e-image.sh ~/nextcloud-image/image.tar)
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+      - if: steps.image-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/nextcloud-image
+          key: ${{ steps.image-cache.outputs.cache-primary-key }}
       - run: npx playwright test --shard=${{ matrix.shard }}
+        env:
+          HONEYCOMB_E2E_IMAGE: ${{ steps.image.outputs.tag }}
       - if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

@@ -85,6 +85,12 @@ during a task becomes an issue as above.
   port is never waited for: verify.sh takes the next free port at once, up to 100 above, and
   prints `port <wanted> is busy, using <port>`. Its own containers go when it ends, also on
   `Ctrl-C`, `SIGTERM` or a closed terminal.
+- CI never pulls the e2e Nextcloud image live: a stalled Docker Hub layer once ran a shard into
+  Playwright's 300 s server timeout before any test ran. `scripts/e2e-image.sh` loads the pinned
+  image from an Actions cache keyed by `scripts/nextcloud-images.sh`, tagged by its digest. On a
+  miss it pulls once, saves the archive and loads it back, so the server starts from what the
+  cache holds; `scripts/e2e-server.sh` runs that tag with `--pull never`
+  (`scripts/test-e2e-image.sh`). Local runs keep pulling the pinned image.
 - No container joins or leaves Docker's bridge network while Playwright tests: that adds or
   removes a host interface address, and Chromium then aborts its queued requests with
   `net::ERR_NETWORK_CHANGED`, so a page loads without its scripts. Only the e2e Nextcloud

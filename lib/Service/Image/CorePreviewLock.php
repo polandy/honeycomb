@@ -8,7 +8,6 @@ declare(strict_types=1);
 namespace OCA\Honeycomb\Service\Image;
 
 use OCA\Honeycomb\Service\Support\Pause;
-use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Lock\ILockingProvider;
 use OCP\Lock\LockedException;
 use Psr\Log\LoggerInterface;
@@ -18,11 +17,14 @@ final class CorePreviewLock implements PreviewLock {
 	private const string KEY_PREFIX = 'honeycomb/preview/';
 	/** How long a render waits for a held lock before it renders without it. */
 	private const int WAIT_SECONDS = 30;
+	/** The pause between two tries at a held lock, short as the warm-up holds a tile's file often (ADR 0050). */
+	private const int RETRY_MILLISECONDS = 50;
+	/** The tries after the first that make up the wait. */
+	private const int RETRIES = self::WAIT_SECONDS * 1_000 / self::RETRY_MILLISECONDS;
 
 	/** @psalm-suppress PossiblyUnusedMethod Nextcloud constructs it through its alias. */
 	public function __construct(
 		private ILockingProvider $locks,
-		private ITimeFactory $time,
 		private Pause $pause,
 		private LoggerInterface $logger,
 	) {
@@ -44,17 +46,15 @@ final class CorePreviewLock implements PreviewLock {
 
 	/** True once this request holds `$key`, false when another held it for the whole wait. */
 	private function acquire(string $key): bool {
-		$deadline = $this->time->getTime() + self::WAIT_SECONDS;
-		while (true) {
+		for ($retry = 0; ; $retry++) {
 			try {
 				$this->locks->acquireLock($key, ILockingProvider::LOCK_EXCLUSIVE);
 				return true;
 			} catch (LockedException) {
-				$now = $this->time->getTime();
-				if ($now >= $deadline) {
+				if ($retry >= self::RETRIES) {
 					return false;
 				}
-				$this->pause->until($now + 1);
+				$this->pause->forMilliseconds(self::RETRY_MILLISECONDS);
 			}
 		}
 	}

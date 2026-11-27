@@ -4,17 +4,15 @@
 # Runs a fresh Nextcloud with this checkout as the honeycomb app, in the foreground for Playwright.
 # Usage: scripts/e2e-server.sh <port> <admin user> <admin password>
 # HONEYCOMB_E2E_NEXTCLOUD=oldest runs the oldest supported Nextcloud instead of the newest.
+# HONEYCOMB_E2E_IMAGE (CI) runs that tag from scripts/e2e-image.sh and never pulls it.
 # HONEYCOMB_E2E_KEEP=1 (verify.sh) keeps the container when Playwright stops; its owner removes it.
 set -euo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
 source scripts/nextcloud-images.sh
 source scripts/e2e-names.sh
-case "${HONEYCOMB_E2E_NEXTCLOUD:-newest}" in
-  oldest) NEXTCLOUD=$OLDEST_NEXTCLOUD_IMAGE ;;
-  newest) NEXTCLOUD=$NEWEST_NEXTCLOUD_IMAGE ;;
-  *) echo "HONEYCOMB_E2E_NEXTCLOUD must be oldest or newest" >&2 && exit 1 ;;
-esac
+NEXTCLOUD_ARGS=$(e2e_server_image "${HONEYCOMB_E2E_NEXTCLOUD:-newest}")
+read -ra NEXTCLOUD <<<"$NEXTCLOUD_ARGS"
 CONTAINER=$(e2e_container "$1")
 TEAM_FOLDERS_VERSION=23.0.1
 TEAM_FOLDERS_SHA256=3949e6a45947188090c170c6983aae11a1d66134ec317ffe7b7609062f3aecf3
@@ -51,4 +49,4 @@ exec docker run --rm "${KEEP[@]}" --name "$CONTAINER" -p "127.0.0.1:$1:80" --lab
   -v "$TEAM_FOLDERS:/var/www/html/custom_apps/groupfolders:ro" \
   -v "$PWD/tests/e2e/nextcloud/post-installation:/docker-entrypoint-hooks.d/post-installation:ro" \
   -v "$PWD/tests/e2e/nextcloud/apache/request-timing.conf:/etc/apache2/conf-enabled/honeycomb-request-timing.conf:ro" \
-  "$NEXTCLOUD"
+  "${NEXTCLOUD[@]}"
