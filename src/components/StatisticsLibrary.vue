@@ -51,6 +51,8 @@ const foldersUrl = generateUrl('/apps/honeycomb/')
 
 .statistics-library :deep(.folders-progress) {
 	align-self: stretch;
+	padding: 0;
+	border: 0;
 }
 
 .statistics-library__note {

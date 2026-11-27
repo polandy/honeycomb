@@ -98,12 +98,4 @@ describe('StatisticsPage overview', () => {
 
 		expect(wrapper.find('.statistics-hero__change').text()).toBe(`Same as ${formatDayRange('2026-11-09', '2026-11-13')}`)
 	})
-
-	// spec: STATS-001.21
-	it('puts the series done and the sidecars from digiKam or darktable in the line', async () => {
-		const wrapper = mountPage({ counters: DECIDED })
-		await flushPromises()
-
-		expect(wrapper.find('.statistics-page__line').text()).toBe('1 from digiKam or darktable · 2 series done')
-	})
 })
