@@ -2184,6 +2184,13 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-26: The real camera fixtures in `tests/fixtures/raw-headers/` are sanitized copies
   (`scripts/raw-header-fixture.sh`) that keep only the header structure and the four fields; CR3,
   NEF, ORF, RW2, PEF and SRW are built in the tests, as no samples of them exist (autonomous).
+- 2026-11-26: The activity calendar (STATS-001.70 to .72, redesign R4) has three fill levels, not
+  the mockup's four, so that it shares one `activityLevel` function with the year in review, whose
+  shade already has a third and two thirds as bounds; a square with a counter and nothing decided
+  is level 1, as in the year review (autonomous).
+- 2026-11-26: The calendar's detail panel is the chart's `StatisticsBarDetail` with its own hint,
+  so a held month of all time offers *Show {month}* like a month bar; the year view's day squares
+  stay small (2 px gap, no 44 px target), as 365 targets cannot all be a finger wide (autonomous).
 - 2026-11-26: The listing takes the RAW header's camera only when Photos' `Make` and `Model` give
   none, never one field from each, so a camera name never mixes two sources (ADR 0061, PR 3,
   autonomous).
@@ -2196,6 +2203,25 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-26: A trashed reject sends only the trash, a pick taken back drops the favourite with
   `picksAsFavorites`, and the stack note shows for a reject to trash or archive (IMMICH-004,
   autonomous).
+- 2026-11-27: The statistics page and its title row share one centred column of 1040 px
+  (`--honeycomb-page-width`), replacing the page's left-aligned 1280 px of R1; the title steps
+  aside only by as much as the toggle overlaps it in the margin (not from a fixed width, as the
+  mockup's 1152 px switch), so it stays flush with the cards wherever the toggle fits; *Back to the
+  cull* moves into the title row through a `PageLayout` `actions` slot, on the statistics page
+  only for now, since *Similarity* and *Orphaned sidecars* keep their own 640 px column (TODO
+  item) (STATS-001.73, layout variant A, autonomous).
+- 2026-11-27: The statistics control row keeps `NcButton` with `pressed` for the segment (no switch
+  to `NcRadioGroup`, so its words and roles stay) and draws one segment by a shared background
+  behind tertiary buttons of full control height, without the mockup's 4 px inner padding, so each
+  button keeps its 44 px touch target; the period's name is 168 px wide and wraps (a week across
+  the new year) rather than widen, so the arrows never move; one row from a content width of
+  560 px, as in the mockup (STATS-001.74, layout variant A task 3, autonomous).
+- 2026-11-27: The hero's figures are a `dl` of four rows (*✓ Picked*, *✕ Rejected*, *Per active
+  day*, *Active days*) as in the mockup, replacing the key line and *No active day in this period*
+  with *—*; the overview gap is 16 px while the tiles keep their 8 px until task 6 gives every card
+  one shape, so the hero's right edge meets the first tile's only then; the iPad in landscape
+  (1180 px) shows the four columns while the navigation is closed, its default below 1280 px, and
+  the band once the user opens it (STATS-001.75, layout variant A task 4, autonomous).
 - 2026-11-27: The stalled move of CI run 45878288778 did not reproduce, so the e2e Nextcloud logs
   each honeycomb API request's start and duration instead of a fix without a cause; the TODO item
   stays open (owner's choice).

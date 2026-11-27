@@ -63,30 +63,36 @@ pictures a minute. A session starts when a folder set opens with pictures. Activ
 between two inputs (a pointer press, a key, a wheel turn), at most 2 minutes each. *Statistics*
 opens the statistics page and comes with it (metrics PR 6); *Close* closes the card.
 
-**The statistics page** is a navigation entry *Statistics* beside *Similarity*. It shows one
+**The statistics page** is a navigation entry *Statistics* beside *Similarity*. Its title row and
+its content share one centred column of 1040 px, so the title starts at the content's left edge.
+It shows one
 calendar period: a segment offers *Week*, *Month*, *Year* and *All time*, the current month
-preselected. Beside it a stepper names the period (*Nov 22 – 28, 2026*, *November 2026*, *2026*)
-with *Previous period* and *Next period* and *Today*, which goes to the period that holds today;
-*All time* has no stepper, only *Since {day}*. A week starts on the first day of the week of the
+preselected. At the right end of its row *Today*, which goes to the period that holds today, comes
+before a stepper that names the period (*Nov 22 – 28, 2026*, *November 2026*, *2026*) between
+*Previous period* and *Next period*; the name has a fixed width, so the arrows stay put while the
+user steps. *All time* has no stepper and no *Today*, only *Since {day}*. Below a content width of
+560 px the segment and the stepper each fill a row of their own.
+A week starts on the first day of the week of the
 user's Nextcloud locale. Changing the segment keeps the day the user stepped to, so March 2025
 becomes 2025 and back March 2025. The user's day is the `today` the server answers; stepping never
 goes past the period of today nor before the period of the first counted day. The hero *Photos
 decided* shows the period's pictures decided in large, the change against the period before as an
 arrow and words (*▲ 12 % more than October*), a bar of picked (filled, ✓) against rejected
-(hatched, ✕) with both counts, and the pictures decided per active day with the active days (a day
-is active when any of its counters is above zero). Beside it, from a content width of 960 px, or
-below it, the bars. Four tiles follow: *Space freed* (with the pictures moved to the trash bin or
-deleted for good and the RAW files removed), *Keep rate* (the share picked of the pictures picked
-or rejected, with *n kept of m*), *Active time* (with pictures a minute from one active minute on)
-and *Days in a row* (with the longest streak; in a past week, month or year the longest run of
-active days inside it). A line shows the sidecars created and updated (with those from digiKam or
-darktable) and the series done, each once there is one, until *Work done* takes them. The chart
-shows one bar per day (week, month), per month (year) or per year (all time; per month while the
-counting lies in one calendar year). A switch *Chart shows* picks *Decided* (the default: picked
-filled with ✓ stacked under rejected hatched with ✕), *Space freed* (moved to the trash bin
-filled, deleted for good hatched, RAWs removed dotted) or *Active time*; the axis names the
-highest bar and its half, and a key names every part. Days and months after today show as hatched
-empty slots (*Still to come* in the key), those before the first counted day as plain empty
+(hatched, ✕) and, as rows below it, the pictures picked, rejected, decided per active day and the
+active days (a day is active when any of its counters is above zero). From a content width of 960 px
+the hero takes the first of four columns and the bars the other three, both as tall as the taller;
+below that the hero is a band above the bars. Four tiles follow: *Space freed* (with the pictures
+moved to the trash bin or deleted for good and the RAW files removed), *Keep rate* (the share picked
+of the pictures picked or rejected, with *n kept of m*), *Active time* (with pictures a minute from
+one active minute on) and *Days in a row* (with the longest streak; in a past week, month or year
+the longest run of active days inside it). A line shows the sidecars created and updated (with those
+from digiKam or darktable) and the series done, each once there is one, until *Work done* takes
+them. The chart shows one bar per day (week, month), per month (year) or per year (all time; per
+month while the counting lies in one calendar year). A switch *Chart shows* picks *Decided* (the
+default: picked filled with ✓ stacked under rejected hatched with ✕), *Space freed* (moved to the
+trash bin filled, deleted for good hatched, RAWs removed dotted) or *Active time*; the axis names
+the highest bar and its half, and a key names every part. Days and months after today show as
+hatched empty slots (*Still to come* in the key), those before the first counted day as plain empty
 slots, and the bar of today (week, month, year) is outlined. Every bar is a button whose label
 names its day and value. A fixed panel below the chart, never a bubble over it, shows one bar's
 numbers: its name, the pictures decided with picked and rejected, the space freed and the active
@@ -406,8 +412,8 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **Given** the cull page or the *Cull finished* card
 - **When** the user picks *Statistics* in the navigation or on the card
 - **Then** the statistics page opens at `/apps/honeycomb/statistics`, a page of its own like
-  *Similarity* with the navigation (APP-001.25) and *Back to the cull*; the navigation's page
-  entries come from one list
+  *Similarity* with the navigation (APP-001.25) and *Back to the cull* at the right end of its
+  title row (STATS-001.73); the navigation's page entries come from one list
 
 ### STATS-001.41 – The period before
 
@@ -517,8 +523,8 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 
 - **Given** a period in which nothing was counted, e.g. a month off
 - **When** the page shows it
-- **Then** the hero shows 0 without a change, *No active day in this period* and an empty bar, the
-  bars give way to *Nothing counted in this period.*, and the segment and the stepper stay usable
+- **Then** the hero shows 0 without a change, *—* per active day, 0 active days and an empty bar,
+  the bars give way to *Nothing counted in this period.*, and the segment and the stepper stay usable
 
 ### STATS-001.56 – Days in a row in a past period
 
@@ -550,8 +556,9 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 - **Given** a period with pictures picked and rejected
 - **When** the page shows the hero *Photos decided*
 - **Then** a bar splits picked from rejected by their shares, picked filled and rejected hatched,
-  with *✓ n picked* and *✕ n rejected* beside it and the bar's label naming both counts; below, the
-  pictures decided per active day, rounded, and the active days
+  the bar's label naming both counts; below the bar four rows, each its name at the start and its
+  figure at the end: *✓ Picked*, *✕ Rejected*, *Per active day* (rounded, *—* without an active
+  day) and *Active days*
 
 ### STATS-001.60 – Keep rate
 
@@ -640,6 +647,69 @@ Strings are English, translated per ADR 0007; the mockup lists them.
   share; *Longest streak* shows the longest run of days with a counter inside the period with
   its first and last day, the earlier run when two tie
 
+### STATS-001.70 – The activity calendar of the period
+
+- **Given** a period with a count
+- **When** the page shows the card *Activity*
+- **Then** a week and a month show one square per day with its date, under the weekdays from the
+  locale's first weekday and after as many empty places as the first day lies after it (a month
+  starting on a Sunday has six of them with Monday first, none with Sunday first); a year shows
+  its twelve months as small day squares; all time shows one row per year with a square per
+  month, the months of the first and of the current year in full; each square is filled from the
+  bottom to the height of its level (STATS-001.71), a day to come is hatched, one before the
+  first counted day dotted and today framed, so no state shows by colour alone; a key says that
+  the fill height shows the amount
+
+### STATS-001.71 – One level for the calendar and the year in review
+
+- **Given** the pictures decided of each square and the highest of the period (of the year for
+  the year in review)
+- **When** a level is chosen
+- **Then** a square without a counter is level 0, one at or below a third of the highest level 1,
+  one at or below two thirds level 2, any higher level 3; a square with a counter and no picture
+  decided is level 1; the calendar and the year in review's calendar take it from the same
+  function, so a day has the same level in both
+
+### STATS-001.72 – A square's numbers in the detail panel
+
+- **Given** the calendar of a period
+- **When** the user taps or clicks a square, or focuses it and presses Enter or Space
+- **Then** the panel below the calendar shows the day or month as the chart's panel does
+  (STATS-001.64), and the square is pressed; the same input again releases it and the panel asks
+  to select a day; a square to come, one before the first counted day and one without a counter
+  say why they have no numbers; a month of all time offers *Show {month}* (STATS-001.65); a new
+  period releases the square; each square is named for a screen reader by its date and numbers
+  and the panel is announced politely
+
+### STATS-001.73 – One column for the title row and the page
+
+- **Given** the statistics page with numbers counted
+- **When** it renders with a content width of 1040 px or more, or less
+- **Then** the title row and the page share one column of at most 1040 px, centred in the
+  content; the title's left edge is the first card's unless the title steps aside for the
+  navigation toggle (APP-001.22); *Back to the cull* stands at the right end of the title row, on
+  the title's line, its right edge the cards' right edge
+
+### STATS-001.74 – The control row
+
+- **Given** the statistics page with numbers counted
+- **When** it shows a week, month or year, or *All time*, with a content width of 560 px or more,
+  or less
+- **Then** the segment is one group at the content's left edge and *Today* stands before the
+  stepper at its right edge, the name between the arrows 168 px wide so stepping never moves them;
+  under *All time* only *Since {day}* stands there; below 560 px the segment and the stepper each
+  span the content's width on a row of their own, the segment above
+
+### STATS-001.75 – The hero beside the bars on four columns
+
+- **Given** the statistics page with numbers counted
+- **When** it renders with a content width of 960 px or more, or less
+- **Then** from 960 px the overview is four equal columns with 16 px between them, the hero in the
+  first and the bars in the other three, both starting on one line and equally tall, the hero's
+  rows spread down to its bottom; below 960 px the hero is a band across the content's width
+  above the bars, its number at the start and the bar with its rows beside it, the rows in two
+  columns, from a content width of 560 px, and all stacked below that
+
 ## History
 
 | Date | Change |
@@ -658,3 +728,7 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | 2026-11-26 | Redesign R1: the hero *Photos decided* with picked against rejected, the tiles *Space freed* with the RAW files removed, *Keep rate*, *Active time* with pace (.41, .55 reworded; .59–.62) |
 | 2026-11-26 | Redesign R2: the main chart with *Decided*, *Space freed* and *Active time*, the detail panel, the drill-down and the table (.63–.66) |
 | 2026-11-26 | Redesign R3: the highlights Best day, Busiest weekday, Pace, Active days and Longest streak (.67–.69) |
+| 2026-11-26 | Redesign R4: the activity calendar of every period with one level function shared with the year in review (.70–.72) |
+| 2026-11-27 | One centred column of 1040 px for the title row and the page, *Back to the cull* in the title row (.40 reworded, .73; layout variant A, tasks 1+2) |
+| 2026-11-27 | The control row: the segment at the left, *Today* before a stepper of fixed width at the right, two rows on a phone (.74; layout variant A, task 3) |
+| 2026-11-27 | The hero beside the bars on four columns, its figures as rows below the bar (.55, .59 reworded; .75; layout variant A task 4) |

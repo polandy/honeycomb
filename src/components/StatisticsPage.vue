@@ -19,6 +19,7 @@ import AppIcon from './AppIcon.vue'
 import DeleteStats from './DeleteStats.vue'
 import PageLayout from './PageLayout.vue'
 import StatisticsBars from './StatisticsBars.vue'
+import StatisticsCalendar from './StatisticsCalendar.vue'
 import StatisticsHero from './StatisticsHero.vue'
 import StatisticsHighlights from './StatisticsHighlights.vue'
 import StatisticsLibrary from './StatisticsLibrary.vue'
@@ -28,6 +29,7 @@ import YearReview from './YearReview.vue'
 import { yearOf } from '../logic/days.ts'
 import { folderProgress } from '../logic/folder-progress.ts'
 import { parseSettings } from '../logic/settings.ts'
+import { periodCalendar } from '../logic/stats-calendar.ts'
 import { periodHighlights } from '../logic/stats-highlights.ts'
 import { parsePeriodHash, periodHash, resolveLocation } from '../logic/stats-location.ts'
 import { periodOverview } from '../logic/stats-overview.ts'
@@ -74,6 +76,7 @@ const review = computed(() => {
 })
 const numbers = computed(() => answer.value && periodNumbers(answer.value.counters, period.value, bounds.value))
 const highlights = computed(() => periodHighlights(answer.value!.counters, period.value, bounds.value))
+const calendar = computed(() => periodCalendar(answer.value!.counters, period.value, bounds.value))
 const overview = computed(() => periodOverview(answer.value!.counters, period.value.range))
 const roots = ref<readonly string[]>([])
 /** The library's progress as of the user's today, whose month counts as this month (STATS-001.42). */
@@ -178,14 +181,16 @@ onMounted(async () => {
 </script>
 
 <template>
-	<PageLayout page="statistics" :seams="props.navigation">
-		<div class="statistics-page" :data-settled="settled || undefined">
+	<PageLayout page="statistics" :seams="props.navigation" wide>
+		<template #actions>
 			<NcButton variant="tertiary" :href="cullUrl">
 				<template #icon>
 					<AppIcon name="back" />
 				</template>
 				{{ t('honeycomb', 'Back to the cull') }}
 			</NcButton>
+		</template>
+		<div class="statistics-page" :data-settled="settled || undefined">
 			<NcNoteCard v-if="failed" type="error">
 				{{ t('honeycomb', 'The statistics could not be loaded.') }}
 			</NcNoteCard>
@@ -204,6 +209,7 @@ onMounted(async () => {
 					<div class="statistics-page__overview">
 						<StatisticsHero :overview="overview" :change="numbers!.decidedChange" :compared="comparedName(numbers!.compared)" />
 						<StatisticsBars
+							class="statistics-page__chart"
 							:bars="numbers!.bars"
 							:kind="kind"
 							:unit="numbers!.unit"
@@ -216,6 +222,7 @@ onMounted(async () => {
 						:kind="kind"
 						:compared="comparedName(numbers!.compared)"
 						@showDay="kind = 'week'; anchor = $event" />
+					<StatisticsCalendar :calendar="calendar" @drill="kind = $event.kind; anchor = $event.anchor" />
 					<p v-if="line" class="statistics-page__line">
 						{{ line }}
 					</p>
@@ -244,21 +251,26 @@ onMounted(async () => {
 	display: flex;
 	flex-direction: column;
 	gap: calc(2 * var(--default-grid-baseline));
-	max-width: 1280px;
+	box-sizing: border-box;
+	width: min(var(--honeycomb-page-width), 100%);
+	margin-inline: auto;
 	padding: calc(4 * var(--default-grid-baseline));
 	container-type: inline-size;
 }
 
 .statistics-page__overview {
 	display: grid;
-	gap: calc(2 * var(--default-grid-baseline));
-	align-items: start;
+	gap: calc(4 * var(--default-grid-baseline));
 }
 
-/* The hero beside the bars from 960 px of content width (STATS-001.59). */
+/* The hero in the first of four columns, the bars in the other three, equally tall (STATS-001.75). */
 @container (min-width: 960px) {
 	.statistics-page__overview {
-		grid-template-columns: 1fr 2fr;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+
+	.statistics-page__chart {
+		grid-column: 2 / -1;
 	}
 }
 

@@ -5,7 +5,7 @@ import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { METRIC } from '../../../src/logic/statistics.ts'
 import { formatDayRange, formatDuration, formatFileSize, formatPercent } from '../../../src/shared/l10n.ts'
-import { chip, hero, mountPage, tile, TODAY } from './statistics-page-fixtures.ts'
+import { chip, heroRows, mountPage, tile, TODAY } from './statistics-page-fixtures.ts'
 
 vi.mock('../../../src/shared/logger.ts', () => ({ logger: { error: vi.fn() } }))
 
@@ -41,8 +41,7 @@ describe('StatisticsPage overview', () => {
 		expect(split.attributes('aria-label')).toBe('31 picked, 55 rejected')
 		expect(split.find('.statistics-hero__picked').attributes('style')).toContain('width: 36%')
 		expect(split.find('.statistics-hero__rejected').attributes('style')).toContain('width: 64%')
-		expect(wrapper.find('.statistics-hero__key').text()).toMatch(/^✓ 31 picked\s+✕ 55 rejected$/)
-		expect(hero(wrapper)).toContain('43 per active day · 2 active days')
+		expect(heroRows(wrapper)).toEqual([['✓ Picked', '31'], ['✕ Rejected', '55'], ['Per active day', '43'], ['Active days', '2']])
 	})
 
 	// spec: STATS-001.60
