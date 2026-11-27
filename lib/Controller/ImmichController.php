@@ -11,6 +11,7 @@ use OCA\Honeycomb\Immich\Connection;
 use OCA\Honeycomb\Immich\Connections;
 use OCA\Honeycomb\Immich\ImmichPictureSource;
 use OCA\Honeycomb\Immich\ImmichStatus;
+use OCA\Honeycomb\Immich\ImmichWriteCheck;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\FrontpageRoute;
@@ -35,6 +36,7 @@ final class ImmichController extends Controller {
 		private Connections $connections,
 		private ImmichStatus $status,
 		private ImmichPictureSource $source,
+		private ImmichWriteCheck $writeCheck,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -84,6 +86,15 @@ final class ImmichController extends Controller {
 	public function counts(string $connectionId, array $filters = [], array $periods = []): Response {
 		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(
 			$this->source->counts($this->connections->find($user->getUID(), $connectionId), ['filters' => $filters, 'periods' => $periods]),
+		));
+	}
+
+	/** Immich's state of the assets a write affects, reloaded for its conflicts (IMMICH-004.18). */
+	#[NoAdminRequired]
+	#[FrontpageRoute(verb: 'POST', url: '/api/v1/immich/{connectionId}/write/check')]
+	public function writeCheck(string $connectionId, mixed $assetIds = null): Response {
+		return $this->api->forUser(fn (IUser $user): Response => new JSONResponse(
+			$this->writeCheck->check($this->connections->find($user->getUID(), $connectionId), $assetIds),
 		));
 	}
 

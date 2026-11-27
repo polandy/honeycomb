@@ -2278,3 +2278,11 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   The job drops a folder summary only when a file of that folder got the key, so an unreadable
   RAW cannot make every scan and job start over; a listing of its folder queues it again, with no
   stored retry cap, as a cap would need a new table (LISTING-004.14, .17, #187, autonomous).
+- 2026-11-27: `write/check` answers Immich's state of each asset (`updatedAt`, rating, favourite,
+  trash bin, archive, shared album, stack size) and the write plan in the browser finds the
+  conflicts, so the logic stays in TypeScript (ADR 0006); ADR 0044's body is amended to
+  `{"assetIds"}` (#187, autonomous).
+- 2026-11-27: The check finds a shared album with `GET /albums?assetId=` per held asset, since
+  Immich ignores `isShared` beside `assetId`; it needs `album.read`, and a key without it fails the
+  check with `scope` rather than writing without knowing the album. `others` counts the album's
+  members besides the key's account, which Immich always lists (#187, autonomous).

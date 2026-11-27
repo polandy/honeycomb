@@ -29,7 +29,11 @@ a reject goes to the Immich trash bin by default and can be restored.
   the one saved with the decision. A changed rating is resolved per asset (*Keep honeycomb’s*, the
   default, or *Keep Immich’s*); an asset in a shared album offers *Trash anyway*, *Archive
   instead* or *Skip*; one already in Immich's trash bin counts as done; the top of a stack goes
-  alone. *Keep Immich’s* saves Immich's rating in honeycomb, Immich's −1 as no stars.
+  alone. *Keep Immich’s* saves Immich's rating in honeycomb, Immich's −1 as no stars. The
+  server's `write/check` answers only Immich's state of each asset it still holds (`updatedAt`,
+  rating, favourite, trash bin, archive, the first shared album with the number of its other
+  members, the size of a stack it tops); the write plan in the browser finds the conflicts, and an
+  asset Immich no longer holds is left out.
 - **The dialog** names the counts of rejects, of rejects taken back, of picks and of ratings, the
   choice for rejects and the conflicts. With more than 100 affected assets it shows numbers and
   the conflicts only, never a thumbnail per asset. *Write N changes* is disabled at 0 or while
@@ -38,7 +42,8 @@ a reject goes to the Immich trash bin by default and can be restored.
   offered again; the others are written. The result says *Written: N* or *Written: N · Failed:
   M*, a failed asset names its state, never Immich's text. After trashing, the toast *Moved N
   pictures to the Immich trash* offers *Undo*, which restores them.
-- **Scopes:** `asset.update` for rating, favourite and archive, `asset.delete` for the trash bin.
+- **Scopes:** `asset.update` for rating, favourite and archive, `asset.delete` for the trash bin,
+  `album.read` for the check's shared albums.
   Without `asset.delete` the trash choice is disabled with *Your API key lacks `asset.delete`*
   and rejects default to *Archive*.
 - **Statistics:** a written decision counts in STATS-001 from this phase on.
@@ -155,3 +160,13 @@ a reject goes to the Immich trash bin by default and can be restored.
 - **Given** an asset written as a pick on a connection with `picksAsFavorites`, now unflagged
 - **When** the user writes
 - **Then** it stops being a favourite in Immich; without `picksAsFavorites` nothing is sent for it
+
+### IMMICH-004.18 – The check reloads the assets
+
+- **Given** asked assets of which one is in Immich's trash bin, one archived, one in a shared album,
+  one the top of a stack and one no longer held by Immich
+- **When** `write/check` runs
+- **Then** it answers each held asset's `updatedAt`, rating, favourite, trash bin and archive state,
+  the shared album's name and number of other members and the stack's size, leaves out the one
+  Immich no longer holds, and a body with no asset, a malformed id or an id twice is `400`
+  `request`

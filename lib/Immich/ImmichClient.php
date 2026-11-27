@@ -75,6 +75,15 @@ final class ImmichClient {
 		return $named;
 	}
 
+	/**
+	 * The albums the asset is in, of whoever owns or shares them.
+	 * @return list<mixed>
+	 */
+	public function albums(Connection $connection, string $assetId): array {
+		$albums = $this->json($connection, 'GET', '/albums', 'album.read', ['query' => ['assetId' => $assetId]]);
+		return array_is_list($albums) ? $albums : throw $this->failure($connection, ImmichError::Version, 'the albums answer does not fit');
+	}
+
 	/** The name of the key's Immich account. */
 	public function userName(Connection $connection): string {
 		/** @var mixed $name */
