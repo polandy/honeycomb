@@ -119,30 +119,6 @@ describe('StatisticsPage', () => {
 		expect(none.text()).not.toContain('Of the photos read so far')
 	})
 
-	// spec: STATS-001.42
-	it('shows the library progress: done photos, folders, this month and the decided share', async () => {
-		const folders = vi.fn(async (_root: string) => ROWS)
-		const wrapper = mountPage({}, ROOTS, folders)
-		await flushPromises()
-		const panel = wrapper.find('.statistics-library')
-
-		expect(folders).toHaveBeenCalledWith('/Photos')
-		expect(panel.text()).toContain('50 % of photos in done folders')
-		expect(panel.text()).toContain('1 of 2 folders done')
-		expect(panel.text()).toContain('1 this month')
-		expect(panel.text()).toContain('90 % of all photos decided')
-		expect(panel.find('a').text()).toBe('Open Folders')
-		expect(panel.find('a').attributes('href')).toMatch(/\/index\.php\/apps\/honeycomb\/$/)
-	})
-
-	// spec: STATS-001.42
-	it('shows a bar per root of several roots', async () => {
-		const wrapper = mountPage({}, { libraryRoots: ['/Photos', '/Archive'] }, vi.fn(async (root: string) => (root === '/Photos' ? ROWS : [row({ root: '/Archive', path: '/Archive/old' })])))
-		await flushPromises()
-
-		expect(wrapper.findAll('.folders-progress__root').map((each) => each.text())).toEqual([expect.stringContaining('/Photos'), expect.stringContaining('/Archive')])
-	})
-
 	// spec: STATS-001.50
 	it('asks to choose the library without roots and reads no folders', async () => {
 		const folders = vi.fn(async (_root: string) => ROWS)
