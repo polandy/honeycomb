@@ -32,6 +32,9 @@ async function finishCull(page: Page) {
 	return card
 }
 
+/** A tile of a value, a label and a note, one line each. */
+const MAX_TILE_HEIGHT_PX = 130
+
 test.describe('on a phone', () => {
 	test.use({ hasTouch: true })
 
@@ -48,6 +51,9 @@ test.describe('on a phone', () => {
 		// The four tiles sit two by two, as in the mockup.
 		const tiles = await card.locator('.delete-stats__item').evaluateAll((items) => items.map((item) => Math.round(item.getBoundingClientRect().top)))
 		expect(new Set(tiles).size).toBe(2)
+		// Nextcloud's padding on the lines would make a tile 165 px tall.
+		const heights = await card.locator('.delete-stats__item').evaluateAll((items) => items.map((item) => item.getBoundingClientRect().height))
+		expect(Math.max(...heights)).toBeLessThanOrEqual(MAX_TILE_HEIGHT_PX)
 		await expectTouchTargets(card, 'Cull finished on a phone')
 		await page.screenshot({ path: testInfo.outputPath('cull-finished-phone.png'), animations: 'disabled' })
 
