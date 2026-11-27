@@ -2,7 +2,12 @@
  * SPDX-FileCopyrightText: 2026 honeycomb contributors
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
-/* The title row is as tall as the toggle's row; it keeps the toggle's gutter while the toggle floats over it. */
+/* The column a page shares with its title row (STATS-001.73). */
+:root {
+	--honeycomb-page-width: 1040px;
+}
+
+/* The title row is as tall as the toggle's row; the title steps aside only where the floating toggle does not fit in the margin. */
 .page-title-row {
 	display: flex;
 	flex-wrap: wrap;
@@ -14,7 +19,11 @@
 	min-height: var(--honeycomb-toolbar-height);
 	margin-inline: auto;
 	padding-inline: calc(4 * var(--default-grid-baseline));
-	padding-inline-start: var(--honeycomb-toggle-gutter);
+	padding-inline-start: max(calc(4 * var(--default-grid-baseline)), calc(var(--honeycomb-toggle-gutter) - max(0px, (100% - var(--page-title-width, 960px)) / 2)));
+}
+
+.page-title-row--page-width {
+	--page-title-width: var(--honeycomb-page-width);
 }
 
 /* From 1024 px the open navigation sits beside the content, and its toggle on the navigation's edge. */
@@ -36,6 +45,11 @@
 	margin: 0;
 	font-size: 16px;
 	overflow-wrap: anywhere;
+}
+
+.page-title-row__actions {
+	display: flex;
+	margin-inline-start: auto;
 }
 
 .page-title-row__meta {

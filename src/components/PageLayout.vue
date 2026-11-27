@@ -29,6 +29,8 @@ export interface PageNavigationSeams {
 const props = defineProps<{
 	page: Page
 	seams: PageNavigationSeams
+	/** Gives the title row the shared page width (`--honeycomb-page-width`) of a page that takes it too. */
+	wide?: boolean
 }>()
 
 const NO_PROGRESS = { decided: 0, total: 0 }
@@ -65,7 +67,12 @@ function openTarget(target: NavigationTarget) {
 		@chooseFolders="openTarget('folder-picker')"
 		@openRecent="(position: ResumePosition) => openCull(locationHash(position.folderSet, position.fileId))"
 		@openSettings="openTarget('settings')">
-		<PageTitleRow>{{ title }}</PageTitleRow>
+		<PageTitleRow :class="{ 'page-title-row--page-width': props.wide }">
+			{{ title }}
+			<template v-if="$slots.actions" #actions>
+				<slot name="actions" />
+			</template>
+		</PageTitleRow>
 		<slot />
 	</AppLayout>
 </template>

@@ -47,6 +47,16 @@ describe('StatisticsPage', () => {
 		expect(wrapper.findAll('.statistics-bars__bar')).toHaveLength(1)
 	})
 
+	// spec: STATS-001.73
+	it('shows Back to the cull in the wide title row, not on the page', async () => {
+		const wrapper = mountPage()
+		await flushPromises()
+		const row = wrapper.find('.page-title-row.page-title-row--page-width')
+
+		expect(row.find('.page-title-row__actions a').text()).toBe('Back to the cull')
+		expect(wrapper.find('.statistics-page').text()).not.toContain('Back to the cull')
+	})
+
 	// spec: STATS-001.21
 	it('shows the four tiles in order and the sidecars created and updated in the line', async () => {
 		const wrapper = mountPage()
