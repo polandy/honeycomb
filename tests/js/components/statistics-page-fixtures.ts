@@ -60,3 +60,5 @@ export const step = (wrapper: ReturnType<typeof mountPage>, label: 'Previous per
 export const periodLabel = (wrapper: ReturnType<typeof mountPage>) => wrapper.find('.statistics-period__label').text()
 /** The text of the hero *Photos decided*. */
 export const hero = (wrapper: ReturnType<typeof mountPage>) => wrapper.find('.statistics-hero').text()
+/** The hero's rows below the bar, each its name and its figure. */
+export const heroRows = (wrapper: ReturnType<typeof mountPage>) => wrapper.findAll('.statistics-hero__row').map((row) => [row.find('dt').text(), row.find('dd').text()])

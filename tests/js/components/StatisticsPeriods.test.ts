@@ -5,7 +5,7 @@ import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { METRIC } from '../../../src/logic/statistics.ts'
 import { formatDay, formatDayRange } from '../../../src/shared/l10n.ts'
-import { chip, COUNTERS, hero, mountPage, periodLabel, step, tile, TODAY } from './statistics-page-fixtures.ts'
+import { chip, COUNTERS, hero, heroRows, mountPage, periodLabel, step, tile, TODAY } from './statistics-page-fixtures.ts'
 
 vi.mock('../../../src/shared/logger.ts', () => ({ logger: { error: vi.fn() } }))
 
@@ -25,7 +25,7 @@ describe('StatisticsPage periods', () => {
 		expect(periodLabel(wrapper)).toBe('October 2026')
 		expect(wrapper.find('.statistics-hero__value').text()).toBe('0')
 		expect(hero(wrapper)).not.toContain('%')
-		expect(hero(wrapper)).toContain('No active day in this period')
+		expect(heroRows(wrapper)).toEqual([['✓ Picked', '0'], ['✕ Rejected', '0'], ['Per active day', '—'], ['Active days', '0']])
 		expect(wrapper.findAll('.statistics-hero__split i')).toHaveLength(0)
 		expect(wrapper.find('.statistics-bars__empty').text()).toBe('Nothing counted in this period.')
 		expect(wrapper.find('.statistics-bars__chart').exists()).toBe(false)
