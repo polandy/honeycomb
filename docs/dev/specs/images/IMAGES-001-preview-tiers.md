@@ -46,7 +46,7 @@ nothing.
 One request at a time renders a file's previews: the tile, the loupe, the warm-up and the
 background job wait for each other, since core rewrites a preview file in place when two
 requests render it at once, and a request reading it meanwhile would serve it empty. The lock is
-core's file locking (ADR 0050): a request that meets it tries again once a second, and after 30 s
+core's file locking (ADR 0050): a request that meets it tries again every 50 ms, and after 30 s
 renders without it and logs a warning. With core's file locking off the renders run unlocked, as
 core's own previews do.
 
