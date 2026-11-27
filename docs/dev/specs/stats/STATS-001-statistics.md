@@ -362,8 +362,9 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 
 - **Given** a user without counters
 - **When** they open the statistics page
-- **Then** it shows *Nothing counted yet. Cull a folder and the numbers show here.* and the folder
-  sets
+- **Then** it shows no period bar but the card *Nothing counted yet* with *Cull a folder and the
+  numbers show here.* and the link *Open Folders*, then the library progress and *Of the pictures
+  read so far*; it names no way to reset the numbers
 
 ### STATS-001.24 – Counted since
 
@@ -375,8 +376,10 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 
 - **Given** the date is 1 December 2026 to 31 January 2027 and a user with counters
 - **When** the user opens the statistics page
-- **Then** the year in review for 2026 is shown above the period tiles; outside those dates it is
-  not
+- **Then** the banner *Your 2026 in honeycomb* is shown above the period bar with the pictures
+  decided and the space freed and the button *Show the year in review*, which shows the tiles and the
+  calendar of the year below it and *Hide the year in review* hides them again; outside those dates
+  there is no banner
 
 ### STATS-001.26 – The year-in-review hint shows once
 
@@ -490,7 +493,7 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 ### STATS-001.48 – A closed or opened year in review is remembered
 
 - **Given** the hint shows
-- **When** the user closes it, or opens the year in review on the statistics page
+- **When** the user closes it, or shows the year in review with the banner's button
 - **Then** the year is stored as the view state's `year_review_hint_closed`; a failed write is logged,
   keeps the hint away for this visit and tells the user nothing
 
@@ -825,6 +828,15 @@ Strings are English, translated per ADR 0007; the mockup lists them.
   *up to* as *Keep RAW* may keep some; without RAW files in done folders the line is left out and
   the link stays
 
+### STATS-001.86 – A skeleton while the numbers load
+
+- **Given** the statistics page was opened and the server has not answered yet
+- **When** the page draws
+- **Then** it shows blocks in the shape of the period bar, hero, chart, four tiles, calendar and
+  clean-up card instead of a spinner, announces *Loading the statistics…* as a status and marks the
+  page busy; the pulse stops with a reduced-motion setting; the answer replaces the blocks and a failed
+  load shows the error card instead
+
 ## History
 
 | Date | Change |
@@ -853,3 +865,4 @@ Strings are English, translated per ADR 0007; the mockup lists them.
 | 2026-11-27 | Redesign R5: *Clean-up* with the space freed by part and *Work done* with the sidecars, ratings, colour labels, tags, series, folders and moves (.78–.80) |
 | 2026-11-27 | Redesign R5b: *Photos added* from the library's shot days in the chart, the detail panel and the intake line (.81–.83; ADR 0062) |
 | 2026-11-27 | Redesign R6: the library progress as a ring with the decided share, folders and undecided photos beside it, a row per root, the forecast at the net pace and the RAW space in done folders (.42 reworded; .84, .85) |
+| 2026-11-27 | Redesign R7: a skeleton while loading (.86), the card *Nothing counted yet* with *Open Folders* (.23 reworded), the December banner that shows the year in review on demand (.25, .48 reworded) |

@@ -79,7 +79,13 @@ describe('StatisticsPage', () => {
 		const wrapper = mountPage({ counters: [], firstDay: null })
 		await flushPromises()
 
-		expect(wrapper.text()).toContain('Nothing counted yet. Cull a folder and the numbers show here.')
+		const card = wrapper.find('.statistics-empty')
+		expect(card.find('h3').text()).toBe('Nothing counted yet')
+		expect(card.text()).toContain('Cull a folder and the numbers show here.')
+		expect(card.find('a').text()).toBe('Open Folders')
+		expect(card.find('a').attributes('href')).toMatch(/\/apps\/honeycomb\/$/)
+		expect(wrapper.find('.statistics-period').exists()).toBe(false)
+		expect(wrapper.text()).not.toMatch(/reset/i)
 		expect(wrapper.find('.delete-stats').exists()).toBe(false)
 		expect(wrapper.find('.statistics-hero').exists()).toBe(false)
 		expect(wrapper.find('.statistics-library__ring').attributes('aria-label')).toMatch(/^50\s?% of the photos are in folders marked done$/)
@@ -167,12 +173,27 @@ describe('StatisticsPage', () => {
 		expect(wrapper.find('.statistics-page').attributes('data-settled')).toBe('true')
 	})
 
+	// spec: STATS-001.86
+	it('shows a skeleton, announced as a status, until the numbers answer', async () => {
+		const wrapper = mountPage()
+
+		expect(wrapper.find('.statistics-skeleton').attributes('aria-busy')).toBe('true')
+		expect(wrapper.find('.statistics-skeleton [role="status"]').text()).toBe('Loading the statistics…')
+		expect(wrapper.find('.statistics-hero').exists()).toBe(false)
+
+		await flushPromises()
+
+		expect(wrapper.find('.statistics-skeleton').exists()).toBe(false)
+		expect(wrapper.find('.statistics-hero').exists()).toBe(true)
+	})
+
 	it('says so and logs when the numbers cannot be loaded', async () => {
 		const error = new Error('down')
 		const wrapper = mount(StatisticsPage, { props: { seams: { loadStatistics: async () => Promise.reject(error), loadLibraryFolders: async () => [], loadSettings: async () => ({}), saveViewState: async () => undefined, firstWeekDay: () => MONDAY, location: fakeLocation() }, navigation: fakePageNavigation().seams } })
 		await flushPromises()
 
 		expect(wrapper.text()).toContain('The statistics could not be loaded.')
+		expect(wrapper.find('.statistics-skeleton').exists()).toBe(false)
 		expect(logger.error).toHaveBeenCalledWith('Could not load the statistics', { error })
 		expect(wrapper.find('.statistics-page').attributes('data-settled')).toBe('true')
 	})
@@ -187,6 +208,10 @@ describe('StatisticsPage', () => {
 			{ day: '2026-01-02', metric: METRIC.sidecarsUpdated, value: 6 },
 			{ day: '2026-01-02', metric: METRIC.sidecarsForeign, value: 2 },
 		]
+		const toggle = (wrapper: ReturnType<typeof mountPage>) => wrapper.find('.year-review__toggle')
+		const showReview = async (wrapper: ReturnType<typeof mountPage>) => {
+			await toggle(wrapper).trigger('click')
+		}
 		const reviewTile = (wrapper: ReturnType<typeof mountPage>, label: string) => wrapper.findAll('.year-review__tile').find((each) => each.text().includes(label))!.text()
 
 		// spec: STATS-001.25
@@ -212,6 +237,7 @@ describe('StatisticsPage', () => {
 		it('shows the headline and the tiles of the year', async () => {
 			const wrapper = mountPage({ counters: YEAR, today: DECEMBER, firstDay: '2026-01-01' })
 			await flushPromises()
+			await showReview(wrapper)
 
 			expect(wrapper.find('.year-review').text()).toContain('Your 2026 in honeycomb')
 			expect(wrapper.find('.year-review__headline').text()).toContain('120')
@@ -226,6 +252,7 @@ describe('StatisticsPage', () => {
 		it('says nothing from digiKam or darktable while no sidecar was', async () => {
 			const wrapper = mountPage({ counters: [{ day: '2026-01-02', metric: METRIC.decided, value: 3 }], today: DECEMBER, firstDay: '2026-01-02' })
 			await flushPromises()
+			await showReview(wrapper)
 
 			expect(wrapper.find('.year-review').text()).not.toContain('digiKam')
 		})
@@ -234,6 +261,7 @@ describe('StatisticsPage', () => {
 		it('names the busiest day and draws one square per day with the shade of its share', async () => {
 			const wrapper = mountPage({ counters: YEAR, today: DECEMBER, firstDay: '2026-01-01' })
 			await flushPromises()
+			await showReview(wrapper)
 
 			expect(reviewTile(wrapper, 'Busiest day')).toContain(formatDay('2026-01-02'))
 			expect(reviewTile(wrapper, 'Busiest day')).toContain('90')
@@ -248,17 +276,49 @@ describe('StatisticsPage', () => {
 			const inside = mountPage({ counters: YEAR, today: DECEMBER, firstDay: '2026-01-01' })
 			const before = mountPage({ counters: YEAR, today: DECEMBER, firstDay: '2025-06-01' })
 			await flushPromises()
+			await showReview(inside)
+			await showReview(before)
 
 			expect(inside.find('.year-review').text()).toContain(`Counted since ${formatDay('2026-01-01')}.`)
 			expect(before.find('.year-review').text()).not.toContain('Counted since')
 		})
 
-		// spec: STATS-001.48
-		it('stores the year as closed for the hint once it shows', async () => {
+		// spec: STATS-001.25
+		it('shows the banner with the year decided and freed and the year hidden until the button opens it', async () => {
 			const wrapper = mountPage({ counters: YEAR, today: DECEMBER, firstDay: '2026-01-01' })
 			await flushPromises()
 
-			expect((wrapper.vm.$.props.seams as { saveViewState: unknown }).saveViewState).toHaveBeenCalledExactlyOnceWith({ year_review_hint_closed: 2026 })
+			expect(wrapper.find('.year-review__headline').text()).toContain('120 photos decided')
+			expect(toggle(wrapper).text()).toBe('Show the year in review')
+			expect(toggle(wrapper).attributes('aria-expanded')).toBe('false')
+			expect(wrapper.find('.year-review__tile').exists()).toBe(false)
+			expect(wrapper.find('.year-review__day').exists()).toBe(false)
+
+			await showReview(wrapper)
+
+			expect(toggle(wrapper).text()).toBe('Hide the year in review')
+			expect(toggle(wrapper).attributes('aria-expanded')).toBe('true')
+			expect(wrapper.findAll('.year-review__tile').length).toBeGreaterThan(0)
+
+			await showReview(wrapper)
+
+			expect(wrapper.find('.year-review__tile').exists()).toBe(false)
+		})
+
+		// spec: STATS-001.48
+		it('stores the year as closed for the hint once the year in review is shown, not when it is hidden', async () => {
+			const wrapper = mountPage({ counters: YEAR, today: DECEMBER, firstDay: '2026-01-01' })
+			await flushPromises()
+			const save = (wrapper.vm.$.props.seams as { saveViewState: unknown }).saveViewState
+
+			expect(save).not.toHaveBeenCalled()
+
+			await showReview(wrapper)
+			await showReview(wrapper)
+			await showReview(wrapper)
+
+			expect(save).toHaveBeenCalledTimes(2)
+			expect(save).toHaveBeenNthCalledWith(1, { year_review_hint_closed: 2026 })
 		})
 
 		// spec: STATS-001.48
