@@ -2299,3 +2299,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-27: The written state takes the decision saved when the write runs; a save racing the
   write may be stored as written though Immich got the earlier one; accepted, since the browser
   saves its decisions before it plans the write (#187, autonomous).
+- 2026-11-27: The write plan's candidates come from `GET write/candidates`, every decision of the
+  user's on the connection in pages of 500 by asset id, and the browser picks the pending ones
+  (IMMICH-004.15), so the pending rule is not written a second time in SQL (ADR 0006); the cursor
+  is the last asset id, unsigned, as it can only page the user's own rows (#187, autonomous).

@@ -130,6 +130,16 @@ final class ImmichDecisionMapper implements ImmichDecisionStore {
 	}
 
 	#[\Override]
+	public function candidates(string $userId, string $connectionId, ?string $afterAssetId, int $limit): array {
+		$query = $this->owned($userId, $connectionId);
+		if ($afterAssetId !== null) {
+			$query->andWhere($query->expr()->gt('d.asset_id', $query->createNamedParameter($afterAssetId)));
+		}
+		$query->orderBy('d.asset_id')->setMaxResults($limit);
+		return array_map(self::fromRow(...), $this->rows($query));
+	}
+
+	#[\Override]
 	public function page(string $userId, string $connectionId, ListingFilters $filters, ?array $after, int $limit): array {
 		$query = $this->owned($userId, $connectionId);
 		ImmichListingQuery::whereFacets($query, $filters);

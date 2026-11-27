@@ -55,6 +55,13 @@ final class FakeImmichDecisionStore implements ImmichDecisionStore {
 	}
 
 	#[\Override]
+	public function candidates(string $userId, string $connectionId, ?string $afterAssetId, int $limit): array {
+		$rows = array_filter($this->of($userId, $connectionId), static fn (AssetDecision $row): bool => $afterAssetId === null || $row->assetId > $afterAssetId);
+		usort($rows, static fn (AssetDecision $a, AssetDecision $b): int => $a->assetId <=> $b->assetId);
+		return array_slice($rows, 0, $limit);
+	}
+
+	#[\Override]
 	public function page(string $userId, string $connectionId, ListingFilters $filters, ?array $after, int $limit): array {
 		$rows = array_filter($this->facets($userId, $connectionId, $filters), static fn (AssetDecision $row): bool => $filters->admits($row->flag, $row->rating, $row->colourLabel)
 			&& ($after === null || [$row->takenAt, $row->assetId] < [$after['takenAt'], $after['assetId']]));

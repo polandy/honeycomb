@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, immichAssets, immichCounts, immichFailureState, immichImageUrl, immichStatus, listImmichConnections, saveImmichDecisions, saveImmichPosition } from '../../src/api/index.ts'
+import { ApiResponseError, immichAssets, immichCounts, immichFailureState, immichImageUrl, immichStatus, immichWriteCandidates, listImmichConnections, saveImmichDecisions, saveImmichPosition } from '../../src/api/index.ts'
 import { immichEntry } from './logic/immich-fixtures.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }))
@@ -114,6 +114,36 @@ describe('saveImmichDecisions', () => {
 	it('refuses an answer without the saved ids', async () => {
 		vi.mocked(axios.put).mockResolvedValue({ data: {} })
 		await expect(saveImmichDecisions('andy-phone', [])).rejects.toThrow(ApiResponseError)
+	})
+})
+
+describe('immichWriteCandidates', () => {
+	const candidate = (assetId: string) => ({ assetId, decision: { rating: 2, colourLabel: null, flag: 'rejected', keepRaw: false }, written: { flag: 'rejected', rating: 1, immichRating: null }, decidedUpdatedAt: 'u' })
+
+	// spec: IMMICH-004.22
+	it('loads every page of the candidates, handing each page\'s cursor back', async () => {
+		vi.mocked(axios.get).mockReset()
+			.mockResolvedValueOnce({ data: { candidates: [candidate('a1'), candidate('a2')], nextCursor: 'a2' } })
+			.mockResolvedValueOnce({ data: { candidates: [candidate('a3')], nextCursor: null } })
+
+		await expect(immichWriteCandidates('andy-phone')).resolves.toEqual([candidate('a1'), candidate('a2'), candidate('a3')])
+		expect(vi.mocked(axios.get).mock.calls).toEqual([
+			[`${BASE}/write/candidates`, { params: { cursor: '' } }],
+			[`${BASE}/write/candidates`, { params: { cursor: 'a2' } }],
+		])
+	})
+
+	it('answers no candidates for a connection without decisions', async () => {
+		vi.mocked(axios.get).mockReset().mockResolvedValueOnce({ data: { candidates: [], nextCursor: null } })
+
+		await expect(immichWriteCandidates('andy-phone')).resolves.toEqual([])
+	})
+
+	it('refuses a page without candidates or a cursor', async () => {
+		for (const data of [{ nextCursor: null }, { candidates: [], nextCursor: 3 }, { candidates: {}, nextCursor: null }]) {
+			vi.mocked(axios.get).mockReset().mockResolvedValueOnce({ data })
+			await expect(immichWriteCandidates('andy-phone')).rejects.toThrow(ApiResponseError)
+		}
 	})
 })
 

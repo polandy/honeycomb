@@ -184,6 +184,21 @@ final class ImmichDecisionMapperTest extends DbTestCase {
 		$this->assertSame([[self::id(1), null, null, null]], $this->rows('honeycomb_immich_assets', ['asset_id', 'written_flag', 'written_rating', 'written_immich_rating']));
 	}
 
+	// spec: IMMICH-004.22
+	public function testTheCandidatesAreTheUsersRowsInAssetIdOrderAfterTheCursor(): void {
+		$this->decisions->save('alice', 'alice-phone', [self::decision(3, Flag::Rejected), self::decision(1), self::decision(4, Flag::Unflagged, 2), self::decision(2)], 100);
+		$this->decisions->save('bob', 'alice-phone', [self::decision(5)], 100);
+		$this->decisions->save('alice', 'alice-desk', [self::decision(6)], 100);
+		$this->decisions->markWritten('alice', 'alice-phone', [self::id(3) => new WrittenState(Flag::Rejected, 0, null)]);
+
+		$this->assertEquals([self::decision(1), self::decision(2)], $this->decisions->candidates('alice', 'alice-phone', null, 2));
+		$this->assertEquals([
+			FakeImmichDecisionStore::withWritten(self::decision(3, Flag::Rejected), new WrittenState(Flag::Rejected, 0, null)),
+			self::decision(4, Flag::Unflagged, 2),
+		], $this->decisions->candidates('alice', 'alice-phone', self::id(2), 2));
+		$this->assertSame([], $this->decisions->candidates('alice', 'alice-phone', self::id(4), 2));
+	}
+
 	public function testKeepingNoConnectionLeavesTheFileRows(): void {
 		$this->insertFileRow();
 		$this->decisions->save('alice', 'alice-phone', [self::decision(1)], 100);

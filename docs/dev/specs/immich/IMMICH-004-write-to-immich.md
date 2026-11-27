@@ -25,6 +25,9 @@ a reject goes to the Immich trash bin by default and can be restored.
   else; a pick taken back stops being a favourite on a connection with `picksAsFavorites`.
 - **Blocks of 100:** `write/check` and `write` take at most 100 assets per request; the browser
   sends the blocks in sequence and shows the progress per block.
+- **The candidates:** the write plans over every decision the user saved on the connection, which
+  `write/candidates` answers in pages of 500 with what was last written for each, from honeycomb's
+  tables alone.
 - **The check:** before writing, every affected asset is reloaded and its `updatedAt` compared with
   the one saved with the decision. A changed rating is resolved per asset (*Keep honeycomb’s*, the
   default, or *Keep Immich’s*); an asset in a shared album offers *Trash anyway*, *Archive
@@ -200,3 +203,12 @@ a reject goes to the Immich trash bin by default and can be restored.
 - **When** the decisions are read again, also after a later save of the written asset's decision
 - **Then** the written asset keeps the flag and rating it was written with and Immich's rating
   afterwards, and the failed one has no written state
+
+### IMMICH-004.22 – The write candidates
+
+- **Given** decisions of the user's on a connection, one written before, one of another user, and
+  more than one page of them
+- **When** the browser loads the write candidates
+- **Then** `write/candidates` answers each of the user's own decisions with what was last written
+  for it and Immich's `updatedAt` when it was decided, ordered by asset id in pages of 500 with
+  `nextCursor`, without asking Immich, and a malformed cursor is `400` `request`
