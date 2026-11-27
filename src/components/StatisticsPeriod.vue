@@ -108,8 +108,7 @@ function step(by: Step) {
 	background: var(--color-background-dark);
 }
 
-.statistics-period__segment,
-.statistics-period__stepper {
+.statistics-period__segment {
 	width: 100%;
 }
 
@@ -122,6 +121,7 @@ function step(by: Step) {
 	display: flex;
 	align-items: center;
 	gap: calc(2 * var(--default-grid-baseline));
+	width: 100%;
 }
 
 .statistics-period__label {
