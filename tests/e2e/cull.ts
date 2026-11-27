@@ -30,10 +30,14 @@ export async function openFolderPicker(page: Page): Promise<Locator> {
 	return (await pickFromNavigation(page)).picker
 }
 
+/** Waits, up to the test's timeout, until the cull page's start is decided (APP-001.27). */
+export async function appSettled(page: Page): Promise<void> {
+	await page.locator('#content-vue[data-settled]').waitFor()
+}
+
 /** The folder picker, and whether the navigation had to be opened to reach it. */
 async function pickFromNavigation(page: Page): Promise<{ picker: Locator, opened: boolean }> {
-	// The start screen shows once the settings are read, after the navigation took its start state.
-	await expect(page.locator('.folders-home')).toBeVisible()
+	await appSettled(page)
 	const toggle = page.locator('.app-navigation-toggle')
 	const opened = await toggle.getAttribute('aria-expanded') !== 'true'
 	if (opened) {

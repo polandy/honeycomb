@@ -27,4 +27,14 @@ describe('AppLayout', () => {
 		navigation.vm.$emit('openSettings')
 		expect(openSettings).toHaveBeenCalledOnce()
 	})
+	// spec: APP-001.27
+	it('marks its root settled only when told so', async () => {
+		provideSkipActions()
+		const wrapper = mount(AppLayout, { props: { items: [], storage: fakeStorage(), settled: false } })
+		expect(wrapper.attributes('data-settled')).toBeUndefined()
+
+		await wrapper.setProps({ settled: true })
+
+		expect(wrapper.attributes('data-settled')).toBe('true')
+	})
 })

@@ -2242,3 +2242,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   (12 px on each line), not from the 44 px control size; `DeleteStats` clears it for every tiles
   variant, and only the statistics tiles (`fit`) take the card shape (label first, 16 px padding),
   so *Cull finished* keeps its value-first tiles (STATS-001.77, #187, autonomous).
+- 2026-11-27: The cull page is settled once the start decided between *Folders* and Immich
+  (`useImmichOnly`'s `started`: the settings and, where they ask for it, the Immich offer
+  answered), marked as `data-settled` on the `NcContent` root through an `AppLayout` prop, since
+  the layout drops attributes; `pickFromNavigation` waits for it with `locator.waitFor` (APP-001.27)
+  (autonomous).
