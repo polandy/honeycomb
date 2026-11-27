@@ -16,12 +16,14 @@ use OCA\Honeycomb\Service\Files\FolderNotReadableException;
 use OCA\Honeycomb\Service\Files\UserFolderResolver;
 use OCA\Honeycomb\Service\Folder\LibraryFolderService;
 use OCA\Honeycomb\Service\Listing\CaptureTimes;
+use OCA\Honeycomb\Service\Stats\StatsDay;
 use OCA\Honeycomb\Tests\Service\FakeFiles;
 use OCA\Honeycomb\Tests\Service\FakeFolderDoneStore;
 use OCA\Honeycomb\Tests\Service\FakeFolderSummaryStore;
 use OCA\Honeycomb\Tests\Service\FakeLibraryFiles;
 use OCA\Honeycomb\Tests\Service\ReasonOf;
 use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\Config\IUserConfig;
 use OCP\Constants;
 use OCP\FilesMetadata\IFilesMetadataManager;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -37,6 +39,8 @@ final class LibraryFolderServiceTest extends TestCase {
 	private FakeFolderDoneStore $done;
 	/** @var array<int, int> capture times by file id */
 	private array $captureTimes = [];
+	/** The user's Nextcloud time zone, empty for none. */
+	private string $zone = '';
 
 	#[\Override]
 	protected function setUp(): void {
@@ -54,8 +58,10 @@ final class LibraryFolderServiceTest extends TestCase {
 		));
 		$time = $this->createStub(ITimeFactory::class);
 		$time->method('getTime')->willReturn(self::NOW);
+		$config = $this->createStub(IUserConfig::class);
+		$config->method('getValueString')->willReturn($this->zone);
 		$root = $this->rootWith($nodes + ['/Photos' => $this->folder('/Photos', fileId: 10)]);
-		return new LibraryFolderService(new UserFolderResolver($root), $this->files, $this->summaries, $this->done, new CaptureTimes($metadata), $time);
+		return new LibraryFolderService(new UserFolderResolver($root), $this->files, $this->summaries, $this->done, new CaptureTimes($metadata), $time, new StatsDay($config, $time));
 	}
 
 	private function libraryFolder(int $fileId, string $path, string $etag = 'e', int $permissions = Constants::PERMISSION_ALL): LibraryFolder {
@@ -79,7 +85,7 @@ final class LibraryFolderServiceTest extends TestCase {
 		$this->service()->scan($this->user(), 'Photos');
 
 		$this->assertEquals([
-			10 => new FolderSummary(10, 'e-10', 2, 32, 25, 1, 1_000, 1_002, 50, self::NOW, [['fileId' => 1, 'mtime' => 50], ['fileId' => 3, 'mtime' => 30]]),
+			10 => new FolderSummary(10, 'e-10', 2, 32, 25, 1, 1_000, 1_002, 50, self::NOW, [['fileId' => 1, 'mtime' => 50], ['fileId' => 3, 'mtime' => 30]], ['1970-01-01' => 2]),
 			11 => new FolderSummary(11, 'e-11', 0, 0, 0, 0, null, null, null, self::NOW),
 		], $this->summaries->rows);
 	}
@@ -98,6 +104,22 @@ final class LibraryFolderServiceTest extends TestCase {
 
 		$this->assertSame([[['fileId' => 1, 'mtime' => 50]]], [$list['folders'][0]['previews']]);
 		$this->assertSame([], $list['folders'][1]['previews']);
+	}
+
+	// spec: FOLDERS-005.22
+	public function testARowCarriesTheShotDaysItsScanStoredOnTheUsersDay(): void {
+		$this->files->folders = [$this->libraryFolder(10, '')];
+		$this->files->photos = [
+			['fileId' => 1, 'parent' => 10, 'name' => 'a.jpg', 'size' => 1, 'mtime' => 50],
+			['fileId' => 2, 'parent' => 10, 'name' => 'b.jpg', 'size' => 1, 'mtime' => 60],
+		];
+		$this->captureTimes = [1 => 1_764_025_200, 2 => 1_764_111_600];
+		$this->zone = 'Europe/Zurich';
+		$this->service()->scan($this->user(), '/Photos');
+
+		$list = $this->service()->list($this->user(), '/Photos', '', '');
+
+		$this->assertSame([['day' => '2025-11-25', 'photos' => 1], ['day' => '2025-11-26', 'photos' => 1]], $list['folders'][0]['shotDays']);
 	}
 
 	// spec: FOLDERS-005.5
@@ -157,8 +179,8 @@ final class LibraryFolderServiceTest extends TestCase {
 
 		$this->assertNull($list['scanning']);
 		$this->assertSame([
-			['fileId' => 10, 'root' => '/Photos', 'path' => '/Photos', 'photos' => 4, 'bytes' => 100, 'rawBytes' => 60, 'bursts' => 1, 'oldest' => 1_600_000_000, 'newest' => 1_600_000_100, 'lastActivity' => 1_700_000_000, 'previews' => [], 'picked' => 0, 'rejected' => 0, 'undecided' => 4, 'permissions' => Constants::PERMISSION_ALL, 'done' => null],
-			['fileId' => 11, 'root' => '/Photos', 'path' => '/Photos/2024', 'photos' => 4, 'bytes' => 100, 'rawBytes' => 60, 'bursts' => 1, 'oldest' => 1_600_000_000, 'newest' => 1_600_000_100, 'lastActivity' => 1_700_000_000, 'previews' => [], 'picked' => 0, 'rejected' => 0, 'undecided' => 4, 'permissions' => Constants::PERMISSION_READ, 'done' => ['by' => 'bob', 'at' => 1_750_000_000, 'photos' => 3]],
+			['fileId' => 10, 'root' => '/Photos', 'path' => '/Photos', 'photos' => 4, 'bytes' => 100, 'rawBytes' => 60, 'bursts' => 1, 'oldest' => 1_600_000_000, 'newest' => 1_600_000_100, 'lastActivity' => 1_700_000_000, 'previews' => [], 'shotDays' => [], 'picked' => 0, 'rejected' => 0, 'undecided' => 4, 'permissions' => Constants::PERMISSION_ALL, 'done' => null],
+			['fileId' => 11, 'root' => '/Photos', 'path' => '/Photos/2024', 'photos' => 4, 'bytes' => 100, 'rawBytes' => 60, 'bursts' => 1, 'oldest' => 1_600_000_000, 'newest' => 1_600_000_100, 'lastActivity' => 1_700_000_000, 'previews' => [], 'shotDays' => [], 'picked' => 0, 'rejected' => 0, 'undecided' => 4, 'permissions' => Constants::PERMISSION_READ, 'done' => ['by' => 'bob', 'at' => 1_750_000_000, 'photos' => 3]],
 		], $list['folders']);
 	}
 

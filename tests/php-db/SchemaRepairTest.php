@@ -24,6 +24,7 @@ use PHPUnit\Framework\TestCase;
 final class SchemaRepairTest extends TestCase {
 	private const string APP = 'honeycomb';
 	private const string BASELINE = '000200Date20261123200000';
+	private const string SHOT_DAYS = '000200Date20261127120000';
 	private const string FIRST_BASELINE = __DIR__ . '/../fixtures/schema/honeycomb-first-baseline.json';
 	private const string FIXTURE = __DIR__ . '/../fixtures/schema/honeycomb.json';
 	/** `string(64) null default x autoincrement`: the type, its length, the null rule and the rest. */
@@ -73,8 +74,20 @@ final class SchemaRepairTest extends TestCase {
 		$this->db->executeStatement("INSERT INTO *PREFIX*honeycomb_folder_summary (file_id, etag, photos, bytes, raw_bytes, bursts, scanned_at) VALUES (7, 'e7', 3, 300, 0, 0, 100), (8, 'e8', 0, 0, 0, 0, 100)");
 
 		$this->migrate();
-		$this->db->executeStatement("INSERT INTO *PREFIX*honeycomb_folder_summary (file_id, etag, photos, bytes, raw_bytes, bursts, scanned_at, previews) VALUES (9, 'e9', 1, 100, 0, 0, 100, '90:5')");
+		$this->db->executeStatement("INSERT INTO *PREFIX*honeycomb_folder_summary (file_id, etag, photos, bytes, raw_bytes, bursts, scanned_at, previews, shot_days) VALUES (9, 'e9', 1, 100, 0, 0, 100, '90:5', '2026-11-24:1')");
 		$this->db->executeStatement('DELETE FROM *PREFIX*migrations WHERE app = ? AND version <> ?', [self::APP, self::BASELINE]);
+		$this->migrate();
+
+		$this->assertSame([8, 9], array_map(intval(...), $this->db->executeQuery('SELECT file_id FROM *PREFIX*honeycomb_folder_summary ORDER BY file_id')->fetchFirstColumn()));
+	}
+
+	// spec: FOLDERS-005.23
+	public function testASummaryWithPhotosFromBeforeTheShotDaysIsDroppedSoTheNextScanWritesIt(): void {
+		$this->installFirstBaseline();
+		$this->migrate();
+		$this->db->executeStatement("INSERT INTO *PREFIX*honeycomb_folder_summary (file_id, etag, photos, bytes, raw_bytes, bursts, scanned_at, previews, shot_days) VALUES (7, 'e7', 2, 200, 0, 0, 100, '70:5', NULL), (8, 'e8', 0, 0, 0, 0, 100, NULL, NULL), (9, 'e9', 1, 100, 0, 0, 100, '90:5', '2026-11-24:1')");
+		$this->db->executeStatement('DELETE FROM *PREFIX*migrations WHERE app = ? AND version = ?', [self::APP, self::SHOT_DAYS]);
+
 		$this->migrate();
 
 		$this->assertSame([8, 9], array_map(intval(...), $this->db->executeQuery('SELECT file_id FROM *PREFIX*honeycomb_folder_summary ORDER BY file_id')->fetchFirstColumn()));

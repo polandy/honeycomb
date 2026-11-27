@@ -36,6 +36,6 @@ final class FakeFolderSummaryStore implements FolderSummaryStore {
 
 	/** The row moved to `$fileId`. */
 	private static function movedTo(FolderSummary $row, int $fileId): FolderSummary {
-		return new FolderSummary($fileId, $row->etag, $row->photos, $row->bytes, $row->rawBytes, $row->bursts, $row->oldest, $row->newest, $row->lastActivity, $row->scannedAt, $row->previews);
+		return new FolderSummary($fileId, $row->etag, $row->photos, $row->bytes, $row->rawBytes, $row->bursts, $row->oldest, $row->newest, $row->lastActivity, $row->scannedAt, $row->previews, $row->shotDays);
 	}
 }

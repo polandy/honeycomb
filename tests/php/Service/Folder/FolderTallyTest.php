@@ -56,6 +56,32 @@ final class FolderTallyTest extends TestCase {
 		$this->assertStringContainsString("\nexport const BURST_GAP_SECONDS = SERIES_GAP_SECONDS\n", self::logicModule('folder-score.ts'));
 	}
 
+	// spec: FOLDERS-005.22
+	public function testCountsEachPictureOnItsShotDayInTheUsersZone(): void {
+		$files = [
+			self::photo('a.jpg', mtime: self::at('2026-11-26T09:00:00Z'), captureTime: self::at('2026-11-24T10:00:00Z')),
+			self::photo('a.nef', mtime: self::at('2026-11-21T09:00:00Z')),
+			self::photo('b.jpg', mtime: self::at('2026-11-26T09:00:00Z'), captureTime: self::at('2026-11-23T23:30:00Z')),
+			self::photo('c.jpg', mtime: self::at('2026-11-20T12:00:00Z')),
+		];
+
+		$tally = FolderTally::of($files, PairingExtensions::defaults(), new \DateTimeZone('Europe/Zurich'));
+
+		$this->assertSame(['2026-11-20' => 1, '2026-11-24' => 2], $tally['shotDays']);
+	}
+
+	// spec: FOLDERS-005.22
+	public function testAPictureWithoutACaptureTimeCountsOnItsEarliestFileTimeAndNoPhotoOnNoDay(): void {
+		$files = [self::photo('a.jpg', mtime: self::at('2026-11-22T12:00:00Z')), self::photo('a.cr3', mtime: self::at('2026-11-21T12:00:00Z'))];
+
+		$this->assertSame(['2026-11-21' => 1], FolderTally::of($files, PairingExtensions::defaults())['shotDays']);
+		$this->assertSame([], FolderTally::of([], PairingExtensions::defaults())['shotDays']);
+	}
+
+	private static function at(string $time): int {
+		return (new \DateTimeImmutable($time))->getTimestamp();
+	}
+
 	/** @psalm-suppress ForbiddenCode Reads the app's own TypeScript, not a user file. */
 	private static function logicModule(string $name): string {
 		return (string)file_get_contents(__DIR__ . '/../../../../src/logic/' . $name);
