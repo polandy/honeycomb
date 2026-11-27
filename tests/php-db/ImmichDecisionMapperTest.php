@@ -13,6 +13,7 @@ use OCA\Honeycomb\Domain\Flag;
 use OCA\Honeycomb\Immich\AssetDecision;
 use OCA\Honeycomb\Immich\AssetKind;
 use OCA\Honeycomb\Immich\ListingFilters;
+use OCA\Honeycomb\Immich\WrittenState;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 
 /** The Immich decisions in the decision table and their facets (ADR 0043, 0054). */
@@ -160,6 +161,26 @@ final class ImmichDecisionMapperTest extends DbTestCase {
 		$this->assertSame([
 			['alice-phone', self::id(1), 'alice', '1000', 'Pixel 9 Pro', 'photo', '2026-11-19T08:00:00.000Z'],
 		], $this->rows('honeycomb_immich_assets', ['connection_id', 'asset_id', 'user_id', 'taken_at', 'camera_model', 'kind', 'asset_updated_at']));
+	}
+
+	// spec: IMMICH-004.21
+	public function testStoresWhatWasWrittenAndKeepsItAcrossALaterSave(): void {
+		$this->decisions->save('alice', 'alice-phone', [self::decision(1, Flag::Rejected, 3), self::decision(2)], 100);
+		$this->decisions->markWritten('alice', 'alice-phone', [self::id(1) => new WrittenState(Flag::Rejected, 3, -1)]);
+		$this->decisions->save('alice', 'alice-phone', [self::decision(1, Flag::Unflagged)], 200);
+
+		$found = $this->decisions->find('alice', 'alice-phone', [self::id(1), self::id(2)]);
+		$this->assertEquals(self::decision(1, Flag::Unflagged)->withWritten(new WrittenState(Flag::Rejected, 3, -1)), $found[self::id(1)]);
+		$this->assertNull($found[self::id(2)]->written);
+	}
+
+	// spec: IMMICH-004.21
+	public function testWritesNoStateIntoAnotherUsersRowOrAnAssetWithoutOne(): void {
+		$this->decisions->save('bob', 'alice-phone', [self::decision(1)], 100);
+		$this->decisions->markWritten('alice', 'alice-phone', [self::id(1) => new WrittenState(Flag::Picked, 0, null), self::id(2) => new WrittenState(Flag::Picked, 0, null)]);
+
+		$this->assertNull($this->decisions->find('bob', 'alice-phone', [self::id(1)])[self::id(1)]->written);
+		$this->assertSame([[self::id(1), null, null, null]], $this->rows('honeycomb_immich_assets', ['asset_id', 'written_flag', 'written_rating', 'written_immich_rating']));
 	}
 
 	public function testKeepingNoConnectionLeavesTheFileRows(): void {

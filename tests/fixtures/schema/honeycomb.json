@@ -79,7 +79,10 @@
             "id": "bigint notnull autoincrement",
             "kind": "string(16) notnull",
             "taken_at": "bigint notnull",
-            "user_id": "string(64) notnull"
+            "user_id": "string(64) notnull",
+            "written_flag": "string(16) null",
+            "written_immich_rating": "smallint null",
+            "written_rating": "smallint null"
         },
         "indexes": {
             "honeycomb_immich_assets_connection_id_asset_id": "unique(connection_id, asset_id)",

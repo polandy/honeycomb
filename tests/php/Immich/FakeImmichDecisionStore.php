@@ -26,7 +26,19 @@ final class FakeImmichDecisionStore implements ImmichDecisionStore {
 	#[\Override]
 	public function save(string $userId, string $connectionId, array $decisions, int $updatedAt): void {
 		foreach ($decisions as $decision) {
-			$this->rows["$connectionId/{$decision->assetId}"] = ['user' => $userId, 'connection' => $connectionId, 'decision' => $decision, 'updatedAt' => $updatedAt];
+			$key = "$connectionId/{$decision->assetId}";
+			$written = $this->rows[$key]['decision']->written ?? null;
+			$this->rows[$key] = ['user' => $userId, 'connection' => $connectionId, 'decision' => $decision->withWritten($written), 'updatedAt' => $updatedAt];
+		}
+	}
+
+	#[\Override]
+	public function markWritten(string $userId, string $connectionId, array $written): void {
+		foreach ($written as $assetId => $state) {
+			$key = "$connectionId/$assetId";
+			if (($this->rows[$key]['user'] ?? null) === $userId) {
+				$this->rows[$key]['decision'] = $this->rows[$key]['decision']->withWritten($state);
+			}
 		}
 	}
 
