@@ -17,5 +17,8 @@ const props = defineProps<{
 		<span v-if="$slots.meta" class="page-title-row__meta">
 			<slot name="meta" />
 		</span>
+		<div v-if="$slots.actions" class="page-title-row__actions">
+			<slot name="actions" />
+		</div>
 	</div>
 </template>

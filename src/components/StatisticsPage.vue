@@ -181,14 +181,16 @@ onMounted(async () => {
 </script>
 
 <template>
-	<PageLayout page="statistics" :seams="props.navigation">
-		<div class="statistics-page" :data-settled="settled || undefined">
+	<PageLayout page="statistics" :seams="props.navigation" wide>
+		<template #actions>
 			<NcButton variant="tertiary" :href="cullUrl">
 				<template #icon>
 					<AppIcon name="back" />
 				</template>
 				{{ t('honeycomb', 'Back to the cull') }}
 			</NcButton>
+		</template>
+		<div class="statistics-page" :data-settled="settled || undefined">
 			<NcNoteCard v-if="failed" type="error">
 				{{ t('honeycomb', 'The statistics could not be loaded.') }}
 			</NcNoteCard>
@@ -248,7 +250,9 @@ onMounted(async () => {
 	display: flex;
 	flex-direction: column;
 	gap: calc(2 * var(--default-grid-baseline));
-	max-width: 1280px;
+	box-sizing: border-box;
+	width: min(var(--honeycomb-page-width), 100%);
+	margin-inline: auto;
 	padding: calc(4 * var(--default-grid-baseline));
 	container-type: inline-size;
 }

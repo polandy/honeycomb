@@ -2203,3 +2203,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-26: A trashed reject sends only the trash, a pick taken back drops the favourite with
   `picksAsFavorites`, and the stack note shows for a reject to trash or archive (IMMICH-004,
   autonomous).
+- 2026-11-27: The statistics page and its title row share one centred column of 1040 px
+  (`--honeycomb-page-width`), replacing the page's left-aligned 1280 px of R1; the title steps
+  aside only by as much as the toggle overlaps it in the margin (not from a fixed width, as the
+  mockup's 1152 px switch), so it stays flush with the cards wherever the toggle fits; *Back to the
+  cull* moves into the title row through a `PageLayout` `actions` slot, on the statistics page
+  only for now, since *Similarity* and *Orphaned sidecars* keep their own 640 px column (TODO
+  item) (STATS-001.73, layout variant A, autonomous).
