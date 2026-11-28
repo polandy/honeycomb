@@ -8,7 +8,7 @@ import type { RatingChoice, RejectAs, SharedChoice, WritePlan } from '../logic/i
 import { t } from '@nextcloud/l10n'
 import NcRadioGroup from '@nextcloud/vue/components/NcRadioGroup'
 import NcRadioGroupButton from '@nextcloud/vue/components/NcRadioGroupButton'
-import { changesText, conflictText, countHeadings, picksText, RATING_CHOICES, RATINGS_TEXT, REJECT_AS_CHOICES, rejectAsText, RESTORES_TEXT, SHARED_CHOICES } from '../immich/immich-write-text.ts'
+import { changesText, conflictText, countHeadings, picksText, ratingConflictChoices, ratingsText, rejectAsChoices, rejectAsText, restoresText, sharedConflictChoices } from '../immich/immich-write-text.ts'
 
 const props = defineProps<{
 	/** The planned write, with the counts and the conflicts (IMMICH-004.6). */
@@ -37,7 +37,7 @@ const emit = defineEmits<{
 				:modelValue="props.plan.rejectAs"
 				@update:modelValue="emit('rejectAs', $event as RejectAs)">
 				<NcRadioGroupButton
-					v-for="choice in REJECT_AS_CHOICES"
+					v-for="choice in rejectAsChoices()"
 					:key="choice.value"
 					:value="choice.value"
 					:label="choice.label" />
@@ -46,7 +46,7 @@ const emit = defineEmits<{
 		</section>
 		<section v-if="props.plan.counts.restores > 0" class="immich-write-plan__block">
 			<h3>{{ countHeadings.restores(props.plan.counts.restores) }}</h3>
-			<p>{{ RESTORES_TEXT }}</p>
+			<p>{{ restoresText() }}</p>
 		</section>
 		<section class="immich-write-plan__block">
 			<h3>{{ countHeadings.picks(props.plan.counts.picks) }}</h3>
@@ -54,7 +54,7 @@ const emit = defineEmits<{
 		</section>
 		<section class="immich-write-plan__block">
 			<h3>{{ countHeadings.ratings(props.plan.counts.ratings) }}</h3>
-			<p>{{ RATINGS_TEXT }}</p>
+			<p>{{ ratingsText() }}</p>
 		</section>
 		<section v-if="props.plan.conflicts.length > 0" class="immich-write-plan__block">
 			<h3>{{ countHeadings.conflicts(props.plan.conflicts.length) }}</h3>
@@ -69,7 +69,7 @@ const emit = defineEmits<{
 						:modelValue="props.ratingChoices.get(conflict.assetId) ?? 'honeycomb'"
 						@update:modelValue="emit('rating', conflict.assetId, $event as RatingChoice)">
 						<NcRadioGroupButton
-							v-for="choice in RATING_CHOICES"
+							v-for="choice in ratingConflictChoices()"
 							:key="choice.value"
 							:value="choice.value"
 							:label="choice.label" />
@@ -81,7 +81,7 @@ const emit = defineEmits<{
 						:modelValue="props.sharedChoices.get(conflict.assetId) ?? 'trash'"
 						@update:modelValue="emit('shared', conflict.assetId, $event as SharedChoice)">
 						<NcRadioGroupButton
-							v-for="choice in SHARED_CHOICES"
+							v-for="choice in sharedConflictChoices()"
 							:key="choice.value"
 							:value="choice.value"
 							:label="choice.label" />

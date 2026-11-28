@@ -58,11 +58,13 @@ export const countHeadings = {
 }
 
 /** The reject choices with their labels, the trash bin first (IMMICH-004.1, .3). */
-export const REJECT_AS_CHOICES: readonly { readonly value: RejectAs, readonly label: string }[] = [
-	{ value: 'trash', label: t('honeycomb', 'Move to Immich trash') },
-	{ value: 'archive', label: t('honeycomb', 'Archive') },
-	{ value: 'rating', label: t('honeycomb', 'Rating “rejected” only') },
-]
+export function rejectAsChoices(): readonly { readonly value: RejectAs, readonly label: string }[] {
+	return [
+		{ value: 'trash', label: t('honeycomb', 'Move to Immich trash') },
+		{ value: 'archive', label: t('honeycomb', 'Archive') },
+		{ value: 'rating', label: t('honeycomb', 'Rating “rejected” only') },
+	]
+}
 
 /** What the chosen reject does in Immich. */
 export function rejectAsText(rejectAs: RejectAs): string {
@@ -83,22 +85,32 @@ export function picksText(picksAsFavorites: boolean): string {
 		: t('honeycomb', 'Immich has no pick; on this connection picks stay in honeycomb.')
 }
 
-/** What a restored reject and a rating do in Immich. */
-export const RESTORES_TEXT = t('honeycomb', 'Restored from the Immich trash or archive.')
-export const RATINGS_TEXT = t('honeycomb', 'Set as the Immich rating. No stars in honeycomb clears the Immich rating.')
+/** What a restored reject does in Immich. */
+export function restoresText(): string {
+	return t('honeycomb', 'Restored from the Immich trash or archive.')
+}
+
+/** What a rating does in Immich. */
+export function ratingsText(): string {
+	return t('honeycomb', 'Set as the Immich rating. No stars in honeycomb clears the Immich rating.')
+}
 
 /** The choices of a rating changed in Immich, honeycomb's first (IMMICH-004.7). */
-export const RATING_CHOICES: readonly { readonly value: RatingChoice, readonly label: string }[] = [
-	{ value: 'honeycomb', label: t('honeycomb', 'Keep honeycomb’s') },
-	{ value: 'immich', label: t('honeycomb', 'Keep Immich’s') },
-]
+export function ratingConflictChoices(): readonly { readonly value: RatingChoice, readonly label: string }[] {
+	return [
+		{ value: 'honeycomb', label: t('honeycomb', 'Keep honeycomb’s') },
+		{ value: 'immich', label: t('honeycomb', 'Keep Immich’s') },
+	]
+}
 
 /** The choices of a reject in a shared album, the trash bin first (IMMICH-004.8). */
-export const SHARED_CHOICES: readonly { readonly value: SharedChoice, readonly label: string }[] = [
-	{ value: 'trash', label: t('honeycomb', 'Trash anyway') },
-	{ value: 'archive', label: t('honeycomb', 'Archive instead') },
-	{ value: 'skip', label: t('honeycomb', 'Skip') },
-]
+export function sharedConflictChoices(): readonly { readonly value: SharedChoice, readonly label: string }[] {
+	return [
+		{ value: 'trash', label: t('honeycomb', 'Trash anyway') },
+		{ value: 'archive', label: t('honeycomb', 'Archive instead') },
+		{ value: 'skip', label: t('honeycomb', 'Skip') },
+	]
+}
 
 /** A rating as stars, or *none*. */
 function stars(rating: number | null): string {
@@ -125,7 +137,11 @@ export function skippedText(skipped: number): string {
 }
 
 /** What a failed asset says, never Immich's text (IMMICH-004.10). */
-export const FAILED_TEXT = t('honeycomb', 'Immich refused this change. It keeps its decision in honeycomb and is offered again next time.')
+export function failedText(): string {
+	return t('honeycomb', 'Immich refused this change. It keeps its decision in honeycomb and is offered again next time.')
+}
 
 /** What the dialog says while Immich does not answer (IMMICH-004.13). */
-export const DOWN_TEXT = t('honeycomb', 'Immich does not answer at the moment. Your decisions stay in honeycomb; write them when Immich is back.')
+export function downText(): string {
+	return t('honeycomb', 'Immich does not answer at the moment. Your decisions stay in honeycomb; write them when Immich is back.')
+}

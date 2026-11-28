@@ -12,7 +12,7 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import ImmichWritePlan from './ImmichWritePlan.vue'
 import ModalPanel from './ModalPanel.vue'
 import ProgressBar from './ProgressBar.vue'
-import { blocksHint, checkingText, DOWN_TEXT, FAILED_TEXT, resultText, skippedText, writeButtonText, writingText } from '../immich/immich-write-text.ts'
+import { blocksHint, checkingText, downText, failedText, resultText, skippedText, writeButtonText, writingText } from '../immich/immich-write-text.ts'
 
 const props = defineProps<{
 	/** The write's state on the opened connection (IMMICH-004.25). */
@@ -44,7 +44,7 @@ const progress = computed(() => {
 			<ProgressBar :label="progress.label" :value="progress.done" :max="progress.total" />
 		</div>
 		<NcNoteCard v-else-if="step.kind === 'down'" type="error">
-			{{ DOWN_TEXT }}
+			{{ downText() }}
 		</NcNoteCard>
 		<ImmichWritePlan
 			v-else-if="step.kind === 'ready' && props.write.plan.value !== null"
@@ -66,7 +66,7 @@ const progress = computed(() => {
 			<ul v-if="step.tally.failedIds.length > 0 && step.tally.failedIds.length <= FAILED_THUMBNAILS" class="immich-write__failed">
 				<li v-for="assetId in step.tally.failedIds" :key="assetId">
 					<img class="immich-write__thumbnail" alt="" :src="props.write.thumbnailUrl(assetId)">
-					<span>{{ FAILED_TEXT }}</span>
+					<span>{{ failedText() }}</span>
 				</li>
 			</ul>
 		</div>
