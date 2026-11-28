@@ -255,4 +255,5 @@ a reject goes to the Immich trash bin by default and can be restored.
 - **Given** the dialog ready with N changes
 - **When** the user writes
 - **Then** it shows the progress per block, then *Written: N*, or *Written: N · Failed: M*, with
-  *Close*, and opened again it plans only what is still pending
+  *Close*, and opened again it plans only what is still pending; a failed asset shows its
+  thumbnail, more than 100 failed show their number only

@@ -9,6 +9,7 @@ import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import ImmichWriteDialog from '../../../src/components/ImmichWriteDialog.vue'
 import { useImmichWrite } from '../../../src/immich/immich-write.ts'
+import { WRITE_BLOCK } from '../../../src/logic/immich-write-plan.ts'
 import { logger } from '../../../src/shared/logger.ts'
 import { candidate, checked } from '../logic/immich-fixtures.ts'
 
@@ -131,6 +132,26 @@ describe('ImmichWriteDialog', () => {
 		button('Close')!.click()
 		await flushPromises()
 		expect(document.body.textContent).not.toContain('Written:')
+	})
+
+	// spec: IMMICH-004.26, IMMICH-004.6
+	it('names more than 100 failed by their number only, without a thumbnail each', async () => {
+		const ids = Array.from({ length: WRITE_BLOCK + 1 }, (_, index) => `r${index}`)
+		const { checks, writes, text, button } = await mountDialog(ids.map((id) => checked(id)), ids.map((id) => candidate(id, { flag: 'rejected' })))
+		for (let block = 0; block < checks.length; block++) {
+			checks[block]!.answer(ids.slice(block * WRITE_BLOCK, (block + 1) * WRITE_BLOCK).map((id) => checked(id)))
+			await flushPromises()
+		}
+
+		button(`Write ${ids.length} changes`)!.click()
+		await flushPromises()
+		for (let block = 0; block < writes.length; block++) {
+			writes[block]!.answer(writes[block]!.requests.map(({ assetId }) => ({ assetId, state: 'failed' })))
+			await flushPromises()
+		}
+
+		expect(text()).toContain(`Written: 0 · Failed: ${ids.length}`)
+		expect(document.body.querySelector('.immich-write__thumbnail')).toBeNull()
 	})
 
 	// spec: IMMICH-004.26, IMMICH-004.8
