@@ -29,7 +29,7 @@ final class SettingsService {
 	private const string ROOTS = 'libraryRoots';
 
 	/** Each list's field in the settings object and its own key. */
-	private const array LISTS = ['moveRecent' => 'move_recent', 'moveFavourites' => 'move_favourites', self::ROOTS => 'library_roots'];
+	private const array LISTS = ['moveRecent' => 'move_recent', 'moveFavourites' => 'move_favourites', 'moveJobCodes' => 'move_job_codes', self::ROOTS => 'library_roots'];
 
 	public function __construct(
 		private IUserConfig $config,
