@@ -82,8 +82,10 @@ test('previews the job code as Job in the settings', async ({ page }) => {
 		await cullFolder(page, folder)
 		await page.getByRole('button', { name: 'More' }).click()
 		await page.getByRole('button', { name: 'Settings', exact: true }).click()
-		const preview = page.getByRole('dialog', { name: 'Settings' }).getByRole('list', { name: 'Preview with five sample photos' })
+		const dialog = page.getByRole('dialog', { name: 'Settings' })
+		const preview = dialog.getByRole('list', { name: 'Preview with five sample photos' })
 		await expect(preview.getByText('JOB/Job_DSCF1234.JPG').first()).toBeVisible()
+		await expect(dialog.getByText(/^Tokens: .*\{job\}/)).toBeVisible()
 	} finally {
 		await putSettings(page, E2E_SETTINGS)
 	}
