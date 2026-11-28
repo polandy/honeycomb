@@ -80,7 +80,7 @@ describe('ImmichWriteDialog', () => {
 
 		const strips = [...document.body.querySelectorAll('.immich-write-plan__block')].map((block) => [
 			block.querySelector('h3')?.textContent,
-			[...block.querySelectorAll('.immich-write-plan__strip img')].map((image) => image.getAttribute('src')),
+			[...block.querySelectorAll('.immich-write-strip img')].map((image) => image.getAttribute('src')),
 		])
 		expect(strips).toEqual([
 			['2 rejected', ['/family/r1/thumbnail', '/family/top/thumbnail']],
@@ -101,7 +101,7 @@ describe('ImmichWriteDialog', () => {
 		await flushPromises()
 
 		expect(text()).toContain(`${WRITE_BLOCK + 2} photos change.`)
-		expect(document.body.querySelector('.immich-write-plan__strip')).toBeNull()
+		expect(document.body.querySelector('.immich-write-strip')).toBeNull()
 	})
 
 	// spec: IMMICH-004.25, IMMICH-004.3

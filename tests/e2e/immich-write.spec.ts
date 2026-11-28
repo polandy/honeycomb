@@ -72,11 +72,11 @@ test.describe('Write to Immich', () => {
 		const thumbnail = dialog.locator('.immich-write-plan__thumbnail')
 		await expect(thumbnail).toHaveJSProperty('complete', true)
 		expect(await thumbnail.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0)
-		const strips = dialog.locator('.immich-write-plan__strip')
+		const strips = dialog.locator('.immich-write-strip')
 		await expect(strips).toHaveCount(2)
 		await expect(strips.nth(0).locator('img')).toHaveCount(3)
 		await expect(strips.nth(1).locator('img')).toHaveCount(1)
-		for (const image of await dialog.locator('.immich-write-plan__strip img').all()) {
+		for (const image of await dialog.locator('.immich-write-strip img').all()) {
 			await expect(image).toHaveJSProperty('complete', true)
 			expect(await image.evaluate((each: HTMLImageElement) => each.naturalWidth)).toBeGreaterThan(0)
 			expect(await inside(image, dialog)).toBe(true)
