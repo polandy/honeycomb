@@ -2324,7 +2324,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-28: The *Job code* field stands at the top of the move dialog, above the target chips
   and so above the move summary, as the code is asked when the move starts; a template without
   `{job}` shows no field (#187, autonomous).
-- 2026-11-28: The ADR 0049 canary is the `canary` group of `FileCacheLibraryTest`, run by
+- 2026-11-28: The ADR 0049 canary is the `canary` group (`FileCacheLibraryTest` and
+  `FileCachePicturesTest`, which reads `oc_filecache` columns too), run by
   `scripts/php-db-tests.sh` in the Nextcloud image the full suite did not use, so the raw
   `oc_filecache` queries run on every version CI covers inside the existing `php-db` job;
   `scripts/nextcloud-images.sh` takes the `php` group, so a version bump runs the canary too.
