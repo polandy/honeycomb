@@ -59,7 +59,7 @@ a reject goes to the Immich trash bin by default and can be restored.
   check shows that Immich does not answer and keeps *Write N changes* disabled. Ready, it shows the
   counts, the reject choice and each conflict with its thumbnail and choices; a choice plans the
   write again. *Write N changes* writes with the progress per block, then the dialog shows the
-  result with *Done*; the next open plans what is still pending. The pending count on the button,
+  result with *Close*; the next open plans what is still pending. The pending count on the button,
   the thumbnail strips of a small write, saving *Keep Immich’s* in honeycomb and the scope check
   come in later steps.
 - **Results** per asset: written, skipped or failed. A failed asset keeps its decision and is
@@ -255,4 +255,4 @@ a reject goes to the Immich trash bin by default and can be restored.
 - **Given** the dialog ready with N changes
 - **When** the user writes
 - **Then** it shows the progress per block, then *Written: N*, or *Written: N · Failed: M*, with
-  *Done*, and opened again it plans only what is still pending
+  *Close*, and opened again it plans only what is still pending

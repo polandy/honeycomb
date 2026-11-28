@@ -46,6 +46,7 @@ test.describe('Write to Immich', () => {
 		await decide(page, 'x')
 		await expect(tile(page, 5)).toBeFocused()
 		await decide(page, 'p')
+		await page.keyboard.press('ArrowRight')
 		await expect(tile(page, 6)).toBeFocused()
 		await decide(page, '3')
 
@@ -65,7 +66,7 @@ test.describe('Write to Immich', () => {
 		await write.click()
 		await expect(dialog).toContainText('Written: 5')
 		await expect(dialog).not.toContainText('Failed')
-		await dialog.getByRole('button', { name: 'Done' }).click()
+		await dialog.getByRole('button', { name: 'Close' }).click()
 		await expect(dialog).toBeHidden()
 
 		await page.getByRole('button', { name: 'Write to Immich' }).click()

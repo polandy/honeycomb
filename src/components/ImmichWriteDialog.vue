@@ -70,7 +70,7 @@ const progress = computed(() => {
 		<template #actions>
 			<template v-if="step.kind === 'finished'">
 				<NcButton variant="primary" @click="props.write.close()">
-					{{ t('honeycomb', 'Done') }}
+					{{ t('honeycomb', 'Close') }}
 				</NcButton>
 			</template>
 			<template v-else>

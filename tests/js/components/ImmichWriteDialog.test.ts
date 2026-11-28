@@ -128,7 +128,7 @@ describe('ImmichWriteDialog', () => {
 		expect(text()).toContain('Written: 3 · Failed: 1')
 		expect(text()).toContain('Immich refused this change.')
 		expect(document.body.querySelector('.immich-write__thumbnail')?.getAttribute('src')).toBe('/family/p1/thumbnail')
-		button('Done')!.click()
+		button('Close')!.click()
 		await flushPromises()
 		expect(document.body.textContent).not.toContain('Written:')
 	})
