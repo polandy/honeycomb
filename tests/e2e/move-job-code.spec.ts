@@ -61,6 +61,7 @@ test('names the moved files with the job code typed in the move dialog and offer
 		expect(await exists(page, `${target}/Hochzeit-Mueller_0001.jpg`)).toBe(true)
 		expect(await exists(page, `${target}/Hochzeit-Mueller_0001.NEF`)).toBe(true)
 
+		await page.getByRole('button', { name: 'Select', exact: true }).click()
 		await grid.getByRole('gridcell', { name: 'IMG_0002, JPG only' }).click()
 		await page.getByRole('button', { name: 'Move…', exact: true }).click()
 		const next = page.getByRole('dialog', { name: 'Move 1 photo' })

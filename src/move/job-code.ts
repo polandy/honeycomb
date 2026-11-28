@@ -27,6 +27,3 @@ export function useJobCode(settings: () => Settings, template: () => NameTemplat
 		remembered: (): Partial<Settings> => (needed.value ? { moveJobCodes: addJobCode(settings().moveJobCodes, code.value) } : {}),
 	}
 }
-
-/** The job code of a move flow. */
-export type JobCode = ReturnType<typeof useJobCode>

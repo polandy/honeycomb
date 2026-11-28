@@ -79,7 +79,7 @@ describe('useMoveFlow: the job code', () => {
 
 	// spec: MOVE-005.8
 	it('keeps the recent job codes when nothing moved or the template does not use one', async () => {
-		const failed = jobFlow(['Older'], '{job}_{name}.{ext}', async (request) => request.map((files) => files.map(({ fileId }) => ({ fileId, result: 'not-found' as const }))))
+		const failed = jobFlow(['Older'], '{job}_{name}.{ext}', async (request) => request.map((files) => files.map(({ fileId }) => ({ fileId, result: 'not-found' as const, replaced: false }))))
 		failed.moving.open([failed.pair])
 		failed.moving.job.type('New shoot')
 		failed.moving.choose('/Out')

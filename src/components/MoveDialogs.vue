@@ -118,7 +118,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 			<p v-if="!flow.job.ready.value" class="move-dialog__hint">
 				{{ t('honeycomb', 'Enter a job code') }}
 			</p>
-			<div v-if="flow.job.recent.value.length > 0" role="group" class="move-dialog__to" :aria-label="t('honeycomb', 'Recent job codes')">
+			<div
+				v-if="flow.job.recent.value.length > 0"
+				role="group"
+				class="move-dialog__to"
+				:aria-label="t('honeycomb', 'Recent job codes')">
 				<button
 					v-for="code in flow.job.recent.value"
 					:key="code"
