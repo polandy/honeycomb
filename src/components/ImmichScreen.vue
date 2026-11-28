@@ -78,6 +78,9 @@ const countText = computed(() => {
 	return `${shown} · ${n('honeycomb', '{count} decided', '{count} decided', decided, { count: formatNumber(decided) }, PLAIN_TEXT)}`
 })
 // The counts say 0, or the listing ended without an entry before they arrived (IMMICH-002.18).
+const pending = computed(() => props.write?.pending.value ?? null)
+const pendingText = computed(() => pending.value === null ? '' : n('honeycomb', '{count} change not written to Immich', '{count} changes not written to Immich', pending.value, { count: formatNumber(pending.value) }, PLAIN_TEXT))
+
 const empty = computed(() => counts.value?.matching === 0 || (list.value.started && list.value.entries.length === 0 && list.value.nextCursor === null && list.value.next === 'idle'))
 const counter = computed(() => loupeIndex.value === null ? null : loupeCounter(list.value, loupeIndex.value, counts.value?.matching ?? list.value.entries.length))
 
@@ -166,8 +169,16 @@ defineExpose({
 				@selectAll="selection.selectAll"
 				@selectNone="selection.selectNone"
 				@done="selection.setSelecting(false)" />
-			<NcButton v-if="props.write !== undefined" class="immich-screen__write" @click="props.write.open()">
-				{{ t('honeycomb', 'Write to Immich') }}
+			<NcButton
+				v-if="props.write !== undefined"
+				class="immich-screen__write"
+				:disabled="pending === 0"
+				@click="props.write.open()">
+				<span class="immich-screen__write-label">{{ t('honeycomb', 'Write to Immich') }}</span>
+				<template v-if="pending">
+					<span class="immich-screen__pending" aria-hidden="true">{{ formatNumber(pending) }}</span>
+					<span class="hidden-visually">{{ pendingText }}</span>
+				</template>
 			</NcButton>
 		</div>
 		<ImmichFilterBar
@@ -276,6 +287,16 @@ defineExpose({
 
 .immich-screen__write {
 	margin-inline-start: auto;
+}
+
+.immich-screen__pending {
+	margin-inline-start: var(--default-grid-baseline);
+	padding: 1px calc(2 * var(--default-grid-baseline));
+	border-radius: var(--border-radius-pill, 10px);
+	background: var(--color-main-text);
+	color: var(--color-main-background);
+	font-size: 12px;
+	font-weight: bold;
 }
 
 .immich-screen__grid {

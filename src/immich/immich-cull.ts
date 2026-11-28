@@ -229,11 +229,14 @@ export function useImmichCull(context: ImmichCullContext) {
 		if (held) {
 			return
 		}
-		settled.value = new Map([...core.decided.value].map(([id, decision]) => [entries.get(id)!.assetId, decision]))
+		settled.value = decidedAssets.value
 		if (list.value.entries.length === 0) {
 			loadNext(-1, 1)
 		}
 	}
+
+	/** The decisions made since the cull opened or its filters changed, by asset id, held or not (IMMICH-004.27). */
+	const decidedAssets = computed(() => new Map([...core.decided.value].map(([id, decision]) => [entries.get(id)!.assetId, decision])))
 
 	/** The URL of a picture's image: the thumbnail for the grid's tiers, the preview above (IMMICH-002.16). */
 	function imageUrl(fileId: PictureId, size: number): string {
@@ -247,5 +250,5 @@ export function useImmichCull(context: ImmichCullContext) {
 		settle()
 	}
 
-	return { connectionId: readonly(connectionId), filters, filtersChanged, choices, list, counts, pictures, open, resumeFrom, setFilters, clearFilters, loadNext, loadPrevious, retry, hold, decisionOf: core.decisionOf, common: core.common, imageUrl, decide: core.decide, undo: core.undo, redo: core.redo }
+	return { connectionId: readonly(connectionId), filters, filtersChanged, choices, list, counts, pictures, open, resumeFrom, setFilters, clearFilters, loadNext, loadPrevious, retry, hold, decisionOf: core.decisionOf, decidedAssets, common: core.common, imageUrl, decide: core.decide, undo: core.undo, redo: core.redo }
 }

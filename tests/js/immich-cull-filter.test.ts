@@ -75,7 +75,7 @@ describe('useImmichCull under the flag filter', () => {
 		cull.decide({ kind: 'flag', flag: 'rejected' }, [cull.pictures.value[1]!])
 		expect([...cull.decidedAssets.value].map(([assetId, { flag }]) => [assetId, flag])).toEqual([['a2', 'rejected']])
 
-		cull.setFilters({ ...cull.filters.value, flags: ['picked'] })
+		cull.setFilters({ ...cull.filters.value, flags: new Set(['picked']) })
 		expect(cull.decidedAssets.value).toEqual(new Map())
 	})
 })
