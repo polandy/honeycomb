@@ -1,24 +1,14 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { Decision } from '../../../src/logic/decision.ts'
-import type { CheckedAsset, WriteCandidate, WriteChoices, WriteOptions, WrittenState } from '../../../src/logic/immich-write-plan.ts'
+import type { CheckedAsset, WriteChoices, WriteOptions, WrittenState } from '../../../src/logic/immich-write-plan.ts'
 
 import { describe, expect, it } from 'vitest'
 import { isPending, planWrite, WRITE_BLOCK, writeBlocks, writeTally } from '../../../src/logic/immich-write-plan.ts'
+import { candidate, checked } from './immich-fixtures.ts'
 
-const DECIDED_AT = '2026-11-20T10:00:00.000Z'
 const CHANGED_AT = '2026-11-21T08:30:00.000Z'
-const UNDECIDED: Decision = { rating: 0, colourLabel: null, flag: 'unflagged', keepRaw: false }
 const TRASH: WriteOptions = { rejectAs: 'trash', picksAsFavorites: false, canDelete: true }
 const NO_CHOICES: WriteChoices = { rating: new Map(), shared: new Map() }
-
-function candidate(assetId: string, decision: Partial<Decision>, written: WrittenState | null = null): WriteCandidate {
-	return { assetId, decision: { ...UNDECIDED, ...decision }, written, decidedUpdatedAt: DECIDED_AT }
-}
-
-function checked(assetId: string, fields: Partial<CheckedAsset> = {}): CheckedAsset {
-	return { assetId, updatedAt: DECIDED_AT, rating: null, favorite: false, trashed: false, archived: false, sharedAlbum: null, stackSize: null, ...fields }
-}
 
 function checks(...assets: CheckedAsset[]): ReadonlyMap<string, CheckedAsset> {
 	return new Map(assets.map((asset) => [asset.assetId, asset]))

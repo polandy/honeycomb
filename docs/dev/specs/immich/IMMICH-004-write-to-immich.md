@@ -45,6 +45,11 @@ a reject goes to the Immich trash bin by default and can be restored.
   saved decision is a reject. Once Immich does not answer or refuses the key, every asset not yet
   written fails with that error. For each written asset it stores the saved decision's flag and
   rating and Immich's rating as what was last written; a later save of the decision keeps them.
+- **The run in the browser:** the check asks `write/check` for the pending candidates only; a
+  block that fails stops it, so nothing is written. The write sends the plan's changes and its done
+  assets, a done one without a field so honeycomb stores it as written, each with the rating Immich
+  holds afterwards; a skipped asset is answered as skipped, a gone one not at all. A block whose
+  request fails fails its assets and every one not yet sent, and nothing more is sent.
 - **The dialog** names the counts of rejects, of rejects taken back, of picks and of ratings, the
   choice for rejects and the conflicts. With more than 100 affected assets it shows numbers and
   the conflicts only, never a thumbnail per asset. *Write N changes* is disabled at 0 or while
@@ -212,3 +217,19 @@ a reject goes to the Immich trash bin by default and can be restored.
 - **Then** `write/candidates` answers each of the user's own decisions with what was last written
   for it and Immich's `updatedAt` when it was decided, ordered by asset id in pages of 500 with
   `nextCursor`, without asking Immich, and a malformed cursor is `400` `request`
+
+### IMMICH-004.23 – The check in blocks
+
+- **Given** 250 pending candidates beside ones not pending
+- **When** the browser checks them
+- **Then** it asks `write/check` for the pending ones only, in blocks of 100, 100 and 50, one after
+  the other, with the progress after each block, and a block that fails stops the check with its
+  error
+
+### IMMICH-004.24 – The write in blocks
+
+- **Given** a write plan with changes, assets already done, skipped and gone
+- **When** the browser writes it
+- **Then** it sends the changes and the done assets in blocks of 100 with the rating Immich holds
+  afterwards, answers each sent asset's result and the skipped ones as skipped, and once a block's
+  request fails, that block's assets and the ones not yet sent fail and nothing more is sent
