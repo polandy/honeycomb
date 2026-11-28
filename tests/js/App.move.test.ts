@@ -103,6 +103,22 @@ describe('App: opening the move dialog', () => {
 		await flushPromises()
 		expect(opened(wrapper)).toEqual(['IMG_9', 'IMG_10'])
 	})
+
+	// spec: MOVE-005.1
+	it('opens Move all on every picture of the folder set, the view first, the hidden ones after it in listing order', async () => {
+		const { wrapper } = await openApp()
+		const toolbar = wrapper.findComponent(GridToolbar)
+		expect(toolbarProps(wrapper).allMovable).toBe(3)
+
+		toolbar.vm.$emit('update:filtersOpen', true)
+		await flushPromises()
+		wrapper.findComponent(FilterBar).vm.$emit('update:filters', { ...DEFAULT_FILTERS, folders: new Set(['/Trip/A']) })
+		await flushPromises()
+		expect(toolbarProps(wrapper).allMovable).toBe(3)
+		toolbar.vm.$emit('moveAll')
+		await flushPromises()
+		expect(opened(wrapper)).toEqual(['IMG_9', 'IMG_10', 'IMG_2'])
+	})
 })
 
 describe('App: the name template', () => {

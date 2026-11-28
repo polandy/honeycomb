@@ -115,6 +115,20 @@ describe('GridToolbar More menu', () => {
 		expect(filtered.emitted('move')).toHaveLength(1)
 	})
 
+	// spec: MOVE-005.1, MOVE-005.2
+	it('moves every picture of the folder set from the More menu with their count, held at 0, whatever the filter', async () => {
+		const set = { paths: ['/Trip'], subfolders: false }
+		const item = (wrapper: ReturnType<typeof mountToolbar>) => wrapper.findAll('button').find((button) => button.text().replaceAll(MARK, '').startsWith('Move all'))!
+		const filtered = mountToolbar(set, 1, { allMovable: 12, movable: 5, activeFilters: 1 })
+
+		expect(item(mountToolbar(set)).attributes('disabled')).toBeDefined()
+		expect(item(mountToolbar(set)).text().replaceAll(MARK, '')).toBe('Move all… 0')
+		expect(item(filtered).text().replaceAll(MARK, '')).toBe('Move all… 12')
+		await item(filtered).trigger('click')
+		expect(filtered.emitted('moveAll')).toHaveLength(1)
+		expect(filtered.emitted('move')).toBeUndefined()
+	})
+
 	it('opens the settings from the More menu', async () => {
 		const wrapper = mountToolbar({ paths: ['/Trip'], subfolders: false })
 		const item = wrapper.findAll('button').find((button) => button.text().replaceAll(MARK, '') === 'Settings')!
@@ -145,7 +159,7 @@ describe('GridToolbar More menu', () => {
 
 		expect(groups.map((group) => group.find('h3').text().replaceAll(MARK, ''))).toEqual(['View', 'Cull', 'Files', 'Picks and rejects'])
 		expect(itemsOf(groups[1]!)).toEqual(['Resume at IMG_9', 'Review rejects', 'Compare series', 'Reduce series to the sharpest…'])
-		expect(itemsOf(groups[2]!)).toEqual(['Remove RAWs…', 'Move picks…'])
+		expect(itemsOf(groups[2]!)).toEqual(['Remove RAWs…', 'Move picks…', 'Move all…'])
 		expect(itemsOf(groups[3]!)).toEqual(['Clear picks/rejects', 'Write picks/rejects to XMP'])
 		expect(menu.findAll('hr')).toHaveLength(4)
 		expect(menu.findAll('hr').every((rule) => rule.element.previousElementSibling?.getAttribute('role') === 'group' && rule.element.nextElementSibling !== null)).toBe(true)
@@ -161,8 +175,8 @@ describe('GridToolbar More menu', () => {
 	})
 
 	// spec: GRID-001.18
-	it.each(['Review rejects', 'Compare series', 'Remove RAWs', 'Move picks', 'Resume at', 'Settings'])('closes the More menu when %s is chosen', async (label) => {
-		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { rejected: 1, series: 1, rawRemovable: 1, movable: 1, resumeName: 'IMG_9' })
+	it.each(['Review rejects', 'Compare series', 'Remove RAWs', 'Move picks', 'Move all', 'Resume at', 'Settings'])('closes the More menu when %s is chosen', async (label) => {
+		const wrapper = mountToolbar({ paths: ['/A'], subfolders: false }, 1, { rejected: 1, series: 1, rawRemovable: 1, movable: 1, allMovable: 1, resumeName: 'IMG_9' })
 		const popover = wrapper.findComponent(PopoverStub)
 		await popover.vm.$emit('update:shown', true)
 		expect(popover.props('shown')).toBe(true)
