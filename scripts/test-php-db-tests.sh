@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # SPDX-FileCopyrightText: 2026 honeycomb contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Test for scripts/php-db-tests.sh: it runs the PHP tests in the newest Nextcloud by default and in
-# the oldest one when HONEYCOMB_DB_NEXTCLOUD says so; an unknown image fails before Docker runs.
+# Test for scripts/php-db-tests.sh: it runs the full PHP tests in the selected Nextcloud image and the
+# FileCacheLibrary canary in the other one, so every version CI covers runs the raw oc_filecache
+# queries; an unknown image fails before Docker runs.
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
@@ -28,7 +29,7 @@ exit 0
 STUB
 chmod +x "$work/bin/docker"
 
-# Runs php-db-tests.sh for IMAGE with the PHPUnit arguments and records the Docker calls.
+# Runs php-db-tests.sh for IMAGE (the full-suite image) with the PHPUnit arguments.
 run() {
   local image=$1
   shift
@@ -42,20 +43,23 @@ run_default() {
   env -u HONEYCOMB_DB_NEXTCLOUD PATH="$work/bin:$PATH" DOCKER_LOG="$work/docker.log" \
     HONEYCOMB_E2E_OWNER="7@test-host" scripts/php-db-tests.sh "$@" >/dev/null 2>&1
 }
-runs() { grep -cF -- "$1" "$work/docker.log"; }
+runs() { grep -c '^run ' "$work/docker.log"; }
+line_for() { grep -F -- "$1" "$work/docker.log"; }
+arg() { grep -cF -- "$1" <<<"$2"; }
 
-run_default --group canary
-check default-newest 1 "$(runs "$NEWEST_NEXTCLOUD_IMAGE")"
-check default-not-oldest 0 "$(runs "$OLDEST_NEXTCLOUD_IMAGE")"
-check default-passes-args 1 "$(runs "-e PHPUNIT_ARGS=--group canary")"
+run_default
+check default-two-images 2 "$(runs)"
+check default-full-suite-newest 1 "$(arg "PHPUNIT_ARGS= -v" "$(line_for "$NEWEST_NEXTCLOUD_IMAGE")")"
+check default-canary-oldest 1 "$(arg "PHPUNIT_ARGS=--group canary" "$(line_for "$OLDEST_NEXTCLOUD_IMAGE")")"
 
-run newest --group canary
-check newest-image 1 "$(runs "$NEWEST_NEXTCLOUD_IMAGE")"
-check newest-not-oldest 0 "$(runs "$OLDEST_NEXTCLOUD_IMAGE")"
+run newest --group bench
+check newest-full-suite-args 1 "$(arg "PHPUNIT_ARGS=--group bench" "$(line_for "$NEWEST_NEXTCLOUD_IMAGE")")"
+check newest-canary-oldest 1 "$(arg "PHPUNIT_ARGS=--group canary" "$(line_for "$OLDEST_NEXTCLOUD_IMAGE")")"
 
-run oldest --group canary
-check oldest-image 1 "$(runs "$OLDEST_NEXTCLOUD_IMAGE")"
-check oldest-not-newest 0 "$(runs "$NEWEST_NEXTCLOUD_IMAGE")"
+run oldest
+check oldest-two-images 2 "$(runs)"
+check oldest-full-suite 1 "$(arg "PHPUNIT_ARGS= -v" "$(line_for "$OLDEST_NEXTCLOUD_IMAGE")")"
+check oldest-canary-newest 1 "$(arg "PHPUNIT_ARGS=--group canary" "$(line_for "$NEWEST_NEXTCLOUD_IMAGE")")"
 
 # An unknown image is refused by name before Docker runs.
 : >"$work/docker.log"
