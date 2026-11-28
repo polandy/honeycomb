@@ -53,7 +53,8 @@ test('measures the sharpness of the series members of a folder tree once their h
 
 	await expect(page.getByText('Done: every photo of a series in this folder has its sharpness.')).toBeVisible()
 	await expect(page.locator('.similarity-page__counts').nth(1)).toHaveText('To measure2Measured2Failed0Left0')
-	await page.locator('.similarity-page').screenshot({ path: testInfo.outputPath('similarity-sharpness.png'), animations: 'disabled' })
+	await page.locator('.similarity-page__counts').nth(1).scrollIntoViewIfNeeded()
+	await page.screenshot({ path: testInfo.outputPath('similarity-sharpness.png'), animations: 'disabled' })
 	await saved
 	const listing = await page.request.get(`${API}/entries`, { params: { path: `/${folder}`, subfolders: 1 }, headers: await apiHeaders(page) })
 	const entries = (await listing.json() as { entries: { path: string, quality: { method: number, sharpness: number } | null }[] }).entries
