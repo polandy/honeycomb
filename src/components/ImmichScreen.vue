@@ -25,6 +25,7 @@ import ActionBar from './ActionBar.vue'
 import AppIcon from './AppIcon.vue'
 import FlagFilter from './FlagFilter.vue'
 import ImmichFilterBar from './ImmichFilterBar.vue'
+import ImmichWriteButton from './ImmichWriteButton.vue'
 import ImmichWriteDialog from './ImmichWriteDialog.vue'
 import PhotoGrid from './PhotoGrid.vue'
 import PhotoLoupe from './PhotoLoupe.vue'
@@ -166,9 +167,7 @@ defineExpose({
 				@selectAll="selection.selectAll"
 				@selectNone="selection.selectNone"
 				@done="selection.setSelecting(false)" />
-			<NcButton v-if="props.write !== undefined" class="immich-screen__write" @click="props.write.open()">
-				{{ t('honeycomb', 'Write to Immich') }}
-			</NcButton>
+			<ImmichWriteButton v-if="props.write !== undefined" :pending="props.write.pending.value" @open="props.write.open()" />
 		</div>
 		<ImmichFilterBar
 			:filters="filters"
@@ -272,10 +271,6 @@ defineExpose({
 
 .immich-screen__count {
 	color: var(--color-text-maxcontrast);
-}
-
-.immich-screen__write {
-	margin-inline-start: auto;
 }
 
 .immich-screen__grid {

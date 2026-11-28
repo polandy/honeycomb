@@ -61,4 +61,21 @@ describe('useImmichCull under the flag filter', () => {
 		expect(assets).toHaveLength(2)
 		expect(assets[1]!.request.cursor).toBe('c2')
 	})
+
+	// spec: IMMICH-004.27
+	it('answers the decisions made since it opened by asset id, held or not, and none after the filters change', async () => {
+		const { cull, assets, counts } = cullOn()
+		cull.open('andy-phone')
+		assets[0]!.answer(page(['a1', 'a2']))
+		counts[0]!.answer(COUNTS)
+		await flushPromises()
+		expect(cull.decidedAssets.value).toEqual(new Map())
+
+		cull.hold(true)
+		cull.decide({ kind: 'flag', flag: 'rejected' }, [cull.pictures.value[1]!])
+		expect([...cull.decidedAssets.value].map(([assetId, { flag }]) => [assetId, flag])).toEqual([['a2', 'rejected']])
+
+		cull.setFilters({ ...cull.filters.value, flags: new Set(['picked']) })
+		expect(cull.decidedAssets.value).toEqual(new Map())
+	})
 })

@@ -19,7 +19,7 @@ import ImmichState from '../../src/components/ImmichState.vue'
 import { IMMICH_CONNECTION_KEY } from '../../src/immich/immich-source.ts'
 import { logger } from '../../src/shared/logger.ts'
 import { fakeStorage, mountApp, openCull, shownNames, SILENT_IMMICH_CULL } from './app-cull.ts'
-import { immichEntry } from './logic/immich-fixtures.ts'
+import { candidate, immichEntry } from './logic/immich-fixtures.ts'
 
 enableAutoUnmount(afterEach)
 
@@ -184,19 +184,22 @@ describe('App: the Immich source', () => {
 
 		expect(saved.map((rows) => rows.map(({ flag }) => flag))).toEqual([['picked'], ['unflagged'], ['picked']])
 	})
-	// spec: IMMICH-004.25
-	it('opens *Write to Immich* from the Immich toolbar and checks the opened connection\'s candidates', async () => {
+	// spec: IMMICH-004.25, IMMICH-004.27
+	it('counts the opened connection\'s pending candidates on *Write to Immich* and checks them when it opens', async () => {
 		const asked: string[] = []
-		const immichWrite = { candidates: async (id: string) => (asked.push(id), []), check: async () => [], write: async () => [], imageUrl: () => '' }
+		const immichWrite = { candidates: async (id: string) => (asked.push(id), [candidate('a1', { flag: 'rejected' })]), check: async () => [], write: async () => [], imageUrl: () => '' }
 		const { wrapper } = mountApp({ immich: immichOn({ kind: 'connections', connections: [PHONE] }).immich, immichWrite })
 		await flushPromises()
+		expect(asked).toEqual([])
 		wrapper.findComponent(AppNavigation).vm.$emit('chooseSource', 'immich')
 		await flushPromises()
+		expect(asked).toEqual([PHONE.id])
+		expect(wrapper.find('.immich-screen__pending').text()).toBe('1')
 
 		await wrapper.find('.immich-screen__write').trigger('click')
 		await flushPromises()
 
-		expect(asked).toEqual([PHONE.id])
+		expect(asked).toEqual([PHONE.id, PHONE.id])
 		expect(wrapper.findComponent(ImmichScreen).props('write')?.step.value).toEqual({ kind: 'ready' })
 	})
 
