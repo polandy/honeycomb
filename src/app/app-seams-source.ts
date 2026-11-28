@@ -8,9 +8,10 @@ import type { ResumeApi } from '../folders/resume.ts'
 import type { ImmichCullApi } from '../immich/immich-picture-source.ts'
 import type { ImmichPositionApi } from '../immich/immich-resume.ts'
 import type { ImmichApi } from '../immich/immich-source.ts'
+import type { ImmichWriteApi } from '../immich/immich-write.ts'
 import type { LocationApi } from '../shared/browser-location.ts'
 
-import { listEntries as apiListEntries, listFolders as apiListFolders, checkLibraryRoot, immichAssets, immichCounts, immichImageUrl, immichStatus, listImmichConnections, listLibraryFolders, loadPositions, markFolderDone, markFoldersDone, reopenFolder, reopenFolders, saveImmichDecisions, saveImmichPosition, savePosition, scanLibrary } from '../api/index.ts'
+import { listEntries as apiListEntries, listFolders as apiListFolders, checkLibraryRoot, immichAssets, immichCounts, immichImageUrl, immichStatus, immichWrite, immichWriteCandidates, immichWriteCheck, listImmichConnections, listLibraryFolders, loadPositions, markFolderDone, markFoldersDone, reopenFolder, reopenFolders, saveImmichDecisions, saveImmichPosition, savePosition, scanLibrary } from '../api/index.ts'
 import { browserLocation } from '../shared/browser-location.ts'
 
 /** The seams of the sources: the folders, the library, *Recent*, the page address and Immich. */
@@ -28,6 +29,8 @@ export interface SourceSeams {
 	immichCull?: ImmichCullApi
 	/** Where the connections' positions are read and saved (IMMICH-003.14). */
 	immichPositions?: ImmichPositionApi
+	/** What *Write to Immich* checks and writes (IMMICH-004). */
+	immichWrite?: ImmichWriteApi
 }
 
 /** The source seams the app uses in production. */
@@ -40,4 +43,5 @@ export const SOURCE_SEAMS = {
 	immich: () => ({ listConnections: listImmichConnections, status: immichStatus }),
 	immichCull: () => ({ assets: immichAssets, counts: immichCounts, saveDecisions: saveImmichDecisions, imageUrl: immichImageUrl }),
 	immichPositions: () => ({ loadPositions, savePosition: saveImmichPosition }),
+	immichWrite: () => ({ candidates: immichWriteCandidates, check: immichWriteCheck, write: immichWrite, imageUrl: immichImageUrl }),
 }

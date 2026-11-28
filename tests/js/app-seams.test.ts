@@ -21,6 +21,7 @@ describe('APP_SEAMS', () => {
 		expect(Object.keys(APP_SEAMS.immich())).toEqual(['listConnections', 'status'])
 		expect(Object.keys(APP_SEAMS.immichCull())).toEqual(['assets', 'counts', 'saveDecisions', 'imageUrl'])
 		expect(Object.keys(APP_SEAMS.immichPositions())).toEqual(['loadPositions', 'savePosition'])
+		expect(Object.keys(APP_SEAMS.immichWrite())).toEqual(['candidates', 'check', 'write', 'imageUrl'])
 	})
 
 	it('reads the browser: its address, storage and clocks', () => {

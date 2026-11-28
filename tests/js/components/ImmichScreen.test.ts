@@ -66,6 +66,13 @@ describe('ImmichScreen', () => {
 		expect(wrapper.find('.immich-screen__count').text()).toBe('3,412 of 3,660 photos · 248 decided')
 	})
 
+	// spec: IMMICH-004.25
+	it('shows *Write to Immich* only with a write to open', async () => {
+		const { wrapper } = await mountScreen()
+
+		expect(wrapper.find('.immich-screen__write').exists()).toBe(false)
+	})
+
 	// spec: IMMICH-002.18
 	it('says no picture matches when the counts say 0 and clears the filters on request', async () => {
 		const { wrapper, cull, assets, counts } = await mountScreen()

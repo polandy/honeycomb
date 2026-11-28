@@ -6,6 +6,7 @@
       "user": "alice",
       "label": "Family phones",
       "url": "http://127.0.0.1:2283",
+      "picksAsFavorites": true,
       "keyFile": "/var/www/html/custom_apps/honeycomb/tests/fixtures/immich/e2e/family-key.txt"
     },
     {

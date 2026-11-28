@@ -26,6 +26,18 @@ describe('parseNameTemplate', () => {
 		expect(parseNameTemplate('{title} {name}.{ext}')).toEqual({ ok: false, problem: 'unknown-token', column: 1 })
 	})
 
+	// spec: MOVE-005.3
+	it.each(['{job}', '{job:lower}', '{job:upper}'])('accepts the job code token %s, cased by its modifier', (token) => {
+		const parsed = parseNameTemplate(`${token}_{name}.{ext}`)
+
+		expect(parsed.ok && parsed.template.name[0]).toEqual({ kind: 'job', letterCase: token.includes(':') ? token.slice(5, -1) : 'as-is' })
+	})
+
+	// spec: MOVE-005.3
+	it.each(['{job:4}', '{job:title}', '{job:}'])('refuses %s as a modifier problem at the token\'s {', (token) => {
+		expect(parseNameTemplate(`ab${token}.{ext}`)).toEqual({ ok: false, problem: 'modifier', column: 3 })
+	})
+
 	it('covers every problem in the text with a vector', () => {
 		const covered = new Set(vectors.invalid.map((vector) => vector.problem))
 

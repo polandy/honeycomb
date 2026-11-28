@@ -39,6 +39,7 @@ interface Values {
 	readonly time: Date
 	readonly number: string
 	readonly extension: string
+	readonly jobCode: string
 }
 
 const UNKNOWN = 'unknown'
@@ -47,8 +48,8 @@ const SECONDS_PER_MINUTE = 60
 const MS_PER_DAY = 86_400_000
 const TRAILING_DIGITS = /\d+$/
 
-/** Renders every file of a picture from the picture's one set of values (`docs/dev/05-name-templates.md`). */
-export function renderPicture(template: NameTemplate, facts: PictureFacts, files: readonly MemberFile[]): RenderedPicture {
+/** Renders every file of a picture from the picture's one set of values and the move's job code (`docs/dev/05-name-templates.md`). */
+export function renderPicture(template: NameTemplate, facts: PictureFacts, files: readonly MemberFile[], jobCode: string): RenderedPicture {
 	const number = TRAILING_DIGITS.exec(facts.baseName)?.[0] ?? null
 	const parts = [...template.folders.flat(), ...template.name]
 	if (number === null && parts.some((part) => part.kind === 'number')) {
@@ -62,7 +63,7 @@ export function renderPicture(template: NameTemplate, facts: PictureFacts, files
 	return {
 		ok: true,
 		files: files.map((file) => {
-			const values = { facts, time, number: number ?? '', extension: file.extension }
+			const values = { facts, time, number: number ?? '', extension: file.extension, jobCode }
 			const folders = template.folders.map((folder) => renderParts(folder, values))
 			return {
 				folder: [...folders, ...(file.subfolder === null ? [] : [file.subfolder])].join('/'),
@@ -86,7 +87,7 @@ function renderParts(parts: readonly TemplatePart[], values: Values): string {
 }
 
 /** One part's text for one file. */
-function renderPart(part: TemplatePart, { facts, time, number, extension }: Values): string {
+function renderPart(part: TemplatePart, { facts, time, number, extension, jobCode }: Values): string {
 	switch (part.kind) {
 		case 'literal':
 			return part.text
@@ -102,6 +103,8 @@ function renderPart(part: TemplatePart, { facts, time, number, extension }: Valu
 			return cased(tokenValue(facts.model), part.letterCase)
 		case 'make':
 			return cased(tokenValue(facts.make), part.letterCase)
+		case 'job':
+			return cased(tokenValue(jobCode), part.letterCase)
 	}
 }
 

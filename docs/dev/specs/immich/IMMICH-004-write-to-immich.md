@@ -54,6 +54,14 @@ a reject goes to the Immich trash bin by default and can be restored.
   choice for rejects and the conflicts. With more than 100 affected assets it shows numbers and
   the conflicts only, never a thumbnail per asset. *Write N changes* is disabled at 0 or while
   Immich does not answer.
+- **The dialog in the browser:** *Write to Immich* in the Immich source's toolbar opens it. It
+  loads the candidates and checks the pending ones with the progress per block; a failed load or
+  check shows that Immich does not answer and keeps *Write N changes* disabled. Ready, it shows the
+  counts, the reject choice and each conflict with its thumbnail and choices; a choice plans the
+  write again. *Write N changes* writes with the progress per block, then the dialog shows the
+  result with *Close*; the next open plans what is still pending. The pending count on the button,
+  the thumbnail strips of a small write, saving *Keep Immich’s* in honeycomb and the scope check
+  come in later steps.
 - **Results** per asset: written, skipped or failed. A failed asset keeps its decision and is
   offered again; the others are written. The result says *Written: N* or *Written: N · Failed:
   M*, a failed asset names its state, never Immich's text. After trashing, the toast *Moved N
@@ -233,3 +241,19 @@ a reject goes to the Immich trash bin by default and can be restored.
 - **Then** it sends the changes and the done assets in blocks of 100 with the rating Immich holds
   afterwards, answers each sent asset's result and the skipped ones as skipped, and once a block's
   request fails, that block's assets and the ones not yet sent fail and nothing more is sent
+
+### IMMICH-004.25 – The dialog
+
+- **Given** rejects, a pick and a rating pending, one reject the top of a stack
+- **When** the user opens *Write to Immich*
+- **Then** the dialog checks them with the progress per block, then names the counts of rejects,
+  of rejects taken back, of picks and of ratings, the reject choice and the stack's conflict with
+  its thumbnail, and offers *Write N changes*; a choice plans the write again
+
+### IMMICH-004.26 – The result in the dialog
+
+- **Given** the dialog ready with N changes
+- **When** the user writes
+- **Then** it shows the progress per block, then *Written: N*, or *Written: N · Failed: M*, with
+  *Close*, and opened again it plans only what is still pending; a failed asset shows its
+  thumbnail, more than 100 failed show their number only

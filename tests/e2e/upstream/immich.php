@@ -105,6 +105,16 @@ function thumbnail(string $path): StubAnswer {
 		: StubAnswer::json(['message' => 'Not found or no asset.view access', 'statusCode' => 400, 'error' => 'Bad Request'], 400);
 }
 
+/** The library's upload an asset path names, as Immich answers a change of it, else Immich's 400. */
+function updated(string $path): StubAnswer {
+	$index = sscanf(basename($path), ASSET_ID);
+	/** @var array{assets: array{items: list<array<string, mixed>>}} $fixture */
+	$fixture = json_decode((string)file_get_contents(FIXTURES . '/search-page.json'), true, 512, JSON_THROW_ON_ERROR);
+	return isset($index[0]) && $index[0] < LIBRARY_SIZE
+		? StubAnswer::json(upload($fixture['assets']['items'][0], $index[0]))
+		: StubAnswer::json(['message' => 'Not found or no asset.update access', 'statusCode' => 400, 'error' => 'Bad Request'], 400);
+}
+
 stubServe(FIXTURES . '/openapi.json', '/api', [
 	['get', '/server/version', static fn (): StubAnswer => StubAnswer::jsonFile(FIXTURES . '/version.json')],
 	['get', '/users/me', keyed(static fn (): StubAnswer => StubAnswer::jsonFile(FIXTURES . '/me.json'))],
@@ -112,4 +122,9 @@ stubServe(FIXTURES . '/openapi.json', '/api', [
 	['get', '/assets/{id}/thumbnail', keyed(thumbnail(...))],
 	['post', '/search/statistics', keyed(static fn (): StubAnswer => StubAnswer::jsonFile(FIXTURES . '/statistics.json'))],
 	['get', '/search/suggestions', keyed(static fn (): StubAnswer => StubAnswer::jsonFile(FIXTURES . '/suggestions.json'))],
+	// The write: no upload is in an album, and every change of an upload is taken.
+	['get', '/albums', keyed(static fn (): StubAnswer => StubAnswer::json([]))],
+	['delete', '/assets', keyed(static fn (): StubAnswer => new StubAnswer(204, 'application/json', ''))],
+	['post', '/trash/restore/assets', keyed(static fn (): StubAnswer => StubAnswer::json(['count' => count(stubBody()['ids'] ?? [])]))],
+	['put', '/assets/{id}', keyed(updated(...))],
 ]);

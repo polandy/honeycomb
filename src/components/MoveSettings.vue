@@ -130,7 +130,7 @@ function summary(collisions: number): string {
 			</p>
 		</template>
 		<p class="move-settings__hint settings-text">
-			{{ t('honeycomb', 'Tokens: {tokens}; :lower and :upper on text tokens. Only letters, digits, . _ - and /, never spaces.', { tokens: '{date:%Y %m %d %j %H %M %S}, {camera}, {make}, {name}, {number:N}, {ext}' }, undefined, PLAIN_TEXT) }}
+			{{ t('honeycomb', 'Tokens: {tokens}; :lower and :upper on text tokens. Only letters, digits, . _ - and /, never spaces.', { tokens: '{date:%Y %m %d %j %H %M %S}, {camera}, {make}, {job}, {name}, {number:N}, {ext}' }, undefined, PLAIN_TEXT) }}
 		</p>
 		<b class="settings-text">{{ t('honeycomb', 'Favourite folders') }}</b>
 		<div class="move-settings__favourites">

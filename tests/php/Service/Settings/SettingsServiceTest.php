@@ -116,7 +116,7 @@ final class SettingsServiceTest extends TestCase {
 
 	// spec: SETTINGS-001.2
 	public function testTheObjectIsStoredWithoutTheLists(): void {
-		$this->service()->save($this->user(), ['viKeys' => true, 'moveRecent' => ['/A'], 'moveFavourites' => ['/B'], 'libraryRoots' => ['/C']]);
+		$this->service()->save($this->user(), ['viKeys' => true, 'moveRecent' => ['/A'], 'moveFavourites' => ['/B'], 'moveJobCodes' => ['Shoot'], 'libraryRoots' => ['/C']]);
 
 		$this->assertSame(['alice/honeycomb/settings' => '{"viKeys":true}'], $this->stored);
 	}
@@ -128,11 +128,13 @@ final class SettingsServiceTest extends TestCase {
 
 		$saved = $service->saveList($this->user(), 'moveRecent', ['/B', '/A']);
 		$service->saveList($this->user(), 'moveFavourites', []);
+		$service->saveList($this->user(), 'moveJobCodes', ['Hochzeit Müller']);
 		$service->saveList($this->user(), 'libraryRoots', ['/Photos']);
 
 		$this->assertSame(['/B', '/A'], $saved);
 		$this->assertSame(['/B', '/A'], $this->storedValue('move_recent'));
-		$this->assertEquals((object)['viKeys' => true, 'moveRecent' => ['/B', '/A'], 'moveFavourites' => [], 'libraryRoots' => ['/Photos']], $service->get($this->user()));
+		$this->assertSame(['Hochzeit Müller'], $this->storedValue('move_job_codes'));
+		$this->assertEquals((object)['viKeys' => true, 'moveRecent' => ['/B', '/A'], 'moveFavourites' => [], 'moveJobCodes' => ['Hochzeit Müller'], 'libraryRoots' => ['/Photos']], $service->get($this->user()));
 	}
 
 	// spec: SETTINGS-001.31

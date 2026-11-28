@@ -23,8 +23,8 @@ import { immichEntry } from './logic/immich-fixtures.ts'
 
 enableAutoUnmount(afterEach)
 
-const PHONE = { id: 'andy-phone', label: 'Andy · Phone', url: 'https://immich.example' }
-const KIDS = { id: 'kids', label: 'Kids', url: 'https://immich.example' }
+const PHONE = { id: 'andy-phone', label: 'Andy · Phone', url: 'https://immich.example', picksAsFavorites: false }
+const KIDS = { id: 'kids', label: 'Kids', url: 'https://immich.example', picksAsFavorites: false }
 const OK = { state: 'ok', account: 'andy', version: '2.3.1', total: 3660 } as const
 const UNREACHABLE: ConnectionStatus = { state: 'unreachable', account: null, version: null, total: null }
 
@@ -184,6 +184,22 @@ describe('App: the Immich source', () => {
 
 		expect(saved.map((rows) => rows.map(({ flag }) => flag))).toEqual([['picked'], ['unflagged'], ['picked']])
 	})
+	// spec: IMMICH-004.25
+	it('opens *Write to Immich* from the Immich toolbar and checks the opened connection\'s candidates', async () => {
+		const asked: string[] = []
+		const immichWrite = { candidates: async (id: string) => (asked.push(id), []), check: async () => [], write: async () => [], imageUrl: () => '' }
+		const { wrapper } = mountApp({ immich: immichOn({ kind: 'connections', connections: [PHONE] }).immich, immichWrite })
+		await flushPromises()
+		wrapper.findComponent(AppNavigation).vm.$emit('chooseSource', 'immich')
+		await flushPromises()
+
+		await wrapper.find('.immich-screen__write').trigger('click')
+		await flushPromises()
+
+		expect(asked).toEqual([PHONE.id])
+		expect(wrapper.findComponent(ImmichScreen).props('write')?.step.value).toEqual({ kind: 'ready' })
+	})
+
 	// spec: IMMICH-002.32, LOUPE-003.10
 	it('opens each connection on its filters from the view state and writes a change for that connection only', async () => {
 		const requests: [string, AssetsRequest][] = []
