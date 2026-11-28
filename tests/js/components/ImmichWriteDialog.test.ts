@@ -32,7 +32,7 @@ async function mountDialog(answered: CheckedAsset[] = CHECKED, pending: WriteCan
 		write: (_id, requests) => new Promise((answer) => writes.push({ requests, answer })),
 		imageUrl: (id, assetId, size) => `/${id}/${assetId}/${size}`,
 	}
-	const write = useImmichWrite(api, () => FAMILY)
+	const write = useImmichWrite(api, () => FAMILY, () => new Map())
 	mount(ImmichWriteDialog, { props: { write }, attachTo: document.body })
 	const opening = write.open()
 	await flushPromises()
@@ -49,7 +49,7 @@ async function mountDialog(answered: CheckedAsset[] = CHECKED, pending: WriteCan
 describe('ImmichWriteDialog', () => {
 	// spec: IMMICH-004.25
 	it('is not shown while closed', () => {
-		const write = useImmichWrite({ candidates: async () => [], check: async () => [], write: async () => [], imageUrl: () => '' }, () => FAMILY)
+		const write = useImmichWrite({ candidates: async () => [], check: async () => [], write: async () => [], imageUrl: () => '' }, () => FAMILY, () => new Map())
 		mount(ImmichWriteDialog, { props: { write }, attachTo: document.body })
 
 		expect(document.body.textContent).not.toContain('Write to Immich')
