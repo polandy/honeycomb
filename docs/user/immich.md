@@ -5,6 +5,23 @@ has connected it ([connecting Immich](admin/immich.md)). Choose **Immich** in th
 more than one connection, switch between them there. The grid shows the
 connection's uploads newest first and loads more as you scroll.
 
+## A pass over your uploads
+
+1. Choose **Immich**, then a time filter, usually the current month. Narrow it by device or kind.
+2. Open a photo in the loupe and decide as for folders: stars, colour labels, Pick and Reject, by
+   buttons, gestures or [keys](keyboard-shortcuts.md), with undo and redo.
+3. Page on. The grid keeps loading as you scroll, and the loupe goes on past what the grid has
+   loaded.
+4. Filter by **Flag** to review your Rejects once more before you stop.
+
+Every decision is kept in honeycomb's database, per connection and upload.
+honeycomb changes nothing in Immich yet: no rating, favourite, archive or trash bin, and nothing
+is deleted.
+
+The grid shows what the connected Immich account's timeline holds. If it lists photos that are not
+yours, the account has partner sharing turned on; ask your Nextcloud admin for an account without
+it ([connecting Immich](admin/immich.md#use-an-account-without-partner-sharing)).
+
 ## Filters
 
 The filter bar above the grid narrows the uploads. Each chip shows how many uploads it would
