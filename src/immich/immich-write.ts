@@ -50,7 +50,7 @@ export function useImmichWrite(api: ImmichWriteApi, connection: () => ImmichConn
 	let countedOf: string | null = null
 	let counting = 0
 	watch(decided, (now) => (decidedSince.value = new Map([...decidedSince.value, ...now])), { flush: 'sync' })
-	const pending = computed(() => counted.value && pendingCount(counted.value, decidedSince.value))
+	const pending = computed(() => counted.value === null ? null : pendingCount(counted.value, decidedSince.value))
 
 	const plan = computed<WritePlan | null>(() => step.value.kind === 'ready'
 		? planWrite(candidates.value, checks.value, { rejectAs: rejectAs.value, picksAsFavorites: picksAsFavorites.value, canDelete: true }, { rating: ratingChoices.value, shared: sharedChoices.value })

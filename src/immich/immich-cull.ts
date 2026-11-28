@@ -70,6 +70,8 @@ export function useImmichCull(context: ImmichCullContext) {
 	})
 
 	const list = computed(() => shownList(loaded.value, settled.value, filters.value))
+	// The decisions made since the cull opened or its filters changed, by asset id, held or not (IMMICH-004.27).
+	const decidedAssets = computed(() => new Map([...core.decided.value].map(([id, decision]) => [entries.get(id)!.assetId, decision])))
 	const pictures = computed(() => list.value.entries.map(pictureOf))
 	const filtersChanged = computed(() => !isDefaultImmichFilters(filters.value, now(), calendar))
 	const choices = computed(() => filterChoices(filters.value, counts.value, periodOptions.value, known.value, now(), calendar))
@@ -234,9 +236,6 @@ export function useImmichCull(context: ImmichCullContext) {
 			loadNext(-1, 1)
 		}
 	}
-
-	/** The decisions made since the cull opened or its filters changed, by asset id, held or not (IMMICH-004.27). */
-	const decidedAssets = computed(() => new Map([...core.decided.value].map(([id, decision]) => [entries.get(id)!.assetId, decision])))
 
 	/** The URL of a picture's image: the thumbnail for the grid's tiers, the preview above (IMMICH-002.16). */
 	function imageUrl(fileId: PictureId, size: number): string {
