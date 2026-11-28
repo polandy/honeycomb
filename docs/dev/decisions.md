@@ -2328,3 +2328,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   browser with the decisions made since, not from a server count, because what is pending is the
   write plan's rule in TypeScript (ADR 0006); without loaded candidates the button shows no number
   and stays enabled, so a failed load never hides the write (IMMICH-004.27, #187, autonomous).
+- 2026-11-28: The thumbnail strips of a small write come from the write plan, which lists the
+  assets it counts as new rejects, rejects taken back and new picks, so a strip shows exactly what
+  its heading counts; a write of more than 100 shows none, and the ratings none, as the mockup
+  does; the strip's images load lazily, as one write shows up to 100 (IMMICH-004.28, #187,
+  autonomous).

@@ -88,10 +88,18 @@ export interface WriteCounts {
 	readonly ratings: number
 }
 
+/** The asset ids a small write shows as thumbnails, per counted kind of change (IMMICH-004.28). */
+export interface WriteStrips {
+	readonly rejects: string[]
+	readonly restores: string[]
+	readonly picks: string[]
+}
+
 /** What a write sends, what it leaves and what the dialog shows. */
 export interface WritePlan {
 	readonly rejectAs: RejectAs
 	readonly counts: WriteCounts
+	readonly strips: WriteStrips
 	readonly conflicts: WriteConflict[]
 	readonly changes: AssetChange[]
 	/** Already as decided in Immich: nothing is sent, the asset counts as written. */
@@ -141,14 +149,14 @@ export function isPending({ decision, written }: WriteCandidate): boolean {
 /** The write of the pending candidates against Immich's answer to the check (IMMICH-004). */
 export function planWrite(candidates: readonly WriteCandidate[], checks: ReadonlyMap<string, CheckedAsset>, options: WriteOptions, choices: WriteChoices): WritePlan {
 	const rejectAs: RejectAs = options.rejectAs === 'trash' && !options.canDelete ? 'archive' : options.rejectAs
-	const plan: WritePlan = { rejectAs, counts: { assets: 0, rejects: 0, restores: 0, picks: 0, ratings: 0 }, conflicts: [], changes: [], done: [], skipped: [], gone: [], adopted: [] }
+	const plan: WritePlan = { rejectAs, counts: { assets: 0, rejects: 0, restores: 0, picks: 0, ratings: 0 }, strips: { rejects: [], restores: [], picks: [] }, conflicts: [], changes: [], done: [], skipped: [], gone: [], adopted: [] }
 	const counts = { ...plan.counts }
 	for (const candidate of candidates.filter(isPending)) {
 		const asset = checks.get(candidate.assetId)
 		if (asset === undefined) {
 			plan.gone.push(candidate.assetId)
 		}
-		countChange(counts, candidate, asset === undefined ? null : planAsset(plan, candidate, asset, rejectAs, options, choices))
+		countChange(counts, plan.strips, candidate, asset === undefined ? null : planAsset(plan, candidate, asset, rejectAs, options, choices))
 	}
 	return { ...plan, counts }
 }
@@ -174,21 +182,24 @@ function isTakenBack({ decision, written }: WriteCandidate): boolean {
 	return decision.flag !== 'rejected' && written?.flag === 'rejected'
 }
 
-/** Adds what the candidate sends to the dialog's counts; unchecked, its decision says what it would send. */
-function countChange(counts: { -readonly [K in keyof WriteCounts]: number }, candidate: WriteCandidate, outcome: AssetOutcome | null): void {
-	const { decision, written } = candidate
+/** Adds what the candidate sends to the dialog's counts and strips; unchecked, its decision says what it would send. */
+function countChange(counts: { -readonly [K in keyof WriteCounts]: number }, strips: WriteStrips, candidate: WriteCandidate, outcome: AssetOutcome | null): void {
+	const { assetId, decision, written } = candidate
 	if (outcome?.reject === 'skip') {
 		return
 	}
 	counts.assets++
 	if (isNewReject(candidate) && outcome?.reject !== 'done') {
 		counts.rejects++
+		strips.rejects.push(assetId)
 	}
 	if (isTakenBack(candidate)) {
 		counts.restores++
+		strips.restores.push(assetId)
 	}
 	if (decision.flag === 'picked' && written?.flag !== 'picked') {
 		counts.picks++
+		strips.picks.push(assetId)
 	}
 	if (outcome === null ? decision.rating !== (written?.rating ?? 0) : outcome.rated) {
 		counts.ratings++

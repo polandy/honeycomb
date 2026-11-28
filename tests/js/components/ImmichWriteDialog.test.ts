@@ -72,6 +72,47 @@ describe('ImmichWriteDialog', () => {
 		expect(button('Write 4 changes')?.disabled).toBe(false)
 	})
 
+	// spec: IMMICH-004.28
+	it('shows the thumbnails of a small write in a strip under the rejects, the rejects taken back and the picks, none under the ratings', async () => {
+		const restored = candidate('b1', {}, { flag: 'rejected', rating: 0, immichRating: null })
+		const { answer } = await mountDialog([...CHECKED, checked('b1', { trashed: true })], [...PENDING, restored])
+		await answer()
+
+		const strips = [...document.body.querySelectorAll('.immich-write-plan__block')].map((block) => [
+			block.querySelector('h3')?.textContent,
+			[...block.querySelectorAll('.immich-write-strip img')].map((image) => image.getAttribute('src')),
+		])
+		expect(strips).toEqual([
+			['2 rejected', ['/family/r1/thumbnail', '/family/top/thumbnail']],
+			['1 no longer rejected', ['/family/b1/thumbnail']],
+			['1 picked', ['/family/p1/thumbnail']],
+			['1 rating', []],
+			['1 to check before writing', []],
+		])
+	})
+
+	// spec: IMMICH-004.28, IMMICH-004.6
+	it('shows no strip for a write of more than 100', async () => {
+		const ids = Array.from({ length: WRITE_BLOCK + 1 }, (_, index) => `r${index}`)
+		const { checks, text } = await mountDialog(ids.map((id) => checked(id)), [...ids.map((id) => candidate(id, { flag: 'rejected' })), candidate('p1', { flag: 'picked' })])
+		checks[0]!.answer(ids.slice(0, WRITE_BLOCK).map((id) => checked(id)))
+		await flushPromises()
+		checks[1]!.answer([...ids.slice(WRITE_BLOCK).map((id) => checked(id)), checked('p1')])
+		await flushPromises()
+
+		expect(text()).toContain(`${WRITE_BLOCK + 2} photos change.`)
+		expect(document.body.querySelector('.immich-write-strip')).toBeNull()
+	})
+
+	// spec: IMMICH-004.28, IMMICH-004.6
+	it('still shows the strip for a write of exactly 100', async () => {
+		const ids = Array.from({ length: WRITE_BLOCK }, (_, index) => `r${index}`)
+		const { answer } = await mountDialog(ids.map((id) => checked(id)), ids.map((id) => candidate(id, { flag: 'rejected' })))
+		await answer()
+
+		expect(document.body.querySelectorAll('.immich-write-strip img')).toHaveLength(WRITE_BLOCK)
+	})
+
 	// spec: IMMICH-004.25, IMMICH-004.3
 	it('plans the write again on a reject choice', async () => {
 		const { answer, text } = await mountDialog()

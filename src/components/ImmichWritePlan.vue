@@ -3,12 +3,15 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
 -->
 <script setup lang="ts">
-import type { RatingChoice, RejectAs, SharedChoice, WritePlan } from '../logic/immich-write-plan.ts'
+import type { RatingChoice, RejectAs, SharedChoice, WritePlan, WriteStrips } from '../logic/immich-write-plan.ts'
 
 import { t } from '@nextcloud/l10n'
+import { computed } from 'vue'
 import NcRadioGroup from '@nextcloud/vue/components/NcRadioGroup'
 import NcRadioGroupButton from '@nextcloud/vue/components/NcRadioGroupButton'
+import ImmichWriteStrip from './ImmichWriteStrip.vue'
 import { changesText, conflictText, countHeadings, picksText, ratingConflictChoices, ratingsText, rejectAsChoices, rejectAsText, restoresText, sharedConflictChoices } from '../immich/immich-write-text.ts'
+import { WRITE_BLOCK } from '../logic/immich-write-plan.ts'
 
 const props = defineProps<{
 	/** The planned write, with the counts and the conflicts (IMMICH-004.6). */
@@ -24,6 +27,11 @@ const emit = defineEmits<{
 	rating: [assetId: string, choice: RatingChoice]
 	shared: [assetId: string, choice: SharedChoice]
 }>()
+
+const NO_STRIPS: WriteStrips = { rejects: [], restores: [], picks: [] }
+
+/** A write of more than one block shows numbers only, no thumbnail per asset (IMMICH-004.6). */
+const strips = computed(() => props.plan.counts.assets > WRITE_BLOCK ? NO_STRIPS : props.plan.strips)
 </script>
 
 <template>
@@ -43,14 +51,17 @@ const emit = defineEmits<{
 					:label="choice.label" />
 			</NcRadioGroup>
 			<p>{{ rejectAsText(props.plan.rejectAs) }}</p>
+			<ImmichWriteStrip :assetIds="strips.rejects" :thumbnailUrl="props.thumbnailUrl" />
 		</section>
 		<section v-if="props.plan.counts.restores > 0" class="immich-write-plan__block">
 			<h3>{{ countHeadings.restores(props.plan.counts.restores) }}</h3>
 			<p>{{ restoresText() }}</p>
+			<ImmichWriteStrip :assetIds="strips.restores" :thumbnailUrl="props.thumbnailUrl" />
 		</section>
 		<section class="immich-write-plan__block">
 			<h3>{{ countHeadings.picks(props.plan.counts.picks) }}</h3>
 			<p>{{ picksText(props.picksAsFavorites) }}</p>
+			<ImmichWriteStrip :assetIds="strips.picks" :thumbnailUrl="props.thumbnailUrl" />
 		</section>
 		<section class="immich-write-plan__block">
 			<h3>{{ countHeadings.ratings(props.plan.counts.ratings) }}</h3>

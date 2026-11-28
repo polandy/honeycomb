@@ -55,16 +55,16 @@ a reject goes to the Immich trash bin by default and can be restored.
   disabled at 0 and shows no number while the candidates cannot be loaded.
 - **The dialog** names the counts of rejects, of rejects taken back, of picks and of ratings, the
   choice for rejects and the conflicts. With more than 100 affected assets it shows numbers and
-  the conflicts only, never a thumbnail per asset. *Write N changes* is disabled at 0 or while
+  the conflicts only, never a thumbnail per asset; up to 100, the rejects, the rejects taken back
+  and the picks each show a strip of their thumbnails. *Write N changes* is disabled at 0 or while
   Immich does not answer.
 - **The dialog in the browser:** *Write to Immich* in the Immich source's toolbar opens it. It
   loads the candidates and checks the pending ones with the progress per block; a failed load or
   check shows that Immich does not answer and keeps *Write N changes* disabled. Ready, it shows the
-  counts, the reject choice and each conflict with its thumbnail and choices; a choice plans the
-  write again. *Write N changes* writes with the progress per block, then the dialog shows the
-  result with *Close*; the next open plans what is still pending. The pending count on the button,
-  the thumbnail strips of a small write, saving *Keep Immich’s* in honeycomb and the scope check
-  come in later steps.
+  counts, the strips of a small write, the reject choice and each conflict with its thumbnail and
+  choices; a choice plans the write again. *Write N changes* writes with the progress per block,
+  then the dialog shows the result with *Close*; the next open plans what is still pending. Saving
+  *Keep Immich’s* in honeycomb and the scope check come in later steps.
 - **Results** per asset: written, skipped or failed. A failed asset keeps its decision and is
   offered again; the others are written. The result says *Written: N* or *Written: N · Failed:
   M*, a failed asset names its state, never Immich's text. After trashing, the toast *Moved N
@@ -268,3 +268,11 @@ a reject goes to the Immich trash bin by default and can be restored.
 - **Then** *Write to Immich* names the number of pending assets, counting each decision made since
   the candidates were loaded, is disabled at 0, and while the candidates cannot be loaded shows
   no number and stays enabled
+
+### IMMICH-004.28 – The thumbnail strips of a small write
+
+- **Given** at most 100 affected assets with rejects, a reject taken back, a pick and a rating, and
+  a write of more than 100
+- **When** the dialog opens
+- **Then** the rejects, the rejects taken back and the picks each show a strip with the thumbnail
+  of every asset they count, the ratings show none, and the larger write shows no strip
