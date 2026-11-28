@@ -20,6 +20,12 @@ async function overlap(first: Locator, second: Locator): Promise<boolean> {
 	return a === null || b === null || (a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height)
 }
 
+/** Whether the first element's box lies within the second's. */
+async function inside(inner: Locator, outer: Locator): Promise<boolean> {
+	const [a, b] = [await inner.boundingBox(), await outer.boundingBox()]
+	return a !== null && b !== null && a.x >= b.x && a.y >= b.y && a.x + a.width <= b.x + b.width && a.y + a.height <= b.y + b.height
+}
+
 test.describe('Write to Immich', () => {
 	test.use({ storageState: { cookies: [], origins: [] } })
 
@@ -35,9 +41,13 @@ test.describe('Write to Immich', () => {
 		occ(['user:delete', ALICE.username])
 	})
 
-	// spec: IMMICH-004.25, IMMICH-004.26
-	test('checks, plans and writes the decisions, then offers nothing more to write', async ({ page }) => {
+	// spec: IMMICH-004.25, IMMICH-004.26, IMMICH-004.27
+	test('counts the pending decisions on the button, checks, plans and writes them, then offers nothing more to write', async ({ page }) => {
 		await openFamily(page)
+		const button = page.getByRole('button', { name: 'Write to Immich' })
+		const pending = button.locator('.immich-screen__pending')
+		await expect(button).toBeDisabled()
+		await expect(pending).toHaveCount(0)
 		await page.keyboard.press('ArrowRight')
 		await expect(tile(page, 2)).toBeFocused()
 		await decide(page, 'x')
@@ -49,8 +59,12 @@ test.describe('Write to Immich', () => {
 		await page.keyboard.press('ArrowRight')
 		await expect(tile(page, 6)).toBeFocused()
 		await decide(page, '3')
+		await expect(pending).toHaveText('5')
+		await expect(pending).toBeVisible()
+		expect(await overlap(pending, button.locator('.immich-screen__write-label'))).toBe(false)
+		expect(await inside(pending, button)).toBe(true)
 
-		await page.getByRole('button', { name: 'Write to Immich' }).click()
+		await button.click()
 		const dialog = page.getByRole('dialog', { name: 'Write to Immich' })
 		for (const shown of ['5 photos change.', '3 rejected', '1 picked', 'They become favourites in Immich.', '1 rating', '1 to check before writing', 'Top of a stack of 3.']) {
 			await expect(dialog).toContainText(shown)
@@ -68,9 +82,7 @@ test.describe('Write to Immich', () => {
 		await expect(dialog).not.toContainText('Failed')
 		await dialog.getByRole('button').filter({ hasText: 'Close' }).click()
 		await expect(dialog).toBeHidden()
-
-		await page.getByRole('button', { name: 'Write to Immich' }).click()
-		await expect(dialog).toContainText('0 photos change.')
-		await expect(dialog.getByRole('button', { name: 'Write 0 changes' })).toBeDisabled()
+		await expect(button).toBeDisabled()
+		await expect(pending).toHaveCount(0)
 	})
 })

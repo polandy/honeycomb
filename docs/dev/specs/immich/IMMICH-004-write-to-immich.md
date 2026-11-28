@@ -50,6 +50,9 @@ a reject goes to the Immich trash bin by default and can be restored.
   assets, a done one without a field so honeycomb stores it as written, each with the rating Immich
   holds afterwards; a skipped asset is answered as skipped, a gone one not at all. A block whose
   request fails fails its assets and every one not yet sent, and nothing more is sent.
+- **The button:** *Write to Immich* names how many assets are pending, from the write candidates
+  loaded when the connection opens and after a write, with the decisions made since; it is
+  disabled at 0 and shows no number while the candidates cannot be loaded.
 - **The dialog** names the counts of rejects, of rejects taken back, of picks and of ratings, the
   choice for rejects and the conflicts. With more than 100 affected assets it shows numbers and
   the conflicts only, never a thumbnail per asset. *Write N changes* is disabled at 0 or while
@@ -257,3 +260,11 @@ a reject goes to the Immich trash bin by default and can be restored.
 - **Then** it shows the progress per block, then *Written: N*, or *Written: N · Failed: M*, with
   *Close*, and opened again it plans only what is still pending; a failed asset shows its
   thumbnail, more than 100 failed show their number only
+
+### IMMICH-004.27 – The pending count on the button
+
+- **Given** a connection with pending assets, one of them written before
+- **When** its screen opens, the user decides an asset, the filters change, or a write ends
+- **Then** *Write to Immich* names the number of pending assets, counting each decision made since
+  the candidates were loaded, is disabled at 0, and while the candidates cannot be loaded shows
+  no number and stays enabled

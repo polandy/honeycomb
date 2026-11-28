@@ -2,41 +2,23 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import type { ImmichWriteApi } from '../../src/immich/immich-write.ts'
-import type { ImmichConnection } from '../../src/logic/immich-connections.ts'
-import type { CheckedAsset, WriteCandidate, WriteResult } from '../../src/logic/immich-write-plan.ts'
-import type { WriteRequest } from '../../src/logic/immich-write-run.ts'
+import type { CheckedAsset, WriteCandidate } from '../../src/logic/immich-write-plan.ts'
 
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useImmichWrite } from '../../src/immich/immich-write.ts'
 import { logger } from '../../src/shared/logger.ts'
+import { fakeApi, FAMILY, NO_DECISIONS, PENDING } from './immich-write-fixtures.ts'
 import { candidate, checked } from './logic/immich-fixtures.ts'
 
 afterEach(() => {
 	vi.restoreAllMocks()
 })
 
-const FAMILY: ImmichConnection = { id: 'family', label: 'Family phones', url: 'http://immich.local', picksAsFavorites: true }
-const PENDING = [candidate('r1', { flag: 'rejected' }), candidate('r2', { flag: 'rejected', rating: 3 }), candidate('p1', { flag: 'picked' }), candidate('s1', { rating: 4 }), candidate('u1', {})]
-
-/** A fake server whose requests wait until the test answers them. */
-function fakeApi() {
-	const candidates: { answer: (rows: WriteCandidate[]) => void, fail: (error: Error) => void }[] = []
-	const checks: { assetIds: readonly string[], answer: (rows: CheckedAsset[]) => void, fail: (error: Error) => void }[] = []
-	const writes: { requests: readonly WriteRequest[], answer: (rows: WriteResult[]) => void }[] = []
-	const api: ImmichWriteApi = {
-		candidates: () => new Promise((answer, fail) => candidates.push({ answer, fail })),
-		check: (_id, assetIds) => new Promise((answer, fail) => checks.push({ assetIds, answer, fail })),
-		write: (_id, requests) => new Promise((answer) => writes.push({ requests, answer })),
-		imageUrl: (id, assetId, size, version) => `/${id}/${assetId}/${size}?v=${version}`,
-	}
-	return { api, candidates, checks, writes }
-}
-
 /** Opens the write and answers the candidates and the check with `answered`. */
 async function opened(answered: CheckedAsset[] = PENDING.map(({ assetId }) => checked(assetId)), loaded: WriteCandidate[] = PENDING) {
 	const server = fakeApi()
-	const write = useImmichWrite(server.api, () => FAMILY)
+	const write = useImmichWrite(server.api, () => FAMILY, NO_DECISIONS)
 	const opening = write.open()
 	await flushPromises()
 	server.candidates[0]?.answer(loaded)
@@ -50,7 +32,7 @@ describe('useImmichWrite', () => {
 	// spec: IMMICH-004.25
 	it('loads the candidates, checks the pending ones with the progress, then plans the write', async () => {
 		const server = fakeApi()
-		const write = useImmichWrite(server.api, () => FAMILY)
+		const write = useImmichWrite(server.api, () => FAMILY, NO_DECISIONS)
 		expect(write.step.value).toEqual({ kind: 'closed' })
 
 		const opening = write.open()
@@ -71,7 +53,7 @@ describe('useImmichWrite', () => {
 	it('shows that Immich does not answer when the check fails, and plans nothing', async () => {
 		const error = vi.spyOn(logger, 'error').mockImplementation(() => {})
 		const server = fakeApi()
-		const write = useImmichWrite(server.api, () => FAMILY)
+		const write = useImmichWrite(server.api, () => FAMILY, NO_DECISIONS)
 
 		const opening = write.open()
 		server.candidates[0]!.answer(PENDING)
@@ -87,12 +69,12 @@ describe('useImmichWrite', () => {
 	// spec: IMMICH-004.25
 	it('opens nothing without an opened connection, and opens once while it checks', async () => {
 		const server = fakeApi()
-		const none = useImmichWrite(server.api, () => null)
+		const none = useImmichWrite(server.api, () => null, NO_DECISIONS)
 		await none.open()
 		expect(none.step.value).toEqual({ kind: 'closed' })
 		expect(none.picksAsFavorites.value).toBe(false)
 
-		const write = useImmichWrite(server.api, () => FAMILY)
+		const write = useImmichWrite(server.api, () => FAMILY, NO_DECISIONS)
 		void write.open()
 		void write.open()
 		expect(server.candidates).toHaveLength(1)
@@ -101,7 +83,7 @@ describe('useImmichWrite', () => {
 	// spec: IMMICH-004.25
 	it('ignores the answer of a closed dialog', async () => {
 		const server = fakeApi()
-		const write = useImmichWrite(server.api, () => FAMILY)
+		const write = useImmichWrite(server.api, () => FAMILY, NO_DECISIONS)
 		const opening = write.open()
 		write.close()
 		server.candidates[0]!.answer(PENDING)
@@ -144,9 +126,10 @@ describe('useImmichWrite', () => {
 		await writing
 
 		expect(write.step.value).toEqual({ kind: 'finished', tally: { written: 3, skipped: 0, failed: 1, failedIds: ['p1'] } })
+		expect(candidates).toHaveLength(2)
 		write.close()
 		void write.open()
-		expect(candidates).toHaveLength(2)
+		expect(candidates).toHaveLength(3)
 	})
 
 	// spec: IMMICH-004.26, IMMICH-004.10
@@ -154,7 +137,7 @@ describe('useImmichWrite', () => {
 		const error = vi.spyOn(logger, 'error').mockImplementation(() => {})
 		const server = fakeApi()
 		const failing: ImmichWriteApi = { ...server.api, write: () => Promise.reject(new Error('refused')) }
-		const write = useImmichWrite(failing, () => FAMILY)
+		const write = useImmichWrite(failing, () => FAMILY, NO_DECISIONS)
 		const opening = write.open()
 		server.candidates[0]!.answer(PENDING)
 		await flushPromises()
@@ -170,7 +153,7 @@ describe('useImmichWrite', () => {
 	// spec: IMMICH-004.25
 	it('writes nothing before the plan is ready or without a change', async () => {
 		const server = fakeApi()
-		const write = useImmichWrite(server.api, () => FAMILY)
+		const write = useImmichWrite(server.api, () => FAMILY, NO_DECISIONS)
 		await write.write()
 		expect(write.step.value).toEqual({ kind: 'closed' })
 

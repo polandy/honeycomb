@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
 import type { ImmichCullApi } from '../../../src/immich/immich-picture-source.ts'
+import type { ImmichWrite } from '../../../src/immich/immich-write.ts'
 import type { ImmichCounts } from '../../../src/logic/immich-counts.ts'
 import type { Page } from '../../../src/logic/immich-paging.ts'
+import type { WriteCandidate } from '../../../src/logic/immich-write-plan.ts'
 
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -13,11 +15,13 @@ import ImmichScreen from '../../../src/components/ImmichScreen.vue'
 import PhotoGrid from '../../../src/components/PhotoGrid.vue'
 import PhotoLoupe from '../../../src/components/PhotoLoupe.vue'
 import { useImmichCull } from '../../../src/immich/immich-cull.ts'
+import { useImmichWrite } from '../../../src/immich/immich-write.ts'
 import { DEFAULT_SETTINGS } from '../../../src/logic/settings.ts'
 import { logger } from '../../../src/shared/logger.ts'
 import { fakeStorage, fakeViewState } from '../app-cull.ts'
+import { FAMILY } from '../immich-write-fixtures.ts'
 import { installMarkedCatalogue, uninstallMarkedCatalogue, untranslatedText } from '../l10n/marked-catalogue.ts'
-import { immichEntry, NOW, UTC_CALENDAR } from '../logic/immich-fixtures.ts'
+import { candidate, immichEntry, NOW, UTC_CALENDAR } from '../logic/immich-fixtures.ts'
 
 afterEach(() => {
 	vi.restoreAllMocks()
@@ -29,7 +33,7 @@ const COUNTS: ImmichCounts = { total: 3660, undecided: 3412, decided: 248, match
 const page = (first: number, count: number, nextCursor: string | null): Page => ({ entries: Array.from({ length: count }, (_, at) => immichEntry(`a${first + at}`)), nextCursor, previousCursor: null })
 
 /** The Immich screen over a fake server whose requests wait until the test answers them. */
-async function mountScreen() {
+async function mountScreen(write: ImmichWrite | undefined = undefined) {
 	const assets: { cursor: string | null, answer: (page: Page) => void, fail: (error: Error) => void }[] = []
 	const counts: ((counts: ImmichCounts) => void)[] = []
 	const api: ImmichCullApi = {
@@ -46,6 +50,7 @@ async function mountScreen() {
 			settings: DEFAULT_SETTINGS,
 			storage: fakeStorage({}),
 			viewState: fakeViewState({ gesture_guide_seen: true, series_hint_seen: true }, []),
+			write,
 		},
 		global: { stubs: { teleport: true } },
 	})
@@ -71,6 +76,28 @@ describe('ImmichScreen', () => {
 		const { wrapper } = await mountScreen()
 
 		expect(wrapper.find('.immich-screen__write').exists()).toBe(false)
+	})
+
+	// spec: IMMICH-004.27
+	it('names the pending count on *Write to Immich*, disabled at 0 and with no number before the count', async () => {
+		const loads: ((rows: WriteCandidate[]) => void)[] = []
+		const write = useImmichWrite({ candidates: () => new Promise((answer) => loads.push(answer)), check: async () => [], write: async () => [], imageUrl: () => '' }, () => FAMILY, () => new Map())
+		const { wrapper } = await mountScreen(write)
+		const button = () => wrapper.find('.immich-screen__write')
+		expect(button().text()).toBe('Write to Immich')
+		expect(button().attributes('disabled')).toBeUndefined()
+
+		const counting = write.refreshPending()
+		loads[0]!(Array.from({ length: 1234 }, (_, at) => candidate(`r${at}`, { flag: 'rejected' })))
+		await counting
+		expect(button().find('.immich-screen__pending').text()).toBe('1,234')
+		expect(button().find('.hidden-visually').text()).toBe('1,234 changes not written to Immich')
+
+		const empty = write.refreshPending()
+		loads[1]!([])
+		await empty
+		expect(button().find('.immich-screen__pending').exists()).toBe(false)
+		expect(button().attributes('disabled')).toBeDefined()
 	})
 
 	// spec: IMMICH-002.18
