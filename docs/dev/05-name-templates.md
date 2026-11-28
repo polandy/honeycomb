@@ -25,9 +25,10 @@ are written so Framehive can adopt them; what honeycomb adds or restricts is mar
 | `{number}`, `{number:N}` | The trailing digits of the original name; `N` (1–6) keeps the last N digits, zero-padded. A name without trailing digits is an error for that picture. |
 | `{camera}` | EXIF `Model`, e.g. `X-T5`. *Added; Framehive lacks it.* |
 | `{make}` | EXIF `Make`, e.g. `FUJIFILM`. *Added; Framehive lacks it.* |
+| `{job}` | The job code typed in the move dialog, e.g. `Hochzeit-Mueller` (MOVE-005). The settings preview shows `Job`. |
 
-`{name}`, `{ext}`, `{camera}` and `{make}` take `:lower` or `:upper`. Framehive's import-only
-tokens (`{imported}`, `{job}`, sequence tokens) are not offered.
+`{name}`, `{ext}`, `{camera}`, `{make}` and `{job}` take `:lower` or `:upper`. Framehive's
+import-only tokens (`{imported}`, sequence tokens) are not offered.
 
 ## Values
 

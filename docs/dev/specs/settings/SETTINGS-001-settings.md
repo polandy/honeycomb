@@ -16,8 +16,8 @@ device and browser.
 The settings are one JSON object per user behind `GET` and `PUT /apps/honeycomb/api/v1/settings`.
 The server checks only that it is an object of at most 8 KB; the client checks each field and falls
 back to its default, so an unknown, missing or invalid field never breaks the app. The object
-carries `version: 1`. The lists that change on their own, the recent and favourite move targets
-and the library roots, are stored each under its own key and written through
+carries `version: 1`. The lists that change on their own, the recent and favourite move targets,
+the recent job codes (MOVE-005) and the library roots, are stored each under its own key and written through
 `PUT /apps/honeycomb/api/v1/settings/lists/{name}`, so a tab that saves a switch never overwrites a
 list another tab changed (ADR 0051); the read still answers one object with every list in it.
 
@@ -34,6 +34,7 @@ list another tab changed (ADR 0051); the read still answers one object with ever
 | Vi keys | Off |
 | Name template for moved photos | *By day* (`docs/dev/05-name-templates.md` Default and presets) |
 | Favourite targets | None |
+| Recent job codes | None (MOVE-005) |
 | Keep statistics | On (STATS-001) |
 | Library roots | None (FOLDERS-004) |
 | Write picks, rejects and Keep RAW to XMP sidecars | On (XMP-003, ADR 0056) |
@@ -74,8 +75,8 @@ Below it, the favourite targets the move dialog starred, each with a ✕ to remo
 
 - **Given** a settings object
 - **When** the client writes it
-- **Then** it is stored whole as JSON without the list fields `moveRecent`, `moveFavourites` and
-  `libraryRoots`, the answer returns it, and a later read returns it; an empty object stays an
+- **Then** it is stored whole as JSON without the list fields `moveRecent`, `moveFavourites`,
+  `moveJobCodes` and `libraryRoots`, the answer returns it, and a later read returns it; an empty object stays an
   object
 
 ### SETTINGS-001.3 – A broken stored value reads as empty
@@ -276,8 +277,8 @@ Withdrawn by ADR 0040 (M8 PR 3); there is no sidecar switch (.28).
 
 ### SETTINGS-001.31 – The lists in their own keys
 
-- **Given** a list of strings of at most 8 KB encoded, and a name `moveRecent`, `moveFavourites`
-  or `libraryRoots`
+- **Given** a list of strings of at most 8 KB encoded, and a name `moveRecent`, `moveFavourites`,
+  `moveJobCodes` or `libraryRoots`
 - **When** the client writes it to `PUT /api/v1/settings/lists/{name}` as `{"items": [...]}`
 - **Then** it is stored whole under that list's own key, the answer is `{"items": [...]}`, and a
   later read of the settings has it in the field of that name; an unknown name, a body that is not
@@ -357,3 +358,4 @@ Pairing itself: LISTING-002.
 | 2026-11-24 | .34 the switch for writing flags to the sidecars, on by default; .28 changed (ADR 0056) |
 | 2026-11-25 | .35 the root picker disables roots and their neighbours; the server refuses nested roots |
 | 2026-11-25 | .36 pickers offer, and the server accepts, only folders inside a library root |
+| 2026-11-28 | .2, .31 the recent job codes `moveJobCodes` as a fourth list (ADR 0063, MOVE-005) |

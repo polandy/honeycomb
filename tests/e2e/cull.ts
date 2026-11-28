@@ -99,7 +99,7 @@ export async function openLoupe(page: Page): Promise<Locator> {
 export const E2E_SETTINGS = {}
 
 /** The settings stored under their own keys (ADR 0051). */
-const SETTINGS_LISTS = ['moveRecent', 'moveFavourites', 'libraryRoots']
+const SETTINGS_LISTS = ['moveRecent', 'moveFavourites', 'moveJobCodes', 'libraryRoots']
 
 /** Stores the settings for the user whole, lists included, `E2E_SETTINGS` putting back the ones every test starts from. */
 export async function putSettings(page: Page, settings: Record<string, unknown>): Promise<void> {
