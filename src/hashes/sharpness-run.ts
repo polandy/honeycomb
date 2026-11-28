@@ -67,7 +67,7 @@ export function useSharpnessRun(seams: SharpnessRunSeams) {
 				listed = true
 			}
 		} catch (error) {
-			logger.warn('Could not list the series to measure', { error, folder })
+			logger.warn('Could not list the series to measure', { error })
 			if (of === run) {
 				problem.value = true
 				status.value = 'paused'
