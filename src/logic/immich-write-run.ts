@@ -69,3 +69,9 @@ export async function runWrite(
 	]
 	return { results, failure }
 }
+
+/** The block a progress step is in and how many there are, for *block 2 of 3* (IMMICH-004.25). */
+export function writeBlockOf({ done, total }: SendProgress): { readonly block: number, readonly blocks: number } {
+	const blocks = Math.max(1, Math.ceil(total / WRITE_BLOCK))
+	return { block: Math.min(blocks, Math.floor(done / WRITE_BLOCK) + 1), blocks }
+}

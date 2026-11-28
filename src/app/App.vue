@@ -130,7 +130,7 @@ const finishedCard = computed(() => ({ markable: home.finishing.value !== null, 
 recent.refresh()
 watch(pickerOpen, (open) => open && recent.refresh())
 
-const { immich, shown: immichShown, opened, openedStatus, onlyOffer, cull: immichCull, resume: immichResume, openConnection, checkOpened } = useImmichApp({ source: props.immich, cull: props.immichCull, positions: props.immichPositions, storage: props.storage, viewState: viewStateApi, now: props.now, toast })
+const { immich, shown: immichShown, opened, openedStatus, onlyOffer, cull: immichCull, resume: immichResume, write: immichWrite, openConnection, checkOpened } = useImmichApp({ source: props.immich, cull: props.immichCull, positions: props.immichPositions, write: props.immichWrite, storage: props.storage, viewState: viewStateApi, now: props.now, toast })
 const immichOnly = useImmichOnly({ stored: () => (settingsSettled.value ? settings.value.immichOnly : null), offer: () => onlyOffer.value, store: (chosen) => updateSettings({ immichOnly: chosen }), chooseSource: immich.choose, folderSet: () => folderSet.value, idle: () => folderSet.value === null && !recent.listing.value, pickerOpen })
 const IMMICH_HIDDEN_KEYS = immichHiddenKeys()
 
@@ -202,6 +202,7 @@ useHotkeys(() => {
 			ref="immichScreen"
 			:cull="immichCull"
 			:resume="immichResume"
+			:write="immichWrite"
 			:settings="settings"
 			:storage="props.storage"
 			:viewState="viewState"
