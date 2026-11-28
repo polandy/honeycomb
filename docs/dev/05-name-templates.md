@@ -39,7 +39,8 @@ tokens (`{imported}`, `{job}`, sequence tokens) are not offered.
   a value that is empty after sanitising: `unknown`.
 - **One set of values per picture.** All files of a picture render from the same values; the
   capture time is read from the RAW member first. A sidecar keeps its suffix:
-  `DSC_0815.NEF.xmp` follows `DSC_0815.NEF`.
+  `DSC_0815.NEF.xmp` follows `DSC_0815.NEF`, the shared `DSC_0815.xmp` follows the new name, and
+  a darktable duplicate's `DSC_0815_01.NEF.xmp` keeps `_01` after the new name and its suffix.
 - **Separate subfolders.** When the source folder keeps members in `RAW/` and `JPG/`, the moved
   members go into `RAW/` and `JPG/` under the rendered folder.
 

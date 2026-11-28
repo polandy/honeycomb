@@ -31,6 +31,14 @@ describe('renderPicture', () => {
 		expect(rendered).toEqual({ ok: true, files: [{ folder: '2026', name: 'DSCF1234', extension: 'NEF.xmp' }] })
 	})
 
+	// spec: MOVE-001.16
+	it('puts a darktable duplicate\'s number after the new name and its collision suffix', () => {
+		const rendered = renderPicture(templateOf('R{number}.{ext}'), factsOf({}), [{ extension: 'NEF', subfolder: null }, { extension: 'NEF.xmp', subfolder: null, duplicate: '_01' }])
+
+		expect(rendered.ok && rendered.files.map((file) => renderedPath(file, null))).toEqual(['R1234.NEF', 'R1234_01.NEF.xmp'])
+		expect(rendered.ok && rendered.files.map((file) => renderedPath(file, 2))).toEqual(['R1234-2.NEF', 'R1234-2_01.NEF.xmp'])
+	})
+
 	it('refuses a time outside the range of a date instead of rendering NaN', () => {
 		expect(() => renderPicture(templateOf('{date:%Y}/{name}.{ext}'), factsOf({ captureTime: 1e16 }), filesOf(['RAF']))).toThrow(RangeError)
 	})
