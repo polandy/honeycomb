@@ -790,6 +790,7 @@ const DE = {
   'Thumbnail size': 'Vorschaugröße',
   'Move filtered': 'Gefilterte verschieben',
   'Move picks': 'Markierte verschieben',
+  'Move all…': 'Alle verschieben…',
   'Resume at {name}': 'Bei {name} fortsetzen',
   'Hide header': 'Kopfzeile ausblenden',
   'Full path': 'Vollständiger Pfad',
@@ -1651,6 +1652,7 @@ function openMore(anchor){
     ${multiFolder() ? `<button class="mi" role="menuitemcheckbox" aria-checked="${S.groupFolder}" data-act="groupFolder">${ic('folder')}<span>${t('Group by folder')}</span></button>` : ''}${sep}
     <div class="mi mrow" role="group" aria-label="${t('Thumbnail size')}"><svg class="ic" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></svg><input type="range" id="tsRange" min="90" max="340" step="1" value="${Math.round(S.ts)}" data-chg="tsize" aria-label="${t('Thumbnail size')}"><svg class="ic" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2"/></svg></div>${sep}
     ${menuItem('moveView', 'move', filtersActive() ? t('Move filtered') : t('Move picks'), nMove ? '' : 'disabled', `<span class="k">${nf(nMove)}</span>`)}
+    ${menuItem('moveAll', 'move', t('Move all…'), S.items.length ? '' : 'disabled', `<span class="k">${nf(S.items.length)}</span>`)}
     ${menuItem('rawRm', 'trash', t('Remove RAWs…'), rawRemovable(S.view).length ? '' : 'disabled', `<span class="k">${nf(rawRemovable(S.view).length)}</span>`)}
     ${rit ? menuItem('resume', 'folder', esc(t('Resume at {name}', {name:stem(rit)}))) : ''}${sep}
     ${menuItem('writeXmp', 'check', esc(nXmp ? t('Write picks/rejects to XMP · {count}', {count:nf(nXmp)}) : t('Write picks/rejects to XMP'))) + menuItem('clearFlags', 'undo', t('Clear picks/rejects'), nClear ? '' : 'disabled', `<span class="k">${nf(nClear)}</span>`) + sep}
@@ -2751,6 +2753,7 @@ const A = {
   pkChoose(){ const p = S.dlg.sel; if (S.dlg.forMove){ if (p && p !== S.folderPath) openDlg({...S.dlg.forMove, target:p}); return; } const t = [...S.dlg.ticks]; if (setCount(t, S.dlg.sub).photos) loadSet(t, S.dlg.sub); },
   moveSel(){ openMove([...S.sel]); }, moveCur(){ openMove(targetIds()); },
   moveView(){ openMove((filtersActive() ? S.view : S.items.filter(i => i.flag === 'pick')).map(i => i.id)); },
+  moveAll(){ const shown = new Set(S.view); openMove([...S.view, ...S.items.filter(i => !shown.has(i))].map(i => i.id)); },
   mvTarget(el){ S.dlg.target = el.dataset.path; renderDlg(); }, mvBack(){ openDlg(S.dlg.forMove); },
   mvBrowse(){ const d = S.dlg; openDlg({type:'picker', cwd:d.target ? d.target.split('/').slice(0, -1).join('/') || '/' : '/Photos', sel:d.target, forMove:d}); },
   mvFav(){ const t = S.dlg.target; S.moveFav = S.moveFav.includes(t) ? S.moveFav.filter(p => p !== t) : [...S.moveFav, t]; renderDlg(); },
