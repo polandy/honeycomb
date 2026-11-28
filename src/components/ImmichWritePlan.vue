@@ -6,12 +6,12 @@
 import type { RatingChoice, RejectAs, SharedChoice, WritePlan, WriteStrips } from '../logic/immich-write-plan.ts'
 
 import { t } from '@nextcloud/l10n'
+import { computed } from 'vue'
 import NcRadioGroup from '@nextcloud/vue/components/NcRadioGroup'
 import NcRadioGroupButton from '@nextcloud/vue/components/NcRadioGroupButton'
-import { computed } from 'vue'
+import ImmichWriteStrip from './ImmichWriteStrip.vue'
 import { changesText, conflictText, countHeadings, picksText, ratingConflictChoices, ratingsText, rejectAsChoices, rejectAsText, restoresText, sharedConflictChoices } from '../immich/immich-write-text.ts'
 import { WRITE_BLOCK } from '../logic/immich-write-plan.ts'
-import ImmichWriteStrip from './ImmichWriteStrip.vue'
 
 const props = defineProps<{
 	/** The planned write, with the counts and the conflicts (IMMICH-004.6). */
