@@ -5,11 +5,12 @@
 <script setup lang="ts">
 import type { Folder } from '../api/index.ts'
 import type { HashRunSeams } from '../hashes/hash-run.ts'
+import type { SharpnessRunSeams } from '../hashes/sharpness-run.ts'
 import type { PageNavigationSeams } from './PageLayout.vue'
 
 import { t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import AppIcon from './AppIcon.vue'
@@ -18,9 +19,12 @@ import PageLayout from './PageLayout.vue'
 import ProgressBar from './ProgressBar.vue'
 import { outsideRootsNote } from '../folders/folders-text.ts'
 import { useHashRun } from '../hashes/hash-run.ts'
+import { useSharpnessRun } from '../hashes/sharpness-run.ts'
 
 const props = withDefaults(defineProps<{
 	seams: HashRunSeams
+	/** The seams of the sharpness pass after the hashes (SERIES-004.17). */
+	sharpness: SharpnessRunSeams
 	listFolders: (path: string) => Promise<Folder[]>
 	/** The library roots; the folders to scan lie inside them while any is set (SETTINGS-001.36). */
 	roots?: readonly string[]
@@ -31,20 +35,75 @@ const props = withDefaults(defineProps<{
 })
 
 const run = useHashRun(props.seams)
+const sharpness = useSharpnessRun(props.sharpness)
 const chosen = ref<string | null>(null)
-const busy = computed(() => run.status.value === 'running' || run.status.value === 'pausing')
-const done = computed(() => run.progress.value.hashed + run.progress.value.failed)
-const counts = computed(() => [
-	{ label: t('honeycomb', 'Found'), value: `${run.progress.value.total}${run.listed.value ? '' : '+'}` },
-	{ label: t('honeycomb', 'Hashed'), value: `${run.progress.value.hashed}` },
-	{ label: t('honeycomb', 'Failed'), value: `${run.progress.value.failed}` },
-	{ label: t('honeycomb', 'Left'), value: `${run.progress.value.total - done.value}` },
-])
+const started = ref('')
+const hashing = computed(() => run.status.value === 'running' || run.status.value === 'pausing')
+const measuring = computed(() => run.status.value === 'done' && sharpness.status.value !== 'idle')
+const busy = computed(() => hashing.value || (measuring.value && sharpness.status.value === 'running'))
+const paused = computed(() => run.status.value === 'paused' || (measuring.value && sharpness.status.value === 'paused'))
+const sections = computed(() => {
+	const hashed = run.progress.value
+	const measured = sharpness.progress.value
+	const hashSection = {
+		label: t('honeycomb', 'Similarity'),
+		value: hashed.hashed + hashed.failed,
+		max: hashed.total,
+		counts: [
+			{ label: t('honeycomb', 'Found'), value: `${hashed.total}${run.listed.value ? '' : '+'}` },
+			{ label: t('honeycomb', 'Hashed'), value: `${hashed.hashed}` },
+			{ label: t('honeycomb', 'Failed'), value: `${hashed.failed}` },
+			{ label: t('honeycomb', 'Left'), value: `${hashed.total - hashed.hashed - hashed.failed}` },
+		],
+	}
+	const sharpnessSection = {
+		label: t('honeycomb', 'Sharpness'),
+		value: measured.measured + measured.failed,
+		max: measured.total,
+		counts: [
+			{ label: t('honeycomb', 'To measure'), value: `${measured.total}` },
+			{ label: t('honeycomb', 'Measured'), value: `${measured.measured}` },
+			{ label: t('honeycomb', 'Failed'), value: `${measured.failed}` },
+			{ label: t('honeycomb', 'Left'), value: `${measured.total - measured.measured - measured.failed}` },
+		],
+	}
+	return measuring.value ? [hashSection, sharpnessSection] : [hashSection]
+})
 const cullUrl = generateUrl('/apps/honeycomb/')
+
+watch(() => run.status.value, (status) => {
+	if (status === 'done') {
+		sharpness.start(started.value)
+	}
+})
 
 /** Chooses a folder, or lets go of the chosen one. */
 function choose(path: string) {
 	chosen.value = chosen.value === path ? null : path
+}
+
+/** Starts the hashes of the chosen folder; the sharpness follows once they are done. */
+function start() {
+	started.value = chosen.value!
+	run.start(started.value)
+}
+
+/** Pauses the pass that runs. */
+function pause() {
+	if (hashing.value) {
+		run.pause()
+	} else {
+		sharpness.pause()
+	}
+}
+
+/** Resumes the pass that paused. */
+function resume() {
+	if (run.status.value === 'paused') {
+		run.resume()
+	} else {
+		sharpness.resume()
+	}
 }
 </script>
 
@@ -66,31 +125,36 @@ function choose(path: string) {
 				@toggle="choose" />
 			<div class="similarity-page__actions">
 				<NcButton
-					v-if="!busy && run.status.value !== 'paused'"
+					v-if="!busy && !paused"
 					variant="primary"
 					:disabled="chosen === null"
-					@click="run.start(chosen!)">
+					@click="start">
 					{{ t('honeycomb', 'Start') }}
 				</NcButton>
-				<NcButton v-if="busy" :disabled="run.status.value === 'pausing'" @click="run.pause()">
+				<NcButton v-if="busy" :disabled="run.status.value === 'pausing'" @click="pause">
 					{{ t('honeycomb', 'Pause') }}
 				</NcButton>
-				<NcButton v-if="run.status.value === 'paused'" variant="primary" @click="run.resume()">
+				<NcButton v-if="paused" variant="primary" @click="resume">
 					{{ t('honeycomb', 'Resume') }}
 				</NcButton>
 			</div>
 			<template v-if="run.status.value !== 'idle'">
-				<ProgressBar
-					class="similarity-page__bar"
-					:label="t('honeycomb', 'Similarity')"
-					:value="done"
-					:max="run.progress.value.total" />
-				<dl class="similarity-page__counts">
-					<div v-for="count in counts" :key="count.label">
-						<dt>{{ count.label }}</dt>
-						<dd>{{ count.value }}</dd>
-					</div>
-				</dl>
+				<template v-for="section in sections" :key="section.label">
+					<h3 v-if="sections.length > 1" class="similarity-page__section">
+						{{ section.label }}
+					</h3>
+					<ProgressBar
+						class="similarity-page__bar"
+						:label="section.label"
+						:value="section.value"
+						:max="section.max" />
+					<dl class="similarity-page__counts">
+						<div v-for="count in section.counts" :key="count.label">
+							<dt>{{ count.label }}</dt>
+							<dd>{{ count.value }}</dd>
+						</div>
+					</dl>
+				</template>
 				<NcNoteCard v-if="run.problem.value === 'save'" type="error">
 					{{ t('honeycomb', 'Could not save the visual hashes. Resume to try again.') }}
 				</NcNoteCard>
@@ -102,6 +166,12 @@ function choose(path: string) {
 				</NcNoteCard>
 				<NcNoteCard v-if="run.status.value === 'done'" type="success">
 					{{ t('honeycomb', 'Done: every photo in this folder has its similarity.') }}
+				</NcNoteCard>
+				<NcNoteCard v-if="measuring && sharpness.problem.value" type="error">
+					{{ t('honeycomb', 'Could not list the series of this folder. Resume to try again.') }}
+				</NcNoteCard>
+				<NcNoteCard v-if="measuring && sharpness.status.value === 'done'" type="success">
+					{{ t('honeycomb', 'Done: every photo of a series in this folder has its sharpness.') }}
 				</NcNoteCard>
 				<details v-if="run.failedPaths.value.length > 0" class="similarity-page__failed">
 					<summary>{{ t('honeycomb', 'Photos that could not be compared') }}</summary>
@@ -128,6 +198,11 @@ function choose(path: string) {
 .similarity-page__actions {
 	display: flex;
 	gap: calc(2 * var(--default-grid-baseline));
+}
+
+.similarity-page__section {
+	margin: 0;
+	font-size: 1.1em;
 }
 
 .similarity-page__bar {

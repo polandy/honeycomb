@@ -3,12 +3,13 @@
 - Status: implemented
 - Area: series
 - Origin: owner decision 2026-11-14 (fingerprints in bulk on a page of their own); ADR 0025
-- Depends on: SERIES-003
+- Depends on: SERIES-003, SERIES-006
 
 ## Purpose
 
-A strong computer computes the visual hashes of a whole folder tree at once, so a later cull on
-any device finds them stored and links series at once.
+A strong computer computes the visual hashes of a whole folder tree at once, and then the sharpness
+of its series members, so a later cull on any device finds them stored, links series and marks the
+sharpest at once.
 
 ## Behaviour
 
@@ -48,6 +49,21 @@ any device finds them stored and links series at once.
   found are a lower bound.
 - A run that stops, by a reload or a closed tab, starts again where it stopped: the server
   delivers only the photos still without a hash. Failed photos are tried once more.
+- **Sharpness.** Once the hashes are done, the page lists the folder with every folder below it
+  (LISTING-001, `subfolders=1`), pairs the files by the user's pairing settings and links the
+  series candidates by capture time and the listed visual hashes (SERIES-001). It measures the
+  shown member of each candidate's pictures that has no `quality` of the current method, as the
+  cull measures (SERIES-006): one photo at a time in a worker of the pool, from the loupe tier,
+  saved every 100 values and when none is left, a limited save sent again, a failed save logged.
+  The page knows no decisions and no stored series: a rejected picture of a candidate is measured
+  too, a picture only a stored series holds is left to the cull. Of a listing cut at 60,000
+  entries the listed part is measured.
+- The sharpness progress shows the photos to measure, measured, failed and left, and a bar; once
+  none is left the page says *Done: every photo of a series in this folder has its sharpness.*
+  *Pause* hands no further photo to the worker, the one being measured finishes; *Resume* goes on.
+  A photo whose measure fails counts as failed and is not measured again on this page. A listing or
+  pairing settings that cannot be loaded pause the sharpness with *Could not list the series of
+  this folder. Resume to try again.*; *Resume* lists again.
 
 ## Acceptance criteria
 
@@ -160,6 +176,49 @@ any device finds them stored and links series at once.
 - **Then** that picture counts as failed, the worker is ended and the next picture is hashed in
   a new worker; a crash while idle starts none
 
+### SERIES-004.17 – The series members are measured after the hashes
+
+- **Given** a folder tree with a series of two photos without a quality value, a series with a
+  value of the current method on one photo and of another method on the other, and a single photo
+- **When** the run's hashes are done
+- **Then** the page lists the folder with its subfolders, measures the photos without a value of
+  the current method, one at a time, and no photo before the hashes are done; the single photo and
+  the photo with a current value are not measured, and the values are saved
+
+### SERIES-004.18 – The sharpness progress
+
+- **Given** a sharpness pass with photos measured, failed and left
+- **When** the page shows
+- **Then** it shows those counts with the photos to measure and a bar, and once none is left says
+  it is done; a tree without a series is done at once with nothing to measure
+
+### SERIES-004.19 – Pause and resume the sharpness
+
+- **Given** a sharpness pass measuring a photo, and one whose listing is still in flight
+- **When** the user pauses
+- **Then** the photo in work finishes and no further one is measured, a listing that arrives
+  starts nothing, and *Resume* goes on with the next photo
+
+### SERIES-004.20 – A failed listing pauses the sharpness
+
+- **Given** a sharpness pass whose listing or pairing settings cannot be loaded
+- **When** the pass starts
+- **Then** it pauses with the failure shown, and *Resume* lists the folder again
+
+### SERIES-004.21 – A failed measure is not repeated
+
+- **Given** a series photo whose measure fails
+- **When** the pass goes on
+- **Then** it counts as failed, the other photos are measured, and it is not measured again when the
+  pass of the same folder runs again on this page
+
+### SERIES-004.22 – The sharpness in Nextcloud
+
+- **Given** a folder with a series of two photos in a subfolder and a single photo
+- **When** the user starts the page on the folder
+- **Then** the page says the sharpness is done, and the listing delivers a quality value for both
+  series photos and none for the single one
+
 ## Out of scope
 
 - The hash and the link rule: SERIES-001. Storing and delivering the hashes: SERIES-003.
@@ -175,3 +234,4 @@ any device finds them stored and links series at once.
 | 2026-11-15 | Workers start when needed; a crashed worker fails one picture (review R12 a) |
 | 2026-11-15 | The cull hashes in the same workers (review R12 b, SERIES-003.26) |
 | 2026-11-24 | The missing hashes are asked for one method (SERIES-003.30) |
+| 2026-11-28 | The page measures the sharpness of its series members after the hashes (ADR 0046) |

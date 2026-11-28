@@ -19,7 +19,7 @@ import { removeStored } from '../shared/browser-storage.ts'
 export const VISUAL_HASHES_KEY = 'honeycomb.visualHashes'
 
 /** The listed hash of a member when it was taken by the current method, else null (SERIES-003.30). */
-function currentHash(member: ListingEntry): string | null {
+export function currentHash(member: ListingEntry): string | null {
 	return member.visualHash?.method === VISUAL_HASH_METHOD ? member.visualHash.hash : null
 }
 

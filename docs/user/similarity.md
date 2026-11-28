@@ -14,10 +14,15 @@ can compute it ahead of the cull, once, so series show at once on every device.
 Only your own photos count: shared folders, group folders and external storage are skipped. Photos
 whose similarity is already known are skipped too, so a second run is quick.
 
+Once the similarity is done, the page measures how sharp each photo of a series is, so the series
+compare marks the sharpest at once. *Sharpness* shows how many photos it has to measure, how many
+are done, how many failed and how many are left. Photos outside a series and photos already
+measured are skipped.
+
 ## Pause, resume and failures
 
 - **Pause** stops handing out photos; the page finishes the ones in work and saves them first.
-  **Resume** goes on.
+  **Resume** goes on. It pauses the sharpness the same way.
 - If you close the page, start again on the same folder: only the photos still missing are done.
 - If saving or loading fails, the run pauses and says so. **Resume** tries again.
 - A photo that cannot be compared, for example because it has no preview, is listed under

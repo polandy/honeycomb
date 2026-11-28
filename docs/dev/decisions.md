@@ -2324,6 +2324,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-28: The *Job code* field stands at the top of the move dialog, above the target chips
   and so above the move summary, as the code is asked when the move starts; a template without
   `{job}` shows no field (#187, autonomous).
+- 2026-11-28: The similarity page finds its series members by one listing of the tree with
+  `subfolders=1` after the hashes, paired by the user's settings, and measures every picture of a
+  series candidate, rejected ones too and without stored series: the page knows no decisions, and
+  a cull of the folder measures what is left (SERIES-004.17, autonomous).
 - 2026-11-28: The pending count on *Write to Immich* comes from the write candidates loaded in the
   browser with the decisions made since, not from a server count, because what is pending is the
   write plan's rule in TypeScript (ADR 0006); without loaded candidates the button shows no number
