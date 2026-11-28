@@ -217,8 +217,9 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 - **Then** its entries stand in groups, each with a heading and one separator between the groups:
   *View* (thumbnail size, *Group by folder*, *Show file names*, sort), *Cull* (*Resume at*,
   *Review rejects*, *Compare series*, *Reduce series to the sharpest…* (SERIES-008)), *Files*
-  (*Remove RAWs…*, *Move picks…*), *Picks and rejects* (*Clear picks/rejects* (.22), *Write
-  picks/rejects to XMP* (.21)), and *Settings* last, without a heading; a changed view option
+  (*Remove RAWs…*, *Move picks…*, *Move all…* (MOVE-005)), *Picks and rejects* (*Clear
+  picks/rejects* (.22), *Write picks/rejects to XMP* (.21)), and *Settings* last, without a
+  heading; a changed view option
   leaves the menu open, and an action closes it, so no menu stays above the dialog or view it
   opens; on a short viewport the menu scrolls, so every entry stays reachable
 
@@ -258,3 +259,4 @@ sort (GRID-002), selection (GRID-003), the image endpoint (IMAGES-001), keyboard
 | 2026-11-21 | GRID-001.23: a failed preview shows a dimmed tile with a broken-image glyph and loads again on a tap (E8/U4, owner 2026-11-19) |
 | 2026-11-21 | GRID-001.18: *Reduce series to the sharpest…* among the actions (SERIES-008) |
 | 2026-11-26 | GRID-001.24: the focus stays when photos only leave the grid (PR 10c) |
+| 2026-11-28 | GRID-001.18: *Move all…* in the *Files* group (MOVE-005) |

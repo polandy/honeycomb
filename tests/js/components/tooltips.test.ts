@@ -31,7 +31,7 @@ describe('the tooltips of the icon-only controls', () => {
 				view: { tileSize: 150, groupByFolder: false, fileNames: false, sortOrder: 'file-name', flags: new Set<Flag>(['picked', 'unflagged']), filtersOpen: false, activeFilters: 0 },
 				progress: { decided: 0, total: 1, filtered: false },
 				selection: { selecting: false, selected: 0 },
-				tasks: { rejected: 2, series: 1, reducible: 0, rawRemovable: 0, movable: 0, clearable: 0, xmpToWrite: 0, resumeName: null },
+				tasks: { rejected: 2, series: 1, reducible: 0, rawRemovable: 0, movable: 0, allMovable: 0, clearable: 0, xmpToWrite: 0, resumeName: null },
 			},
 			global: { stubs: { NcPopover: PopoverStub } },
 		})

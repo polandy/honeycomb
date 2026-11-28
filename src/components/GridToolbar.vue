@@ -48,6 +48,7 @@ const emit = defineEmits<{
 	clearFlags: []
 	writeXmp: []
 	move: []
+	moveAll: []
 	resume: []
 	openSettings: []
 }>()
@@ -182,6 +183,7 @@ const setName = computed(() => {
 				:clearable="props.tasks.clearable"
 				:xmpToWrite="props.tasks.xmpToWrite"
 				:movable="props.tasks.movable"
+				:allMovable="props.tasks.allMovable"
 				:moveFiltered="props.view.activeFilters > 0"
 				:resumeName="props.tasks.resumeName"
 				:rejected="props.tasks.rejected"
@@ -195,6 +197,7 @@ const setName = computed(() => {
 				@clearFlags="fromMenu(() => emit('clearFlags'))"
 				@writeXmp="fromMenu(() => emit('writeXmp'))"
 				@move="fromMenu(() => emit('move'))"
+				@moveAll="fromMenu(() => emit('moveAll'))"
 				@resume="fromMenu(() => emit('resume'))"
 				@reviewRejects="fromMenu(() => emit('reviewRejects'))"
 				@compareSeries="fromMenu(() => emit('compareSeries'))"

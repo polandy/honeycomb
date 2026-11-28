@@ -56,6 +56,8 @@ export interface ToolbarTasks {
 	readonly xmpToWrite: number
 	/** How many pictures *Move picks* or, while a filter is on, *Move filtered* opens the move dialog on. */
 	readonly movable: number
+	/** How many pictures of the folder set *Move all* opens the move dialog on, whatever the filter (MOVE-005.1). */
+	readonly allMovable: number
 	/** The base name of the picture *Resume* opens the loupe at, null when there is none. */
 	readonly resumeName: string | null
 }

@@ -29,6 +29,8 @@ defineProps<{
 	xmpToWrite: number
 	/** How many pictures the move item opens the move dialog on. */
 	movable: number
+	/** How many pictures of the folder set *Move all* opens the move dialog on. */
+	allMovable: number
 	/** Whether a filter is on, which makes *Move picks* *Move filtered*. */
 	moveFiltered: boolean
 	/** The base name of the picture *Resume* opens the loupe at, null when there is none. */
@@ -50,6 +52,7 @@ const emit = defineEmits<{
 	clearFlags: []
 	writeXmp: []
 	move: []
+	moveAll: []
 	resume: []
 	reviewRejects: []
 	compareSeries: []
@@ -147,6 +150,18 @@ const emit = defineEmits<{
 				</template>
 				{{ moveFiltered ? t('honeycomb', 'Move filtered…') : t('honeycomb', 'Move picks…') }}
 				<span class="grid-more-menu__count">{{ formatNumber(movable) }}</span>
+			</NcButton>
+			<NcButton
+				variant="tertiary"
+				alignment="start"
+				wide
+				:disabled="allMovable === 0"
+				@click="emit('moveAll')">
+				<template #icon>
+					<AppIcon name="folder" />
+				</template>
+				{{ t('honeycomb', 'Move all…') }}
+				<span class="grid-more-menu__count">{{ formatNumber(allMovable) }}</span>
 			</NcButton>
 		</GridMoreGroup>
 		<hr class="grid-more-menu__separator">

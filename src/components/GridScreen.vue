@@ -50,6 +50,7 @@ const toolbarTasks = computed<ToolbarTasks>(() => ({
 	clearable: cull.clearable.value,
 	xmpToWrite: xmpExport.count.value,
 	movable: movable.value.length,
+	allMovable: pictures.value.length,
 	resumeName: resume.resumeName.value,
 }))
 
@@ -110,6 +111,7 @@ defineExpose({ grid, filterBar })
 			@clearFlags="clearFlags"
 			@writeXmp="xmpExport.run"
 			@move="moving.open(movable)"
+			@moveAll="moving.open(pictures)"
 			@resume="resume.resume"
 			@openSettings="openSettings" />
 		<FilterBar

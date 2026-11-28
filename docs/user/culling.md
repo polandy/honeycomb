@@ -118,7 +118,9 @@ bin.
 
 ## 7. Move the keepers
 
-**⋯ → Move picks…** moves every picked photo, **Move…** in the action bar or `M` the selection.
+**⋯ → Move picks…** moves every picked photo, **⋯ → Move all…** every photo of the open folders,
+the hidden ones too, **Move…** in the action bar or `M` the selection. Files that are not part of
+a photo and the folder itself stay where they are.
 Choose a target folder (favourites and recent folders come first, *Browse…* opens the picker),
 check the new names, which follow the name template in the [settings](settings.md#moving-photos),
 and decide what happens when a name is taken: *Add suffix*, *Skip* or *Replace*. Every file of a
