@@ -62,6 +62,39 @@ describe('memberFiles', () => {
 		expect(memberFiles(PAIR).every((file) => file.subfolder === null)).toBe(true)
 	})
 
+	// spec: MOVE-001.16, MOVE-001.17
+	it('gives digiKam\'s two sidecar forms as extensions and a darktable duplicate\'s number apart', () => {
+		const picture = pictureOf(
+			listingEntry(1, '/Trip/DSC_0001.NEF'),
+			listingEntry(2, '/Trip/DSC_0001.JPG'),
+			listingEntry(3, '/Trip/DSC_0001.NEF.xmp'),
+			listingEntry(4, '/Trip/dsc_0001.xmp'),
+			listingEntry(5, '/Trip/DSC_0001_01.NEF.xmp'),
+		)
+
+		expect(memberFiles(picture)).toEqual([
+			{ extension: 'JPG', subfolder: null },
+			{ extension: 'NEF', subfolder: null },
+			{ extension: 'NEF.xmp', subfolder: null },
+			{ extension: 'xmp', subfolder: null },
+			{ extension: 'NEF.xmp', subfolder: null, duplicate: '_01' },
+		])
+	})
+
+	// spec: MOVE-001.16, MOVE-001.17
+	it('plans the sidecars of a renamed picture under the names digiKam and darktable read', () => {
+		const picture = pictureOf(
+			listingEntry(1, '/Trip/DSC_0001.NEF'),
+			listingEntry(3, '/Trip/DSC_0001.NEF.xmp'),
+			listingEntry(4, '/Trip/DSC_0001.xmp'),
+			listingEntry(5, '/Trip/DSC_0001_12.NEF.xmp'),
+		)
+		const [named] = nameCandidates([picture], template('R{number}.{ext}'), () => 0)
+		const [planned] = planMove('/Out', [named!.candidate!], [{ path: '/Out/R0001.NEF', fileId: 90, etag: 'e' }])
+
+		expect(planned!.files.map((file) => file.path)).toEqual(['/Out/R0001-2.NEF', '/Out/R0001-2.NEF.xmp', '/Out/R0001-2.xmp', '/Out/R0001-2_12.NEF.xmp'])
+	})
+
 	// spec: MOVE-004.6
 	it('keeps each file in its subfolder in separate-subfolders mode', () => {
 		const [picture] = pairPictures([listingEntry(1, '/Trip/RAW/A.NEF'), listingEntry(2, '/Trip/JPG/A.JPG')], {

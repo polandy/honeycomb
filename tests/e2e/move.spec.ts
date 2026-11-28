@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { expect, test } from '@playwright/test'
 import { randomUUID } from 'node:crypto'
-import { cullFolder } from './cull.ts'
-import { createFolder, JPEG, RAW, upload } from './files.ts'
+import { cullFolder, E2E_SETTINGS, putSettings } from './cull.ts'
+import { createFolder, exists, JPEG, pickLabel, RAW, upload } from './files.ts'
 import { WEBKIT } from './webkit.ts'
 
 // spec: MOVE-004.1, MOVE-004.3, MOVE-004.9, MOVE-004.11
@@ -43,4 +43,45 @@ test('moves the selection to a folder chosen by Browse… and brings it back by 
 	await expect(page.getByRole('status').filter({ hasText: 'Moved 2 files back' })).toBeVisible()
 	await expect(grid.getByRole('gridcell')).toHaveCount(2)
 	await expect(grid.getByRole('gridcell', { name: 'IMG_0001, JPG+NEF' })).toBeVisible()
+})
+
+// spec: MOVE-001.16, MOVE-001.17
+test('moves the digiKam and darktable sidecars under the names those programs read', async ({ page }) => {
+	await page.goto('/index.php/apps/honeycomb/')
+	const id = randomUUID().slice(0, 8)
+	const folder = `Sidecars ${id}`
+	const target = `Sidecars out ${id}`
+	await createFolder(page, folder)
+	await createFolder(page, target)
+	await upload(page, `${folder}/IMG_0001.jpg`, JPEG)
+	await upload(page, `${folder}/IMG_0001.NEF`, RAW)
+	for (const sidecar of ['IMG_0001.NEF.xmp', 'IMG_0001.xmp', 'IMG_0001_01.NEF.xmp']) {
+		await upload(page, `${folder}/${sidecar}`, pickLabel(0))
+	}
+	await putSettings(page, { moveTemplate: 'R{number}.{ext}' })
+	try {
+		await cullFolder(page, folder)
+		const grid = page.getByRole('grid', { name: 'Photos' })
+		await page.getByRole('button', { name: 'Select', exact: true }).click()
+		await grid.getByRole('gridcell', { name: 'IMG_0001, JPG+NEF' }).click()
+		await page.getByRole('button', { name: 'Move…', exact: true }).click()
+
+		const dialog = page.getByRole('dialog', { name: 'Move 1 photo' })
+		await dialog.getByRole('button', { name: 'Browse…' }).click()
+		const browse = page.getByRole('dialog', { name: 'Choose the target folder' })
+		await browse.getByRole('treeitem', { name: target }).click()
+		await browse.getByRole('button', { name: 'Choose' }).click()
+		const moved = ['R0001.jpg', 'R0001.NEF', 'R0001.NEF.xmp', 'R0001.xmp', 'R0001_01.NEF.xmp']
+		for (const name of moved) {
+			await expect(dialog.getByText(`→ /${target}/${name}`, { exact: true })).toBeVisible()
+		}
+		await dialog.getByRole('button', { name: 'Move 5 files' }).click()
+		await expect(page.getByRole('status').filter({ hasText: `Moved IMG_0001 to ${target}` })).toBeVisible()
+
+		for (const name of moved) {
+			expect(await exists(page, `${target}/${name}`), name).toBe(true)
+		}
+	} finally {
+		await putSettings(page, E2E_SETTINGS)
+	}
 })
