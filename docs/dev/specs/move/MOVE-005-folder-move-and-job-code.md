@@ -14,9 +14,10 @@ Rapid Photo Downloader's *Job Code* does.
 
 ## Behaviour
 
-**Opening.** *Move all…* in the *Files* group of the toolbar's More menu, below *Move picks…*, opens the move dialog (MOVE-004) for every
-picture of the open folder set, whatever the filter shows; the item shows its count and is disabled
-at 0. Pictures are taken in view order, those outside the view after them in listing order.
+**Opening.** *Move all…* in the *Files* group of the toolbar's More menu, below *Move picks…*,
+opens the move dialog (MOVE-004) for every picture of the open folder set, whatever the filter
+shows; the item shows its count and is disabled at 0. Pictures are taken in view order, those
+outside the view after them in listing order.
 
 **Job code.** The name template knows the token `{job}`, with `:lower` and `:upper` like the other
 text tokens. When the template uses it, the move dialog shows a *Job code* field above the move
