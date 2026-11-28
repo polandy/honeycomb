@@ -2328,3 +2328,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   group, labelled with its count like its neighbours and with the ellipsis of an entry that opens a
   dialog; it hands the folder set's pictures to the existing `open`, whose view order already puts
   the hidden pictures after the shown ones in listing order (MOVE-005.1, #187, autonomous).
+- 2026-11-28: The pending count on *Write to Immich* comes from the write candidates loaded in the
+  browser with the decisions made since, not from a server count, because what is pending is the
+  write plan's rule in TypeScript (ADR 0006); without loaded candidates the button shows no number
+  and stays enabled, so a failed load never hides the write (IMMICH-004.27, #187, autonomous).

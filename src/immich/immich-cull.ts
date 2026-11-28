@@ -70,6 +70,8 @@ export function useImmichCull(context: ImmichCullContext) {
 	})
 
 	const list = computed(() => shownList(loaded.value, settled.value, filters.value))
+	// The decisions made since the cull opened or its filters changed, by asset id, held or not (IMMICH-004.27).
+	const decidedAssets = computed(() => new Map([...core.decided.value].map(([id, decision]) => [entries.get(id)!.assetId, decision])))
 	const pictures = computed(() => list.value.entries.map(pictureOf))
 	const filtersChanged = computed(() => !isDefaultImmichFilters(filters.value, now(), calendar))
 	const choices = computed(() => filterChoices(filters.value, counts.value, periodOptions.value, known.value, now(), calendar))
@@ -229,7 +231,7 @@ export function useImmichCull(context: ImmichCullContext) {
 		if (held) {
 			return
 		}
-		settled.value = new Map([...core.decided.value].map(([id, decision]) => [entries.get(id)!.assetId, decision]))
+		settled.value = decidedAssets.value
 		if (list.value.entries.length === 0) {
 			loadNext(-1, 1)
 		}
@@ -247,5 +249,5 @@ export function useImmichCull(context: ImmichCullContext) {
 		settle()
 	}
 
-	return { connectionId: readonly(connectionId), filters, filtersChanged, choices, list, counts, pictures, open, resumeFrom, setFilters, clearFilters, loadNext, loadPrevious, retry, hold, decisionOf: core.decisionOf, common: core.common, imageUrl, decide: core.decide, undo: core.undo, redo: core.redo }
+	return { connectionId: readonly(connectionId), filters, filtersChanged, choices, list, counts, pictures, open, resumeFrom, setFilters, clearFilters, loadNext, loadPrevious, retry, hold, decisionOf: core.decisionOf, decidedAssets, common: core.common, imageUrl, decide: core.decide, undo: core.undo, redo: core.redo }
 }

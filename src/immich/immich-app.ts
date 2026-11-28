@@ -97,7 +97,8 @@ export function useImmichApp(context: ImmichAppContext) {
 		resume.refresh()
 	}), 'Could not load the Immich connections')
 
-	const write = useImmichWrite(context.write, () => opened.value)
+	const write = useImmichWrite(context.write, () => opened.value, () => cull.decidedAssets.value)
+	watch(() => (shown.value ? opened.value?.id : undefined), (id) => id !== undefined && fireAndLog(write.refreshPending(), 'Could not count the pending Immich changes'), { immediate: true })
 
 	return { immich, shown, opened, openedStatus, onlyOffer, cull, resume, write, openConnection, checkOpened }
 }
