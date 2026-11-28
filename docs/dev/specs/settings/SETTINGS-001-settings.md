@@ -17,9 +17,10 @@ The settings are one JSON object per user behind `GET` and `PUT /apps/honeycomb/
 The server checks only that it is an object of at most 8 KB; the client checks each field and falls
 back to its default, so an unknown, missing or invalid field never breaks the app. The object
 carries `version: 1`. The lists that change on their own, the recent and favourite move targets,
-the recent job codes (MOVE-005) and the library roots, are stored each under its own key and written through
-`PUT /apps/honeycomb/api/v1/settings/lists/{name}`, so a tab that saves a switch never overwrites a
-list another tab changed (ADR 0051); the read still answers one object with every list in it.
+the recent job codes (MOVE-005) and the library roots, are stored each under its own key and
+written through `PUT /apps/honeycomb/api/v1/settings/lists/{name}`, so a tab that saves a switch
+never overwrites a list another tab changed (ADR 0051); the read still answers one object with
+every list in it.
 
 | Setting | Default |
 |---|---|
@@ -76,8 +77,8 @@ Below it, the favourite targets the move dialog starred, each with a ✕ to remo
 - **Given** a settings object
 - **When** the client writes it
 - **Then** it is stored whole as JSON without the list fields `moveRecent`, `moveFavourites`,
-  `moveJobCodes` and `libraryRoots`, the answer returns it, and a later read returns it; an empty object stays an
-  object
+  `moveJobCodes` and `libraryRoots`, the answer returns it, and a later read returns it; an
+  empty object stays an object
 
 ### SETTINGS-001.3 – A broken stored value reads as empty
 

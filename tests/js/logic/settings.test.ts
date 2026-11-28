@@ -40,6 +40,7 @@ describe('parseSettings', () => {
 			moveFavourites: ['/Archive'],
 			moveRecent: ['/Archive', '/Best'],
 			moveTemplate: '{name:lower}.{ext}',
+			moveJobCodes: ['Hochzeit Müller'],
 		}
 
 		expect(parseSettings(JSON.parse(JSON.stringify(settings)))).toEqual(settings)

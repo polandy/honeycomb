@@ -22,6 +22,7 @@ import { followReplaced } from '../logic/trash-report.ts'
 import { fireAndLog } from '../shared/fire-and-log.ts'
 import { logger } from '../shared/logger.ts'
 import { reloadAction } from '../shared/reload-action.ts'
+import { useJobCode } from './job-code.ts'
 import { movedBackText, movedText, moveFailedText } from './move-text.ts'
 
 type Pictures = readonly Picture<ListingEntry>[]
@@ -50,9 +51,10 @@ export function useMoveFlow(context: MoveFlowContext) {
 		}
 		return { text, parsed: parsed.template }
 	})
+	const job = useJobCode(context.settings, () => template.value.parsed)
 	const named = computed(() => {
 		const shown = pictures.value ?? []
-		const named = nameCandidates(shown.map((picture) => latest.value.get(picture) ?? picture), template.value.parsed, context.offset ?? browserOffset)
+		const named = nameCandidates(shown.map((picture) => latest.value.get(picture) ?? picture), template.value.parsed, job.code.value, context.offset ?? browserOffset)
 		return named.map((each, index) => ({ ...each, picture: shown[index]! }))
 	})
 	const nameable = computed(() => named.value.flatMap((each) => (each.candidate === null ? [] : [{ picture: each.picture, candidate: each.candidate }])))
@@ -75,6 +77,7 @@ export function useMoveFlow(context: MoveFlowContext) {
 			return
 		}
 		pictures.value = inViewOrder(chosen, context.view())
+		job.reset()
 		refresh()
 		target.value = null
 		existing.value = null
@@ -164,7 +167,7 @@ export function useMoveFlow(context: MoveFlowContext) {
 
 	/** Sends the plan; warns first about a replace the trash bin would not keep (ADR 0048), else finishes. */
 	async function confirm() {
-		if (busy.value || plan.value === null || counts.value.files === 0) {
+		if (busy.value || plan.value === null || counts.value.files === 0 || !job.ready.value) {
 			return
 		}
 		busy.value = true
@@ -226,7 +229,7 @@ export function useMoveFlow(context: MoveFlowContext) {
 		pending = null
 		warning.value = null
 		if (done.moved.length > 0) {
-			context.updateSettings({ moveRecent: addRecent(context.settings().moveRecent, to) })
+			context.updateSettings({ moveRecent: addRecent(context.settings().moveRecent, to), ...job.remembered() })
 		}
 		report.value = done.failed.length > 0 ? done : null
 		context.toast(movedText(done, to), done.moved.length > 0 ? { label: t('honeycomb', 'Undo'), run: () => fireAndLog(undo(done, listing), 'Could not undo the move') } : null)
@@ -263,6 +266,7 @@ export function useMoveFlow(context: MoveFlowContext) {
 		warning,
 		busy,
 		progress,
+		job,
 		templateText: computed(() => template.value.text),
 		open,
 		openShown,

@@ -4,6 +4,7 @@ import type { Flag } from './decision.ts'
 import type { SwipeSetting } from './loupe-gesture.ts'
 import type { FolderMode, PairingSettings } from './pairing.ts'
 
+import { parseJobCodes } from './job-codes.ts'
 import { addLibraryRoot } from './library-roots.ts'
 import { DEFAULT_SWIPES } from './loupe-gesture.ts'
 import { parseNameTemplate } from './name-template/parse.ts'
@@ -24,6 +25,8 @@ export interface Settings extends PairingSettings {
 	readonly moveFavourites: readonly string[]
 	readonly moveRecent: readonly string[]
 	readonly moveTemplate: string
+	/** The job codes of the last moves, the last first (MOVE-005.8). */
+	readonly moveJobCodes: readonly string[]
 	/** Whether honeycomb counts the daily statistics (STATS-001.2). */
 	readonly keepStatistics: boolean
 	/** The folders *Folders* lists and counts below, paths from the home folder (FOLDERS-004). */
@@ -37,7 +40,7 @@ export interface Settings extends PairingSettings {
 }
 
 /** The settings lists stored and saved each on its own, so another tab's save of the rest keeps them (ADR 0051). */
-const SETTINGS_LISTS = ['moveRecent', 'moveFavourites', 'libraryRoots'] as const
+const SETTINGS_LISTS = ['moveRecent', 'moveFavourites', 'moveJobCodes', 'libraryRoots'] as const
 
 /** One of the settings lists stored on their own. */
 export type SettingsList = typeof SETTINGS_LISTS[number]
@@ -71,6 +74,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	moveFavourites: [],
 	moveRecent: [],
 	moveTemplate: DEFAULT_NAME_TEMPLATE,
+	moveJobCodes: [],
 	keepStatistics: true,
 	libraryRoots: [],
 	immichOnly: false,
@@ -99,6 +103,7 @@ export function parseSettings(value: unknown): Settings {
 		moveFavourites: parsePaths(stored.moveFavourites),
 		moveRecent: parsePaths(stored.moveRecent),
 		moveTemplate: typeof stored.moveTemplate === 'string' && parseNameTemplate(stored.moveTemplate).ok ? stored.moveTemplate : DEFAULT_NAME_TEMPLATE,
+		moveJobCodes: parseJobCodes(stored.moveJobCodes),
 		keepStatistics: boolean('keepStatistics'),
 		libraryRoots: parseLibraryRoots(stored.libraryRoots),
 		immichOnly: boolean('immichOnly'),
@@ -109,7 +114,7 @@ export function parseSettings(value: unknown): Settings {
 
 /** The settings object to save: the version and every setting but the lists. */
 export function storedSettings(settings: Settings): StoredSettings {
-	const { moveRecent: _recent, moveFavourites: _favourites, libraryRoots: _roots, ...rest } = settings
+	const { moveRecent: _recent, moveFavourites: _favourites, moveJobCodes: _jobCodes, libraryRoots: _roots, ...rest } = settings
 	return { version: SETTINGS_VERSION, ...rest }
 }
 

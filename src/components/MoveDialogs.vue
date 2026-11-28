@@ -15,6 +15,7 @@ import FolderTree from './FolderTree.vue'
 import MoveSummary from './MoveSummary.vue'
 import TrashFileList from './TrashFileList.vue'
 import { listFolders as apiListFolders } from '../api/index.ts'
+import { MAX_JOB_CODE } from '../logic/job-codes.ts'
 import { folderName, parentName } from '../logic/move-targets.ts'
 import { moveFailureReason } from '../move/move-text.ts'
 import { fireAndLog } from '../shared/fire-and-log.ts'
@@ -97,12 +98,38 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 		:title="n('honeycomb', 'Move {count} photo', 'Move {count} photos', pictures, { count: formatNumber(pictures) }, PLAIN_TEXT)"
 		:confirmLabel="confirmLabel"
 		:progress="flow.progress.value"
-		:confirmDisabled="flow.plan.value === null || flow.counts.value.files === 0 || flow.busy.value"
+		:confirmDisabled="flow.plan.value === null || flow.counts.value.files === 0 || flow.busy.value || !flow.job.ready.value"
 		:container="props.container"
 		cancel
 		wide
 		@cancel="flow.close()"
 		@confirm="flow.confirm()">
+		<template v-if="flow.job.needed.value">
+			<label class="move-dialog__job">
+				{{ t('honeycomb', 'Job code') }}
+				<input
+					type="text"
+					:maxlength="MAX_JOB_CODE"
+					autocomplete="off"
+					:value="flow.job.code.value"
+					:aria-label="t('honeycomb', 'Job code')"
+					@input="flow.job.type(($event.target as HTMLInputElement).value)">
+			</label>
+			<p v-if="!flow.job.ready.value" class="move-dialog__hint">
+				{{ t('honeycomb', 'Enter a job code') }}
+			</p>
+			<div v-if="flow.job.recent.value.length > 0" role="group" class="move-dialog__to" :aria-label="t('honeycomb', 'Recent job codes')">
+				<button
+					v-for="code in flow.job.recent.value"
+					:key="code"
+					type="button"
+					class="move-dialog__chip"
+					:aria-pressed="flow.job.code.value === code"
+					@click="flow.job.type(code)">
+					{{ code }}
+				</button>
+			</div>
+		</template>
 		<section class="move-dialog__to" :aria-label="t('honeycomb', 'To')">
 			<button
 				v-for="chip in flow.chips.value"
@@ -206,6 +233,19 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 .move-dialog__unkept small {
 	display: block;
 	color: var(--color-text-maxcontrast);
+}
+
+.move-dialog__job {
+	display: flex;
+	flex-direction: column;
+	gap: var(--default-grid-baseline);
+	margin-bottom: calc(var(--default-grid-baseline) * 2);
+}
+
+.move-dialog__job input {
+	width: 100%;
+	max-width: calc(var(--default-grid-baseline) * 100);
+	min-height: var(--default-clickable-area);
 }
 
 .move-dialog__hint {

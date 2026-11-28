@@ -56,10 +56,10 @@ export function memberFiles(picture: Picture<ListingEntry>): MemberFile[] {
 	})
 }
 
-/** Every picture with its files and where the template puts them, or why it cannot be named. */
-export function nameCandidates(pictures: readonly Picture<ListingEntry>[], template: NameTemplate, offset: MtimeOffset = browserOffset): NamedPicture[] {
+/** Every picture with its files and where the template and the job code put them, or why it cannot be named. */
+export function nameCandidates(pictures: readonly Picture<ListingEntry>[], template: NameTemplate, jobCode: string, offset: MtimeOffset = browserOffset): NamedPicture[] {
 	return pictures.map((picture) => {
-		const rendered = renderPicture(template, pictureFacts(picture, offset), memberFiles(picture))
+		const rendered = renderPicture(template, pictureFacts(picture, offset), memberFiles(picture), jobCode)
 		return rendered.ok
 			? { picture, candidate: { files: filesOf(picture), rendered: rendered.files }, problem: null }
 			: { picture, candidate: null, problem: rendered.problem }

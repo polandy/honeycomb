@@ -36,7 +36,7 @@ describe('useMoveFlow: the job code', () => {
 		moving.choose('/Out')
 		await flushPromises()
 
-		expect(moving.plan.value!.flatMap((picture) => picture.files.map(({ path }) => path))).toEqual(['/Out/Hochzeit-Mueller_IMG_1.CR3', '/Out/Hochzeit-Mueller_IMG_1.JPG'])
+		expect(moving.plan.value!.flatMap((picture) => picture.files.map(({ path }) => path))).toEqual(['/Out/Hochzeit-Mueller_IMG_1.JPG', '/Out/Hochzeit-Mueller_IMG_1.CR3'])
 	})
 
 	// spec: MOVE-005.6

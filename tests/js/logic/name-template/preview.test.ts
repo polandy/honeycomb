@@ -57,7 +57,7 @@ describe('templatePreview', () => {
 	it('renders the job code as Job on every sample', () => {
 		const preview = templatePreview('{job:upper}/{job}_{name}.{ext}')
 
-		expect(rows(preview).map((row) => row.paths?.[0])).toEqual(['JOB/Job_DSCF1234.JPG', 'JOB/Job_DSCF1234.JPG', 'JOB/Job_IMG_0042.JPG', 'JOB/Job_DSC_0815.NEF', 'JOB/Job_Uebersicht-Maerz.jpg'])
+		expect(rows(preview).map((row) => row.paths?.[0])).toEqual(['JOB/Job_DSCF1234.JPG', 'JOB/Job_DSCF1234-2.JPG', 'JOB/Job_IMG_0042.JPG', 'JOB/Job_DSC_0815.NEF', 'JOB/Job_Uebersicht-Maerz.jpg'])
 	})
 
 	// spec: SETTINGS-001.19
