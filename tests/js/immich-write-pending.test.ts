@@ -29,7 +29,7 @@ function pendingOn(api = fakeApi()) {
 
 describe('useImmichWrite pending count', () => {
 	// spec: IMMICH-004.27
-	it('counts the pending candidates once loaded, and each decision made since, also after the cull let go of it', async () => {
+	it('counts the pending candidates once loaded, and each decision made since, also after the cull let go of it, and an undo', async () => {
 		const { write, candidates, decided } = pendingOn()
 		expect(write.pending.value).toBeNull()
 
@@ -44,6 +44,9 @@ describe('useImmichWrite pending count', () => {
 		expect(write.pending.value).toBe(5)
 		decided.value = new Map()
 		expect(write.pending.value).toBe(5)
+		// An undo puts the earlier decision back into the cull's map.
+		decided.value = new Map([['n1', UNDECIDED]])
+		expect(write.pending.value).toBe(4)
 	})
 
 	// spec: IMMICH-004.27

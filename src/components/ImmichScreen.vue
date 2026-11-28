@@ -79,7 +79,6 @@ const countText = computed(() => {
 	return `${shown} · ${n('honeycomb', '{count} decided', '{count} decided', decided, { count: formatNumber(decided) }, PLAIN_TEXT)}`
 })
 // The counts say 0, or the listing ended without an entry before they arrived (IMMICH-002.18).
-
 const empty = computed(() => counts.value?.matching === 0 || (list.value.started && list.value.entries.length === 0 && list.value.nextCursor === null && list.value.next === 'idle'))
 const counter = computed(() => loupeIndex.value === null ? null : loupeCounter(list.value, loupeIndex.value, counts.value?.matching ?? list.value.entries.length))
 
