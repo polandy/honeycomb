@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { Decision } from '../../../src/logic/decision.ts'
 import type { ImmichEntry } from '../../../src/logic/immich-asset.ts'
 import type { Calendar } from '../../../src/logic/immich-filters.ts'
+import type { CheckedAsset, WriteCandidate, WrittenState } from '../../../src/logic/immich-write-plan.ts'
 
 import { UNDECIDED } from '../../../src/logic/decision.ts'
 
@@ -35,4 +37,17 @@ export function immichEntry(assetId: string, overrides: Partial<ImmichEntry> = {
 		...UNDECIDED,
 		...overrides,
 	}
+}
+
+/** Immich's `updatedAt` of an asset when its decision was saved. */
+export const DECIDED_AT = '2026-11-20T10:00:00.000Z'
+
+/** A write candidate with the decision's fields over an undecided one, decided at `DECIDED_AT`. */
+export function candidate(assetId: string, decision: Partial<Decision>, written: WrittenState | null = null): WriteCandidate {
+	return { assetId, decision: { ...UNDECIDED, ...decision }, written, decidedUpdatedAt: DECIDED_AT }
+}
+
+/** An asset as the write check reloads it, unchanged since `DECIDED_AT`, unless the fields say otherwise. */
+export function checked(assetId: string, fields: Partial<CheckedAsset> = {}): CheckedAsset {
+	return { assetId, updatedAt: DECIDED_AT, rating: null, favorite: false, trashed: false, archived: false, sharedAlbum: null, stackSize: null, ...fields }
 }

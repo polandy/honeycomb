@@ -104,10 +104,11 @@ export interface WritePlan {
 	readonly adopted: { readonly assetId: string, readonly rating: number }[]
 }
 
-/** How one asset's write ended. */
+/** How one asset's write ended; a failed one Immich refused names the server's error code. */
 export interface WriteResult {
 	readonly assetId: string
 	readonly state: 'written' | 'skipped' | 'failed'
+	readonly error?: string
 }
 
 /** The counts of a write's results and the failed assets, offered again next time (IMMICH-004.10). */
