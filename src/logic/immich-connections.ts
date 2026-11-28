@@ -6,6 +6,8 @@ export interface ImmichConnection {
 	readonly id: string
 	readonly label: string
 	readonly url: string
+	/** Whether a pick becomes a favourite in Immich (ADR 0042). */
+	readonly picksAsFavorites: boolean
 }
 
 /** A connection's state; every state but `ok` names why it does not work (IMMICH-001). */

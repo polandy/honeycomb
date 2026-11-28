@@ -9,8 +9,8 @@ import { logIn, occ } from './server.ts'
 const API = '/index.php/apps/honeycomb/api/v1/immich'
 /** The user the e2e connections file gives two connections to the stub Immich (`tests/fixtures/immich/e2e/`). */
 const ALICE = { username: 'alice', password: 'honeycomb-e2e-alice-password' }
-const FAMILY = { id: 'family', label: 'Family phones', url: 'http://127.0.0.1:2283' }
-const ANNA = { id: 'anna', label: 'Anna\'s phone', url: 'http://127.0.0.1:2283' }
+const FAMILY = { id: 'family', label: 'Family phones', url: 'http://127.0.0.1:2283', picksAsFavorites: true }
+const ANNA = { id: 'anna', label: 'Anna\'s phone', url: 'http://127.0.0.1:2283', picksAsFavorites: false }
 
 /** Opens honeycomb as Alice and switches to the Immich source. */
 async function openImmich(page: Page): Promise<void> {

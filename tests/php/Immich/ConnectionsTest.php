@@ -48,8 +48,8 @@ final class ConnectionsTest extends TestCase {
 		$listed = array_map(static fn ($connection): array => $connection->toArray(), $this->connections()->forUser('alice'));
 
 		$this->assertSame([
-			['id' => 'alice-phone', 'label' => 'My phone', 'url' => 'http://immich-server:2283'],
-			['id' => 'alice-camera', 'label' => 'Phone', 'url' => 'https://immich.example.org:2283'],
+			['id' => 'alice-phone', 'label' => 'My phone', 'url' => 'http://immich-server:2283', 'picksAsFavorites' => false],
+			['id' => 'alice-camera', 'label' => 'Phone', 'url' => 'https://immich.example.org:2283', 'picksAsFavorites' => true],
 		], $listed);
 	}
 

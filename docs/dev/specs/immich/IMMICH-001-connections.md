@@ -79,8 +79,8 @@ never stores, shows or logs a key.
 
 - **Given** a valid file with connections of two users
 - **When** one of them lists their connections
-- **Then** the answer holds their connections only, in file order, with `id`, `label` and `url`,
-  and no key, key file path or `picksAsFavorites`
+- **Then** the answer holds their connections only, in file order, with `id`, `label`, `url` and
+  `picksAsFavorites`, and no key or key file path
 
 ### IMMICH-001.3 – The whole file or nothing
 

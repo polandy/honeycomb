@@ -61,7 +61,7 @@ describe('resumeFilters', () => {
 })
 
 describe('recentConnections', () => {
-	const connections = [{ id: 'andy-phone', label: 'Andy’s phone', url: 'https://immich.example.org' }, { id: 'andy-camera', label: 'Camera', url: 'https://immich.example.org' }]
+	const connections = [{ id: 'andy-phone', label: 'Andy’s phone', url: 'https://immich.example.org', picksAsFavorites: false }, { id: 'andy-camera', label: 'Camera', url: 'https://immich.example.org', picksAsFavorites: false }]
 
 	// spec: IMMICH-003.15
 	it('lists each position by its connection\'s label, newest first, and leaves out a connection the user no longer has', () => {
