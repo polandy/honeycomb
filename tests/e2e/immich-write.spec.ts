@@ -66,7 +66,7 @@ test.describe('Write to Immich', () => {
 		await write.click()
 		await expect(dialog).toContainText('Written: 5')
 		await expect(dialog).not.toContainText('Failed')
-		await dialog.getByRole('button', { name: 'Close' }).click()
+		await dialog.getByRole('button').filter({ hasText: 'Close' }).click()
 		await expect(dialog).toBeHidden()
 
 		await page.getByRole('button', { name: 'Write to Immich' }).click()
