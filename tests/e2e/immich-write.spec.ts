@@ -41,8 +41,8 @@ test.describe('Write to Immich', () => {
 		occ(['user:delete', ALICE.username])
 	})
 
-	// spec: IMMICH-004.25, IMMICH-004.26, IMMICH-004.27
-	test('counts the pending decisions on the button, checks, plans and writes them, then offers nothing more to write', async ({ page }) => {
+	// spec: IMMICH-004.25, IMMICH-004.26, IMMICH-004.27, IMMICH-004.28
+	test('counts the pending decisions on the button, checks, plans with the thumbnail strips and writes them, then offers nothing more to write', async ({ page }) => {
 		await openFamily(page)
 		const button = page.getByRole('button', { name: 'Write to Immich' })
 		const pending = button.locator('.immich-screen__pending')
@@ -72,6 +72,16 @@ test.describe('Write to Immich', () => {
 		const thumbnail = dialog.locator('.immich-write-plan__thumbnail')
 		await expect(thumbnail).toHaveJSProperty('complete', true)
 		expect(await thumbnail.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0)
+		const strips = dialog.locator('.immich-write-plan__strip')
+		await expect(strips).toHaveCount(2)
+		await expect(strips.nth(0).locator('img')).toHaveCount(3)
+		await expect(strips.nth(1).locator('img')).toHaveCount(1)
+		for (const image of await dialog.locator('.immich-write-plan__strip img').all()) {
+			await expect(image).toHaveJSProperty('complete', true)
+			expect(await image.evaluate((each: HTMLImageElement) => each.naturalWidth)).toBeGreaterThan(0)
+			expect(await inside(image, dialog)).toBe(true)
+		}
+		expect(await overlap(strips.nth(0), dialog.getByRole('heading', { name: '1 picked' }))).toBe(false)
 		const cancel = dialog.getByRole('button', { name: 'Cancel' })
 		const write = dialog.getByRole('button', { name: 'Write 5 changes' })
 		expect(await overlap(cancel, write)).toBe(false)

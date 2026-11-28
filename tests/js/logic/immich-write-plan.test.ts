@@ -179,6 +179,17 @@ describe('planWrite', () => {
 
 		expect(plan).toMatchObject({ changes: [], gone: ['a'], counts: { assets: 1, rejects: 1, restores: 0, picks: 0, ratings: 0 } })
 	})
+
+	// spec: IMMICH-004.28
+	it('lists the assets of each strip as it counts them: new rejects, rejects taken back and new picks', () => {
+		const rejected: WrittenState = { flag: 'rejected', rating: 0, immichRating: null }
+		const pending = [candidate('r', { flag: 'rejected' }), candidate('t', { flag: 'rejected' }), candidate('s', { flag: 'rejected' }), candidate('b', {}, rejected), candidate('p', { flag: 'picked' }), candidate('n', { rating: 2 }), candidate('g', { flag: 'picked' })]
+		const immich = checks(checked('r'), checked('t', { trashed: true }), checked('s', { sharedAlbum: { name: 'Family', others: 1 } }), checked('b', { trashed: true }), checked('p'), checked('n'))
+		const plan = planWrite(pending, immich, TRASH, { ...NO_CHOICES, shared: new Map([['s', 'skip']]) })
+
+		expect(plan.strips).toEqual({ rejects: ['r'], restores: ['b'], picks: ['p', 'g'] })
+		expect(plan.counts).toMatchObject({ rejects: 1, restores: 1, picks: 2 })
+	})
 })
 
 describe('writeBlocks', () => {

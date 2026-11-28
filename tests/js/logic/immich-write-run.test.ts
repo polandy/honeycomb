@@ -9,7 +9,7 @@ import { checkPending, runWrite, writeBlockOf, writeRequests } from '../../../sr
 import { candidate, checked } from './immich-fixtures.ts'
 
 const ids = (count: number) => Array.from({ length: count }, (_, index) => `a${index}`)
-const EMPTY_PLAN: WritePlan = { rejectAs: 'trash', counts: { assets: 0, rejects: 0, restores: 0, picks: 0, ratings: 0 }, conflicts: [], changes: [], done: [], skipped: [], gone: [], adopted: [] }
+const EMPTY_PLAN: WritePlan = { rejectAs: 'trash', counts: { assets: 0, rejects: 0, restores: 0, picks: 0, ratings: 0 }, strips: { rejects: [], restores: [], picks: [] }, conflicts: [], changes: [], done: [], skipped: [], gone: [], adopted: [] }
 
 function checks(...assets: CheckedAsset[]): ReadonlyMap<string, CheckedAsset> {
 	return new Map(assets.map((asset) => [asset.assetId, asset]))
