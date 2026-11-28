@@ -2328,3 +2328,8 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   browser with the decisions made since, not from a server count, because what is pending is the
   write plan's rule in TypeScript (ADR 0006); without loaded candidates the button shows no number
   and stays enabled, so a failed load never hides the write (IMMICH-004.27, #187, autonomous).
+- 2026-11-28: The ADR 0049 canary is the `canary` group (`FileCacheLibraryTest` and
+  `FileCachePicturesTest`, which reads `oc_filecache` columns too), run by
+  `scripts/php-db-tests.sh` in the Nextcloud image the full suite did not use, so the raw
+  `oc_filecache` queries run on every version CI covers inside the existing `php-db` job;
+  `scripts/nextcloud-images.sh` takes the `php` group, so a version bump runs the canary too.

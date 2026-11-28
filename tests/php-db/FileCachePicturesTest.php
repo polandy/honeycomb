@@ -18,8 +18,10 @@ use OCP\Files\Mount\IMountPoint;
 use OCP\Files\Storage\IStorage;
 use OCP\IUserManager;
 use OCP\Server;
+use PHPUnit\Framework\Attributes\Group;
 
-/** The pictures and orphaned sidecars below a folder, counted in Nextcloud's file cache of real users' files. */
+/** The pictures and orphaned sidecars below a folder, counted in Nextcloud's file cache of real users' files; part of the ADR 0049 canary. */
+#[Group('canary')]
 final class FileCachePicturesTest extends DbTestCase {
 	private const string USER = 'honeycomb-count';
 	private const string OTHER = 'honeycomb-count-other';

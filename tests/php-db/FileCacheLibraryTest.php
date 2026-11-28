@@ -19,8 +19,14 @@ use OCP\Files\IMimeTypeLoader;
 use OCP\Files\IRootFolder;
 use OCP\IUserManager;
 use OCP\Server;
+use PHPUnit\Framework\Attributes\Group;
 
-/** The library folders, their photo files and the decision rows, read from Nextcloud's file cache of a real user's files. */
+/**
+ * The library folders, their photo files and the decision rows, read from Nextcloud's file cache of
+ * a real user's files; the `canary` group runs these raw `oc_filecache` queries on every Nextcloud
+ * image CI covers (ADR 0049).
+ */
+#[Group('canary')]
 final class FileCacheLibraryTest extends DbTestCase {
 	private const string USER = 'honeycomb-library';
 	private const string PASSWORD = 'honeycomb-library-Passw0rd-long!';
