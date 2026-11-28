@@ -23,6 +23,8 @@ export interface NamedPicture {
 }
 
 const MS_PER_SECOND = 1000
+/** What follows the base name in a darktable duplicate's sidecar, `_01.NEF.xmp` (`src/logic/sidecars.ts`). */
+const DARKTABLE_DUPLICATE = /^(_\d+)\.(.+)$/
 
 /** The browser's offset at the file time. */
 export const browserOffset: MtimeOffset = (mtime) => -new Date(mtime * MS_PER_SECOND).getTimezoneOffset()
@@ -45,10 +47,12 @@ export function memberFiles(picture: Picture<ListingEntry>): MemberFile[] {
 	return filesOf(picture).map(({ entry }) => {
 		const slash = entry.path.lastIndexOf('/')
 		const folder = entry.path.slice(0, slash)
-		return {
-			extension: entry.path.slice(slash + 1 + picture.baseName.length + 1),
-			subfolder: folder === picture.folder ? null : folder.slice(folder.lastIndexOf('/') + 1),
-		}
+		const subfolder = folder === picture.folder ? null : folder.slice(folder.lastIndexOf('/') + 1)
+		const rest = entry.path.slice(slash + 1 + picture.baseName.length)
+		const duplicate = DARKTABLE_DUPLICATE.exec(rest)
+		return duplicate === null
+			? { extension: rest.slice(1), subfolder }
+			: { extension: duplicate[2]!, subfolder, duplicate: duplicate[1]! }
 	})
 }
 

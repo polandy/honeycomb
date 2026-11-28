@@ -133,6 +133,8 @@ Same as Framehive (CORE-009 "Sidecar names", LIBRARY-001 "Metadata"):
 - darktable's duplicates (`IMG_0001_01.NEF.xmp`, `image.c:930`) belong to darktable versions,
   not to members: honeycomb neither reads nor writes them, and deletes them with the picture.
   *Added; Framehive does not mention them.*
+- **Moving a picture** renames every sidecar in its own form (MOVE-001.16, MOVE-001.17):
+  `<new name>.NEF.xmp`, `<new name>.xmp` and a darktable duplicate's `<new name>_01.NEF.xmp`.
 - **Owner.** Which picture a sidecar belongs to, also for ambiguous base names, is decided by
   pairing (`src/logic/sidecars.ts`, [`decisions.md`](decisions.md)).
 - **Deleting a picture** removes every member and every sidecar form: each `<member file>.xmp`,
