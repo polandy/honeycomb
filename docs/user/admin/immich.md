@@ -61,6 +61,14 @@ Create one API key per account in Immich (*Account settings*, *API keys*). It ne
 A key without one of the first three works, but the grid reports the scope it lacks when it first
 needs it. Keys are read only; honeycomb does not change anything in Immich yet.
 
+## Use an account without partner sharing
+
+Give honeycomb an Immich account whose timeline has no partner sharing. Immich's search spans a
+partner's photos, so with partner sharing the grid, its counts and the filter numbers also list
+the partner's uploads, and a user could cull photos that are not theirs. Turn *Partner sharing*
+off in that account's Immich settings, or create a separate account for honeycomb, before you
+connect it. honeycomb cannot tell a partner's upload from the account's own.
+
 ## What each message means
 
 A user sees these in honeycomb's Immich source and in the *Immich connection* dialog. Decisions
