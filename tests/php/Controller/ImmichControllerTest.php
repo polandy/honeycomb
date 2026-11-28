@@ -104,7 +104,7 @@ final class ImmichControllerTest extends TestCase {
 
 	// spec: IMMICH-001.2
 	public function testTheConnectionsAreTheUsersOwn(): void {
-		$this->assertAnswer(Http::STATUS_OK, ['connections' => [['id' => 'alice-phone', 'label' => 'My phone', 'url' => 'http://immich-server:2283']]], $this->controller()->connections());
+		$this->assertAnswer(Http::STATUS_OK, ['connections' => [['id' => 'alice-phone', 'label' => 'My phone', 'url' => 'http://immich-server:2283', 'picksAsFavorites' => false]]], $this->controller()->connections());
 	}
 
 	// spec: IMMICH-001.1

@@ -3,8 +3,8 @@
 import { describe, expect, it } from 'vitest'
 import { NO_IMMICH, offersImmich, openedConnection } from '../../../src/logic/immich-connections.ts'
 
-const PHONE = { id: 'andy-phone', label: 'Andy · Phone', url: 'https://immich.example' }
-const KIDS = { id: 'kids', label: 'Kids', url: 'https://immich.example' }
+const PHONE = { id: 'andy-phone', label: 'Andy · Phone', url: 'https://immich.example', picksAsFavorites: false }
+const KIDS = { id: 'kids', label: 'Kids', url: 'https://immich.example', picksAsFavorites: false }
 
 describe('offersImmich', () => {
 	// spec: IMMICH-001.1, IMMICH-001.18

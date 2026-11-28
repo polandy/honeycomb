@@ -8,7 +8,7 @@ import { immichEntry } from './logic/immich-fixtures.ts'
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }))
 vi.mock('@nextcloud/router', () => ({ generateUrl: (url: string, params: Record<string, string> = {}) => `/index.php${url.replace(/\{(\w+)\}/g, (_match, key: string) => params[key]!)}` }))
 
-const PHONE = { id: 'andy-phone', label: 'Andy · Phone', url: 'https://immich.example' }
+const PHONE = { id: 'andy-phone', label: 'Andy · Phone', url: 'https://immich.example', picksAsFavorites: false }
 const failure = (status: number, error: string) => Object.assign(new Error(`status ${status}`), { response: { status, data: { error } } })
 
 describe('listImmichConnections', () => {

@@ -37,7 +37,7 @@ async function mountScreen() {
 			toasts.push(action)
 			return () => {}
 		},
-		connections: () => [{ id: 'andy-phone', label: 'Andy’s phone', url: 'https://immich.example.org' }],
+		connections: () => [{ id: 'andy-phone', label: 'Andy’s phone', url: 'https://immich.example.org', picksAsFavorites: false }],
 		now: () => NOW,
 	})
 	on.cull.open('andy-phone')
