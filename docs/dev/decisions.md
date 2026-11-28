@@ -2317,3 +2317,7 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-28: The *Job code* field stands at the top of the move dialog, above the target chips
   and so above the move summary, as the code is asked when the move starts; a template without
   `{job}` shows no field (#187, autonomous).
+- 2026-11-28: The similarity page finds its series members by one listing of the tree with
+  `subfolders=1` after the hashes, paired by the user's settings, and measures every picture of a
+  series candidate, rejected ones too and without stored series: the page knows no decisions, and
+  a cull of the folder measures what is left (SERIES-004.17, autonomous).

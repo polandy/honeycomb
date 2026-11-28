@@ -42,6 +42,7 @@ it flags, moves, deletes and writes nothing.
   in a worker of the hash pool (SERIES-003.26), from the loupe tier (4096 px) of that member,
   drawn in bands of rows so that only one band's pixels are held. A value of another method
   counts as missing. A file version whose measure failed is not measured again in this visit.
+  The similarity page measures a folder tree's series members the same way (SERIES-004).
 - The cull saves the computed values every 100 values and when none is left to measure. A
   limited save (`429`) waits as the hash save does (SERIES-003.27) and is sent again; a failed
   save is logged, and the values still count for this visit.
@@ -222,3 +223,4 @@ it flags, moves, deletes and writes nothing.
 | 2026-11-20 | Written with the sharpness measure, its table and endpoint (owner decisions, ADR 0046) |
 | 2026-11-20 | Out of scope: the mark, the rank and the zoom moved to SERIES-007 (M11 PR 3) |
 | 2026-11-24 | Quality measures registered by id, method, measure, label and slot (SERIES-006.22) |
+| 2026-11-28 | The similarity page measures the series members of a folder tree too (SERIES-004.17) |

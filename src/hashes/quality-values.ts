@@ -49,6 +49,8 @@ export function useQualityValues(api: QualityApi, members: () => readonly Listin
 	}, members, ready)
 
 	return {
+		/** Where the member's value stands: listed or measured, failed in this visit, or still to measure. */
+		stateOf: measured.stateOf,
 		/** The quality value of the member's file version, or null while it has none. */
 		qualityOf(member: ListingEntry): QualityValue | null {
 			const value = measured.computedOf(member)
