@@ -788,7 +788,9 @@ and the loupe's title row, on the key `M` (dialog and summary: MOVE-004).
 
 1. **What moves.** One picture, the selection, or a filter result (the toolbar's *Move picks*, or
    *Move filtered* while a filter is on). Always the whole picture: RAW member, rendered member
-   and sidecars. All files of a picture get the same new base name.
+   and sidecars. All files of a picture get the same new base name. *Move all* moves every
+   picture of the folder set, and a `{job}` token names the shoot with a job code typed when the
+   move starts (ADR 0063, MOVE-005, steps in `TODO.md`).
 2. **Where to.** A target folder chosen with a folder picker. Favourite targets (★, set by the
    user) and the 5 most recent targets are one-tap chips, and keys `1`–`9` in the dialog.
 3. **On the server.** The move runs through `OCP\Files` (`Node::move()`). On the same storage it

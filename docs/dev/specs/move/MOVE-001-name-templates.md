@@ -31,6 +31,12 @@ empty after sanitising becomes `unknown`; that covers `{name}` too, whose base n
 characters that sanitising drops. A picture that uses `{number}` without trailing digits in its
 base name does not render.
 
+**Sidecar names.** A sidecar keeps the form it has, so digiKam and darktable still find it after
+the move: `<member>.xmp` (digiKam's and darktable's default) becomes `<new name>.NEF.xmp`, the
+shared `<base>.xmp` (digiKam's *compatible file name*) becomes `<new name>.xmp`, and a darktable
+duplicate's `<base>_01.NEF.xmp` keeps its number after the new name and any collision suffix:
+`<new name>-2_01.NEF.xmp` next to `<new name>-2.NEF`.
+
 **Collisions.** Pictures are taken in view order; each gets the lowest suffix (none, `-2`, `-3`, …)
 before its final `.{ext}` at which none of its paths is a path of an earlier picture or one of the
 given existing paths. Paths are compared case-insensitively.
@@ -143,6 +149,20 @@ given existing paths. Paths are compared case-insensitively.
 - **Then** a picture whose path exists gets the lowest suffix that is free of them and of the
   earlier pictures
 
+### MOVE-001.16 – A darktable duplicate's sidecar keeps its number
+
+- **Given** a picture with a darktable duplicate's sidecar such as `IMG_0001_01.NEF.xmp`
+- **When** it renders, with or without a collision suffix
+- **Then** the sidecar gets the picture's new name, then the suffix, then `_01` and `.NEF.xmp`
+  (`R0001-2_01.NEF.xmp` beside `R0001-2.NEF`), never `R0001.01.NEF.xmp`
+
+### MOVE-001.17 – digiKam's two sidecar names follow the new name
+
+- **Given** a pair with `IMG_0001.NEF.xmp` and the shared `IMG_0001.xmp`
+- **When** it renders
+- **Then** they become `<new name>.NEF.xmp` and `<new name>.xmp`, the names digiKam reads with its
+  *compatible file name* setting off and on
+
 ## Out of scope
 
 The name template setting, its presets and preview: SETTINGS-001. The move, conflict choices (*Skip*,
@@ -154,3 +174,4 @@ separately from the listing in M7.2; LISTING-001 joins them today.
 | Date | Change |
 |---|---|
 | 2026-11-10 | Created with the name template module (M7.1). |
+| 2026-11-28 | Sidecar names keep their digiKam or darktable form (MOVE-001.16, MOVE-001.17, ADR 0063). |
