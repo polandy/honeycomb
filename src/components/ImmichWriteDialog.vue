@@ -19,6 +19,9 @@ const props = defineProps<{
 	write: ImmichWrite
 }>()
 
+/** Up to this many failed show a thumbnail each, more their number only (IMMICH-004.6). */
+const FAILED_THUMBNAILS = 100
+
 const step = computed(() => props.write.step.value)
 const assets = computed(() => props.write.plan.value?.counts.assets ?? 0)
 const progress = computed(() => {
@@ -60,7 +63,7 @@ const progress = computed(() => {
 			<p v-if="step.tally.skipped > 0">
 				{{ skippedText(step.tally.skipped) }}
 			</p>
-			<ul v-if="step.tally.failedIds.length > 0" class="immich-write__failed">
+			<ul v-if="step.tally.failedIds.length > 0 && step.tally.failedIds.length <= FAILED_THUMBNAILS" class="immich-write__failed">
 				<li v-for="assetId in step.tally.failedIds" :key="assetId">
 					<img class="immich-write__thumbnail" alt="" :src="props.write.thumbnailUrl(assetId)">
 					<span>{{ FAILED_TEXT }}</span>
