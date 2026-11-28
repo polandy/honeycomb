@@ -2309,3 +2309,10 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-28: A failed check block stops the check, so nothing is written; a failed write block
   fails its assets and every unsent one and stops, like the move's chunks (ADR 0029); the run
   reuses `sendInChunks` with one asset per item (IMMICH-004.23, .24, #187, autonomous).
+- 2026-11-28: *Write to Immich* sits at the end of the Immich toolbar and opens the dialog,
+  which plans with the trash bin allowed until the scope check of `asset.delete` comes; the
+  pending count on the button, the thumbnail strips and saving *Keep Immich's* in honeycomb are
+  later steps (IMMICH-004.25, #187, autonomous).
+- 2026-11-28: A conflict row shows the asset's thumbnail and the conflict, without a file name,
+  since the check answers none; `GET /connections` names `picksAsFavorites`, so the dialog says
+  what a pick becomes (IMMICH-004.25, ADR 0044, #187, autonomous).
