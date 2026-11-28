@@ -14,17 +14,19 @@ export interface PictureFacts {
 	readonly model: string | null
 }
 
-/** A file of the picture: its extension as written (`NEF.xmp`) and its subfolder in separate-subfolders mode. */
+/** A file of the picture: its extension as written (`NEF.xmp`), its subfolder in separate-subfolders mode and a darktable duplicate's number (`_01`). */
 export interface MemberFile {
 	readonly extension: string
 	readonly subfolder: string | null
+	readonly duplicate?: string
 }
 
-/** A file's new folder, name and extension, relative to the target folder. */
+/** A file's new folder, name, extension and darktable duplicate number, relative to the target folder. */
 export interface RenderedFile {
 	readonly folder: string
 	readonly name: string
 	readonly extension: string
+	readonly duplicate?: string
 }
 
 /** The picture's files in input order, or why it cannot be named. */
@@ -66,15 +68,16 @@ export function renderPicture(template: NameTemplate, facts: PictureFacts, files
 				folder: [...folders, ...(file.subfolder === null ? [] : [file.subfolder])].join('/'),
 				name: renderParts(template.name, values),
 				extension: cased(tokenValue(file.extension), template.extensionCase),
+				...(file.duplicate === undefined ? {} : { duplicate: file.duplicate }),
 			}
 		}),
 	}
 }
 
-/** The file's path relative to the target folder, with the collision suffix before its extension. */
+/** The file's path relative to the target folder, with the collision suffix and duplicate number before its extension. */
 export function renderedPath(file: RenderedFile, suffix: number | null): string {
 	const folder = file.folder === '' ? '' : `${file.folder}/`
-	return `${folder}${file.name}${suffix === null ? '' : `-${suffix}`}.${file.extension}`
+	return `${folder}${file.name}${suffix === null ? '' : `-${suffix}`}${file.duplicate ?? ''}.${file.extension}`
 }
 
 /** The parts rendered and joined. */
