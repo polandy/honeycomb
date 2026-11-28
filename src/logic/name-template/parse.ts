@@ -15,7 +15,7 @@ export type TemplatePart
 	= | { readonly kind: 'literal', readonly text: string }
 		| { readonly kind: 'date', readonly format: string }
 		| { readonly kind: 'number', readonly digits: number | null }
-		| { readonly kind: 'name' | 'ext' | 'camera' | 'make', readonly letterCase: LetterCase }
+		| { readonly kind: 'name' | 'ext' | 'camera' | 'make' | 'job', readonly letterCase: LetterCase }
 
 /** A valid template: its folders, the file name before the final `.{ext}` and that extension's case. */
 export interface NameTemplate {
@@ -117,6 +117,7 @@ function parseToken(content: string, column: number): TemplatePart | Refusal {
 		case 'ext':
 		case 'camera':
 		case 'make':
+		case 'job':
 			if (argument === null) {
 				return { kind: name, letterCase: 'as-is' }
 			}

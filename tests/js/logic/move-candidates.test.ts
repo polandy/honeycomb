@@ -89,7 +89,7 @@ describe('memberFiles', () => {
 			listingEntry(4, '/Trip/DSC_0001.xmp'),
 			listingEntry(5, '/Trip/DSC_0001_12.NEF.xmp'),
 		)
-		const [named] = nameCandidates([picture], template('R{number}.{ext}'), () => 0)
+		const [named] = nameCandidates([picture], template('R{number}.{ext}'), '', () => 0)
 		const [planned] = planMove('/Out', [named!.candidate!], [{ path: '/Out/R0001.NEF', fileId: 90, etag: 'e' }])
 
 		expect(planned!.files.map((file) => file.path)).toEqual(['/Out/R0001-2.NEF', '/Out/R0001-2.NEF.xmp', '/Out/R0001-2.xmp', '/Out/R0001-2_12.NEF.xmp'])
@@ -109,7 +109,7 @@ describe('memberFiles', () => {
 describe('nameCandidates', () => {
 	// spec: MOVE-004.6
 	it('renders every file of every picture in its order', () => {
-		const [named] = nameCandidates([PAIR], template('{camera}/{name}.{ext}'), () => 0)
+		const [named] = nameCandidates([PAIR], template('{camera}/{name}.{ext}'), '', () => 0)
 
 		expect(named!.candidate!.files.map((file) => file.entry.fileId)).toEqual([2, 1, 3])
 		expect(named!.candidate!.rendered.map((file) => `${file.folder}/${file.name}.${file.extension}`)).toEqual(['Z-6/DSC_0001.JPG', 'Z-6/DSC_0001.NEF', 'Z-6/DSC_0001.NEF.xmp'])
@@ -118,7 +118,7 @@ describe('nameCandidates', () => {
 
 	// spec: MOVE-004.15
 	it('gives the reason for a picture it cannot name', () => {
-		const named = nameCandidates([PAIR, NO_DIGITS], template('{number}.{ext}'), () => 0)
+		const named = nameCandidates([PAIR, NO_DIGITS], template('{number}.{ext}'), '', () => 0)
 
 		expect(named.map((each) => each.problem)).toEqual([null, 'no-number'])
 		expect(named[1]!.candidate).toBeNull()
@@ -137,7 +137,7 @@ describe('inViewOrder', () => {
 describe('moveCounts', () => {
 	// spec: MOVE-004.6, MOVE-004.7
 	it('counts the files sent and the pictures in conflict', () => {
-		const named = nameCandidates([PAIR, RAW_ONLY], template('{name}.{ext}'), () => 0)
+		const named = nameCandidates([PAIR, RAW_ONLY], template('{name}.{ext}'), '', () => 0)
 		const candidates = named.map((each) => each.candidate!)
 		const existing = [{ path: '/Out/DSC_0001.JPG', fileId: 90, etag: 'e' }, { path: '/Out/IMG_7.CR3', fileId: 91, etag: 'e' }]
 

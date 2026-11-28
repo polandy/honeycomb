@@ -40,6 +40,7 @@ describe('parseSettings', () => {
 			moveFavourites: ['/Archive'],
 			moveRecent: ['/Archive', '/Best'],
 			moveTemplate: '{name:lower}.{ext}',
+			moveJobCodes: ['Hochzeit Müller'],
 		}
 
 		expect(parseSettings(JSON.parse(JSON.stringify(settings)))).toEqual(settings)
@@ -202,17 +203,32 @@ describe('settings version', () => {
 	})
 })
 
+describe('recent job codes', () => {
+	// spec: MOVE-005.8
+	it('keeps the stored job codes in order, each once, 5 at most, dropping those empty after sanitising or over 40 characters', () => {
+		const parsed = parseSettings({ moveJobCodes: ['Hochzeit Müller', 3, '', ' ? ', 'x'.repeat(41), 'Hochzeit Müller', 'B', 'C', 'D', 'E', 'F'] })
+
+		expect(parsed.moveJobCodes).toEqual(['Hochzeit Müller', 'B', 'C', 'D', 'E'])
+	})
+
+	// spec: MOVE-005.8
+	it.each([undefined, 'Shoot', { 0: 'Shoot' }])('reads %j as no job codes', (value) => {
+		expect(parseSettings({ moveJobCodes: value }).moveJobCodes).toEqual([])
+		expect(DEFAULT_SETTINGS.moveJobCodes).toEqual([])
+	})
+})
+
 describe('storedSettings', () => {
 	// spec: SETTINGS-001.11, SETTINGS-001.33
 	it('is the object to save: version 1, without the lists that have their own keys', () => {
-		const settings: Settings = { ...DEFAULT_SETTINGS, viKeys: true, moveRecent: ['/A'], moveFavourites: ['/B'], libraryRoots: ['/C'] }
+		const settings: Settings = { ...DEFAULT_SETTINGS, viKeys: true, moveRecent: ['/A'], moveFavourites: ['/B'], moveJobCodes: ['Shoot'], libraryRoots: ['/C'] }
 
 		const stored = storedSettings(settings)
 
 		expect(SETTINGS_VERSION).toBe(1)
 		expect(stored).toMatchObject({ version: 1, viKeys: true })
-		expect(['moveRecent', 'moveFavourites', 'libraryRoots'].filter((name) => name in stored)).toEqual([])
-		expect(parseSettings(stored)).toEqual({ ...settings, moveRecent: [], moveFavourites: [], libraryRoots: [] })
+		expect(['moveRecent', 'moveFavourites', 'moveJobCodes', 'libraryRoots'].filter((name) => name in stored)).toEqual([])
+		expect(parseSettings(stored)).toEqual({ ...settings, moveRecent: [], moveFavourites: [], moveJobCodes: [], libraryRoots: [] })
 	})
 })
 
@@ -222,6 +238,7 @@ describe('splitChange', () => {
 		expect(splitChange({ viKeys: true })).toEqual({ object: true, lists: [] })
 		expect(splitChange({ moveRecent: ['/A'], moveFavourites: [] })).toEqual({ object: false, lists: ['moveRecent', 'moveFavourites'] })
 		expect(splitChange({ libraryRoots: ['/C'], autoAdvance: false })).toEqual({ object: true, lists: ['libraryRoots'] })
+		expect(splitChange({ moveRecent: ['/A'], moveJobCodes: ['Shoot'] })).toEqual({ object: false, lists: ['moveRecent', 'moveJobCodes'] })
 		expect(splitChange({})).toEqual({ object: false, lists: [] })
 	})
 })

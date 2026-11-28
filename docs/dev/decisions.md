@@ -2316,3 +2316,11 @@ these changes; a changed line below is marked *(changed by the owner review)*.
 - 2026-11-28: A conflict row shows the asset's thumbnail and the conflict, without a file name,
   since the check answers none; `GET /connections` names `picksAsFavorites`, so the dialog says
   what a pick becomes (IMMICH-004.25, ADR 0044, #187, autonomous).
+- 2026-11-28: The recent job codes (MOVE-005.8) are a fourth settings list `moveJobCodes` under
+  its own key `move_job_codes` (ADR 0051), so another tab's save keeps them; the field's prefill is
+  its first entry, stored as typed. They stand as buttons below the *Job code* field, as the target
+  chips do, rather than a `<datalist>`, whose suggestions a tablet hides behind the keyboard and
+  a touch user cannot see without typing (#187, autonomous).
+- 2026-11-28: The *Job code* field stands at the top of the move dialog, above the target chips
+  and so above the move summary, as the code is asked when the move starts; a template without
+  `{job}` shows no field (#187, autonomous).

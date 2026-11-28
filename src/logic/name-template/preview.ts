@@ -27,6 +27,8 @@ export type TemplatePreview
 	= | { readonly ok: true, readonly rows: readonly PreviewRow[], readonly collisions: number }
 		| { readonly ok: false, readonly problem: TemplateProblem, readonly column: number }
 
+/** What the preview shows for `{job}` (MOVE-005.4). */
+const SAMPLE_JOB_CODE = 'Job'
 const AT_14_32_05 = 1_794_234_725
 const AT_09_15_00 = 1_794_215_700
 const AT_18_02_41 = 1_794_247_361
@@ -56,7 +58,7 @@ export function templatePreview(text: string): TemplatePreview {
 	}
 	const parts: TemplatePart[] = [...parsed.template.folders.flat(), ...parsed.template.name]
 	const uses = (kind: TemplatePart['kind']) => parts.some((part) => part.kind === kind)
-	const rendered = SAMPLE_PICTURES.map((each) => renderPicture(parsed.template, each.facts, each.files))
+	const rendered = SAMPLE_PICTURES.map((each) => renderPicture(parsed.template, each.facts, each.files, SAMPLE_JOB_CODE))
 	const named = rendered.flatMap((each) => (each.ok ? [each.files] : []))
 	const suffixes = collisionSuffixes(named)
 	let next = 0

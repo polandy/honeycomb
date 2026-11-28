@@ -12,7 +12,7 @@ describe('collisionSuffixes', () => {
 	it.each(vectors.collisions)('$name', (vector) => {
 		const template = templateOf(vector.template)
 		const pictures = vector.pictures.map(({ picture, files }) => {
-			const rendered = renderPicture(template, factsOf(picture), filesOf(files))
+			const rendered = renderPicture(template, factsOf(picture), filesOf(files), '')
 			return rendered.ok ? rendered.files : []
 		})
 

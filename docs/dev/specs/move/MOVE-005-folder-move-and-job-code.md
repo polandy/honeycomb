@@ -23,8 +23,9 @@ text tokens. When the template uses it, the move dialog shows a *Job code* field
 summary, prefilled with the last job code used. The value is sanitised like every token value
 (MOVE-001.11) and may hold at most 40 characters; the summary renders it live. While the
 sanitised value is empty the confirm button is disabled and the field says "Enter a job code".
-The settings' template preview renders `{job}` as `Job`. A confirmed move stores its job code
-first in the recent job codes (5 kept); the field offers them.
+The settings' template preview renders `{job}` as `Job`. A move that moved a file stores its job
+code as typed first in the recent job codes (5 kept, the settings list `moveJobCodes`); the recent
+job codes stand as buttons below the field, and a tap puts one into it.
 
 **Sidecars, collisions, trash bin and undo** are those of every move: each sidecar moves with its
 picture under its own form (MOVE-001.16, MOVE-001.17), conflicts offer *Add suffix* · *Skip* ·
@@ -62,7 +63,8 @@ ADR 0029, and the dialog counts the photos sent.
 
 - **Given** a template with `{job}` and a job code such as `Hochzeit Müller`
 - **When** a picture renders
-- **Then** every file of the picture shows `Hochzeit-Mueller`, case-changed by its modifier
+- **Then** every file of the picture shows `Hochzeit-Mueller`, case-changed by its modifier; the
+  settings' template preview shows `Job`
 
 ### MOVE-005.5 – The job code field appears only when the template uses it
 
@@ -118,3 +120,4 @@ Moving from the *Folders* screen (a later step in `TODO.md`), a move into anothe
 | Date | Change |
 |---|---|
 | 2026-11-28 | Written with ADR 0063; built step by step (`TODO.md`). |
+| 2026-11-28 | Step 2: .3–.8 built; the recent job codes as buttons below the field, stored in `moveJobCodes`. |

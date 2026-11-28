@@ -62,7 +62,9 @@ Changing a list pairs the open folders again at once; your decisions stay.
   date in the name*, *Keep names*) or type your own. A template is text and `{tokens}` such as
   `{name}`, `{date:%Y-%m-%d}`, `{camera}` and `{ext}`, and `/` starts a new folder. A valid
   template is saved as you type. An invalid one is marked where the problem is, and moving keeps
-  using the last valid template.
+  using the last valid template. With `{job}` in the template the move dialog asks for a *Job
+  code*: it holds the last one you used, and your five recent job codes stand as buttons below.
+  The preview shows `Job` in its place.
 - **Preview:** five sample photos show the names the template gives. Notes mark a name that
   collides and gets a `-2` suffix, a photo without an EXIF time (its file time is used) and one
   without a camera model (`unknown`).

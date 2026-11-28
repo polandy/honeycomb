@@ -1,32 +1,14 @@
 // SPDX-FileCopyrightText: 2026 honeycomb contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // @vitest-environment happy-dom
-import type { Folder } from '../../../src/api/index.ts'
-
-import { flushPromises, mount } from '@vue/test-utils'
+import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import ConfirmDialog from '../../../src/components/ConfirmDialog.vue'
 import FolderTree from '../../../src/components/FolderTree.vue'
-import MoveDialogs from '../../../src/components/MoveDialogs.vue'
-import { allMoved, moveFlow } from '../move-fixtures.ts'
-import { DialogStub } from './stubs.ts'
-
-const SET = { paths: ['/Trip'], subfolders: false }
-const FOLDERS: Folder[] = [{ name: 'Trip', path: '/Trip', hasSubfolders: false, pictures: 0, picturesBelow: 0, picturesBelowApproximate: false, orphanedSidecars: 0, orphanedSidecarsBelow: 0 }, { name: 'Out', path: '/Out', hasSubfolders: false, pictures: 0, picturesBelow: 0, picturesBelowApproximate: false, orphanedSidecars: 0, orphanedSidecarsBelow: 0 }]
-
-/** The dialogs over a move flow from the fixtures, its dialog open on `chosen` of its pictures. */
-function mountDialogs(options: Parameters<typeof moveFlow>[1] = {}, answer = allMoved()) {
-	const fixture = moveFlow(answer, options)
-	const wrapper = mount(MoveDialogs, {
-		props: { flow: fixture.moving, folderSet: SET, listFolders: async () => FOLDERS },
-		global: { stubs: { NcDialog: DialogStub } },
-		attachTo: document.body,
-	})
-	return { wrapper, ...fixture }
-}
+import { allMoved } from '../move-fixtures.ts'
+import { confirmButton, mountDialogs } from './mount-move-dialogs.ts'
 
 const press = (key: string) => window.dispatchEvent(new KeyboardEvent('keydown', { key }))
-const confirmButton = (wrapper: ReturnType<typeof mount>) => wrapper.findAll('[role="dialog"] button').at(-1)!
 
 describe('MoveDialogs: target', () => {
 	// spec: MOVE-004.3
