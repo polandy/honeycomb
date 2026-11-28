@@ -19,11 +19,11 @@ check() {
 
 source scripts/nextcloud-images.sh
 
-# Docker only records the run; SQLite needs no database container, so one stub is enough.
+# Docker only records its arguments, each ended by |; SQLite needs no database container, so one stub is enough.
 mkdir "$work/bin"
 cat >"$work/bin/docker" <<'STUB'
 #!/bin/sh
-echo "$*" >>"$DOCKER_LOG"
+printf '%s|' "$@" >>"$DOCKER_LOG" && echo >>"$DOCKER_LOG"
 [ "$1" = inspect ] && echo healthy
 exit 0
 STUB
@@ -43,23 +43,23 @@ run_default() {
   env -u HONEYCOMB_DB_NEXTCLOUD PATH="$work/bin:$PATH" DOCKER_LOG="$work/docker.log" \
     HONEYCOMB_E2E_OWNER="7@test-host" scripts/php-db-tests.sh "$@" >/dev/null 2>&1
 }
-runs() { grep -c '^run ' "$work/docker.log"; }
+runs() { grep -c '^run|' "$work/docker.log"; }
 line_for() { grep -F -- "$1" "$work/docker.log"; }
 arg() { grep -cF -- "$1" <<<"$2"; }
 
 run_default
 check default-two-images 2 "$(runs)"
-check default-full-suite-newest 1 "$(arg "PHPUNIT_ARGS= -v" "$(line_for "$NEWEST_NEXTCLOUD_IMAGE")")"
-check default-canary-oldest 1 "$(arg "PHPUNIT_ARGS=--group canary" "$(line_for "$OLDEST_NEXTCLOUD_IMAGE")")"
+check default-full-suite-newest 1 "$(arg "|PHPUNIT_ARGS=|" "$(line_for "$NEWEST_NEXTCLOUD_IMAGE")")"
+check default-canary-oldest 1 "$(arg "|PHPUNIT_ARGS=--group canary|" "$(line_for "$OLDEST_NEXTCLOUD_IMAGE")")"
 
 run newest --group bench
-check newest-full-suite-args 1 "$(arg "PHPUNIT_ARGS=--group bench" "$(line_for "$NEWEST_NEXTCLOUD_IMAGE")")"
-check newest-canary-oldest 1 "$(arg "PHPUNIT_ARGS=--group canary" "$(line_for "$OLDEST_NEXTCLOUD_IMAGE")")"
+check newest-full-suite-args 1 "$(arg "|PHPUNIT_ARGS=--group bench|" "$(line_for "$NEWEST_NEXTCLOUD_IMAGE")")"
+check newest-canary-oldest 1 "$(arg "|PHPUNIT_ARGS=--group canary|" "$(line_for "$OLDEST_NEXTCLOUD_IMAGE")")"
 
 run oldest
 check oldest-two-images 2 "$(runs)"
-check oldest-full-suite 1 "$(arg "PHPUNIT_ARGS= -v" "$(line_for "$OLDEST_NEXTCLOUD_IMAGE")")"
-check oldest-canary-newest 1 "$(arg "PHPUNIT_ARGS=--group canary" "$(line_for "$NEWEST_NEXTCLOUD_IMAGE")")"
+check oldest-full-suite 1 "$(arg "|PHPUNIT_ARGS=|" "$(line_for "$OLDEST_NEXTCLOUD_IMAGE")")"
+check oldest-canary-newest 1 "$(arg "|PHPUNIT_ARGS=--group canary|" "$(line_for "$NEWEST_NEXTCLOUD_IMAGE")")"
 
 # An unknown image is refused by name before Docker runs.
 : >"$work/docker.log"
