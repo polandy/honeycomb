@@ -5,7 +5,8 @@ import type { ConnectionState, ConnectionStatus, FailedState, ImmichAvailability
 import type { CountsRequest, ImmichCounts } from '../logic/immich-counts.ts'
 import type { AssetsRequest, Page } from '../logic/immich-paging.ts'
 import type { ImmichPositionSave } from '../logic/immich-position.ts'
-import type { WriteCandidate } from '../logic/immich-write-plan.ts'
+import type { CheckedAsset, WriteCandidate, WriteResult } from '../logic/immich-write-plan.ts'
+import type { WriteRequest } from '../logic/immich-write-run.ts'
 
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -89,6 +90,24 @@ export async function immichWriteCandidates(connectionId: string): Promise<Write
 		cursor = data.nextCursor
 	}
 	return candidates
+}
+
+/** Immich's state of one block of at most 100 assets, for the write plan's conflicts (IMMICH-004.18). */
+export async function immichWriteCheck(connectionId: string, assetIds: readonly string[]): Promise<CheckedAsset[]> {
+	const { data } = await axios.post<unknown>(generateUrl(`${API}/immich/{connectionId}/write/check`, { connectionId }), { assetIds })
+	if (!isRecord(data) || !Array.isArray(data.assets)) {
+		throw new ApiResponseError('The Immich write check came without an assets array; check the server\'s version.')
+	}
+	return data.assets as CheckedAsset[]
+}
+
+/** Sends one block of at most 100 changes and answers each asset's result (IMMICH-004.19). */
+export async function immichWrite(connectionId: string, assets: readonly WriteRequest[]): Promise<WriteResult[]> {
+	const { data } = await axios.post<unknown>(generateUrl(`${API}/immich/{connectionId}/write`, { connectionId }), { assets })
+	if (!isRecord(data) || !Array.isArray(data.results)) {
+		throw new ApiResponseError('The Immich write came without a results array; check the server\'s version.')
+	}
+	return data.results as WriteResult[]
 }
 
 /** Stores where the user stopped in a connection (IMMICH-003.14, ADR 0044). */

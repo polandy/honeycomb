@@ -2303,3 +2303,9 @@ these changes; a changed line below is marked *(changed by the owner review)*.
   user's on the connection in pages of 500 by asset id, and the browser picks the pending ones
   (IMMICH-004.15), so the pending rule is not written a second time in SQL (ADR 0006); the cursor
   is the last asset id, unsigned, as it can only page the user's own rows (#187, autonomous).
+- 2026-11-28: The browser sends a done asset to `write` without a field, so honeycomb stores it as
+  written and it is not offered again, and Immich's rating 0 as none, the only form `write` takes
+  (IMMICH-004.24, #187, autonomous).
+- 2026-11-28: A failed check block stops the check, so nothing is written; a failed write block
+  fails its assets and every unsent one and stops, like the move's chunks (ADR 0029); the run
+  reuses `sendInChunks` with one asset per item (IMMICH-004.23, .24, #187, autonomous).
