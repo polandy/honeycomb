@@ -14,11 +14,11 @@ source scripts/nextcloud-images.sh
 source scripts/e2e-names.sh
 source scripts/database.sh
 
-case "${HONEYCOMB_DB_NEXTCLOUD:-newest}" in
+SELECTED=${HONEYCOMB_DB_NEXTCLOUD:-newest}
+case "$SELECTED" in
   oldest | newest) ;;
   *) echo "HONEYCOMB_DB_NEXTCLOUD must be oldest or newest" >&2 && exit 1 ;;
 esac
-SELECTED=${HONEYCOMB_DB_NEXTCLOUD:-newest}
 
 run_id=$$
 trap 'database_stop "$run_id"' EXIT
