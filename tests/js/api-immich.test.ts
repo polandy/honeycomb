@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from '@nextcloud/axios'
 import { describe, expect, it, vi } from 'vitest'
-import { ApiResponseError, immichAssets, immichCounts, immichFailureState, immichImageUrl, immichStatus, immichWriteCandidates, listImmichConnections, saveImmichDecisions, saveImmichPosition } from '../../src/api/index.ts'
+import { ApiResponseError, immichAssets, immichCounts, immichFailureState, immichImageUrl, immichStatus, immichWrite, immichWriteCandidates, immichWriteCheck, listImmichConnections, saveImmichDecisions, saveImmichPosition } from '../../src/api/index.ts'
 import { immichEntry } from './logic/immich-fixtures.ts'
 
 vi.mock('@nextcloud/axios', () => ({ default: { get: vi.fn(), post: vi.fn(), put: vi.fn() } }))
@@ -144,6 +144,41 @@ describe('immichWriteCandidates', () => {
 			vi.mocked(axios.get).mockReset().mockResolvedValueOnce({ data })
 			await expect(immichWriteCandidates('andy-phone')).rejects.toThrow(ApiResponseError)
 		}
+	})
+})
+
+describe('immichWriteCheck', () => {
+	const asset = { assetId: 'a1', updatedAt: 'u', rating: null, favorite: false, trashed: false, archived: false, sharedAlbum: null, stackSize: null }
+
+	// spec: IMMICH-004.23
+	it('posts the block\'s asset ids and answers Immich\'s state of each', async () => {
+		vi.mocked(axios.post).mockReset().mockResolvedValueOnce({ data: { assets: [asset] } })
+
+		await expect(immichWriteCheck('andy-phone', ['a1', 'a2'])).resolves.toEqual([asset])
+		expect(axios.post).toHaveBeenCalledWith(`${BASE}/write/check`, { assetIds: ['a1', 'a2'] })
+	})
+
+	it('refuses an answer without an assets array', async () => {
+		vi.mocked(axios.post).mockReset().mockResolvedValueOnce({ data: { assets: {} } })
+
+		await expect(immichWriteCheck('andy-phone', ['a1'])).rejects.toThrow(ApiResponseError)
+	})
+})
+
+describe('immichWrite', () => {
+	// spec: IMMICH-004.24
+	it('posts the block\'s changes and answers each asset\'s result', async () => {
+		const results = [{ assetId: 'a1', state: 'written' }, { assetId: 'a2', state: 'failed', error: 'refused' }]
+		vi.mocked(axios.post).mockReset().mockResolvedValueOnce({ data: { results } })
+
+		await expect(immichWrite('andy-phone', [{ assetId: 'a1', trash: true, immichRating: null }, { assetId: 'a2', rating: 3, immichRating: 3 }])).resolves.toEqual(results)
+		expect(axios.post).toHaveBeenCalledWith(`${BASE}/write`, { assets: [{ assetId: 'a1', trash: true, immichRating: null }, { assetId: 'a2', rating: 3, immichRating: 3 }] })
+	})
+
+	it('refuses an answer without a results array', async () => {
+		vi.mocked(axios.post).mockReset().mockResolvedValueOnce({ data: {} })
+
+		await expect(immichWrite('andy-phone', [{ assetId: 'a1', immichRating: null }])).rejects.toThrow(ApiResponseError)
 	})
 })
 
