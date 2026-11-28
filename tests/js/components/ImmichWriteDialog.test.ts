@@ -104,6 +104,15 @@ describe('ImmichWriteDialog', () => {
 		expect(document.body.querySelector('.immich-write-strip')).toBeNull()
 	})
 
+	// spec: IMMICH-004.28, IMMICH-004.6
+	it('still shows the strip for a write of exactly 100', async () => {
+		const ids = Array.from({ length: WRITE_BLOCK }, (_, index) => `r${index}`)
+		const { answer } = await mountDialog(ids.map((id) => checked(id)), ids.map((id) => candidate(id, { flag: 'rejected' })))
+		await answer()
+
+		expect(document.body.querySelectorAll('.immich-write-strip img')).toHaveLength(WRITE_BLOCK)
+	})
+
 	// spec: IMMICH-004.25, IMMICH-004.3
 	it('plans the write again on a reject choice', async () => {
 		const { answer, text } = await mountDialog()
