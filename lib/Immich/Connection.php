@@ -21,9 +21,9 @@ final class Connection {
 
 	/**
 	 * What the browser may see: never the key file.
-	 * @return array{id: string, label: string, url: string}
+	 * @return array{id: string, label: string, url: string, picksAsFavorites: bool}
 	 */
 	public function toArray(): array {
-		return ['id' => $this->id, 'label' => $this->label, 'url' => rtrim($this->url, '/')];
+		return ['id' => $this->id, 'label' => $this->label, 'url' => rtrim($this->url, '/'), 'picksAsFavorites' => $this->picksAsFavorites];
 	}
 }

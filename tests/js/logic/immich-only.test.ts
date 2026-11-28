@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { NO_IMMICH } from '../../../src/logic/immich-connections.ts'
 import { immichOnlyOffer, startSource } from '../../../src/logic/immich-only.ts'
 
-const PHONE = { id: 'andy-phone', label: 'Andy · Phone', url: 'https://immich.example' }
+const PHONE = { id: 'andy-phone', label: 'Andy · Phone', url: 'https://immich.example', picksAsFavorites: false }
 const CONNECTED = { kind: 'connections', connections: [PHONE] } as const
 const FAILING: readonly Exclude<ConnectionState, 'ok'>[] = ['unreachable', 'refused', 'key', 'version']
 

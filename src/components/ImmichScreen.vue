@@ -5,6 +5,7 @@
 <script setup lang="ts">
 import type { useImmichCull } from '../immich/immich-cull.ts'
 import type { useImmichResume } from '../immich/immich-resume.ts'
+import type { ImmichWrite } from '../immich/immich-write.ts'
 import type { DecisionIntent } from '../logic/decision-change.ts'
 import type { Flag } from '../logic/decision.ts'
 import type { SourceEntry } from '../logic/listing.ts'
@@ -24,6 +25,7 @@ import ActionBar from './ActionBar.vue'
 import AppIcon from './AppIcon.vue'
 import FlagFilter from './FlagFilter.vue'
 import ImmichFilterBar from './ImmichFilterBar.vue'
+import ImmichWriteDialog from './ImmichWriteDialog.vue'
 import PhotoGrid from './PhotoGrid.vue'
 import PhotoLoupe from './PhotoLoupe.vue'
 import SelectionRow from './SelectionRow.vue'
@@ -43,13 +45,15 @@ const props = withDefaults(defineProps<{
 	cull: ReturnType<typeof useImmichCull>
 	/** Saves where the loupe goes and opens it where a resume asks (IMMICH-003.14). */
 	resume?: ReturnType<typeof useImmichResume> | undefined
+	/** *Write to Immich* on the opened connection; without it the button is not shown (IMMICH-004.25). */
+	write?: ImmichWrite | undefined
 	settings: Settings
 	storage: BrowserStorage
 	viewState: ViewStateStore
 	tileSize?: number
 	observeSize?: ObserveSize | undefined
 	toggleFullscreen?: (element: HTMLElement) => void
-}>(), { resume: undefined, tileSize: DEFAULT_TILE_SIZE, observeSize: undefined, toggleFullscreen: toggleBrowserFullscreen })
+}>(), { resume: undefined, write: undefined, tileSize: DEFAULT_TILE_SIZE, observeSize: undefined, toggleFullscreen: toggleBrowserFullscreen })
 
 const emit = defineEmits<{
 	'update:tileSize': [size: number]
@@ -162,6 +166,9 @@ defineExpose({
 				@selectAll="selection.selectAll"
 				@selectNone="selection.selectNone"
 				@done="selection.setSelecting(false)" />
+			<NcButton v-if="props.write !== undefined" class="immich-screen__write" @click="props.write.open()">
+				{{ t('honeycomb', 'Write to Immich') }}
+			</NcButton>
 		</div>
 		<ImmichFilterBar
 			:filters="filters"
@@ -224,6 +231,7 @@ defineExpose({
 			:keepRaw="false"
 			:tags="false"
 			@decide="props.cull.decide($event, selected)" />
+		<ImmichWriteDialog v-if="props.write !== undefined" :write="props.write" />
 		<Teleport to="body">
 			<PhotoLoupe
 				v-if="loupeIndex !== null && pictures.length > loupeIndex"
@@ -264,6 +272,10 @@ defineExpose({
 
 .immich-screen__count {
 	color: var(--color-text-maxcontrast);
+}
+
+.immich-screen__write {
+	margin-inline-start: auto;
 }
 
 .immich-screen__grid {

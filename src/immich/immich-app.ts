@@ -7,6 +7,7 @@ import type { ImmichCullContext } from './immich-cull.ts'
 import type { ImmichCullApi } from './immich-picture-source.ts'
 import type { ImmichPositionApi } from './immich-resume.ts'
 import type { ImmichApi } from './immich-source.ts'
+import type { ImmichWriteApi } from './immich-write.ts'
 
 import { computed, watch } from 'vue'
 import { IMMICH_FILTERS_KEY, storedFiltersOf } from '../logic/immich-filter-storage.ts'
@@ -18,12 +19,14 @@ import { logger } from '../shared/logger.ts'
 import { useImmichCull } from './immich-cull.ts'
 import { useImmichResume } from './immich-resume.ts'
 import { useImmichSource } from './immich-source.ts'
+import { useImmichWrite } from './immich-write.ts'
 
 /** The seams the app's Immich side is built from. */
 export interface ImmichAppContext {
 	readonly source: ImmichApi
 	readonly cull: ImmichCullApi
 	readonly positions: ImmichPositionApi
+	readonly write: ImmichWriteApi
 	readonly storage: BrowserStorage
 	/** Where each connection's filters are kept (ADR 0019). */
 	readonly viewState: ViewStateApi
@@ -94,5 +97,7 @@ export function useImmichApp(context: ImmichAppContext) {
 		resume.refresh()
 	}), 'Could not load the Immich connections')
 
-	return { immich, shown, opened, openedStatus, onlyOffer, cull, resume, openConnection, checkOpened }
+	const write = useImmichWrite(context.write, () => opened.value)
+
+	return { immich, shown, opened, openedStatus, onlyOffer, cull, resume, write, openConnection, checkOpened }
 }
