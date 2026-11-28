@@ -5,7 +5,7 @@ import type { WriteRequest } from '../../../src/logic/immich-write-run.ts'
 import type { SendProgress } from '../../../src/logic/request-chunks.ts'
 
 import { describe, expect, it, vi } from 'vitest'
-import { checkPending, runWrite, writeRequests } from '../../../src/logic/immich-write-run.ts'
+import { checkPending, runWrite, writeBlockOf, writeRequests } from '../../../src/logic/immich-write-run.ts'
 import { candidate, checked } from './immich-fixtures.ts'
 
 const ids = (count: number) => Array.from({ length: count }, (_, index) => `a${index}`)
@@ -139,5 +139,21 @@ describe('runWrite', () => {
 
 		await expect(runWrite({ ...EMPTY_PLAN, skipped: ['s1'] }, checks(), write, () => {})).resolves.toEqual({ results: [{ assetId: 's1', state: 'skipped' }], failure: null })
 		expect(write).not.toHaveBeenCalled()
+	})
+})
+
+describe('writeBlockOf', () => {
+	// spec: IMMICH-004.25
+	it('names the block a step is in and how many there are, the last step in the last block', () => {
+		expect(writeBlockOf({ done: 0, total: 250 })).toEqual({ block: 1, blocks: 3 })
+		expect(writeBlockOf({ done: 99, total: 250 })).toEqual({ block: 1, blocks: 3 })
+		expect(writeBlockOf({ done: 100, total: 250 })).toEqual({ block: 2, blocks: 3 })
+		expect(writeBlockOf({ done: 250, total: 250 })).toEqual({ block: 3, blocks: 3 })
+		expect(writeBlockOf({ done: 100, total: 100 })).toEqual({ block: 1, blocks: 1 })
+	})
+
+	// spec: IMMICH-004.25
+	it('counts one block when nothing is to send', () => {
+		expect(writeBlockOf({ done: 0, total: 0 })).toEqual({ block: 1, blocks: 1 })
 	})
 })

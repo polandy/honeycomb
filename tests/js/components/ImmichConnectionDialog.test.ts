@@ -7,7 +7,7 @@ import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 import ImmichConnectionDialog from '../../../src/components/ImmichConnectionDialog.vue'
 
-const PHONE = { id: 'andy-phone', label: 'Andy · Phone', url: 'https://immich.example' }
+const PHONE = { id: 'andy-phone', label: 'Andy · Phone', url: 'https://immich.example', picksAsFavorites: false }
 const OK: ConnectionStatus = { state: 'ok', account: 'andy', version: '2.3.1', total: 3660 }
 
 enableAutoUnmount(afterEach)

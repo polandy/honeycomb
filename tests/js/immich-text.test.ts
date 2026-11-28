@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { connectionFacts, connectionLine, IMMICH_ADMIN_URL, pageFailedText, stateHelp } from '../../src/immich/immich-text.ts'
 import { installMarkedCatalogue, TRANSLATED_MARK as MARK, uninstallMarkedCatalogue } from './l10n/marked-catalogue.ts'
 
-const PHONE = { id: 'andy-phone', label: 'Andy · Phone', url: 'https://immich.example' }
+const PHONE = { id: 'andy-phone', label: 'Andy · Phone', url: 'https://immich.example', picksAsFavorites: false }
 const OK = { state: 'ok', account: 'andy', version: '2.3.1', total: 3660 } as const
 
 describe('immich-text', () => {

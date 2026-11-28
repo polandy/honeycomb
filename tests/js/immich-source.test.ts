@@ -14,8 +14,8 @@ afterEach(() => {
 	vi.restoreAllMocks()
 })
 
-const PHONE = { id: 'andy-phone', label: 'Andy · Phone', url: 'https://immich.example' }
-const KIDS = { id: 'kids', label: 'Kids', url: 'https://immich.example' }
+const PHONE = { id: 'andy-phone', label: 'Andy · Phone', url: 'https://immich.example', picksAsFavorites: false }
+const KIDS = { id: 'kids', label: 'Kids', url: 'https://immich.example', picksAsFavorites: false }
 const OK: ConnectionStatus = { state: 'ok', account: 'andy', version: '2.3.1', total: 3660 }
 const TWO: ImmichAvailability = { kind: 'connections', connections: [PHONE, KIDS] }
 

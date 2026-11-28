@@ -18,7 +18,7 @@ afterEach(() => {
 	vi.restoreAllMocks()
 })
 
-const PHONE = { id: 'andy-phone', label: 'Andy · Phone', url: 'https://immich.example' }
+const PHONE = { id: 'andy-phone', label: 'Andy · Phone', url: 'https://immich.example', picksAsFavorites: false }
 const CONNECTED: ImmichAvailability = { kind: 'connections', connections: [PHONE] }
 const OK: ConnectionStatus = { state: 'ok', account: 'andy', version: '2.3.1', total: 3660 }
 const REFUSED: ConnectionStatus = { state: 'refused', account: null, version: null, total: null }

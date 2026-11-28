@@ -16,7 +16,7 @@ afterEach(() => {
 	vi.restoreAllMocks()
 })
 
-const CONNECTIONS = [{ id: 'andy-phone', label: 'Andy’s phone', url: 'https://immich.example.org' }]
+const CONNECTIONS = [{ id: 'andy-phone', label: 'Andy’s phone', url: 'https://immich.example.org', picksAsFavorites: false }]
 const stored = (assetId: string, connectionId = 'andy-phone') => ({ immich: connectionId, assetId, takenAt: NOW - 60, decided: 1, total: 1000, updatedAt: NOW - 3600 })
 
 /** The resume of an Immich cull over a fake server that answers `positions`; saves settle as `save` says. */

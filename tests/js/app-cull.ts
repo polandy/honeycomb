@@ -206,6 +206,7 @@ export function mountApp(props: Record<string, unknown> = {}, decisions: StoredD
 			immich: NO_IMMICH_API,
 			immichCull: SILENT_IMMICH_CULL,
 			immichPositions: { loadPositions: async () => [], savePosition: async () => undefined },
+			immichWrite: { candidates: async () => [], check: async () => [], write: async () => [], imageUrl: () => '' },
 			now: () => NOW_SECONDS,
 			library: NO_LIBRARY,
 			...props,
