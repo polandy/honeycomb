@@ -17,7 +17,7 @@ while IFS= read -r path; do
     .github/workflows/ci.yml | .github/actions/* | scripts/verify.sh | scripts/ci-changes*) all ;;
     .github/workflows/* | .github/dependabot.yml | .claude/* | docs/* | LICENSES/* | REUSE.toml) ;;
     release-please-config.json | .release-please-manifest.json | .gitignore) ;;
-    *.php | composer.* | appinfo/* | templates/* | lib/* | tests/php/* | tests/php-db/* | scripts/php-db-tests.sh | scripts/database.sh | psalm* | .php-cs-fixer* | phpunit*) php=true app=true ;;
+    *.php | composer.* | appinfo/* | templates/* | lib/* | tests/php/* | tests/php-db/* | scripts/php-db-tests.sh | scripts/database.sh | scripts/nextcloud-images.sh | psalm* | .php-cs-fixer* | phpunit*) php=true app=true ;;
     tests/interop/* | scripts/xmp-interop.sh) ts=true ;;
     *.ts | *.vue | src/* | package*.json | .npmrc | tsconfig* | vite* | vitest* | eslint* | .eslintrc*)
       ts=true app=true ;;
